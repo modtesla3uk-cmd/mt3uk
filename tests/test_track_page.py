@@ -3353,6 +3353,7 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     expect(page.locator("#tp-ignore-finish")).to_have_count(0)
     page.locator("[data-type] button[data-v='sprint']").click()
+    page.locator("select#tp-organiser").select_option("Short course")
     result = page.locator("#tp-result .tp-notice.is-ok")
     expect(result).to_contain_text("Test Sprint")
     switch = page.locator("#tp-ignore-finish")
@@ -3418,6 +3419,7 @@ def test_hill_climbs_keep_both_runs_with_the_ignore_switch_on(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.locator("[data-type] button[data-v='sprint']").click()
+    page.locator("select#tp-organiser").select_option("Short course")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Test Sprint")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("2 timed runs")
     expect(page.locator("#tp-ignore-finish")).to_be_visible()
@@ -3431,6 +3433,7 @@ def test_a_sprint_says_which_signal_started_its_clock(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("[data-type] button[data-v='sprint']").click()
+    page.locator("select#tp-organiser").select_option("Short course")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("2 timed runs")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
@@ -5313,6 +5316,31 @@ def test_a_venue_with_several_sprint_courses_makes_the_member_pick_the_organiser
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
 
 
+def test_a_venue_with_one_listed_sprint_course_still_makes_the_member_pick_or_add_one(page):
+    """A session from another year must not be put on the only course listed: with no organiser chosen nothing is
+    timed. The course is in the drop-down by name, and Add a new organiser is the other way through."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        v = [x for x in d["venues"] if x["id"] == "shelsley-walsh"][0]
+        v["layouts"] = [{"id": "hill-2023", "name": "2023 course", "startLine": SHELSLEY_START, "finishLine": SHELSLEY_FINISH}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
+    page.locator("[data-type] button[data-v='sprint']").click()
+    expect(page.locator("#tp-pick-layout")).to_be_visible()
+    expect(page.locator("#tp-save")).to_have_count(0)
+    org = page.locator("select#tp-organiser")
+    assert org.locator("option").all_text_contents() == ["Choose an organiser", "2023 course", "Add a new organiser"]
+    org.select_option("__new")
+    expect(page.locator("#tp-pick-layout")).to_contain_text("type the new organiser")
+    page.locator("#tp-organiser-new").fill("2022")
+    page.locator("#tp-organiser-new").press("Tab")
+    expect(page.locator("#tp-pick-layout")).to_have_count(0)
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
+
+
 def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
@@ -6075,6 +6103,7 @@ def test_a_hill_climb_is_told_apart_from_a_sprint(page):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     expect(page.locator("[data-type] button")).to_have_text(["Track day", "Drag run", "Sprint", "Hill climb", "Other"])
     page.locator("[data-type] button[data-v='hill']").click()
+    page.locator("select#tp-organiser").select_option("Short course")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Test Sprint")
     expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])
     page.get_by_role("button", name="Save session").click()

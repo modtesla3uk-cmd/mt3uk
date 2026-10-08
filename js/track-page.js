@@ -1925,7 +1925,7 @@
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.orgNew = false; add.orgFrom = null; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
-      add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
+      add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false; add.courseMade = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -2300,7 +2300,8 @@
       ((a.lib && a.lib.venues) || []).forEach(function (vv) {
         if (vv.type !== 'sprint' || (s.venueId ? vv.id !== s.venueId : true)) return;
         (vv.layouts || []).forEach(function (l) {
-          var o = String(l.organizer || '').trim();
+          // A course with no organiser is listed by its name (the timing matches a course by organiser or name), so it can be picked.
+          var o = String(l.organizer || (l.startLine && l.finishLine ? l.name : '') || '').trim();
           if (o && orgs.indexOf(o) === -1) orgs.push(o);
           if (l.startLine && l.finishLine) courses.push({ id: l.id, name: o || l.name || 'the listed course', start: l.startLine, finish: l.finishLine });
         });
@@ -2342,7 +2343,7 @@
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
           (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-secondary tp-confirm" data-tap="done" role="switch" aria-checked="false">' + icon('check') + 'Correct lines?</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>';
       } else if (s.needsLayoutPick) {
-        h += '<div class="tp-notice is-warn" id="tp-pick-layout">' + icon('warn') + '<div><b>Which organiser was it?</b><br>' + esc(s.venue || 'This track') + ' has more than one course, so choose the organiser above before your runs are timed. If the organiser is not listed, choose Add a new organiser.</div></div>';
+        h += '<div class="tp-notice is-warn" id="tp-pick-layout">' + icon('warn') + '<div><b>Which organiser was it?</b><br>' + esc(s.venue || 'This track') + ' has a listed course, so ' + (a.orgNew ? 'type the new organiser\'s name below before your runs are timed.' : 'choose the organiser above before your runs are timed. If the organiser is not listed, choose Add a new organiser.') + '</div></div>';
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
@@ -2555,7 +2556,7 @@
       api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', hill: s2.type === 'sprint' && isHillSession(s2, a.lib), name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', layoutId: s2.type === 'sprint' ? '' : s2.layoutId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
         if (!d.success) { offBtn.disabled = false; status(d.message || 'Could not make that official.', 'error'); return; }
         // The course now exists: this file (and every other) is timed on its lines.
-        a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false;
+        a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.courseMade = true;
         analyse();
         status('Official lines saved. ' + d.relinked + ' of your saved sessions were linked to them.', 'ok');
       }).catch(function () { offBtn.disabled = false; status('Could not reach the server.', 'error'); });
@@ -2814,15 +2815,16 @@
     var v = s.venueId && ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
     return v && v.type === 'circuit' ? (v.layouts || []) : [];
   }
-  // Adding a sprint or hill climb at a venue with more than one course, and no organiser picked yet: the member must choose.
+  // Adding a sprint or hill climb at a venue with any listed course, and no organiser picked yet: the member must choose one
+  // of the listed organisers or add a new one, so a run from another year is never timed on the one listed course.
   // Track days are not held to this: their layout is found from the GPS.
   function mustPickLayout(a, s) {
     if (a.lineEdit || (a.replaceId && !a.relayout) || !s.venueId) return false;
     if (s.type === 'sprint') {
       // Sprints and hill climbs: the organiser says which course. Their own lines, or a new organiser, are a choice too.
-      if (a.organizer || a.orgNew || (a.startLine && a.finishLine)) return false;
+      if (a.organizer || a.orgNew || a.courseMade || (a.startLine && a.finishLine)) return false;
       var v = ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
-      return !!v && v.type === 'sprint' && (v.layouts || []).filter(function (l) { return l.startLine && l.finishLine; }).length > 1;
+      return !!v && v.type === 'sprint' && (v.layouts || []).filter(function (l) { return l.startLine && l.finishLine; }).length > 0;
     }
     return false;
   }
@@ -2909,7 +2911,7 @@
       // Timed again against the new course: its official lines are the ones just sent, so the laps are the same.
       // The layout now exists: from here every file is timed on it (not as a different layout again), and the admin is not
       // sent a second request for it.
-      if (d.layoutId) { a.layoutPick = d.layoutId; a.addNow = false; a.addedLayout = true; }
+      if (d.layoutId) { a.layoutPick = d.layoutId; a.addNow = false; a.addedLayout = true; a.courseMade = true; }
       var again = analysisOpts(a);
       var next = T.analyse(a.rd, a.lib, again);
       if (a.date) { next.date = a.date; next.dateFrom = 'member'; }

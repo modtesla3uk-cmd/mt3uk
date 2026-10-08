@@ -6325,7 +6325,7 @@ def test_a_session_has_a_skip_to_section_list_and_an_exit_button_and_the_map_is_
     save_thruxton_with_a_member_board(page, fake)
     expect(page.locator("#tp-session-bar")).to_be_visible()
     texts = [t.strip() for t in page.locator("#tp-skip option").all_text_contents()]
-    assert texts[0] == "Choose a section" and "Map" in texts and "Session settings" in texts and "Laps" in texts and "G-force and speed" in texts, texts
+    assert texts[0] == "Skip to section" and "Map" in texts and "Session settings" in texts and "Laps" in texts and "G-force and speed" in texts, texts
     expect(page.locator("#tp-mapcard h3").first).to_have_text("Map")
     expect(page.locator("body")).not_to_contain_text("Where you are")
     page.select_option("#tp-skip", label="Session settings")
@@ -6460,3 +6460,13 @@ def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
     top = page.evaluate("(() => { const d = [...document.querySelectorAll('.tp-daygroup')].find(x => x.textContent.includes('14 Jul 2026')); const r = d.getBoundingClientRect(); return [r.top, r.bottom, innerHeight, scrollY]; })()")
     assert top[3] > 200 and top[0] < top[2] and top[1] > 0, top
     assert all(v["conditions"] == "Wet" for k, v in fake.sessions.items() if k.startswith("g"))
+
+
+def test_skip_to_and_exit_session_share_one_row_on_a_phone(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.set_viewport_size({"width": 390, "height": 800})
+    page.wait_for_timeout(300)
+    skip, exit_ = page.locator("#tp-skip").bounding_box(), page.locator("#tp-exit").bounding_box()
+    assert abs((skip["y"] + skip["height"] / 2) - (exit_["y"] + exit_["height"] / 2)) < 6, (skip, exit_)
+    assert skip["x"] + skip["width"] <= exit_["x"] + 1 and exit_["x"] + exit_["width"] <= 390, (skip, exit_)

@@ -3852,6 +3852,9 @@ def test_full_screen_map_on_a_phone(page):
     page.wait_for_timeout(200)
     drawn, room = page.locator("#tp-gforce svg").first.evaluate("e => [e.viewBox.baseVal.width, e.parentNode.clientWidth]")
     assert abs(drawn - max(280, room)) <= 14, (drawn, room)
+    # The Show G-Forces switch stays at the top right of the panel, even narrowed with all three chips on.
+    sw, gbx = page.locator("#tp-gshow").bounding_box(), page.locator("#tp-gbox").bounding_box()
+    assert sw["y"] <= gbx["y"] + 40 and abs((sw["x"] + sw["width"]) - (gbx["x"] + gbx["width"])) <= 14, (sw, gbx)
     page.mouse.up()
     page.wait_for_timeout(300)
     assert 615 <= page.locator("#tp-map2").bounding_box()["width"] <= 650, page.locator("#tp-map2").bounding_box()
@@ -6674,6 +6677,36 @@ def test_holding_sessions_of_a_day_picks_them_and_the_bulk_edit_changes_only_tho
     assert fake.sessions["g1"]["conditions"] == "Wet" and fake.sessions["g3"]["conditions"] == "Wet" and fake.sessions["g2"]["conditions"] == "Dry"
     # The picking is cleared once applied.
     expect(page.locator("a.tp-row.is-picked")).to_have_count(0)
+
+
+def assert_in(part, text):
+    assert part in text, text
+
+
+def test_delete_follows_the_picked_sessions_of_a_day(page):
+    """Delete this day becomes Delete this session once one session is picked, and removes only that one."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 1)
+    open_page(page, fake)
+    page.set_viewport_size({"width": 1100, "height": 900})
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator(".tp-trackrow").click()
+    wrap.locator("[data-layout-toggle]").click()
+    day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    day.locator(".tp-daygroup-title[data-day-toggle]").click()
+    delete = day.locator("[data-day-delete]")
+    expect(delete).to_have_text("Delete this day")
+    row = lambda sid: day.locator('a.tp-row[data-sid="%s"]' % sid)
+    _hold(page, row("g1"))
+    expect(delete).to_have_text("Delete this session")
+    row("g2").click()
+    expect(delete).to_have_text("Delete 2 selected sessions")
+    row("g2").click()
+    expect(delete).to_have_text("Delete this session")
+    page.once("dialog", lambda d: (assert_in("delete this session", d.message), d.accept()))
+    delete.click()
+    expect(page.locator("#tp-saved")).to_contain_text("Deleted the session")
+    assert "g1" not in fake.sessions and "g2" in fake.sessions and "g3" in fake.sessions
 
 
 def test_picked_sessions_can_be_cleared_and_ctrl_click_picks(page):

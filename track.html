@@ -608,6 +608,12 @@
     .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { display: none; }
     .tp-mapcard.is-full .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
+    /* The chips wrap in their own column and the Show switch stays at the top right whatever the panel's width, instead of
+       dropping to a second row when the chips fill the first. */
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 8px; }
+    .tp-mapcard.is-full .tp-gbox #tp-gtoggles { grid-column: 1; grid-row: 1; }
+    .tp-mapcard.is-full .tp-gbox .tp-gswitch { grid-column: 2; grid-row: 1; justify-self: end; margin: 0; }
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head .tp-speedsw, .tp-mapcard.is-full .tp-gbox .tp-chart-head #tp-full { grid-column: 1 / -1; justify-self: start; margin-left: 0; }
     .tp-mapcard.is-full #tp-gtoggles { flex-basis: auto; order: 1; }
     .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 30px; padding: 0 8px; font-size: 0.76rem; }
     .tp-mapcard.is-full #tp-gnote, .tp-mapcard.is-full #tp-gpeaks { display: none; }
@@ -1277,7 +1283,7 @@
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=9" defer></script>
-<script src="js/track-page.js?v=20271029" defer></script>
+<script src="js/track-page.js?v=20271030" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

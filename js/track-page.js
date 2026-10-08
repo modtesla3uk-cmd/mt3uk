@@ -1565,6 +1565,15 @@
     var hs = box.querySelector('[data-pick-hint] span');
     if (hs) hs.textContent = hint;
     if (bar) { bar.hidden = !picked.length; bar.querySelector('[data-pick-count]').textContent = picked.length + ' selected'; }
+    // Delete follows the picks: one picked is Delete this session, several are Delete N selected sessions, and only
+    // those go (the day's drives stay); with none picked it is the whole day again.
+    var del = box.querySelector('[data-day-delete]');
+    if (del) {
+      if (!del.hasAttribute('data-all-ids')) del.setAttribute('data-all-ids', del.getAttribute('data-ids'));
+      del.setAttribute('data-ids', (picked.length ? picked : del.getAttribute('data-all-ids').split(',')).join(','));
+      if (picked.length) del.setAttribute('data-picked', ''); else del.removeAttribute('data-picked');
+      del.innerHTML = icon('trash') + (picked.length === 1 ? 'Delete this session' : picked.length ? 'Delete ' + picked.length + ' selected sessions' : 'Delete this day');
+    }
     var form = document.getElementById('tp-dayedit');
     if (form && box.contains(form)) form.remove();
   }
@@ -1712,7 +1721,7 @@
     var b = e.target.closest && e.target.closest('[data-day-delete]');
     if (!b || b.disabled) return;
     var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
-    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
+    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : b.hasAttribute('data-picked') ? 'This will delete the ' + ids.length + ' selected sessions (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
     b.disabled = true;
     var chain = Promise.resolve(), failed = 0;
     ids.forEach(function (id) {

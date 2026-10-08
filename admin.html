@@ -1451,7 +1451,7 @@
         if (state === 'allowed') return;
         var rn = x.kind === 'rename';
         items.push({ id: 'lines:' + (rn ? 'rename:' : '') + x.id + ':' + state + ':' + (x.proposal ? x.proposal.at : x.at), group: rn ? (state === 'changed' ? 'Track renames to approve' : 'Track rename requests') : state === 'changed' ? 'Map changes to approve' : 'Map edit requests', href: 'track-admin.html#lines-' + x.id, img: '',
-          title: x.name || x.email || 'A member', sub: rn ? (state === 'changed' ? 'Sent a new track name for ' : 'Wants to rename the track on ') + (x.what || 'a session') : state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
+          title: x.name || x.email || 'A member', sub: rn ? (state === 'changed' ? 'Suggested a new ' + (x.target === 'layout' ? 'layout' : 'track') + ' name for ' : 'Wants to rename the track on ') + (x.what || 'a session') : state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
       });
       trackBell = items;
       renderBell();

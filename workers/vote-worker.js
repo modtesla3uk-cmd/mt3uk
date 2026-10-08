@@ -8202,7 +8202,7 @@ async function handleTrackLinesPropose(request, env) {
   entry.proposal = { at: new Date().toISOString(), from: from, to: to, images: { before: pics.some(function (x) { return x.which === 'before'; }), after: pics.some(function (x) { return x.which === 'after'; }) } };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), who = subscriberLabel(entry.name, email);
   var requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id, sessionUrl = LAPS_SITE_URL + '/track.html?s=' + rec.id;
-  var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
+  var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or deny it.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
     (pics.length ? 'The old and new lines are pictured in the HTML version of this email, and on the panel.\n\n' : '') +
@@ -8231,8 +8231,10 @@ async function handleTrackLinesPropose(request, env) {
 }
 // ---- Renaming the track on a saved session ----
 // A session at a track we do not list carries the name its member typed. The member cannot change it themselves:
-// they ask (Request rename), the admin allows it for that one session on the Line editing panel, the member sends
-// the new name, and nothing changes until the admin accepts it. The same steps as editing the map lines. One KV key,
+// suggest a new name straight from their session (Send for approval, no permission step: the entry is made then, with
+// status 'granted'), the admin is told (bell and email) and accepts or denies it on the Line editing panel, and either way
+// the member is emailed and the entry is removed. (Older entries still waiting at 'pending' are allowed by sending a
+// name, and the admin's Allow still works.) The request route below is no longer used by the page. One KV key,
 // read with get(): track-rename-access = [{ id (session), email, name, note, at, status 'pending' | 'granted',
 // grantedAt, proposal: { at, from, to } }]. A session at a listed track takes its name from the track list, so there
 // the member asks to rename its layout (entry.target 'layout', with venueId and layoutId): accepting it renames the
@@ -8289,8 +8291,23 @@ async function handleTrackRenamePropose(request, env) {
   var got = await getOwnTrackSession(request, env, String(body.id || ''));
   if (got.error) return got.error;
   var rec = got.rec, list = await getRenameAccess(env);
-  var entry = list.filter(function (x) { return x.id === rec.id && x.status === 'granted'; })[0];
-  if (!entry) return json({ success: false, message: 'Ask MT3UK to let you rename this track first.' }, 403);
+  var entry = list.filter(function (x) { return x.id === rec.id; })[0];
+  if (!entry) {
+    // A new suggestion needs no permission: the entry is made now, for the layout when the session is at a listed track.
+    if (rec.street) return json({ success: false, message: 'Street runs cannot be renamed.' }, 400);
+    var listedNow = null;
+    if (rec.venueId) {
+      listedNow = findListedLayout(await getTrackLibrary(env), rec.venueId, rec.layoutId);
+      if (!listedNow) return json({ success: false, message: 'This session is at a listed track but not on a listed layout, so there is no layout name to change.' }, 400);
+    }
+    if (list.filter(function (x) { return x.email === accessEmail(email) && x.proposal; }).length >= 5) return json({ success: false, message: 'You already have names waiting for approval. We\'ll get to them soon.' }, 429);
+    var nowIso = new Date().toISOString();
+    entry = { id: rec.id, email: accessEmail(email), name: (publicName(await getProfileRecord(env, email)) || '').slice(0, 60), note: '', at: nowIso, status: 'granted', grantedAt: nowIso };
+    if (listedNow) { entry.target = 'layout'; entry.venueId = rec.venueId; entry.layoutId = rec.layoutId; }
+    list.unshift(entry);
+  } else if (entry.status !== 'granted') {
+    entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
+  }
   var to = trackText(body.name, 60);
   if (entry.target === 'layout') {
     var cur = findListedLayout(await getTrackLibrary(env), entry.venueId, entry.layoutId);
@@ -8301,8 +8318,8 @@ async function handleTrackRenamePropose(request, env) {
     entry.proposal = { at: new Date().toISOString(), from: cur.layout.name, to: to, target: 'layout' };
     var llabel = trackSessionLabel(rec) + ', ' + (rec.date || ''), lurl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
     await emailAdminAboutLines(env, 'Layout rename awaiting your approval: ' + cur.venue.name, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename a layout at ' + cur.venue.name + ' (from the session ' + llabel + '). Nothing has changed yet. If you accept it, the layout is renamed in the track list and on every saved session at it, for everyone.\n\n' +
-      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
-    await env.VOTES.put('track-rename-access', JSON.stringify(list));
+      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or deny it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
+    await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
     return json({ success: true, state: 'granted', proposal: entry.proposal });
   }
   if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
@@ -8311,8 +8328,8 @@ async function handleTrackRenamePropose(request, env) {
   entry.proposal = { at: new Date().toISOString(), from: rec.venue || '', to: to };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
   await emailAdminAboutLines(env, 'Track rename awaiting your approval: ' + label, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename the track on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
-    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
-  await env.VOTES.put('track-rename-access', JSON.stringify(list));
+    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or deny it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
+  await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
 }
 // A layout renamed: the name on a session's summary in its owner's list and in its car's shared list. Board entries do
@@ -8340,8 +8357,10 @@ async function handleTrackRenameAdmin(request, env, body) {
     }
   } else if (action === 'undo') {
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your track name was not used', 'Hello,\n\nMT3UK did not use the track name you sent, so the session is as it was. You can send another if you like:\n\n' + url);
+    // Denied: the member is told and the entry goes, so they can suggest another name.
+    var thing = entry.target === 'layout' ? 'layout' : 'track';
+    await emailMemberAboutLines(env, entry, 'Your ' + thing + ' name was not used', 'Hello,\n\nMT3UK did not use the ' + thing + ' name you suggested, so ' + (thing === 'layout' ? 'the layout is' : 'your session is') + ' as it was. You can suggest another name if you like:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
   } else if (action === 'accepted' && entry.target === 'layout') {
     // Step one: the layout is renamed in the track list. The saved sessions follow in pages ('apply').
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
@@ -8372,8 +8391,8 @@ async function handleTrackRenameAdmin(request, env, body) {
       changedNow++;
     }
     if (!page.list_complete) return json({ success: true, done: false, cursor: page.cursor, changed: changedNow });
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your layout name was accepted', 'Hello,\n\nMT3UK accepted the layout name you sent. It is changed in the track list and on every session at that layout:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
+    await emailMemberAboutLines(env, entry, 'Your layout name was accepted', 'Hello,\n\nMT3UK accepted the layout name you suggested. It is changed in the track list and on every session at that layout:\n\n' + url);
     await env.VOTES.put('track-rename-access', JSON.stringify(list));
     return json({ success: true, done: true, changed: changedNow });
   } else if (action === 'accepted') {
@@ -8384,8 +8403,8 @@ async function handleTrackRenameAdmin(request, env, body) {
     rec.venue = entry.proposal.to;
     if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'Could not save the session.' }, 413);
     await putTrackIndexesFor(env, rec.owner, rec);
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your track name was accepted', 'Hello,\n\nMT3UK accepted the track name you sent. It is on your session now:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
+    await emailMemberAboutLines(env, entry, 'Your track name was accepted', 'Hello,\n\nMT3UK accepted the track name you suggested. It is on your session now:\n\n' + url);
   } else if (action === 'revoke' || action === 'dismiss') {
     list = list.filter(function (x) { return x !== entry; });
   } else {

@@ -3223,7 +3223,8 @@
     }
     return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + '<h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
-  // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
+  // The track name on a session at a track we do not list: the member suggests a new name and sends it for approval (no
+  // permission step); the admin accepts or denies it and the member is emailed either way.
   // At a track we do list, what can be wrong is the name of its layout ("Brands Hatch, New Layout"), which every session on
   // that layout shares: a rename is asked for here and, once MT3UK approves it, changes for everyone.
   function layoutRename(s) { return !!(s.venueId && s.layoutId && s.layout && s.type !== 'drag' && s.type !== 'other'); }
@@ -3235,33 +3236,19 @@
   function drawRename(s, st) {
     var box = document.getElementById('tp-rename');
     if (!box) return;
-    var h = '', p = st && st.proposal, lay = layoutRename(s), thing = lay ? 'layout' : 'track', cur = lay ? s.layout : s.venue;
-    if (!st || st.state === 'none') {
-      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, ask MT3UK to let you suggest a new one. MT3UK checks it before it changes for everyone.</p>'
-        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>') +
-        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="' + (lay ? 'For example, Indy circuit' : 'For example, it is spelt Abingdon') + '"></div>' +
-        '<button type="button" class="btn btn-secondary" id="tp-rename-request">' + icon('pin') + 'Request rename</button>';
-    } else if (st.state === 'pending') {
-      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this ' + thing + '.</span></p>';
-    } else if (p) {
-      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
-        '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Change it again</button>';
+    var h = '', p = st && st.proposal, lay = layoutRename(s), cur = lay ? s.layout : s.venue;
+    if (p) {
+      h = '<p class="tp-src">' + icon('info') + '<span>Your suggested name has gone to MT3UK. We will email you when it has been approved or turned down. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
+        '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Suggest a different name</button>';
     } else {
-      h = '<p class="tp-sub">MT3UK has said you can rename this ' + thing + '. Enter the name and send it. The name only changes once MT3UK has approved it' + (lay ? ', and then it changes for everyone with a session on this layout' : '') + '.</p>' +
+      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, suggest a new one. MT3UK checks it before it changes for everyone with a session on this layout.</p>'
+        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, suggest a new name. MT3UK checks it before it changes.</p>') +
         '<div class="tp-field"><label for="tp-rename-name">' + (lay ? 'Layout name' : 'Track name') + '</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(cur) + '"></div>' +
         '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
     }
     h += '<p class="tp-small tp-err" id="tp-rename-note" role="status"></p>';
     box.innerHTML = h;
-    var note = document.getElementById('tp-rename-note'), req = document.getElementById('tp-rename-request'), send = document.getElementById('tp-rename-send'), again = document.getElementById('tp-rename-edit');
-    if (req) req.addEventListener('click', function () {
-      req.disabled = true;
-      var why = document.getElementById('tp-rename-why');
-      api('POST', '/track/rename/request', { id: s.id, note: why ? why.value.trim() : '' }).then(function (d) {
-        if (!d.success) { req.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
-        drawRename(s, { state: d.state || 'pending', proposal: null });
-      }).catch(function () { req.disabled = false; note.textContent = 'Could not reach the server.'; });
-    });
+    var note = document.getElementById('tp-rename-note'), send = document.getElementById('tp-rename-send'), again = document.getElementById('tp-rename-edit');
     if (again) again.addEventListener('click', function () { drawRename(s, { state: 'granted', proposal: null }); });
     if (send) send.addEventListener('click', function () {
       var name = document.getElementById('tp-rename-name').value.trim();

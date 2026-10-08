@@ -5541,10 +5541,10 @@ def test_the_session_id_is_shown_with_a_copy_button(page):
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
 
-def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_approval(page):
-    """A session at a track we do not list has the name its member typed. They ask to rename it (MT3UK is told); once
-    allowed they send the new name, which waits for approval. A session at a listed track gets a Layout name box
-    instead (see the next test)."""
+def test_a_member_suggests_a_new_name_for_an_unlisted_track_and_sends_it_for_approval(page):
+    """A session at a track we do not list has the name its member typed. They suggest a new one straight away (no
+    permission step); it waits for MT3UK to approve it. A session at a listed track gets a Layout name box instead (see the
+    next test)."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
     expect(page.locator("#rename h2")).to_have_text("Layout name")
@@ -5554,24 +5554,24 @@ def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_ap
     page.reload()
     box = page.locator("#tp-rename")
     expect(box).to_contain_text("it has the name you typed: Aerodrome")
-    page.fill("#tp-rename-why", "Spelt wrong")
-    page.get_by_role("button", name="Request rename").click()
-    expect(box).to_contain_text("Requested. MT3UK has been told")
-    assert fake.rename_requests == [{"id": "new1", "note": "Spelt wrong"}]
-    fake.rename_status = "granted"
-    page.reload()
-    expect(box).to_contain_text("MT3UK has said you can rename this track")
+    expect(page.get_by_role("button", name="Request rename")).to_have_count(0)
+    expect(page.locator("#tp-rename-name")).to_have_value("Aerodrome")
     page.fill("#tp-rename-name", "Newtown Aerodrome")
     page.get_by_role("button", name="Send for approval").click()
-    expect(box).to_contain_text("waiting for MT3UK to approve it")
+    expect(box).to_contain_text("has gone to MT3UK")
+    expect(box).to_contain_text("approved or turned down")
     expect(box).to_contain_text("Newtown Aerodrome")
+    assert fake.rename_requests == []
     assert fake.rename_proposals == [{"id": "new1", "name": "Newtown Aerodrome"}]
     expect(page.get_by_role("heading", name=re.compile("Aerodrome"))).to_have_count(1)
+    # They can send a different name while it waits.
+    page.get_by_role("button", name="Suggest a different name").click()
+    expect(page.locator("#tp-rename-name")).to_be_visible()
 
 
-def test_a_member_requests_to_rename_the_layout_of_a_listed_track(page):
+def test_a_member_suggests_a_new_name_for_the_layout_of_a_listed_track(page):
     """At a listed track what can be wrong is the layout name ("Brands Hatch, New Layout"). It is shared by every session
-    on that layout, so the box says so; the steps are the same: ask, allowed, send, approved by MT3UK."""
+    on that layout, so the box says so; the member suggests a name and MT3UK approves it."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
     rec = fake.sessions["new1"]
@@ -5581,19 +5581,14 @@ def test_a_member_requests_to_rename_the_layout_of_a_listed_track(page):
     expect(page.locator("#rename h2")).to_have_text("Layout name")
     expect(box).to_contain_text("on the layout New Layout")
     expect(box).to_contain_text("Every session on that layout shares its name")
-    page.fill("#tp-rename-why", "It is the Indy circuit")
-    page.get_by_role("button", name="Request rename").click()
-    expect(box).to_contain_text("will email you when you can rename this layout")
-    assert fake.rename_requests == [{"id": "new1", "note": "It is the Indy circuit"}]
-    fake.rename_status = "granted"
-    page.reload()
-    expect(box).to_contain_text("MT3UK has said you can rename this layout")
     expect(box).to_contain_text("changes for everyone with a session on this layout")
+    expect(page.get_by_role("button", name="Request rename")).to_have_count(0)
     expect(page.locator("#tp-rename-name")).to_have_value("New Layout")
     page.fill("#tp-rename-name", "Indy Circuit")
     page.get_by_role("button", name="Send for approval").click()
     expect(box).to_contain_text("The layout keeps its name until then")
     expect(box).to_contain_text("Indy Circuit")
+    assert fake.rename_requests == []
     assert fake.rename_proposals == [{"id": "new1", "name": "Indy Circuit"}]
 
 

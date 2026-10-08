@@ -948,14 +948,18 @@ def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
 LINES_API = "**/track/lines/admin**"
 
 
-def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
-    """A rename request sits on the same panel: the admin allows it, sees the name from and to, and accepts it."""
+def test_admin_line_editing_panel_handles_a_suggested_track_name_accept_or_deny(page):
+    """A member suggests a new track name (no permission step). It sits on the panel with the name from and to, and the admin
+    accepts or denies it; the worker emails the member either way and clears the row. An older request still waiting for
+    permission can be allowed."""
     state = {"requests": [
         {"kind": "rename", "id": "r1", "name": "Dee", "email": "d***@example.com", "note": "Spelt wrong", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Aerodrome, 2026-09-30", "type": "track", "current": "Aerodrome"},
         {"kind": "rename", "id": "r2", "name": "Eve", "email": "e***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Aerodrome, 2026-09-29", "type": "track", "current": "Aerodrome",
          "proposal": {"at": "2026-10-02T09:30:00Z", "from": "Aerodrome", "to": "Newtown Aerodrome"}},
+        {"kind": "rename", "id": "r3", "name": "Fay", "email": "f***@example.com", "note": "", "at": "2026-10-01T10:30:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Aerodrome, 2026-09-28", "type": "track", "current": "Aerodrome",
+         "proposal": {"at": "2026-10-02T10:30:00Z", "from": "Aerodrome", "to": "Aerodrome Field"}},
     ]}
-    calls = []
+    calls, dialogs = [], []
 
     def lines(route):
         req = route.request
@@ -965,27 +969,38 @@ def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
             row = next(r for r in state["requests"] if r["id"] == body["id"])
             if body["action"] == "grant":
                 row["status"], row["grantedAt"] = "granted", "2026-10-03T08:00:00Z"
-            elif body["action"] == "accepted":
-                row["proposal"] = None
+            elif body["action"] in ("accepted", "undo"):
+                state["requests"].remove(row)
         route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
     open_admin(page, "track-admin.html")
     page.route(LINES_API, lines)
     page.reload()
-    expect(page.locator("#lines-count")).to_have_text("1 to review")
+    expect(page.locator("#lines-count")).to_have_text("2 to review")
     page.locator("#lines-wrap summary").click()
     rows = page.locator("#ln-list > table > tbody > tr")
-    expect(rows).to_have_count(2)
+    expect(rows).to_have_count(3)
     expect(rows.nth(0)).to_contain_text("Rename the track")
     expect(rows.nth(0)).to_contain_text("Spelt wrong")
+    expect(rows.nth(1)).to_contain_text("Suggested")
     expect(rows.nth(1)).to_contain_text("Track name")
     expect(rows.nth(1)).to_contain_text("Aerodrome")
     expect(rows.nth(1)).to_contain_text("Newtown Aerodrome")
+    expect(rows.nth(1).get_by_role("button", name="Accept")).to_be_visible()
+    expect(rows.nth(1).get_by_role("button", name="Deny")).to_be_visible()
+    expect(rows.nth(1).get_by_role("button", name="Revoke")).to_have_count(0)
     rows.nth(0).get_by_role("button", name="Allow").click()
     expect(rows.nth(0)).to_contain_text("Waiting for them to rename the track")
+    # Deny: the member is emailed by the worker, the row goes and the bell count follows.
+    page.once("dialog", lambda d: (dialogs.append(d.message), d.accept()))
+    rows.nth(2).get_by_role("button", name="Deny").click()
+    expect(page.locator("#ln-note")).to_contain_text("Denied. The member has been emailed")
+    assert "emailed" in dialogs[0], dialogs
+    expect(rows).to_have_count(2)
     page.once("dialog", lambda d: d.accept())
     rows.nth(1).get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("The track name is changed")
-    assert calls == [("rename", "grant", "r1"), ("rename", "accepted", "r2")]
+    expect(rows).to_have_count(1)
+    assert calls == [("rename", "grant", "r1"), ("rename", "undo", "r3"), ("rename", "accepted", "r2")]
 
 
 def test_admin_accepts_a_layout_rename_which_updates_the_saved_sessions_a_page_at_a_time(page):
@@ -1410,6 +1425,28 @@ def test_the_bell_lists_map_edit_requests_and_changes_waiting_for_approval(page)
     # Seen items stop counting until something new arrives.
     page.reload()
     expect(page.locator("#bell-badge")).to_be_hidden()
+
+
+def test_the_bell_lists_a_suggested_track_or_layout_name_waiting_for_approval(page):
+    """A member's suggested new name (no permission step) is counted in the bell, tagged New, says which kind of name it is,
+    and choosing it opens the Line editing panel at that row."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    rows = [{"kind": "rename", "target": "layout", "id": "dddddddd04", "name": "Dee", "email": "d***@example.com", "note": "", "at": "2026-10-01T09:00:00Z", "status": "granted", "grantedAt": "2026-10-01T09:00:00Z", "what": "Brands Hatch, New Layout, 2026-06-01", "type": "track", "current": "New Layout",
+             "proposal": {"at": "2026-10-02T09:30:00Z", "from": "New Layout", "to": "Indy Circuit", "target": "layout"}},
+            {"kind": "rename", "id": "eeeeeeee05", "name": "Eve", "email": "e***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T10:00:00Z", "what": "Aerodrome, 2026-06-02", "type": "track", "current": "Aerodrome",
+             "proposal": {"at": "2026-10-02T10:30:00Z", "from": "Aerodrome", "to": "Newtown Aerodrome"}}]
+    open_admin(page, "track-admin.html")
+    page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
+    page.reload()
+    expect(page.locator("#bell-badge")).to_have_text("2")
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Track renames to approve (2)")
+    expect(panel).to_contain_text("Suggested a new layout name for Brands Hatch, New Layout")
+    expect(panel).to_contain_text("Suggested a new track name for Aerodrome")
+    panel.get_by_text("Suggested a new track name for Aerodrome").click()
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-list tr[data-id='eeeeeeee05']")).to_be_in_viewport()
 
 
 def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):

@@ -2061,6 +2061,17 @@
       a.layoutPick = '';
       a.session = T.analyse(a.rd, a.lib, analysisOpts(a));
     }
+    // A sprint or hill climb venue with several courses: never assume one. The member picks the organiser (or adds a new
+    // one) before anything is timed or saved.
+    a.session.needsLayoutPick = false;
+    if (mustPickLayout(a, a.session)) {
+      var ps = a.session;
+      ps.needsLayoutPick = true;
+      ps.laps = []; ps.bestTime = null; ps.best = null;
+      delete ps.layoutId; delete ps.layout; delete ps.layoutPicked; delete ps.officialLines; delete ps.lapsFromTrace; delete ps.layoutLineGap;
+      delete ps.startLine; delete ps.finishLine; delete ps.organizer;
+      ps.problem = 'Pick which organiser ran ' + (ps.venue || 'this event') + '.';
+    }
     // A hill climb, as picked or as the track list has it.
     if (a.session.type === 'sprint' && (a.hill || isHillSession(a.session, a.lib))) a.session.hill = true; else a.hill = false;
     // Kept so Re-time sessions can time it the same way later (on is the default).
@@ -2330,6 +2341,8 @@
           (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
           (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-secondary tp-confirm" data-tap="done" role="switch" aria-checked="false">' + icon('check') + 'Correct lines?</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>';
+      } else if (s.needsLayoutPick) {
+        h += '<div class="tp-notice is-warn" id="tp-pick-layout">' + icon('warn') + '<div><b>Which organiser was it?</b><br>' + esc(s.venue || 'This track') + ' has more than one course, so choose the organiser above before your runs are timed. If the organiser is not listed, choose Add a new organiser.</div></div>';
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
@@ -2800,6 +2813,18 @@
   function venueLayouts(a, s) {
     var v = s.venueId && ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
     return v && v.type === 'circuit' ? (v.layouts || []) : [];
+  }
+  // Adding a sprint or hill climb at a venue with more than one course, and no organiser picked yet: the member must choose.
+  // Track days are not held to this: their layout is found from the GPS.
+  function mustPickLayout(a, s) {
+    if (a.lineEdit || (a.replaceId && !a.relayout) || !s.venueId) return false;
+    if (s.type === 'sprint') {
+      // Sprints and hill climbs: the organiser says which course. Their own lines, or a new organiser, are a choice too.
+      if (a.organizer || a.orgNew || (a.startLine && a.finishLine)) return false;
+      var v = ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
+      return !!v && v.type === 'sprint' && (v.layouts || []).filter(function (l) { return l.startLine && l.finishLine; }).length > 1;
+    }
+    return false;
   }
   function layoutFieldHtml(a, s) {
     if (a.lineEdit || (a.replaceId && !a.relayout) || s.type !== 'track' || !s.venueId) return '';

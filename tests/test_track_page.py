@@ -5290,6 +5290,29 @@ def test_a_known_venue_lists_its_organisers_and_a_new_one_can_use_an_existing_co
     expect(page.locator("#tp-kind")).to_have_text("Hill climb")
 
 
+def test_a_venue_with_several_sprint_courses_makes_the_member_pick_the_organiser(page):
+    """Nothing is assumed when a sprint or hill climb venue has more than one course: no organiser picked means nothing
+    is timed and it cannot be saved. Picking one times the run on that course."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        v = [x for x in d["venues"] if x["id"] == "shelsley-walsh"][0]
+        v["layouts"] = [
+            {"id": "hill", "name": "Shelsley Walsh", "organizer": "MAC", "startLine": SHELSLEY_START, "finishLine": SHELSLEY_FINISH},
+            {"id": "hill-b19", "name": "Shelsley Walsh B19", "organizer": "B19", "startLine": SHELSLEY_START, "finishLine": SHELSLEY_FINISH},
+        ]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
+    page.locator("[data-type] button[data-v='sprint']").click()
+    expect(page.locator("#tp-pick-layout")).to_contain_text("choose the organiser")
+    expect(page.locator("#tp-save")).to_have_count(0)
+    page.locator("select#tp-organiser").select_option("MAC")
+    expect(page.locator("#tp-pick-layout")).to_have_count(0)
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
+
+
 def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()

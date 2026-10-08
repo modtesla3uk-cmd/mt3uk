@@ -4964,11 +4964,12 @@
       var d = r[0];
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
-      if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
-      h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + (d.mine ? '<a class="chip tp-others is-on" href="track.html" data-go="" aria-label="What I see" title="What I see: back to my sessions" aria-pressed="true">' + icon('eye') + '</a>' : '') + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
+      if (d.mine) { currentCar = carId; h += '<p class="tp-sub tp-others-note">What other members see: only the sessions you share.</p>'; }
+      h += d.sessions.length ? '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
+      wireTrackToggles();
       wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'Laps build') + ' | Laps by MT3UK', campaign: 'track_build',
         text: (c.name || 'This build') + '’s track sessions on Laps by MT3UK' });
     }).catch(function () { failed('That build could not be loaded.'); });

@@ -264,7 +264,7 @@ class FakeWorker:
                 entries = [{"carId": "car1", "sessionId": best["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": best["bestTime"], "date": best["date"], "conditions": best.get("conditions"), "mods": ["KW V3 coilovers"], "sessions": len(mine)}]
             data = {"success": True, "entries": custom if custom is not None else entries}
         elif path == "/track/public":
-            data = {"success": True, "car": dict({"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, **self.public_car), "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
+            data = {"success": True, "car": dict({"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, **self.public_car), "mine": getattr(self, "public_mine", False), "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/copy":
             data = {"success": True, "copy": self.copy or {}}
         elif path == "/share/versions":
@@ -6623,3 +6623,29 @@ def test_the_heading_buttons_are_a_placeholder_while_the_list_loads(page):
     page.add_init_script("localStorage.removeItem('mt3ukMyBuildsSession')")
     page.goto("/track.html")
     expect(page.locator("#tp-hero-actions")).to_be_hidden()
+
+
+def test_what_others_see_is_a_simple_track_tree_with_a_way_back_for_the_owner(page):
+    """The owner's What others see page lists the shared sessions as the same track tree as My Sessions, and the same
+    eye icon (switched on, named What I see) takes them back to their own sessions. Visitors do not get the switch."""
+    fake = FakeWorker()
+    fake.index.append(dict(fake.index[0], id="shared1", privacy="board", date="2026-06-02"))
+    fake.public_mine = True
+    open_page(page, fake, path="/track.html?car=car1")
+    expect(page.locator(".tp-others-note")).to_contain_text("only the sessions you share")
+    row = page.locator("#tp-sess-list .tp-trackrow").first
+    expect(row).to_be_visible()
+    expect(row).to_have_attribute("aria-expanded", "false")
+    row.click()
+    expect(row).to_have_attribute("aria-expanded", "true")
+    mine = page.locator(".tp-head .tp-others.is-on")
+    expect(mine).to_have_attribute("aria-label", "What I see")
+    mine.click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    expect(page.locator("#tp-vtoggle")).to_be_visible()
+    # Someone else's view of the build has no switch and no owner's note.
+    fake.public_mine = False
+    page.goto("/track.html?car=car1")
+    expect(page.locator("#tp-sess-list .tp-trackrow").first).to_be_visible()
+    expect(page.locator(".tp-head .tp-others")).to_have_count(0)
+    expect(page.locator(".tp-others-note")).to_have_count(0)

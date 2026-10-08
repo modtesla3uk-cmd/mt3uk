@@ -247,7 +247,12 @@
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
   .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
+  /* The vehicle box is one slim row at every width: the name and its session count together. */
+  .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
+  .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   /* The Sessions list, tightened for a phone: small headings, one row for the title and its buttons, and the sort and filter drop-downs two to a row. */
+  .tp-others.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tp-others-note { margin: 0 0 10px; font-size: 0.84rem; }
   .tp-others { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
   .tp-others .icon { width: 20px; height: 20px; }
   .tp-list-head { align-items: center; flex-wrap: nowrap; gap: 8px; }
@@ -265,9 +270,6 @@
     .tp-tools .tp-filters { display: contents; }
     .tp-tools .tp-field, .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
     .tp-tools { align-items: start; }
-    /* The vehicle box is one slim row: the name and its session count together. */
-    .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
-    .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
     .tp-tools .tp-field label { font-size: 0.72rem; margin-bottom: 2px; }
     .tp-tools .field { min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 0.9rem; }
   }
@@ -1237,7 +1239,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271012" defer></script>
+<script src="js/track-page.js?v=20271013" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

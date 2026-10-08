@@ -33,7 +33,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var ICON = {
     off: '<path d="M2 8.8a15 15 0 0 1 4-2.4M22 8.8a15 15 0 0 0-9-3.7M5 12.9a10 10 0 0 1 3.2-2M19 12.9a10 10 0 0 0-3.4-2.2M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/>',
-    circle: '<circle cx="12" cy="12" r="10.5" fill="currentColor" stroke="none"/><g transform="translate(12 12) scale(.58) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16M16 16h5v5"/></g>',
+    cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" fill="currentColor" stroke="none"/><g fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="4.3"/><path d="M7.7 13h8.6M12 8.7c1.5 1.3 2.2 2.8 2.2 4.3s-.7 3-2.2 4.3c-1.5-1.3-2.2-2.8-2.2-4.3s.7-3 2.2-4.3z"/></g>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     sync: '<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12A9 9 0 0 1 18.5 5.8L21 8M21 3v5h-5M3 21v-5h5"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>'
@@ -587,7 +587,7 @@
     if (!el) {
       el = document.createElement('button');
       el.type = 'button'; el.id = 'nav-offline'; el.className = 'nav-chat nav-offline'; el.setAttribute('role', 'switch');
-      el.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON.circle + '</svg><span class="nav-chat-count" id="nav-offline-count" hidden></span>';
+      el.innerHTML = '<svg viewBox="1.2 3.2 21.6 17.6" aria-hidden="true">' + ICON.cloud + '</svg><span class="nav-chat-count" id="nav-offline-count" hidden></span>';
       el.addEventListener('click', pressIcon);
       anchor.parentNode.insertBefore(el, anchor);
     }

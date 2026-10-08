@@ -6293,11 +6293,18 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     assert mb["height"] > sb["height"] + 100, (mb, sb)
     assert abs(cb["y"] - (sb["y"] + sb["height"] + 14)) < 3, (sb, cb)
     # Every tile spans its own height, so no tile overlaps the one below it.
-    boxes = page.evaluate("[...document.querySelectorAll('#tp-board > [data-tile]')].map(t => { const r = t.getBoundingClientRect(); return [t.dataset.tile, r.left, r.top, r.bottom]; })")
-    for i, (k, l, t, b) in enumerate(boxes):
-        for k2, l2, t2, b2 in boxes[i + 1:]:
-            if abs(l - l2) < 1:
-                assert t2 >= b - 1 or t >= b2 - 1, (k, k2)
+    # (A tile that has just grown, such as the map edit box once its status arrives, is packed again on the next frame, so
+    # wait for the board to settle rather than reading it in the middle of that.)
+    overlap_js = """() => {
+      const boxes = [...document.querySelectorAll('#tp-board > [data-tile]')].map(t => { const r = t.getBoundingClientRect(); return [t.dataset.tile, r.left, r.top, r.bottom]; });
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const [k, l, a, b] = boxes[i], [k2, l2, a2, b2] = boxes[j];
+        if (Math.abs(l - l2) < 1 && !(a2 >= b - 1 || a >= b2 - 1)) return [k, k2];
+      }
+      return null;
+    }"""
+    page.wait_for_function("(" + overlap_js + ")() === null", timeout=8000)
+    assert page.evaluate(overlap_js) is None
     # On a phone every tile is full width, one under another.
     page.set_viewport_size({"width": 390, "height": 800})
     page.wait_for_timeout(300)

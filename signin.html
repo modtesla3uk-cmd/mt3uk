@@ -481,6 +481,30 @@
     </div>
 
     <div class="si-grid" id="si-forms">
+      <div class="si-card si-card-join" id="si-join">
+        <h2>New here? Join free</h2>
+        <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining. No photos needed.</p>
+        <form id="si-join-form">
+          <input type="checkbox" name="botcheck" class="si-hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="si-field">
+            <label for="si-join-first">First name</label>
+            <input type="text" id="si-join-first" name="firstName" autocomplete="given-name" maxlength="50" required>
+          </div>
+          <div class="si-field">
+            <label for="si-join-last">Last name</label>
+            <input type="text" id="si-join-last" name="lastName" autocomplete="family-name" maxlength="50" required>
+          </div>
+          <div class="si-field">
+            <label for="si-join-email">Email</label>
+            <input type="email" id="si-join-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <button type="submit" class="si-btn si-btn-primary si-btn-block" id="si-join-btn">Join free</button>
+          <p class="si-legal">By joining you confirm you&rsquo;re 18 or over. See how we use your data in our <a href="privacy.html">Privacy notice</a>.</p>
+          <p class="si-status" id="si-join-status" role="status"></p>
+        </form>
+        <p class="si-switch">Already a member? <a href="#si-signin" id="si-to-signin">Sign in</a></p>
+      </div>
+
       <div class="si-card" id="si-signin">
         <h2>Already a member? Sign in</h2>
         <p>Enter your email and we&rsquo;ll send you a sign-in link and a 6-digit code.</p>
@@ -507,30 +531,6 @@
             <p>Each phone or computer needs its own passkey, unless it&rsquo;s saved to your iCloud Keychain or Google Password Manager.</p>
           </details>
         </div>
-        <p class="si-switch">Not a member yet? <a href="#si-join" id="si-to-join">Sign up free</a></p>
-      </div>
-
-      <div class="si-card si-card-join" id="si-join">
-        <h2>New here? Join free</h2>
-        <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining. No photos needed.</p>
-        <form id="si-join-form">
-          <input type="checkbox" name="botcheck" class="si-hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <div class="si-field">
-            <label for="si-join-first">First name</label>
-            <input type="text" id="si-join-first" name="firstName" autocomplete="given-name" maxlength="50" required>
-          </div>
-          <div class="si-field">
-            <label for="si-join-last">Last name</label>
-            <input type="text" id="si-join-last" name="lastName" autocomplete="family-name" maxlength="50" required>
-          </div>
-          <div class="si-field">
-            <label for="si-join-email">Email</label>
-            <input type="email" id="si-join-email" name="email" placeholder="you@example.com" autocomplete="email" required>
-          </div>
-          <button type="submit" class="si-btn si-btn-primary si-btn-block" id="si-join-btn">Join free</button>
-          <p class="si-legal">By joining you confirm you&rsquo;re 18 or over. See how we use your data in our <a href="privacy.html">Privacy notice</a>.</p>
-          <p class="si-status" id="si-join-status" role="status"></p>
-        </form>
       </div>
     </div>
 
@@ -553,7 +553,7 @@
     <div class="si-garage">
       <h2>Want to show off your car?</h2>
       <p>Add photos and mods in My Garage and your build joins the gallery, the reel and the weekly vote. It&rsquo;s optional, and you can do it any time.</p>
-      <a href="my-builds.html" class="si-btn">Add your car in My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      <a href="my-builds.html#add-photo" class="si-btn">Add your photo<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
     </div>
   </div>
 </section>
@@ -701,7 +701,7 @@
 </script>
 
 <script src="js/passkeys.js?v=20261201"></script>
-<script src="js/signin-page.js?v=20270106"></script>
+<script src="js/signin-page.js?v=20271016"></script>
 
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>

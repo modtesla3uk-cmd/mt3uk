@@ -86,16 +86,16 @@ def test_passkey_help_when_none_on_this_device(device_page):
 
 
 @all_devices
-def test_sign_in_comes_first_with_a_link_to_join(device_page):
+def test_new_here_comes_first_with_a_link_to_sign_in(device_page):
     page = device_page
     page.goto("/signin.html")
     page.locator("#si-signin").wait_for(timeout=5000)
     first = page.evaluate("document.querySelector('#si-forms > .si-card').id")
-    assert first == "si-signin", "Already a member? Sign in comes before New here?"
-    link = page.locator("#si-to-join")
-    assert link.inner_text() == "Sign up free"
+    assert first == "si-join", "New here? Join free comes before Already a member?"
+    link = page.locator("#si-to-signin")
+    assert link.inner_text() == "Sign in"
     link.click()
-    page.wait_for_function("document.activeElement && document.activeElement.id === 'si-join-first'", timeout=5000)
+    page.wait_for_function("document.activeElement && document.activeElement.id === 'si-signin-email'", timeout=5000)
     assert page.errors == [], diagnostics(page)
 
 

@@ -1074,7 +1074,8 @@
   // was left; a full refresh of the page starts it folded. The sessions just saved are opened (openToSaved).
   var openTracks = {}, openLayouts = {};
   function storeListOpen() {}
-  function trackListHtml(list, carId) {
+  // publicView: the read-only list others see (no Shared switches, nothing to edit).
+  function trackListHtml(list, carId, publicView) {
     filterOpenAll = filtersOn();
     list = filteredList(list);
     if (!list.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match those filters.</p></div>';
@@ -1086,7 +1087,7 @@
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
           return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + ', last ' + esc(niceDate(l.last.slice(0, 10))) + '</span></span>' + icon('chev') + '</button>' +
-            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list, true) + '</div></div>';
+            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
         }).join('') + '</div></div>';
     }).join('');
   }
@@ -4964,9 +4965,9 @@
       var d = r[0];
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + (d.mine ? '<a class="chip tp-others is-on" href="track.html" data-go="" aria-label="What I see" title="What I see: back to my sessions" aria-pressed="true">' + icon('eye') + '</a>' : '') + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
-      if (d.mine) { currentCar = carId; h += '<p class="tp-sub tp-others-note">What other members see: only the sessions you share.</p>'; }
-      h += d.sessions.length ? '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + (d.mine ? '<a class="chip tp-others" href="track.html" data-go="" aria-label="What I see" title="What I see: back to my sessions">' + icon('eye') + '</a>' : shareDot('Share this build')) + '</div></div>';
+      if (d.mine) { currentCar = carId; h += '<div class="tp-publicbar" role="note">' + icon('eye') + '<span><b>Public view.</b> This is what other members see. Only the sessions you share are listed, and nothing here can be edited.</span></div>'; }
+      h += d.sessions.length ? '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId, true) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
       wireTrackToggles();

@@ -256,7 +256,8 @@ def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my
     expect(join).to_have_attribute("href", "laps-signin.html")
     expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
     mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
-    assert abs(mine["width"] - j["width"]) < 1 and abs(mine["height"] - j["height"]) < 1, (mine, j)
+    # On desktop it sits on the What is the Leaderboard? row, under My Sessions and within its right edge.
+    assert j["y"] >= mine["y"] + mine["height"] - 2 and j["x"] + j["width"] <= mine["x"] + mine["width"] + 2, (mine, j)
     assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
     page.locator("#lb-what summary").click()
     expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)

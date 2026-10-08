@@ -942,8 +942,8 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     # It starts shut, just the bulb, beside Add a session.
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
-    # On desktop it sits under Add a session, at the right, so Add a session lines up with My Sessions.
-    assert k["y"] >= a["y"] + a["height"] and abs((k["x"] + k["width"]) - (a["x"] + a["width"])) < 2
+    # On desktop it sits beside Add a session, at the right, on the What is the Leaderboard? row.
+    assert k["x"] >= a["x"] + a["width"] and abs((k["y"] + k["height"] / 2) - (a["y"] + a["height"] / 2)) < 6
     bulb.click()
     expect(bulb).to_have_attribute("aria-expanded", "true")
     expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")
@@ -1585,9 +1585,10 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
     m, a = mine.bounding_box(), add.bounding_box()
-    # The same size on desktop, Add a session under My Sessions at the right.
-    assert m["height"] >= 50 and abs(m["height"] - a["height"]) < 1 and abs(m["width"] - a["width"]) < 1, (m, a)
-    assert a["y"] >= m["y"] + m["height"] and a["x"] + a["width"] > m["x"] + m["width"] / 2
+    # On desktop Add a session sits under My Sessions at the right, on the What is the Leaderboard? row, and the banner stays short.
+    assert m["height"] >= 50 and a["height"] >= 40, (m, a)
+    assert a["y"] >= m["y"] + m["height"] - 2 and a["x"] + a["width"] > m["x"] + m["width"] / 2 and a["x"] + a["width"] <= m["x"] + m["width"] + 2
+    assert page.locator(".page-hero").bounding_box()["height"] < 190
     back = page.locator("#lb-page-back").bounding_box()
     # My Sessions, Back and the title share the top row.
     assert abs(m["y"] + m["height"] / 2 - (back["y"] + back["height"] / 2)) < 4
@@ -1773,7 +1774,9 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     add, lb = page.locator("#tp-hero-add"), page.locator("#tp-lb-pill")
     expect(add).to_be_visible()
     a, l = add.bounding_box(), lb.bounding_box()
-    assert abs(a["height"] - l["height"]) < 1 and abs(a["width"] - l["width"]) < 1 and a["y"] >= l["y"] + l["height"], (a, l)
+    # On desktop it sits at the right on the What are Sessions? row, under Leaderboards, and the banner stays short.
+    assert a["y"] >= l["y"] + l["height"] - 2 and a["x"] + a["width"] <= l["x"] + l["width"] + 2, (a, l)
+    assert page.locator(".page-hero").bounding_box()["height"] < 190
     expect(page.locator("#tp-app").get_by_role("link", name="Add a session", exact=True)).to_have_count(0)
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))
@@ -6632,13 +6635,21 @@ def test_what_others_see_is_a_simple_track_tree_with_a_way_back_for_the_owner(pa
     fake.index.append(dict(fake.index[0], id="shared1", privacy="board", date="2026-06-02"))
     fake.public_mine = True
     open_page(page, fake, path="/track.html?car=car1")
-    expect(page.locator(".tp-others-note")).to_contain_text("only the sessions you share")
+    expect(page.locator(".tp-publicbar")).to_contain_text("Public view")
+    expect(page.locator(".tp-publicbar")).to_contain_text("nothing here can be edited")
+    expect(page.locator(".tp-head [data-tp-share]")).to_have_count(0)
     row = page.locator("#tp-sess-list .tp-trackrow").first
     expect(row).to_be_visible()
     expect(row).to_have_attribute("aria-expanded", "false")
     row.click()
     expect(row).to_have_attribute("aria-expanded", "true")
-    mine = page.locator(".tp-head .tp-others.is-on")
+    page.locator("#tp-sess-list .tp-layoutrow").first.click()
+    page.locator("#tp-sess-list .tp-day-tile").first.click()
+    # Read only: no Shared switch, no Edit all, nothing to change.
+    expect(page.locator("#tp-sess-list [role=switch]")).to_have_count(0)
+    expect(page.locator("#tp-sess-list [data-day-edit]")).to_have_count(0)
+    mine = page.locator(".tp-head .tp-others")
+    expect(mine).not_to_have_class(re.compile("is-on"))
     expect(mine).to_have_attribute("aria-label", "What I see")
     mine.click()
     expect(page).to_have_url(re.compile(r"/track\.html$"))
@@ -6648,4 +6659,5 @@ def test_what_others_see_is_a_simple_track_tree_with_a_way_back_for_the_owner(pa
     page.goto("/track.html?car=car1")
     expect(page.locator("#tp-sess-list .tp-trackrow").first).to_be_visible()
     expect(page.locator(".tp-head .tp-others")).to_have_count(0)
-    expect(page.locator(".tp-others-note")).to_have_count(0)
+    expect(page.locator(".tp-publicbar")).to_have_count(0)
+    expect(page.locator(".tp-head [data-tp-share]")).to_have_count(1)

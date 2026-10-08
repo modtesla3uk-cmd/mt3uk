@@ -251,8 +251,9 @@
   .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
   .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   /* The Sessions list, tightened for a phone: small headings, one row for the title and its buttons, and the sort and filter drop-downs two to a row. */
-  .tp-others.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .tp-others-note { margin: 0 0 10px; font-size: 0.84rem; }
+  .tp-publicbar { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: #fff; color: var(--steel); font-size: 0.88rem; line-height: 1.4; }
+  .tp-publicbar .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--ink); }
+  .tp-publicbar b { color: var(--ink); }
   .tp-others { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
   .tp-others .icon { width: 20px; height: 20px; }
   .tp-list-head { align-items: center; flex-wrap: nowrap; gap: 8px; }
@@ -369,7 +370,8 @@
   .tp-dark-hero .laps-tip-pop[hidden] { display: none; }
   .tp-dark-hero .laps-tip-pop b { color: #fff; }
   .tp-dark-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
-  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: column; align-items: flex-end; } }
+  /* Desktop: Add a session and the bulb sit on the What are Sessions? row at the right, so the banner is no taller than it needs to be. */
+  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: row; align-items: center; } }
   .tp-hero-actions[hidden] { display: none; }
   /* While the member's list loads, Add a session and the bulb are a soft placeholder so the heading does not jump when they arrive (js/track-page.js heroSettle). */
   .page-hero .tp-lb-pill.tp-add-pill.is-wait { background: rgba(255,255,255,.16); color: transparent; pointer-events: none; animation: tp-wait 1.2s ease-in-out infinite; }
@@ -382,7 +384,8 @@
   .page-hero .tp-lb-pill.tp-add-pill:hover { background: #d24a23; color: #fff; }
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-width: 214px; }
-    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 12px; }
+    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; margin-top: 4px; }
+    .page-hero .tp-hero-row .tp-hero-actions .tp-lb-pill { min-width: 0; min-height: 44px; padding: 0 20px; }
     .page-hero .tp-what { grid-row: 3; }
   }
   @media (max-width: 900px) {
@@ -1239,7 +1242,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271013" defer></script>
+<script src="js/track-page.js?v=20271014" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

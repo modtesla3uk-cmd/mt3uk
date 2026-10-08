@@ -3828,6 +3828,7 @@
         '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
         '<div class="tp-fs-laps" id="tp-fs-laps"></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
+'<div class="tp-splith" id="tp-splith" role="separator" aria-orientation="horizontal" aria-label="Drag to make the map taller or shorter" title="Drag to make the map taller or shorter (double tap to reset)"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
@@ -4041,7 +4042,17 @@
   function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560; }
   var mapSplit = 60;
   try { var ms = parseFloat(localStorage.getItem('mt3ukTrackSplit')); if (ms >= 30 && ms <= 85) mapSplit = ms; } catch (e) { /* storage blocked */ }
-  function applySplit() { var card = document.getElementById('tp-mapcard'); if (card) card.style.setProperty('--tp-map', mapSplit + '%'); }
+  // Portrait full screen: the map's height as a share of the screen, set by dragging the bar under it (none until it has
+  // been dragged, when the map takes what the controls and charts leave).
+  var mapH = null;
+  try { var mh = parseFloat(localStorage.getItem('mt3ukTrackSplitH')); if (mh >= 20 && mh <= 75) mapH = mh; } catch (e) { /* storage blocked */ }
+  function applySplit() {
+    var card = document.getElementById('tp-mapcard');
+    if (!card) return;
+    card.style.setProperty('--tp-map', mapSplit + '%');
+    if (mapH) card.style.setProperty('--tp-maph', mapH + '%'); else card.style.removeProperty('--tp-maph');
+    card.classList.toggle('has-maph', !!mapH);
+  }
   // With the charts beside the map, the colour switch and Exit join the panel's top row, so they wrap with the chips
   // however narrow the panel is dragged; otherwise the heading is back at the top of the card.
   function placeHead() {
@@ -4095,6 +4106,41 @@
       if (view && view.s) drawCompare(view.s, true);
     }
     h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  // The bar under the map in portrait full screen: drag to make the map taller or shorter, double tap to put it back.
+  document.addEventListener('pointerdown', function (e) {
+    var h = e.target.closest && e.target.closest('#tp-splith');
+    var card = document.getElementById('tp-mapcard'), wrap = document.getElementById('tp-mapwrap');
+    if (!h || !cmpFull || landFull() || !card || !wrap) return;
+    e.preventDefault();
+    try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+    h.classList.add('is-dragging');
+    var top = wrap.getBoundingClientRect().top, high = card.getBoundingClientRect().height, raf = 0;
+    // Start from the height the map has now, so the first drag moves it from where it is.
+    if (!mapH) { mapH = Math.max(20, Math.min(75, Math.round(wrap.getBoundingClientRect().height / high * 1000) / 10)); applySplit(); }
+    function mv(ev) {
+      var before = mapH;
+      mapH = Math.max(20, Math.min(75, Math.round((ev.clientY - top) / high * 1000) / 10)); applySplit();
+      // Never so tall that the charts are squeezed out: step back to where they last had room.
+      var gf = document.getElementById('tp-gforce');
+      if (gf && !gf.closest('.is-off') && gf.clientHeight < 110 && before && mapH > before) { mapH = before; applySplit(); }
+      // The charts take the room the map leaves, so they are drawn again (once a frame) as it moves.
+      if (!raf && cmpDrawG) raf = requestAnimationFrame(function () { raf = 0; if (cmpDrawG) cmpDrawG(); });
+    }
+    function up() {
+      h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      h.classList.remove('is-dragging');
+      try { localStorage.setItem('mt3ukTrackSplitH', String(mapH)); } catch (err) { /* storage blocked */ }
+      if (view && view.s) drawCompare(view.s, true);
+    }
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  document.addEventListener('dblclick', function (e) {
+    if (!(e.target.closest && e.target.closest('#tp-splith')) || !cmpFull) return;
+    mapH = null;
+    try { localStorage.removeItem('mt3ukTrackSplitH'); } catch (err) { /* storage blocked */ }
+    applySplit();
+    if (view && view.s) drawCompare(view.s, true);
   });
   var cmpFull = false, cmpDrawG = null, cmpAlign = null;
   // The map's lap A in speed colours (remembered in this browser).
@@ -4547,7 +4593,7 @@
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
-        if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) {
+        if (cmpFull && ((window.innerWidth > window.innerHeight && window.innerHeight <= 560) || (mapH && !landFull()))) {
           // The room left in the panel once the chips, switches, figures, slider and clock have theirs (they wrap on a
           // narrow screen, so they are measured rather than guessed).
           var pbox = document.getElementById('tp-gbox'), used = 0;

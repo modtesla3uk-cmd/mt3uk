@@ -582,10 +582,20 @@
   .tp-mapcard.is-full .tp-gbox { order: 5; margin-top: 4px; }
   .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin-bottom: 2px; }
   @media (max-height: 560px) and (orientation: portrait) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
+  /* Portrait full screen: a bar under the map to drag, so the map can be taller or shorter. Until it has been dragged the map
+     takes what the controls and charts leave; after, it keeps its height and the charts fill the rest. */
+  .tp-splith { display: none; }
+  .tp-mapcard.is-full .tp-splith { display: block; order: 2; flex: none; height: 22px; margin: -10px 0; position: relative; z-index: 4; cursor: row-resize; touch-action: none; }
+  .tp-mapcard.is-full .tp-splith::before { content: ""; position: absolute; top: 9px; left: 50%; width: 56px; height: 4px; margin-left: -28px; border-radius: 2px; background: var(--steel, #6b7480); opacity: 0.7; }
+  .tp-mapcard.is-full .tp-splith.is-dragging::before { background: var(--orange); opacity: 1; }
+  .tp-mapcard.is-full.has-maph .tp-mapwrap { flex: 0 0 var(--tp-maph); }
+  .tp-mapcard.is-full.has-maph .tp-gbox { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .tp-mapcard.is-full.has-maph #tp-gforce { flex: 1 1 0; min-height: 0; }
   /* A phone on its side: the map fills the screen with the controls, the key and the numbers on top of it, and the
      charts in a panel on the right (the map has the whole screen when they are switched off). */
   @media (max-height: 560px) and (orientation: landscape) {
     .tp-mapcard.is-full { padding: 0; }
+    .tp-mapcard.is-full .tp-splith { display: none; }
     /* By id: a later rule gives the map box position: relative in full screen, and this one must win. */
     #tp-mapcard.is-full .tp-mapwrap { position: absolute; inset: 0; }
     #tp-mapcard.is-full.has-charts .tp-mapwrap { right: calc(100% - var(--tp-map, 60%)); }

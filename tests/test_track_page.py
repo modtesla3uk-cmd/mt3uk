@@ -3740,6 +3740,47 @@ def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
     assert float(page.locator("#tp-scrub").input_value()) > 30
 
 
+def test_portrait_full_screen_map_can_be_made_taller_or_shorter(page):
+    """In portrait full screen a bar under the map is dragged to resize it; the charts fill the rest, nothing runs off the
+    screen, it is remembered, and a double tap puts it back."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    bar = page.locator("#tp-splith")
+    expect(bar).to_be_visible()
+    start = page.locator("#tp-map2").bounding_box()["height"]
+    def drag(to_y):
+        bb = bar.bounding_box()
+        page.mouse.move(bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2)
+        page.mouse.down()
+        page.mouse.move(bb["x"] + bb["width"] / 2, to_y, steps=6)
+        page.mouse.up()
+        page.wait_for_timeout(400)
+    # Shorter: the map gives room to the charts, which stay on the screen.
+    drag(page.locator("#tp-mapwrap").bounding_box()["y"] + 160)
+    short = page.locator("#tp-map2").bounding_box()["height"]
+    assert short < start - 40, (short, start)
+    gb = page.locator("#tp-gbox").bounding_box()
+    assert gb["y"] + gb["height"] <= 845 and page.locator("#tp-gforce svg").first.bounding_box()["height"] >= 40, gb
+    # Taller: the charts shrink to fit, and everything is still on the screen.
+    drag(page.locator("#tp-mapwrap").bounding_box()["y"] + 520)
+    tall = page.locator("#tp-map2").bounding_box()["height"]
+    assert tall > short + 100, (tall, short)
+    gb = page.locator("#tp-gbox").bounding_box()
+    assert gb["y"] + gb["height"] <= 845 and overflow_width(page) <= 0, gb
+    # However far it is dragged the charts keep a usable height.
+    assert page.locator("#tp-gforce").bounding_box()["height"] >= 100, page.locator("#tp-gforce").bounding_box()
+    assert page.locator("#tp-play-toggle").bounding_box()["y"] + 40 <= 845
+    # Remembered after a reload, and a double tap on the bar puts it back.
+    assert page.evaluate("localStorage.getItem('mt3ukTrackSplitH')")
+    bar.dblclick()
+    page.wait_for_timeout(400)
+    assert page.evaluate("localStorage.getItem('mt3ukTrackSplitH')") is None
+    assert abs(page.locator("#tp-map2").bounding_box()["height"] - start) <= 12
+
+
 def test_full_screen_map_on_a_phone(page):
     page.set_viewport_size({"width": 390, "height": 844})
     fake = FakeWorker()

@@ -907,3 +907,22 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const farRes = T.analyse(cut(), libFar, {});
   ok(!farRes.lapsFromTrace && !farRes.layoutId, 'or when the car never passed its line');
 }
+
+// Tesla dashcam telemetry (Beta): no time column, only frame numbers at 36 a second. tests/fixtures/tesla-dashcam-castle-combe.csv
+// is three dashcam clips joined in one file (frames 30690 to 32828, 32850 to 35009 and 35046 on, so the car dropped 21 and
+// 36 frames between clips), cut to the rows where the GPS fix moves. Castle Combe, 24 August 2026.
+{
+  const text = fs.readFileSync(ROOT + 'tests/fixtures/tesla-dashcam-castle-combe.csv', 'utf8');
+  const dc = T.read(text, '8c7c31ce-2026-08-24_12-09-35.csv');
+  ok(dc.dashcam === true && dc.format === 'CSV', 'a dashcam file is recognised from its frame numbers');
+  const lastFrame = Number(text.trim().split('\n').pop().split(',')[0]), firstFrame = Number(text.split('\n')[1].split(',')[0]);
+  ok(near(dc.points[dc.points.length - 1].t, (lastFrame - firstFrame) / 36, 0.3), 'time is the frame count over 36, so the frames dropped between clips are counted');
+  ok(dc.points.every((p, i) => i === 0 || p.t > dc.points[i - 1].t), 'time only goes forward');
+  ok(dc.fileDate === '2026-08-24' && dc.fileTime === '12:09' && dc.dateSrc === 'name', 'the date and time come from the file name');
+  const ds = T.analyse(dc, lib);
+  ok(ds.venueId === 'castle-combe' && ds.type === 'track' && ds.dashcam === true, 'Castle Combe found, and the session is marked as dashcam');
+  const lt = ds.laps.filter(l => l.kind === 'timed').map(l => l.time);
+  ok(lt.length === 2 && lt.every(t => t > 82 && t < 83.5), 'two laps of about 1:22.6 to 1:23 (' + lt.join(', ') + ')');
+  const others = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv'), lib);
+  ok(!('dashcam' in others) && !T.read(vbo, 'x.vbo').dashcam, 'no other format is marked as dashcam');
+}

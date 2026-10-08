@@ -398,6 +398,34 @@
     return { format: 'GPX', points: pts, startLine: gpxStartLine(text, pts), venueName: name, startedAt: a0, speedUnit: 'km/h' };
   }
 
+  // Tesla dashcam telemetry (Beta): the CSV the community tools pull from the data a Tesla embeds in its dashcam
+  // clips. There is no time column, only frame_seq_no, and Tesla records at 36 frames a second, so the time is the
+  // frame number counted from the first frame. A clip is about a minute and the car drops a few frames between
+  // clips, but the frame numbers keep counting through the gap, so the time stays true when clips are joined in one
+  // file. The GPS fix only changes about 10 times a second, so only the rows where the position moves are kept.
+  var DASHCAM_FPS = 36;
+  function readDashcam(text) {
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    var h = splitCsv(lines[0], ',').map(normHeader);
+    var ci = { fr: h.indexOf('frame_seq_no'), lat: h.indexOf('latitude_deg'), lng: h.indexOf('longitude_deg'), v: h.indexOf('vehicle_speed_mps') };
+    var pts = [], f0 = null, prev = null, lastLat = NaN, lastLng = NaN;
+    for (var i = 1; i < lines.length; i++) {
+      var f = splitCsv(lines[i], ',');
+      var fr = num(f[ci.fr]), lat = num(f[ci.lat]), lng = num(f[ci.lng]);
+      if (!isFinite(fr) || !isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) continue;
+      if (f0 === null) f0 = fr;
+      var t = (fr - f0) / DASHCAM_FPS;
+      if (prev !== null && t <= prev) continue;
+      if (lat === lastLat && lng === lastLng) continue;
+      lastLat = lat; lastLng = lng; prev = t;
+      pts.push({ t: t, lat: lat, lng: lng, v: ci.v >= 0 ? num(f[ci.v]) : NaN, la: NaN, lo: NaN, sats: NaN });
+    }
+    if (!pts.length) throw new Error('No readings with a position were found in this file.');
+    var t0 = pts[0].t;
+    pts.forEach(function (p) { p.t -= t0; });
+    return { format: 'CSV', dashcam: true, points: pts, startLine: null, venueName: '', startedAt: null, speedUnit: 'm/s' };
+  }
+
   // savedAt (optional): when the file was last saved on the device, from
   // the browser. Used for the date only when the file and its name have
   // none, taking the session to have ended when the file was saved.
@@ -407,6 +435,7 @@
     var out;
     if (/\.vbo$/.test(name) || /^\s*(file created|\[header\])/i.test(text) && /\[data\]/i.test(text)) out = readVbo(text);
     else if (/\.gpx$/.test(name) || /<gpx[\s>]/i.test(text.slice(0, 2000))) out = readGpx(text);
+    else if (!mapping && /frame_seq_no/.test(text.slice(0, 600)) && /latitude_deg/.test(text.slice(0, 600))) out = readDashcam(text);
     else out = readCsv(text, mapping);
     if (out.needsMapping) return out;
     finishPoints(out);
@@ -980,6 +1009,7 @@
       else type = 'track';
     }
     var session = { analysisVersion: ANALYSIS_VERSION, type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
+    if (rd.dashcam) session.dashcam = true;
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt), session.dateFrom = 'file';
     else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = rd.dateSrc || 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;

@@ -2188,10 +2188,13 @@
   // Every session says which logger or app recorded it (required on the Add page, shown to everyone on the session).
   // The popular ones are listed; Other takes a typed name. The pick is guessed from the file, else it is the member's
   // last one.
-  var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
+  var DASHCAM_LOGGER = 'Tesla Dashcam (Beta)';
+  var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', DASHCAM_LOGGER, "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
   var LOGGER_MAX = 40;
   function loggerGuess(files) {
     var names = (files || []).map(function (f) { return String((f.f || f).name || ''); }).join(' ').toLowerCase();
+    // Tesla dashcam telemetry has frame numbers in place of a time column.
+    if ((files || []).some(function (f) { return /frame_seq_no/.test(String(f.text || '').slice(0, 600)); })) return DASHCAM_LOGGER;
     if (/racebox/.test(names)) return 'RaceBox';
     if (/telemetry-v1-|track.?mode/.test(names)) return 'Tesla Track Mode';
     if (/harry|\bhlt\b/.test(names)) return "Harry's LapTimer";
@@ -3529,7 +3532,7 @@
     // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
       '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -4884,6 +4887,11 @@
     var l = s.launch;
     if (s.type !== 'sprint' || !l || !l.from) return '';
     return '<p class="tp-small tp-launch" id="tp-launch">' + icon('info') + (l.from === 'g' ? 'Clock started from the accelerometer, ' + Number(l.lead).toFixed(2) + ' s before the speed rose.' : 'Clock started from the speed (the accelerometer did not move first).') + '</p>';
+  }
+  // A session from Tesla dashcam telemetry (Beta): timed from frame numbers, and kept off the leaderboards for now.
+  function dashcamLine(s) {
+    if (!s.dashcam && s.logger !== DASHCAM_LOGGER) return '';
+    return '<p class="tp-small tp-dashcam" id="tp-dashcam">' + icon('info') + 'Tesla dashcam (Beta): timed from the video frame numbers at 36 a second. Not on the leaderboards yet.</p>';
   }
   function ownerHtml(s) {
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));

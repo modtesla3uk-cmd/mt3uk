@@ -317,7 +317,7 @@ def test_the_admin_with_nobody_signed_in_still_has_it_with_the_viewer_token(page
 
 STUB_CACHES = """
 if (window.caches) {
-  caches.keys = () => Promise.resolve(['mt3uk-shell-v10', 'mt3uk-laps-offline-v1', 'mt3uk-laps-tiles-v1']);
+  caches.keys = () => Promise.resolve(['mt3uk-shell-v11', 'mt3uk-laps-offline-v1', 'mt3uk-laps-tiles-v1']);
   caches.delete = (k) => { const d = JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]'); d.push(k); sessionStorage.setItem('cacheDeleted', JSON.stringify(d)); return Promise.resolve(true); };
 }
 """
@@ -359,7 +359,7 @@ def test_refresh_without_offline_mode_still_reloads_but_leaves_the_laps_caches_a
     with page.expect_navigation():
         page.locator(".tp-refresh").first.click()
     deleted = page.evaluate("JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]')")
-    assert deleted == ["mt3uk-shell-v10"], deleted
+    assert deleted == ["mt3uk-shell-v11"], deleted
 
 
 def board_page(page, fake, query):

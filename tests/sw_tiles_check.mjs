@@ -96,9 +96,27 @@ const tileEvent = () => {
 }
 { // The old shell cache is cleaned up on activate, but the Laps copy and the tiles are left.
   const w = build();
-  for (const n of ['mt3uk-shell-v9', 'mt3uk-laps-offline-v1', 'mt3uk-laps-tiles-v1', 'mt3uk-shell-v10']) w.stores.set(n, new Map());
+  for (const n of ['mt3uk-shell-v9', 'mt3uk-laps-offline-v1', 'mt3uk-laps-tiles-v1', 'mt3uk-shell-v11']) w.stores.set(n, new Map());
   let waited;
   w.handlers.activate({ waitUntil: p => { waited = p; } });
   await waited;
   ok(!w.stores.has('mt3uk-shell-v9') && w.stores.has('mt3uk-laps-offline-v1') && w.stores.has('mt3uk-laps-tiles-v1'), 'activate keeps the Laps copy and the tiles and drops old shells');
+}
+{ // A newer script fetched online replaces the older kept copy of the same file, so an offline match cannot find the old one.
+  const w = build();
+  const laps = new Map([['https://laps.test/js/x.js?v=1', 'old']]);
+  w.stores.set('mt3uk-laps-offline-v1', laps);
+  w.stores.set('mt3uk-shell-v11', new Map([['https://laps.test/js/x.js?v=0', 'older']]));
+  let answer;
+  w.handlers.fetch({ request: new Request('https://laps.test/js/x.js?v=2'), respondWith: p => { answer = p; } });
+  await answer;
+  await new Promise(r => setTimeout(r, 20));
+  ok([...laps.keys()].join() === 'https://laps.test/js/x.js?v=2', 'the kept copy of a script is replaced by the newer tag (' + [...laps.keys()].join() + ')');
+  ok([...w.stores.get('mt3uk-shell-v11').keys()].join() === 'https://laps.test/js/x.js?v=2', 'and the shell copy keeps one tag only');
+  // A device without Offline mode never gets a Laps copy made for it.
+  const w2 = build();
+  w2.handlers.fetch({ request: new Request('https://laps.test/js/x.js?v=2'), respondWith: p => { answer = p; } });
+  await answer;
+  await new Promise(r => setTimeout(r, 20));
+  ok(!w2.stores.has('mt3uk-laps-offline-v1'), 'a device with Offline mode off gets no Laps copy');
 }

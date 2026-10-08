@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v10';
+const CACHE_NAME = 'mt3uk-shell-v11';
 // The copy of Laps kept on a device that has switched Offline mode on (js/laps-offline.js asks for it with a
 // message). Kept apart so the shell cache's clean-up never deletes it, and removed when the member switches it off.
 const LAPS_CACHE = 'mt3uk-laps-offline-v1';
@@ -7,6 +7,16 @@ const LAPS_CACHE = 'mt3uk-laps-offline-v1';
 const TILE_CACHE = 'mt3uk-laps-tiles-v1';
 const TILE_HOST = 'server.arcgisonline.com';
 const TILE_MAX = 2500;
+// Puts a response in a cache and drops older copies of the same file under another ?v= tag, so an offline match
+// (which ignores the query) can only find the newest. With `onlyIfKept` it only replaces a file already kept there.
+function putFresh(cache, request, copy, onlyIfKept) {
+  var path = new URL(request.url || request, self.location.origin).pathname;
+  return cache.keys().then(function (ks) {
+    var same = ks.filter(function (k) { return new URL(k.url).pathname === path; });
+    if (onlyIfKept && !same.length) return null;
+    return Promise.all(same.map(function (k) { return cache.delete(k); })).then(function () { return cache.put(request, copy); });
+  });
+}
 const LAPS_PAGES = ['/laps.html', '/track.html', '/leaderboards.html', '/laps-signin.html'];
 const LAPS_FILES = [
   '/data/tracks.json', '/data/tyres.json', '/data/pads.json', '/data/vehicles.json', '/laps-manifest.json',
@@ -70,7 +80,7 @@ self.addEventListener('fetch', function (event) {
       fetch(request).then(function (response) {
         if (response.ok) {
           var copy = response.clone();
-          caches.open(LAPS_CACHE).then(function (cache) { return cache.keys().then(function (ks) { if (ks.length) cache.put(request, copy); }); });
+          caches.has(LAPS_CACHE).then(function (on) { if (on) return caches.open(LAPS_CACHE).then(function (cache) { return putFresh(cache, request, copy); }); });
         }
         return response;
       }).catch(function () { return caches.match(request, { ignoreSearch: true }); })
@@ -82,8 +92,9 @@ self.addEventListener('fetch', function (event) {
     event.respondWith(
       fetch(request)
         .then(function (response) {
-          var copy = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) { cache.put(request, copy); });
+          var copy = response.clone(), copy2 = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { putFresh(cache, request, copy); });
+          caches.has(LAPS_CACHE).then(function (on) { if (on) return caches.open(LAPS_CACHE).then(function (cache) { return putFresh(cache, request, copy2, true); }); });
           return response;
         })
         .catch(function () {
@@ -109,8 +120,9 @@ self.addEventListener('fetch', function (event) {
       fetch(request)
         .then(function (response) {
           if (response.ok) {
-            var copy = response.clone();
-            caches.open(CACHE_NAME).then(function (cache) { cache.put(request, copy); });
+            var copy = response.clone(), copy2 = response.clone();
+            caches.open(CACHE_NAME).then(function (cache) { putFresh(cache, request, copy); });
+            caches.has(LAPS_CACHE).then(function (on) { if (on) return caches.open(LAPS_CACHE).then(function (cache) { return putFresh(cache, request, copy2, true); }); });
           }
           return response;
         })
@@ -142,7 +154,7 @@ function lapsKeep(cache, url, found) {
     if (!response.ok) return null;
     var path = new URL(url, self.location.origin).pathname;
     var copy = response.clone();
-    return cache.put(new Request(url), copy).then(function () {
+    return putFresh(cache, new Request(url), copy).then(function () {
       if (/\.html$/i.test(path)) {
         return response.text().then(function (html) {
           var re = /(?:src|href)="([^"#]+\.(?:js|css)[^"]*)"/g, m;

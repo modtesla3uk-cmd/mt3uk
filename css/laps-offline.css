@@ -60,3 +60,14 @@
 .lo-field { display: grid; gap: 4px; margin: 10px 0; font-size: 0.9rem; }
 .lo-field select { width: 100%; }
 .lb-old { margin: 8px 0; }
+/* Circuits kept offline: the badge on a Sessions track row, the hint, the hold, and the list in Profile. */
+.lo-kept { display: inline-flex; vertical-align: -3px; margin-left: 4px; color: #2e9d4a; }
+.lo-kept .icon { width: 20px; height: 16px; fill: none; stroke: currentColor; }
+.lo-hint { margin: 6px 0 10px; color: var(--steel, #5b6475); }
+.lo-hint[hidden] { display: none; }
+[data-keep-hold] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+[data-keep-hold].is-keeping { background: rgba(46, 157, 74, 0.1); box-shadow: inset 0 0 0 2px rgba(46, 157, 74, 0.55); transition: box-shadow 0.15s ease; }
+.lo-circuits { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 6px; }
+.lo-circuits[hidden] { display: none; }
+.lo-circuits li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.lo-count { font-weight: 400; color: var(--steel, #5b6475); margin-left: 6px; }

@@ -33,7 +33,7 @@
 <link rel="stylesheet" href="css/site-header.css?v=20271016">
 <link rel="stylesheet" href="css/laps-strip.css?v=2">
 <link rel="stylesheet" href="css/laps-panels.css?v=1">
-<link rel="stylesheet" href="css/laps-offline.css?v=9">
+<link rel="stylesheet" href="css/laps-offline.css?v=10">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -406,7 +406,13 @@
   /* Moving and hiding tracks in the list (like the homepage tiles): a hold lifts a card, a drag moves it. */
   .lb-cardwrap { position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .lb-cardwrap > .tp-board-card, .lb-cardwrap > a.tp-board-card { height: 100%; box-sizing: border-box; }
-  .lb-cardwrap .tp-board-name { padding-right: 44px; }
+  .lb-cardwrap .tp-board-name { padding-right: 92px; }
+  .lb-keep { position: absolute; top: 4px; right: 48px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel); cursor: pointer; }
+  .lb-keep[hidden] { display: none; }
+  .lb-keep:hover, .lb-keep:focus-visible { background: var(--hairline); color: var(--ink); }
+  .lb-keep .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .lb-keep[aria-pressed="true"] { color: #2e9d4a; }
+  .lb-keep[aria-pressed="true"] .icon { fill: currentColor; fill-opacity: 0.2; }
   .lb-hide { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel); cursor: pointer; }
   .lb-hide:hover, .lb-hide:focus-visible { background: var(--hairline); color: var(--ink); }
   .lb-hide .icon { width: 20px; height: 20px; }
@@ -709,8 +715,8 @@
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
-<script src="js/laps-offline.js?v=13" defer></script>
-<script src="js/leaderboard-page.js?v=20270215" defer></script>
+<script src="js/laps-offline.js?v=14" defer></script>
+<script src="js/leaderboard-page.js?v=20270216" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

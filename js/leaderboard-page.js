@@ -25,6 +25,7 @@
   // What each kind of board is called in "All ..." links and buttons.
   var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };
   var ICON = {
+    cloud: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5 4.8 4.8 0 0 1 17 18Z"/>',
     refresh: '<path d="M20 11a8 8 0 0 0-14.9-3M4 5v3.5h3.5"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-3.5h-3.5"/>',
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
@@ -218,10 +219,11 @@
     // A track card with the button that hides it (or, among the hidden ones, shows it again).
     function wrap(v, card) {
       var hid = hidden.indexOf(v.id) !== -1;
-      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '">' + card +
+      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card +
+        '<button type="button" class="lb-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' +
         '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '</button></div>';
     }
-    h += '<div class="tp-boards lb-venues">' + shown.map(function (x) {
+    h += '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a circuit and let go to keep it for offline use, or tap its cloud. Hold and drag to move it.</p><div class="tp-boards lb-venues">' + shown.map(function (x) {
       var v = x.v;
       if (t[0] === 'drag') {
         var q = boardQuery('drag', v.id), key = boardKey('drag', v.id);
@@ -286,6 +288,7 @@
   // The same way the homepage tiles move. A drag never opens the card it ends on.
   var dragArmed = false;
   function arrange(grid, done) {
+    var travel = 0;
     var HOLD_MS = 350, TOL = 8, holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppress = false, mouse = false;
     function clearHold() { clearTimeout(holdTimer); holdTimer = null; if (tile && !dragging) tile.classList.remove('is-holding'); }
     function begin() {
@@ -302,6 +305,7 @@
       if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) { /* no vibration */ } }
     }
     function moveTo(x, y) {
+      travel = Math.max(travel, Math.abs(x - start.x), Math.abs(y - start.y));
       tile.style.left = (x - offset.x) + 'px'; tile.style.top = (y - offset.y) + 'px';
       var under = document.elementFromPoint(x, y), target = under && under.closest('.lb-cardwrap');
       if (!target || target === tile || !grid.contains(target)) return;
@@ -310,22 +314,28 @@
       if (y < 60) window.scrollBy(0, -12); else if (y > window.innerHeight - 60) window.scrollBy(0, 12);
     }
     function end() {
-      var ids = null;
+      var ids = null, held = tile;
       if (dragging) {
         grid.insertBefore(tile, placeholder); placeholder.remove();
         tile.classList.remove('is-dragging'); tile.style.width = tile.style.height = tile.style.left = tile.style.top = '';
         suppress = true; setTimeout(function () { suppress = false; }, 400);
         ids = [].slice.call(grid.querySelectorAll('.lb-cardwrap')).map(function (w) { return w.getAttribute('data-venue'); });
+        // Held and let go without moving: that is not a move, it keeps the circuit for offline use (js/laps-offline.js).
+        if (travel < 14) {
+          ids = null;
+          var o = window.MT3UKOffline;
+          if (held && o && o.holdKeep) o.holdKeep(held.getAttribute('data-keep-venue'), held.getAttribute('data-keep-name'));
+        }
       }
       clearHold();
       tile = null; start = null; dragging = false; placeholder = null;
       if (ids) done(ids);
     }
     grid.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0 || e.target.closest('[data-hide]')) return;
+      if (e.button !== 0 || e.target.closest('[data-hide], [data-keep-toggle]')) return;
       var t = e.target.closest('.lb-cardwrap');
       if (!t) return;
-      tile = t; start = { x: e.clientX, y: e.clientY }; mouse = e.pointerType === 'mouse';
+      tile = t; start = { x: e.clientX, y: e.clientY }; mouse = e.pointerType === 'mouse'; travel = 0;
       tile.classList.add('is-holding');
       holdTimer = setTimeout(begin, HOLD_MS);
     });

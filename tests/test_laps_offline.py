@@ -411,19 +411,30 @@ def test_boards_of_a_circuit_that_was_not_chosen_are_not_kept(page):
     expect(page.locator(".tp-empty")).to_contain_text("not on this device")
 
 
-def test_choosing_a_circuit_keeps_every_one_of_its_boards_and_choosing_another_drops_them(page):
+def test_adding_a_circuit_keeps_every_one_of_its_boards_and_taking_it_off_drops_them(page):
     fake = FakeWorker()
     fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
     page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
     board_page(page, fake, "")
-    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.setCircuit")
-    kept = page.evaluate("MT3UKOffline.setCircuit('thruxton', 'Thruxton')")
-    assert kept == 1, "Thruxton has one layout"
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    r = page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
+    assert r["ok"] and r["boards"] == 1, "Thruxton has one layout"
     assert page.evaluate("MT3UKOffline.recall('/track/board?venue=thruxton&layout=main').then(d => !!(d && d.entries))") is True
-    assert page.evaluate("MT3UKOffline.circuit()") == "thruxton"
-    page.evaluate("MT3UKOffline.setCircuit('', '')")
+    assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
+    page.evaluate("MT3UKOffline.removeCircuit('thruxton')")
     assert page.evaluate("MT3UKOffline.recall('/track/board?venue=thruxton&layout=main')") is None
-    assert page.evaluate("MT3UKOffline.circuit()") == ""
+    assert page.evaluate("MT3UKOffline.circuits().length") == 0
+
+
+def test_up_to_three_circuits_can_be_kept(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    board_page(page, FakeWorker(), "")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    for vid in ("thruxton", "silverstone", "brands-hatch"):
+        assert page.evaluate("MT3UKOffline.addCircuit('%s', '%s')" % (vid, vid))["ok"]
+    full = page.evaluate("MT3UKOffline.addCircuit('donington-park', 'Donington Park')")
+    assert full["ok"] is False and full["full"] is True
+    assert page.evaluate("MT3UKOffline.circuits().length") == 3
 
 
 def test_the_confirm_card_offers_one_circuits_leaderboards_and_remembers_the_choice(page):
@@ -436,11 +447,10 @@ def test_the_confirm_card_offers_one_circuits_leaderboards_and_remembers_the_cho
     expect(pick.locator("option[value='santa-pod']")).to_have_count(1)
     pick.select_option("thruxton")
     page.locator("#lo-confirm").get_by_role("button", name="Turn on offline mode").click()
-    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuit')") == "thruxton"
-    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuitName')") == "Thruxton"
+    assert page.evaluate("JSON.parse(localStorage.getItem('mt3ukLapsOfflineCircuits'))") == [{"id": "thruxton", "name": "Thruxton"}]
 
 
-def test_profile_has_a_circuit_choice_for_the_leaderboards_kept_offline(page):
+def test_profile_lists_the_kept_circuits_with_a_way_to_add_and_remove_them(page):
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
     page.add_init_script("navigator.serviceWorker && (navigator.serviceWorker.register = () => new Promise(() => {}))")
     page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');")
@@ -450,10 +460,79 @@ def test_profile_has_a_circuit_choice_for_the_leaderboards_kept_offline(page):
     pick = page.locator("#offline-mode [data-offline-circuit]")
     expect(pick).to_be_visible()
     expect(pick.locator("option[value='thruxton']")).to_have_count(1)
+    expect(page.locator("#offline-mode [data-offline-circuits] li")).to_have_count(0)
+    # Offline mode is off, so adding a circuit asks to turn it on (the confirm card); the choice is kept either way.
     pick.select_option("thruxton")
-    page.wait_for_function("localStorage.getItem('mt3ukLapsOfflineCircuit') === 'thruxton'")
-    pick.select_option("")
-    page.wait_for_function("localStorage.getItem('mt3ukLapsOfflineCircuit') === null")
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukLapsOfflineCircuits') || '[]').length === 1")
+    expect(page.locator("#lo-confirm")).to_be_visible()
+    page.locator("#lo-confirm").get_by_role("button", name="Cancel").click()
+    expect(page.locator("#offline-mode [data-offline-circuits] li")).to_have_count(1)
+    expect(page.locator("#offline-mode [data-offline-circuits]")).to_contain_text("Thruxton")
+    expect(page.locator("#offline-mode [data-offline-circuit-count]")).to_have_text("1 of 3 kept")
+    page.locator("#offline-mode [data-circuit-remove]").click()
+    page.wait_for_function("localStorage.getItem('mt3ukLapsOfflineCircuits') === null")
+    expect(page.locator("#offline-mode [data-offline-circuits] li")).to_have_count(0)
+
+
+def hold(page, locator, ms=750):
+    box = locator.bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
+def test_holding_a_track_in_sessions_keeps_it_offline_without_opening_it(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s="))
+    page.goto("/track.html")
+    row = page.locator(".tp-trackrow[data-keep-hold]").first
+    expect(row).to_be_visible()
+    expect(page.locator("[data-keep-hint]").first).to_be_visible()
+    hold(page, row)
+    expect(page.locator("#lo-bar")).to_contain_text("is kept on this device", timeout=15000)
+    expect(row.locator(".lo-kept")).to_be_visible()
+    expect(row).to_have_attribute("aria-expanded", "false")
+    assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
+    # Hold again: asks, then takes it off.
+    page.once("dialog", lambda d: d.accept())
+    hold(page, row)
+    expect(row.locator(".lo-kept")).to_have_count(0)
+    assert page.evaluate("MT3UKOffline.circuits().length") == 0
+
+
+def test_a_circuit_on_the_leaderboard_is_kept_by_its_cloud_or_by_holding_and_letting_go(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    link = board_page(page, FakeWorker(), "type=track")
+    card = page.locator(".lb-cardwrap[data-venue='thruxton']")
+    cloud = card.locator("[data-keep-toggle]")
+    expect(cloud).to_be_visible()
+    expect(cloud).to_have_attribute("aria-pressed", "false")
+    cloud.click()
+    expect(cloud).to_have_attribute("aria-pressed", "true", timeout=15000)
+    assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
+    # A different card: held and let go without moving.
+    other = page.locator(".lb-cardwrap[data-venue='silverstone']")
+    hold(page, other.locator(".tp-board-name"), ms=500)
+    expect(other.locator("[data-keep-toggle]")).to_have_attribute("aria-pressed", "true", timeout=15000)
+    assert page.evaluate("MT3UKOffline.circuits().map(c => c.id).sort()") == ["silverstone", "thruxton"]
+    # And it did not count as moving the card: the list has no saved order.
+    assert page.evaluate("Object.keys(localStorage).filter(k => /order/i.test(k) && localStorage.getItem(k) && localStorage.getItem(k) !== 'null').length") == 0
+
+
+def test_a_fourth_circuit_is_refused_with_a_message(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    board_page(page, FakeWorker(), "type=track")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    for vid in ("thruxton", "silverstone", "brands-hatch"):
+        page.evaluate("MT3UKOffline.addCircuit('%s', '%s')" % (vid, vid))
+    page.evaluate("MT3UKOffline.holdKeep('donington-park', 'Donington Park')")
+    expect(page.locator("#lo-bar")).to_contain_text("3 circuits are already kept")
+    assert page.evaluate("MT3UKOffline.circuits().length") == 3
 
 
 def test_the_header_icon_is_a_button_that_turns_offline_mode_on_and_off(page):

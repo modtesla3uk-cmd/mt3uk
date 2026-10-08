@@ -4043,7 +4043,13 @@
     e.preventDefault();
     try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
     h.classList.add('is-dragging');
-    function mv(ev) { mapSplit = Math.max(30, Math.min(85, Math.round(ev.clientX / window.innerWidth * 1000) / 10)); applySplit(); }
+    var raf = 0;
+    // The charts are drawn to their own width, so they are redrawn as the divider moves (once a frame): left alone they
+    // would be stretched with the panel, and their labels with them, until the drag ended.
+    function mv(ev) {
+      mapSplit = Math.max(30, Math.min(85, Math.round(ev.clientX / window.innerWidth * 1000) / 10)); applySplit();
+      if (!raf && cmpDrawG) raf = requestAnimationFrame(function () { raf = 0; if (cmpDrawG) cmpDrawG(); });
+    }
     function up() {
       h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
       h.classList.remove('is-dragging');

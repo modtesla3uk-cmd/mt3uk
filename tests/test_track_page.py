@@ -3848,6 +3848,10 @@ def test_full_screen_map_on_a_phone(page):
     page.mouse.down()
     page.mouse.move(700, 200, steps=5)
     page.mouse.move(633, 200, steps=5)
+    # Mid-drag the charts are redrawn to the new width, not stretched, so their labels keep their size.
+    page.wait_for_timeout(200)
+    drawn, room = page.locator("#tp-gforce svg").first.evaluate("e => [e.viewBox.baseVal.width, e.parentNode.clientWidth]")
+    assert abs(drawn - max(280, room)) <= 14, (drawn, room)
     page.mouse.up()
     page.wait_for_timeout(300)
     assert 615 <= page.locator("#tp-map2").bounding_box()["width"] <= 650, page.locator("#tp-map2").bounding_box()

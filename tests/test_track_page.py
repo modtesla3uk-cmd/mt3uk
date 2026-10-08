@@ -6470,6 +6470,77 @@ def test_a_folded_day_shows_an_eye_when_shared_a_lock_when_private_and_a_track_r
     assert pb["x"] + pb["width"] <= ab["x"] + 2 and abs((pb["y"] + pb["height"] / 2) - (ab["y"] + ab["height"] / 2)) < 6, (pb, ab)
 
 
+def _hold(page, locator, ms=750):
+    locator.scroll_into_view_if_needed()
+    box = locator.bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
+def test_holding_sessions_of_a_day_picks_them_and_the_bulk_edit_changes_only_those(page):
+    """It rained for two sessions of the day but not the others: hold on a session to pick it (it stays highlighted), tap more
+    to add or remove, and the Edit button then changes only the picked ones."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 1)
+    open_page(page, fake)
+    page.set_viewport_size({"width": 1100, "height": 900})
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator(".tp-trackrow").click()
+    wrap.locator("[data-layout-toggle]").click()
+    day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    day.locator(".tp-daygroup-title[data-day-toggle]").click()
+    edit = day.locator("[data-day-edit]")
+    expect(edit).to_contain_text("Edit all 3 sessions")
+    expect(day.locator(".tp-pick-hint")).to_be_visible()
+    expect(day.locator("[data-pickbar]")).to_be_hidden()
+    row = lambda sid: day.locator('a.tp-row[data-sid="%s"]' % sid)
+    # Hold on one: picked, highlighted, and the session does not open.
+    _hold(page, row("g1"))
+    expect(page).to_have_url(re.compile(r"track\.html(\?mycar=[^&]*)?$"))
+    expect(row("g1")).to_have_class(re.compile("is-picked"))
+    expect(edit).to_contain_text("Edit the 1 selected session")
+    expect(day.locator("[data-pick-count]")).to_have_text("1 selected")
+    # With one picked a tap picks more (and unpicks) instead of opening the session.
+    row("g3").click()
+    row("g2").click()
+    expect(edit).to_contain_text("Edit the 3 selected sessions")
+    row("g2").click()
+    expect(row("g2")).not_to_have_class(re.compile("is-picked"))
+    expect(edit).to_contain_text("Edit the 2 selected sessions")
+    expect(page).to_have_url(re.compile(r"track\.html(\?mycar=[^&]*)?$"))
+    edit.click()
+    form = page.locator("#tp-dayedit")
+    expect(form.locator("h3")).to_contain_text("Edit the 2 selected sessions")
+    form.locator("[data-cond] button[data-v='Wet']").click()
+    form.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("The 2 selected sessions at 14 Jul 2026 at Castle Combe are updated")
+    assert fake.sessions["g1"]["conditions"] == "Wet" and fake.sessions["g3"]["conditions"] == "Wet" and fake.sessions["g2"]["conditions"] == "Dry"
+    # The picking is cleared once applied.
+    expect(page.locator("a.tp-row.is-picked")).to_have_count(0)
+
+
+def test_picked_sessions_can_be_cleared_and_ctrl_click_picks(page):
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 1)
+    open_page(page, fake)
+    page.set_viewport_size({"width": 390, "height": 800})
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator(".tp-trackrow").click()
+    wrap.locator("[data-layout-toggle]").click()
+    day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    day.locator(".tp-daygroup-title[data-day-toggle]").click()
+    day.locator('a.tp-row[data-sid="g2"]').click(modifiers=["Control"])
+    expect(day.locator("a.tp-row.is-picked")).to_have_count(1)
+    expect(day.locator("[data-pickbar]")).to_be_visible()
+    day.locator("[data-pick-clear]").click()
+    expect(day.locator("a.tp-row.is-picked")).to_have_count(0)
+    expect(day.locator("[data-pickbar]")).to_be_hidden()
+    expect(day.locator("[data-day-edit]")).to_contain_text("Edit all 3 sessions")
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
 def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
     """After Apply the list redraws, but the page stays on the day that was edited (open, in view) instead of jumping back
     to the top."""

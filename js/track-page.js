@@ -1259,8 +1259,10 @@
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
     if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
       '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
+    return '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
   }
+  // Sessions picked by holding on them (or Ctrl/Cmd/Shift-click): the day's bulk edit then changes only those.
+  var pickedIds = {};
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
   var openDays = {};
   // The battery used in one session, in points of charge (Track Mode files carry it).
@@ -1345,8 +1347,13 @@
   // Edit all the sessions of a day at once (the owner): conditions, air temperature, tyres, brake pads and the logger,
   // for when they were left off or set wrong on every file of the day. Anything left blank stays as it is on each session.
   function dayEditButton(g) {
-    var many = g.length > 1;
-    return '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + (many ? 'Edit all ' + g.length + ' sessions' : 'Edit the session') + '</button>';
+    var many = g.length > 1, picked = many ? g.filter(function (x) { return pickedIds[x.id]; }) : [], use = picked.length ? picked : g;
+    return (many ? '<p class="tp-small tp-pick-hint">' + icon('info') + '<span>Hold a session to pick just some of them, then edit only those.</span></p>' +
+        '<div class="tp-pickbar" data-pickbar' + (picked.length ? '' : ' hidden') + '><span data-pick-count>' + picked.length + ' selected</span><button type="button" class="btn btn-ghost btn-sm" data-pick-clear>Clear selection</button></div>' : '') +
+      '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-all-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-ids="' + esc(use.map(function (x) { return x.id; }).join(',')) + '"' + (picked.length ? ' data-picked' : '') + ' data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + editLabel(many, picked.length, g.length) + '</button>';
+  }
+  function editLabel(many, picked, total) {
+    return !many ? 'Edit the session' : picked ? 'Edit ' + (picked === 1 ? 'the 1 selected session' : 'the ' + picked + ' selected sessions') : 'Edit all ' + total + ' sessions';
   }
   // The tyres and brake pads from the car's last session before the earliest of these sessions, if it had any.
   function previousKit(m, ids) {
@@ -1360,8 +1367,9 @@
     if (padSess && PD) out.pads = { fields: padInit(padSess), text: padSess.pads || '' };
     return out;
   }
-  function dayEditHtml(n, what) {
-    return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>' + (n > 1 ? 'Edit all ' + n + ' sessions' : 'Edit the session') + ' on ' + esc(what) + '</h3>' +
+  function dayEditHtml(n, what, picked) {
+    var sel = picked ? (n === 1 ? 'the selected session' : 'the ' + n + ' selected sessions') : n > 1 ? 'all ' + n + ' sessions' : 'the session';
+    return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>Edit ' + sel + ' on ' + esc(what) + '</h3>' +
       '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip" data-v="' + c + '" aria-pressed="false">' + c + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-field"><label for="tp-de-temp">Air temperature (°C)</label><input class="field" id="tp-de-temp" inputmode="numeric" placeholder="Leave as it is"></div>' +
@@ -1371,7 +1379,7 @@
       '<button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
       '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div>' +
       loggerFields('tp-de-logger', '', false).replace('Choose the logger', 'Leave as it is') +
-      '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + (n > 1 ? 'all ' + n + ' sessions' : 'the session') + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + sel + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-day-edit]');
@@ -1382,7 +1390,8 @@
     // The tyre and pad lists are loaded on demand (the list page does not need them until now).
     Promise.all([loadTyres(), loadPads(), getMine()]).catch(function () {}).then(function (res) {
     if (!document.body.contains(b)) return;
-    b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what));
+    var picked = b.hasAttribute('data-picked');
+    b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what, picked));
     var form = document.getElementById('tp-dayedit');
     form.setAttribute('data-ids', ids.join(',')); form.setAttribute('data-what', what);
     wireTyres('tp-de-tyre'); wirePads('tp-de-pad'); wireLogger('tp-de-logger');
@@ -1446,7 +1455,8 @@
       });
       chain.then(function () {
         mine = null; counts = null;
-        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
+        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : (picked ? 'The ' : 'All ') + ids.length + (picked ? ' selected sessions at ' : ' sessions at ') + what + ' are updated.') };
+        ids.forEach(function (id) { delete pickedIds[id]; });
         // The list redraws; stay on the day that was changed, open, rather than going back to the top.
         var dkey = box && box.getAttribute('data-day');
         if (dkey) { openDays[dkey] = true; storeListOpen(); focusDay(dkey); }
@@ -1456,6 +1466,65 @@
     form.scrollIntoView({ block: 'nearest' });
     });
   });
+  // Picking sessions of a day: hold on a session (about half a second), or Ctrl/Cmd/Shift-click, to pick it. While any are picked in a
+  // day a plain tap picks or unpicks too (so it does not open the session), and the day's Edit button changes only the picked ones.
+  function pickableRow(t) {
+    var row = t && t.closest && t.closest('a.tp-pickable');
+    var box = row && row.closest('.tp-daygroup[data-many="true"]');
+    return row && box && box.querySelector('[data-day-edit]') ? { row: row, box: box } : null;
+  }
+  function refreshPick(box) {
+    var rows = box.querySelectorAll('a.tp-pickable'), picked = [];
+    Array.prototype.forEach.call(rows, function (r) { if (r.classList.contains('is-picked')) picked.push(r.getAttribute('data-sid')); });
+    var btn = box.querySelector('[data-day-edit]'), bar = box.querySelector('[data-pickbar]');
+    btn.setAttribute('data-ids', (picked.length ? picked : btn.getAttribute('data-all-ids').split(',')).join(','));
+    if (picked.length) btn.setAttribute('data-picked', ''); else btn.removeAttribute('data-picked');
+    btn.innerHTML = icon('sliders') + editLabel(true, picked.length, rows.length);
+    if (bar) { bar.hidden = !picked.length; bar.querySelector('[data-pick-count]').textContent = picked.length + ' selected'; }
+    var form = document.getElementById('tp-dayedit');
+    if (form && box.contains(form)) form.remove();
+  }
+  function togglePick(hit) {
+    var on = !hit.row.classList.contains('is-picked');
+    hit.row.classList.toggle('is-picked', on);
+    var id = hit.row.getAttribute('data-sid');
+    if (on) pickedIds[id] = true; else delete pickedIds[id];
+    refreshPick(hit.box);
+  }
+  (function () {
+    var timer = null, sx = 0, sy = 0, justHeld = false;
+    function stop() { if (timer) { clearTimeout(timer); timer = null; } }
+    document.addEventListener('pointerdown', function (e) {
+      if (e.button) return;
+      var hit = pickableRow(e.target);
+      stop(); justHeld = false;
+      if (!hit) return;
+      sx = e.clientX; sy = e.clientY;
+      timer = setTimeout(function () { timer = null; justHeld = true; togglePick(hit); }, 450);
+    });
+    document.addEventListener('pointermove', function (e) { if (timer && (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8)) stop(); });
+    ['pointerup', 'pointerleave', 'scroll'].forEach(function (n) { document.addEventListener(n, stop, true); });
+    // A long press on a phone also asks for the link's menu (and may cancel the pointer): never show it, and pick the row if the timer had not yet.
+    document.addEventListener('contextmenu', function (e) {
+      var hit = pickableRow(e.target);
+      if (!hit) return;
+      e.preventDefault();
+      if (timer) { stop(); justHeld = true; togglePick(hit); }
+    });
+    document.addEventListener('click', function (e) {
+      var hit = pickableRow(e.target);
+      if (!hit) return;
+      if (justHeld) { justHeld = false; e.preventDefault(); e.stopPropagation(); return; }
+      if (e.ctrlKey || e.metaKey || e.shiftKey || hit.box.querySelector('a.tp-pickable.is-picked')) { e.preventDefault(); e.stopPropagation(); togglePick(hit); }
+    }, true);
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest && e.target.closest('[data-pick-clear]');
+      if (!c) return;
+      var box = c.closest('.tp-daygroup');
+      Array.prototype.forEach.call(box.querySelectorAll('a.tp-pickable.is-picked'), function (r) { r.classList.remove('is-picked'); delete pickedIds[r.getAttribute('data-sid')]; });
+      refreshPick(box);
+    });
+  })();
   // ---------- Add a car (no photo needed) ----------
   // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.

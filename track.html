@@ -878,6 +878,13 @@
   .tp-day-tile[data-open="true"] .tp-day-priv + .tp-day-arrow { margin-left: auto; }
   .tp-day-tile[data-open="false"] .tp-daygroup-count { display: none; }
   .tp-day-tile .tp-day-titles h3 { font-size: 0.9rem; }
+  /* Picking some of a day's sessions (hold on a row): the picked rows are tinted and outlined, and the bulk edit changes only them. */
+  .tp-daygroup .tp-pickable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+  .tp-daygroup .tp-pickable.is-picked { background: color-mix(in srgb, var(--orange) 14%, var(--paper)); box-shadow: inset 4px 0 0 var(--orange), 0 0 0 2px var(--orange); }
+  .tp-pick-hint { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--steel); }
+  .tp-pick-hint .icon { width: 16px; height: 16px; flex: none; }
+  .tp-pickbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; padding: 4px 4px 4px 12px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--orange) 14%, var(--paper)); font-weight: 600; }
+  .tp-pickbar[hidden] { display: none; }
   .tp-sess-more { margin-top: 10px; }
   /* The day that a bulk edit just changed flashes once it is scrolled into view. */
   .tp-row.is-flash { outline: 3px solid var(--orange); outline-offset: -1px; }
@@ -1180,7 +1187,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270301" defer></script>
+<script src="js/track-page.js?v=20270302" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

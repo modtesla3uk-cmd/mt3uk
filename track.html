@@ -944,6 +944,9 @@
   /* Whether the day is shared, as a small eye or lock beside the arrow while it is folded (open, the Shared switch says it). */
   .tp-day-priv { display: inline-flex; align-items: center; flex: none; margin-left: auto; color: var(--steel); }
   .tp-day-priv .icon { width: 18px; height: 18px; }
+  .tp-day-priv.is-mixed { gap: 8px; }
+  .tp-day-priv-n { font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 480px) { .tp-day-priv-n { font-size: 0.72rem; } }
   .tp-day-priv + .tp-day-arrow { margin-left: 0; }
   .tp-day-tile[data-open="true"] .tp-day-priv { display: none; }
   .tp-day-tile[data-open="true"] .tp-day-priv + .tp-day-arrow { margin-left: auto; }
@@ -1266,7 +1269,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271017" defer></script>
+<script src="js/track-page.js?v=20271018" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

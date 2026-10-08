@@ -1309,7 +1309,9 @@
   function dayPrivacyHtml(g) {
     var n = g.filter(function (x) { return x.privacy && x.privacy !== 'private'; }).length;
     var word = n === g.length ? 'Shared' : n ? 'Some sessions shared' : 'Only me';
-    return '<span class="tp-day-priv" role="img" title="' + word + '" aria-label="' + word + '">' + icon(n ? 'eye' : 'lock') + '</span>';
+    // A mix says how many are on each side, so a session left private is easy to spot.
+    var mixed = n && n < g.length, counts = mixed ? 'Shared (' + n + '), Private (' + (g.length - n) + ')' : '';
+    return '<span class="tp-day-priv' + (mixed ? ' is-mixed' : '') + '" role="img" title="' + (counts || word) + '" aria-label="' + (counts || word) + '">' + icon(n ? 'eye' : 'lock') + (mixed ? '<span class="tp-day-priv-n">Shared (' + n + ') Private (' + (g.length - n) + ')</span>' : '') + '</span>';
   }
   // tile: the Sessions tree, where every date is one compact tile (the date, how many sessions and the fastest, an arrow) until its arrow is pressed.
   function sessionListHtml(list, owner, all, tile) {

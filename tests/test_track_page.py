@@ -6497,7 +6497,10 @@ def test_a_folded_day_shows_an_eye_when_shared_a_lock_when_private_and_a_track_r
     expect(shared.locator(".tp-day-priv")).to_have_attribute("aria-label", "Shared")
     expect(shared.locator(".tp-day-priv .icon")).to_be_visible()
     expect(private.locator(".tp-day-priv")).to_have_attribute("aria-label", "Only me")
-    expect(mixed.locator(".tp-day-priv")).to_have_attribute("aria-label", "Some sessions shared")
+    # A mix says how many are shared and how many private, next to the eye.
+    expect(mixed.locator(".tp-day-priv")).to_have_attribute("aria-label", re.compile(r"^Shared \(\d+\), Private \(\d+\)$"))
+    expect(mixed.locator(".tp-day-priv-n")).to_have_text(re.compile(r"^Shared \(\d+\) Private \(\d+\)$"))
+    expect(shared.locator(".tp-day-priv-n")).to_have_count(0)
     # The icon sits just left of the arrow, on the same row.
     pb, ab = shared.locator(".tp-day-priv").bounding_box(), shared.locator(".tp-day-arrow").bounding_box()
     assert pb["x"] + pb["width"] <= ab["x"] + 2 and abs((pb["y"] + pb["height"] / 2) - (ab["y"] + ab["height"] / 2)) < 6, (pb, ab)

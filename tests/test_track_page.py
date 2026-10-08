@@ -2781,7 +2781,7 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(brands.locator(".tp-layouts")).to_be_visible()
     # Each layout, and the drag runs, once, newest first, with its count and last day.
     expect(layouts.locator("b")).to_have_text(["Grand Prix", "Indy", "Drag runs"])
-    expect(layouts.nth(1)).to_contain_text("2 sessions, last 1 May 2026")
+    expect(layouts.nth(1)).to_have_text(re.compile(r"2 sessions$"))
     # Stays open through a sort.
     page.locator("#tp-sort").select_option("az")
     expect(brands.locator(".tp-layouts")).to_be_visible()

@@ -36,20 +36,30 @@
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
   function getJson(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }); }
+  // A read from the worker. With Offline mode (js/laps-offline.js) the answer comes from the copy kept on the device when
+  // there is no signal, with cachedAt on it; that is what the old-copy note below reads.
+  function rd(path) { var o = window.MT3UKOffline; return o && o.read ? o.read(path) : getJson(API + path); }
+  var keptAt = 0;
+  function keptNote() {
+    if (!keptAt) return '';
+    var d = new Date(keptAt), when = isNaN(d) ? '' : ' from ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return '<p class="tp-notice lb-old" id="lb-old" role="status">' + icon('warn') + '<span>This is the copy kept on this device' + when + '. It updates when you are back online.</span></p>';
+  }
 
   var library = null, counts = null, leaders = null;
   function load() {
     if (library) return Promise.resolve();
     return Promise.all([
       getJson('data/tracks.json').catch(function () { return { venues: [] }; }),
-      getJson(API + '/track/tracks').catch(function () { return {}; }),
-      getJson(API + '/track/counts').catch(function () { return {}; }),
+      rd('/track/tracks').catch(function () { return {}; }),
+      rd('/track/counts').catch(function () { return {}; }),
       window.MT3UKTyres ? window.MT3UKTyres.load().catch(function () {}) : null,
       window.MT3UKPads ? window.MT3UKPads.load().catch(function () {}) : null,
       window.MT3UKVehicles ? window.MT3UKVehicles.load().catch(function () {}) : null
     ]).then(function (r) {
       library = T.mergeLibrary(r[0], r[1] && r[1].extra);
       counts = (r[2] && r[2].counts) || {};
+      keptAt = (r[2] && r[2].cachedAt) || 0;
       leaders = (r[2] && r[2].leaders) || {};
     });
   }
@@ -117,7 +127,8 @@
       if (p.get('sprint')) return showBoard('sprint', p.get('sprint'));
       showList(p.get('type') || 'track');
     }).catch(function () {
-      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>The leaderboards could not be loaded. Check your connection and try again.</p></div>';
+      var o = window.MT3UKOffline, off = o && o.isOffline && o.isOffline();
+      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + (off ? 'This leaderboard is not on this device. Offline mode keeps the leaderboards for one circuit: choose it in Profile, while you are online.' : 'The leaderboards could not be loaded. Check your connection and try again.') + '</p></div>';
     });
   }
 
@@ -231,7 +242,7 @@
       (mine || hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-resetlayout>Reset layout</button>' : '') + '</p>';
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
-    app.innerHTML = h;
+    app.innerHTML = keptNote() + h;
     placeTip();
     syncPageBack();
     // The front page panels the admin chose for the Leaderboard, under the track list (js/laps-panels.js).
@@ -535,7 +546,8 @@
     fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; viewMode = 'board';
     // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
     var FOLD = 10, foldOpen = false;
-    getJson(API + path).then(function (d) {
+    rd(path).then(function (d) {
+      keptAt = d.cachedAt || 0;
       var entries = d.entries || [];
       // What is there to filter by, from every car's results.
       var conds = [], makes = [], tyresOf = {};
@@ -583,7 +595,7 @@
             '<p class="tp-small lb-note">Each row shows the tyres the time was set on. Open a car to see its mods. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
         }
         h += ctaHtml();
-        app.innerHTML = h;
+        app.innerHTML = keptNote() + h;
         placeTip();
         syncPageBack();
         document.getElementById('lb-models').addEventListener('click', function (ev) {
@@ -614,7 +626,7 @@
       }
       draw();
     }).catch(function () {
-      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>This leaderboard could not be loaded.</p></div>';
+      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + (window.MT3UKOffline && window.MT3UKOffline.isOffline && window.MT3UKOffline.isOffline() ? 'This leaderboard is not on this device. Offline mode keeps the leaderboards for one circuit: choose it in Profile, while you are online.' : 'This leaderboard could not be loaded.') + '</p></div>';
     });
   }
 

@@ -13,7 +13,7 @@ from playwright.sync_api import expect
 
 ROOT = Path(__file__).resolve().parent.parent
 
-from test_track_page import API_HOST, FIXTURE, FakeWorker, meteo_reply, open_page
+from test_track_page import API_HOST, FIXTURE, FakeWorker, board_row, meteo_reply, open_page
 
 
 class Link:
@@ -104,6 +104,59 @@ def test_a_session_added_offline_is_kept_on_the_device_and_sent_when_the_connect
     assert fake.gzipped, "the queued session is sent gzipped like any other"
     assert fake.sources, "its readings are sent too"
     expect(page.locator("#lo-pending")).to_be_hidden()
+
+
+def test_a_session_saved_offline_opens_on_the_device_with_its_map_laps_and_playback(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    go_offline(page, link)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    pending = page.locator("#lo-pending")
+    expect(pending).to_contain_text("1 session waiting to be sent")
+    pending.get_by_role("link", name="Open").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=local-\d+$"))
+    note = page.locator("#tp-local-note")
+    expect(note).to_contain_text("On this device, not sent yet")
+    expect(page.locator(".tp-session-head h2")).to_contain_text("Thruxton")
+    # The session is drawn from the copy on the device: the headline, the map with its playback, the laps.
+    expect(page.locator("#tp-headline")).to_be_visible()
+    expect(page.locator("#tp-mapcard")).to_be_visible()
+    expect(page.locator("#tp-laps")).to_be_visible()
+    # Nothing that needs the worker: no settings and no privacy pill (the owner's controls).
+    expect(page.locator("#settings")).to_have_count(0)
+    expect(page.locator(".tp-session-head .tp-pill")).to_have_count(0)
+    assert fake.saved == [], "nothing was sent while offline"
+    # Exit goes back to the list, where the waiting session is still listed.
+    page.locator("#tp-exit").click()
+    expect(page.locator("#lo-pending")).to_contain_text("1 session waiting to be sent")
+
+
+def test_the_same_session_sent_normally_does_have_settings_and_sharing(page):
+    """The control for the test above: with a connection the saved session is the owner's, with settings and sharing."""
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s="))
+    expect(page.locator("#settings")).to_have_count(1)
+    expect(page.locator(".tp-pill").first).to_contain_text("Only me")
+
+
+def test_a_local_session_is_gone_once_it_has_been_sent(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    go_offline(page, link)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    page.locator("#lo-pending").get_by_role("link", name="Open").click()
+    url = page.url
+    expect(page.locator("#tp-local-note")).to_be_visible()
+    go_online(page, link)
+    page.evaluate("MT3UKOffline.sync(true)")
+    expect(page.locator("#lo-bar")).to_contain_text("1 session sent", timeout=15000)
+    page.goto(url)
+    expect(page.locator(".tp-empty")).to_contain_text("not on this device any more")
 
 
 def test_a_session_the_worker_refuses_stays_listed_with_the_reason_and_can_be_removed(page):
@@ -307,6 +360,100 @@ def test_refresh_without_offline_mode_still_reloads_but_leaves_the_laps_caches_a
         page.locator(".tp-refresh").first.click()
     deleted = page.evaluate("JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]')")
     assert deleted == ["mt3uk-shell-v10"], deleted
+
+
+def board_page(page, fake, query):
+    """The Leaderboard page, signed in, with Offline mode on and the connection switch in place."""
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
+    open_page(page, fake, path="/leaderboards.html")
+    link = with_link(page, fake)
+    page.goto("/leaderboards.html?" + query)
+    return link
+
+
+def test_the_chosen_circuits_leaderboards_are_kept_and_open_with_no_signal(page):
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); localStorage.setItem('mt3ukLapsOfflineCircuit', 'thruxton'); localStorage.setItem('mt3ukLapsOfflineCircuitName', 'Thruxton');")
+    link = board_page(page, fake, "board=thruxton:main")
+    expect(page.locator(".tp-head h2")).to_contain_text("Thruxton")
+    expect(page.locator("#lb-old")).to_have_count(0)
+    # No signal: the kept board opens, with a note that it is the copy on the device.
+    go_offline(page, link)
+    page.reload()
+    expect(page.locator(".tp-head h2")).to_contain_text("Thruxton")
+    expect(page.locator("#lb-old")).to_contain_text("copy kept on this device")
+    # A board of another circuit was not kept.
+    page.goto("/leaderboards.html?board=silverstone:national")
+    expect(page.locator(".tp-empty")).to_contain_text("not on this device")
+    expect(page.locator(".tp-empty")).to_contain_text("one circuit")
+
+
+def test_the_track_list_opens_with_no_signal_from_the_kept_copy(page):
+    fake = FakeWorker()
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    link = board_page(page, fake, "")
+    expect(page.locator(".tp-board-card").first).to_be_visible()
+    go_offline(page, link)
+    page.reload()
+    expect(page.locator(".tp-board-card").first).to_be_visible()
+    expect(page.locator("#lb-old")).to_be_visible()
+
+
+def test_boards_of_a_circuit_that_was_not_chosen_are_not_kept(page):
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    link = board_page(page, fake, "board=thruxton:main")
+    expect(page.locator(".tp-head h2")).to_contain_text("Thruxton")
+    go_offline(page, link)
+    page.reload()
+    expect(page.locator(".tp-empty")).to_contain_text("not on this device")
+
+
+def test_choosing_a_circuit_keeps_every_one_of_its_boards_and_choosing_another_drops_them(page):
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    board_page(page, fake, "")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.setCircuit")
+    kept = page.evaluate("MT3UKOffline.setCircuit('thruxton', 'Thruxton')")
+    assert kept == 1, "Thruxton has one layout"
+    assert page.evaluate("MT3UKOffline.recall('/track/board?venue=thruxton&layout=main').then(d => !!(d && d.entries))") is True
+    assert page.evaluate("MT3UKOffline.circuit()") == "thruxton"
+    page.evaluate("MT3UKOffline.setCircuit('', '')")
+    assert page.evaluate("MT3UKOffline.recall('/track/board?venue=thruxton&layout=main')") is None
+    assert page.evaluate("MT3UKOffline.circuit()") == ""
+
+
+def test_the_confirm_card_offers_one_circuits_leaderboards_and_remembers_the_choice(page):
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
+    open_page(page, FakeWorker())
+    page.locator("#tp-offline").click()
+    pick = page.locator("#lo-circuit")
+    expect(pick).to_be_visible()
+    expect(pick.locator("option[value='thruxton']")).to_have_count(1)
+    expect(pick.locator("option[value='santa-pod']")).to_have_count(1)
+    pick.select_option("thruxton")
+    page.locator("#lo-confirm").get_by_role("button", name="Turn on offline mode").click()
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuit')") == "thruxton"
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuitName')") == "Thruxton"
+
+
+def test_profile_has_a_circuit_choice_for_the_leaderboards_kept_offline(page):
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
+    page.add_init_script("navigator.serviceWorker && (navigator.serviceWorker.register = () => new Promise(() => {}))")
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');")
+    page.add_init_script("window.MT3UK_SITES = { main: ['example.test'], mainOrigin: 'http://example.test', laps: ['localhost'] };")
+    page.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "access": True}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/profile.html")
+    pick = page.locator("#offline-mode [data-offline-circuit]")
+    expect(pick).to_be_visible()
+    expect(pick.locator("option[value='thruxton']")).to_have_count(1)
+    pick.select_option("thruxton")
+    page.wait_for_function("localStorage.getItem('mt3ukLapsOfflineCircuit') === 'thruxton'")
+    pick.select_option("")
+    page.wait_for_function("localStorage.getItem('mt3ukLapsOfflineCircuit') === null")
 
 
 def test_the_header_icon_is_a_button_that_turns_offline_mode_on_and_off(page):

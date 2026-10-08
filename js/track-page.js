@@ -2979,7 +2979,7 @@
   function queuedLabel(a, sess) { return (sess.venue || a.venueName || 'Session') + (sess.date ? ', ' + sess.date : '') + (a.car && a.car.name ? ' (' + a.car.name + ')' : ''); }
   function savePost(a, body, rd, sess, carPut) {
     var off = window.MT3UKOffline;
-    var keep = function () { return off.queueSession({ label: queuedLabel(a, sess), post: body, source: sourceOf(rd), carPut: carPut || null }).then(function () { return { success: true, queued: true }; }); };
+    var keep = function () { return off.queueSession({ label: queuedLabel(a, sess), carName: (a.car && a.car.name) || '', post: body, source: sourceOf(rd), carPut: carPut || null }).then(function () { return { success: true, queued: true }; }); };
     if (off && (off.isOffline() || carPut)) return keep();
     return api('POST', '/track/sessions', body, true).catch(function (e) {
       if (off && off.isNetworkError(e)) return keep();
@@ -3451,13 +3451,22 @@
 
   // ---------- One session ----------
   var view = null;
+  // A session saved on this device and not sent yet: drawn from the queue (js/laps-offline.js localSession), as the owner's
+  // read only copy of it.
+  function localGet(id) {
+    var off = window.MT3UKOffline;
+    return (off && off.localSession ? off.localSession(id) : Promise.resolve(null)).then(function (s) {
+      return s ? { success: true, session: s, local: true } : { success: false };
+    });
+  }
   function showSession(id) {
     loading();
     var my = routeSeq;
-    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
+    var isLocal = /^local-\d+$/.test(id);
+    Promise.all([isLocal ? localGet(id) : api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
       if (stale(my)) return;
       var d = r[0];
-      if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
+      if (!d.success) return failed(isLocal ? 'This session is not on this device any more. It has been sent or removed: open it from your list.' : 'This session isn\'t available. It may be private or removed.');
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
       VW = d.session.vehicleType === 'bike' ? 'bike' : 'car';
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
@@ -3466,7 +3475,7 @@
       // Other members' best laps at this track, from its leaderboard.
       var bp = d.session.venueId && d.session.layoutId && (d.session.type === 'track' || d.session.type === 'sprint')
         ? (d.session.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(d.session.venueId) + '&layout=' + encodeURIComponent(d.session.layoutId) : '';
-      var board = bp ? api('GET', bp).catch(function () { return null; }) : Promise.resolve(null);
+      var board = bp && !isLocal ? api('GET', bp).catch(function () { return null; }) : Promise.resolve(null);
       return board.then(function (b) {
         if (stale(my)) return;
         var mineIds = {};
@@ -3475,6 +3484,7 @@
         view.members.forEach(function (e) { view.memberById[e.sessionId] = e; });
         drawSession();
         if (d.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(d.cachedAt));
+        if (d.local) app.insertAdjacentHTML('afterbegin', '<div class="tp-notice is-ok" id="tp-local-note" role="status">' + icon('check') + '<div><b>On this device, not sent yet.</b><br>Saved ' + esc(new Date(d.session.savedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' at ' + new Date(d.session.savedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })) + '. You can look at it here with its map and playback. It is sent when you are next online with Laps open, and then you can share it and change its settings.</div></div>');
       });
     }).catch(function (err) {
       if (window.console) console.error(err);
@@ -3518,7 +3528,7 @@
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
-      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
+      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
     h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.

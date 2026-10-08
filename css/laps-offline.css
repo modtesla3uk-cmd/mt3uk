@@ -57,3 +57,6 @@
 .lo-bar.is-info { background: #16233d; }
 /* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
 [data-offline-toggle][hidden] { display: none !important; }
+.lo-field { display: grid; gap: 4px; margin: 10px 0; font-size: 0.9rem; }
+.lo-field select { width: 100%; }
+.lb-old { margin: 8px 0; }

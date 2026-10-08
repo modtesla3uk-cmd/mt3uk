@@ -124,8 +124,11 @@
   // Which worker answers are worth keeping: the member's cars and sessions, one session (the latest few), the
   // track list, the copy and access answers the Add page asks for.
   function cacheable(path) {
-    return /^\/(my-builds|track\/sessions|track\/tracks|track\/copy|track\/access|tyres|pads|vehicles)(\?|$)/.test(path) || path.indexOf('/track/session?id=') === 0;
+    return /^\/(my-builds|track\/sessions|track\/tracks|track\/copy|track\/access|track\/counts|tyres|pads|vehicles)(\?|$)/.test(path) || path.indexOf('/track/session?id=') === 0 || boardPath(path);
   }
+  // The leaderboards: a board for a circuit, a sprint or a drag strip.
+  function boardPath(path) { return /^\/(track|sprint|drag)\/board\?/.test(path); }
+  function venueOf(path) { var m = /[?&]venue=([^&]*)/.exec(path); return m ? decodeURIComponent(m[1]) : ''; }
   function cacheKey(path) { return 'get:' + (ls(EMAIL_KEY) || '') + ':' + path; }
   function remember(path, d) {
     if (!cacheable(path) || !d || d.success === false || (d.status && d.status >= 400)) return;
@@ -232,7 +235,9 @@
       el.hidden = false; el.className = 'lo-bar is-offline';
       el.innerHTML = '<span class="lo-ico">' + icon('off') + '</span><div class="lo-text"><b>You\'re in offline mode.</b> ' +
         'You can open sessions you have looked at before, with their maps, and add a session from a file already on your device (it is sent when you\'re next online). ' +
+        'Sessions saved on this device open here too, with their map and playback. ' +
         'Leaderboards, sharing, sign-in and changes to saved sessions need a connection, and so do satellite pictures you have not seen before.' +
+        (circuit() ? ' The leaderboards for ' + esc(circuitName() || 'the circuit you kept') + ' still open.' : '') +
         (n ? ' <b>' + n + ' session' + (n === 1 ? ' is' : 's are') + ' waiting to be sent.</b>' : '') +
         (kept ? '' : ' <button type="button" class="lo-link" data-lo="on">Keep Laps on this device</button> for next time (needs a connection).') +
         '</div><button type="button" class="lo-x" data-lo="close" aria-label="Close">' + icon('x') + '</button>';
@@ -250,7 +255,7 @@
   // A session saved with no connection: the body of POST /track/sessions, the readings for POST
   // /track/session/source, and the PUT /my-builds/car that makes a car with no photo yet (carPut).
   function queueSession(info) {
-    var job = { kind: 'session', at: Date.now(), label: info.label || 'Session', post: info.post, source: info.source || null, carPut: info.carPut || null, stage: 'new' };
+    var job = { kind: 'session', at: Date.now(), label: info.label || 'Session', carName: info.carName || '', post: info.post, source: info.source || null, carPut: info.carPut || null, stage: 'new' };
     return qPut(job).then(function (j) { renderPending(); drawBar(); return j; });
   }
   // A call that has no answer the page needs (a request to MT3UK for a track): sent later as it is.
@@ -373,9 +378,26 @@
           var when = new Date(j.at);
           return '<li' + (j.error ? ' class="is-bad"' : '') + '><div><b>' + esc(j.label) + '</b><span class="lo-when">Saved ' + esc(when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' at ' + when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })) + '</span>' +
             (j.error ? '<span class="lo-err">' + esc(j.error) + '</span>' : '') + '</div>' +
-            '<button type="button" class="btn btn-ghost btn-sm" data-lo-remove="' + j.id + '">Remove</button></li>';
+            '<div class="lo-row-actions"><a class="btn btn-secondary btn-sm" href="track.html?s=' + (j.sessionId ? esc(j.sessionId) : 'local-' + j.id) + '" data-go="s=' + (j.sessionId ? esc(j.sessionId) : 'local-' + j.id) + '">Open</a><button type="button" class="btn btn-ghost btn-sm" data-lo-remove="' + j.id + '">Remove</button></div></li>';
         }).join('') + '</ul>' +
         (offline ? '' : '<button type="button" class="btn btn-secondary btn-sm" data-lo-send>' + (bad ? 'Try again' : 'Send now') + '</button>');
+    });
+  }
+  // A session saved on this device and not sent yet, as the session page draws it (js/track-page.js, track.html?s=local-<id>):
+  // the analysed session the Add page made, with the choices made there. It is the member's own, read only: nothing that
+  // needs the worker (rank, sharing, settings) is on it. Resolves null when it has been sent or removed.
+  var SKIP_FIELDS = { session: 1, carId: 1, street: 1, adminViewer: 1, venueName: 1 };
+  function localSession(id) {
+    var n = parseInt(String(id).replace(/^local-/, ''), 10);
+    return qAll().then(function (jobs) {
+      var job = jobs.filter(function (j) { return j.kind === 'session' && j.id === n && j.post && j.post.session && j.stage === 'new'; })[0];
+      if (!job) return null;
+      var b = job.post, rec = JSON.parse(JSON.stringify(b.session));
+      Object.keys(b).forEach(function (k) { if (!SKIP_FIELDS[k] && b[k] !== '' && b[k] != null && typeof b[k] !== 'object') rec[k] = b[k]; });
+      rec.id = 'local-' + job.id; rec.carId = String(b.carId || ''); rec.car = job.carName || '';
+      rec.local = true; rec.savedAt = job.at; rec.mine = false; rec.privacy = 'private'; rec.ownerName = '';
+      delete rec.notes;
+      return rec;
     });
   }
   function drawPending(container) {
@@ -446,6 +468,111 @@
       for (var x = xa; x <= xb; x++) for (var y = ya; y <= yb; y++) into[SAT_URL + z + '/' + y + '/' + x] = 1;
     });
   }
+  // ---------- Leaderboards on the device: one circuit ----------
+  // Offline mode keeps every leaderboard of the one circuit the member chose (all its layouts, or the drag strip's board),
+  // beside the track list and the counts. A board not kept is not on the device. Choose it when turning Offline mode on or
+  // in Profile.
+  var CIRCUIT_KEY = 'mt3ukLapsOfflineCircuit', CIRCUIT_NAME_KEY = 'mt3ukLapsOfflineCircuitName';
+  function circuit() { return ls(CIRCUIT_KEY) || ''; }
+  function circuitName() { return ls(CIRCUIT_NAME_KEY) || ''; }
+  function enc(x) { return encodeURIComponent(x); }
+  // A read with the kept copy as the fallback (js/leaderboard-page.js): the answer is kept while Offline mode is on
+  // (counts and track list always, boards only for the chosen circuit), and with no signal, or when the worker has not
+  // answered in time, the kept copy is returned instead (cachedAt says when it was kept). Rejects when there is none.
+  function read(path) {
+    function fresh() {
+      return getJson(path).then(function (d) {
+        var keep = enabled() && (!boardPath(path) || (circuit() && venueOf(path) === circuit()));
+        if (keep) remember(path, d);
+        return d;
+      });
+    }
+    if (!cacheable(path)) return fresh();
+    return recall(path).then(function (copy) {
+      var p = fresh();
+      if (copy && !offline) p = Promise.race([p, new Promise(function (resolve, reject) { setTimeout(function () { reject(new Error('slow')); }, window.MT3UK_READ_TIMEOUT_MS || 15000); })]);
+      if (copy && offline) return copy;
+      return p.then(null, function (err) {
+        if (isNetworkError(err) || (err && err.message === 'slow')) noteNetworkError(err);
+        if (copy) return copy;
+        throw err;
+      });
+    });
+  }
+  // Every circuit, sprint and drag strip Laps lists (the track list file with the worker's additions), for the choice.
+  function venueList() {
+    return Promise.all([
+      fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { venues: [] }; }),
+      read('/track/tracks').catch(function () { return {}; })
+    ]).then(function (r) {
+      var by = {}, out = [];
+      var extra = r[1] && r[1].extra;
+      (((r[0] && r[0].venues) || []).concat(Array.isArray(extra) ? extra : (extra && extra.venues) || [])).forEach(function (v) {
+        if (!v || !v.id) return;
+        var ex = by[v.id];
+        if (!ex) { ex = by[v.id] = { id: v.id, name: v.name || v.id, type: v.type, layouts: [] }; out.push(ex); }
+        (v.layouts || []).forEach(function (l) { if (l && l.id && !ex.layouts.some(function (x) { return x.id === l.id; })) ex.layouts.push({ id: l.id, name: l.name || l.id }); });
+      });
+      out.sort(function (a, b) { return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; });
+      return out;
+    });
+  }
+  function boardPaths(v) {
+    if (v.type === 'drag') return ['/drag/board?venue=' + enc(v.id)];
+    return (v.layouts || []).slice(0, 40).map(function (l) { return (v.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + enc(v.id) + '&layout=' + enc(l.id); });
+  }
+  // Fetches and keeps the chosen circuit's boards and the counts. Never throws; resolves with how many boards were kept.
+  function keepBoards() {
+    var id = circuit();
+    if (!id || offline) return Promise.resolve(0);
+    return venueList().then(function (list) {
+      var v = list.filter(function (x) { return x.id === id; })[0];
+      if (!v) return 0;
+      var paths = boardPaths(v), at = 0, n = 0;
+      function next() {
+        if (at >= paths.length) return Promise.resolve();
+        var p = paths[at++];
+        return getJson(p).then(function (d) { if (d && d.success !== false && !(d.status >= 400)) { remember(p, d); n++; } }).catch(function () {}).then(next);
+      }
+      var counts = getJson('/track/counts').then(function (d) { remember('/track/counts', d); }).catch(function () {});
+      return Promise.all([next(), next(), next(), counts]).then(function () { return n; });
+    }, function () { return 0; });
+  }
+  // Takes the boards of a circuit off the device (when another is chosen).
+  function dropBoards(venue) {
+    if (!venue) return Promise.resolve();
+    return kvAll().then(function (all) {
+      return Promise.all(all.filter(function (x) {
+        var path = String(x.key).replace(/^get:[^:]*:/, '');
+        return boardPath(path) && venueOf(path) === venue;
+      }).map(function (x) { return kvDel(x.key); }));
+    });
+  }
+  // Chooses the circuit ('' for none). Keeps its boards at once when Offline mode is on and there is a signal; otherwise
+  // they are kept when Offline mode goes on or is refreshed.
+  function setCircuit(id, name, was) {
+    var old = was !== undefined ? was : circuit();
+    ls(CIRCUIT_KEY, id || null); ls(CIRCUIT_NAME_KEY, id ? (name || '') : null);
+    var drop = old && old !== id ? dropBoards(old) : Promise.resolve();
+    labels();
+    return drop.then(function () { return id && enabled() && !offline ? keepBoards() : 0; }).then(function (n) { labels(); return n; });
+  }
+  // Fills a circuit drop-down (the confirm card's and Profile's) and keeps it in step with the choice.
+  function fillCircuitSelect(sel) {
+    if (!sel || sel.getAttribute('data-filled')) return;
+    sel.setAttribute('data-filled', '1');
+    venueList().then(function (list) {
+      var groups = [['circuit', 'Circuits'], ['sprint', 'Sprints and hill climbs'], ['drag', 'Drag strips']];
+      var cur = circuit();
+      sel.innerHTML = '<option value="">None</option>' + groups.map(function (g) {
+        var vs = list.filter(function (v) { return v.type === g[0]; });
+        return vs.length ? '<optgroup label="' + g[1] + '">' + vs.map(function (v) { return '<option value="' + esc(v.id) + '"' + (v.id === cur ? ' selected' : '') + '>' + esc(v.name) + '</option>'; }).join('') + '</optgroup>' : '';
+      }).join('');
+      if (cur) sel.value = cur;
+      sel.setAttribute('data-was', cur);
+    });
+  }
+
   // Fetches and keeps what the pages need offline: the member's cars, session list and settings, their latest
   // sessions (with the map pictures under them). report(text) says how far it is. Never throws: what could not be
   // kept is counted.
@@ -485,7 +612,11 @@
     return ask({ type: 'laps-offline-on' }).then(function (r) {
       if (!r.ok) throw new Error('Laps could not be kept on this device.');
       ls(KEPT_KEY, String(r.kept)); ls('mt3ukLapsOfflineAt', String(Date.now()));
-      return prepare(report);
+      return prepare(report).then(function (out) {
+        if (!circuit()) return out;
+        report('Keeping the leaderboards...');
+        return keepBoards().then(function (n) { out.boards = n; return out; });
+      });
     });
   }
   // Refresh with a signal and Offline mode on: send what is waiting, then keep the pages, cars and latest sessions again.
@@ -508,9 +639,13 @@
       else el.textContent = 'Offline mode: ' + (preparing ? 'getting ready...' : on ? 'on' : 'off');
       el.disabled = false;
     });
+    [].slice.call(document.querySelectorAll('[data-offline-circuit]')).forEach(function (sel) {
+      fillCircuitSelect(sel);
+      if (sel.getAttribute('data-filled') && document.activeElement !== sel && sel.value !== circuit() && sel.querySelector('option[value="' + circuit() + '"]')) sel.value = circuit();
+    });
     [].slice.call(document.querySelectorAll('[data-offline-status]')).forEach(function (el) {
       var kept = ls(KEPT_KEY);
-      el.textContent = progress || (on ? (kept ? 'Laps is kept on this device (' + kept + ' files). It opens with no signal.' : 'Laps is kept on this device.') : 'Off. Laps needs a connection to open.');
+      el.textContent = progress || (on ? (kept ? 'Laps is kept on this device (' + kept + ' files). It opens with no signal.' : 'Laps is kept on this device.') + (circuit() ? ' Leaderboards kept: ' + (circuitName() || 'one circuit') + '.' : '') : 'Off. Laps needs a connection to open.');
     });
   }
   // The question before it goes on: what is kept and what it needs. Resolves true or false.
@@ -523,14 +658,22 @@
       el.innerHTML = '<h3>Keep Laps on this device?</h3><p>This needs a connection now, and takes a minute or so. It keeps:</p>' +
         '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars and your latest ' + PREPARE_SESSIONS + ' sessions, so you can open them with no signal</li>' +
         '<li>' + icon('check') + 'the maps under those sessions (satellite pictures, a few megabytes)</li></ul>' +
+        '<label class="lo-field"><span>Leaderboards: keep one circuit (optional)</span><select class="field" id="lo-circuit"><option value="">None</option></select></label>' +
+        '<p class="lo-small">Pick a track and every leaderboard for it is kept, so you can look at it with no signal. You can change it any time in Profile.</p>' +
         '<p class="lo-small">Sessions waiting to be sent go first. With no signal you can open these sessions and maps, and add a session from a file already on your device: it is sent when you are next online. Whether you have the file offline depends on your logger (RaceBox, for example, only lets you download it once you are online). Leaderboards, sharing and sign-in still need a connection.</p>' +
         '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-confirm="yes">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-confirm="no">Cancel</button></div>';
       document.body.appendChild(el);
       var b = el.querySelector('[data-lo-confirm="yes"]');
       if (b) b.focus();
+      var pick = el.querySelector('#lo-circuit');
+      fillCircuitSelect(pick);
       el.addEventListener('click', function (e) {
         var c = e.target.closest('[data-lo-confirm]');
         if (!c) return;
+        if (c.getAttribute('data-lo-confirm') === 'yes' && pick) {
+          var opt = pick.options[pick.selectedIndex];
+          if (pick.value !== circuit()) { var oldId = circuit(); ls(CIRCUIT_KEY, pick.value || null); ls(CIRCUIT_NAME_KEY, pick.value ? opt.text : null); if (oldId && oldId !== pick.value) dropBoards(oldId); }
+        }
         el.remove();
         resolve(c.getAttribute('data-lo-confirm') === 'yes');
       });
@@ -561,7 +704,7 @@
     }).then(function (r) {
       preparing = false; progress = '';
       labels();
-      say('ok', '<b>Offline mode is on.</b> Laps is kept on this device' + (r && r.sessions ? ', with ' + plural(r.sessions, 'session', 'sessions') + (r.tiles ? ' and their maps' : '') : '') + '. ' + (r && r.wanted && r.sessions < r.wanted ? plural(r.wanted - r.sessions, 'session', 'sessions') + ' could not be kept; open ' + (r.wanted - r.sessions === 1 ? 'it' : 'them') + ' while online to keep ' + (r.wanted - r.sessions === 1 ? 'it' : 'them') + '. ' : '') + 'It opens with no signal.', 12000);
+      say('ok', '<b>Offline mode is on.</b> Laps is kept on this device' + (r && r.sessions ? ', with ' + plural(r.sessions, 'session', 'sessions') + (r.tiles ? ' and their maps' : '') : '') + '. ' + (r && r.boards ? ' The leaderboards for ' + esc(circuitName() || 'your circuit') + ' are kept too.' : '') + (r && r.wanted && r.sessions < r.wanted ? plural(r.wanted - r.sessions, 'session', 'sessions') + ' could not be kept; open ' + (r.wanted - r.sessions === 1 ? 'it' : 'them') + ' while online to keep ' + (r.wanted - r.sessions === 1 ? 'it' : 'them') + '. ' : '') + 'It opens with no signal.', 12000);
       document.dispatchEvent(new CustomEvent('mt3uk-offline-change'));
     }, function (e) {
       ls(ON_KEY, null); ls(KEPT_KEY, null);
@@ -571,6 +714,21 @@
       say('warn', '<b>Offline mode did not go on.</b> ' + esc(progress) + ' Check your connection and try again.', 0);
     });
   }
+  document.addEventListener('change', function (e) {
+    var sel = e.target.closest && e.target.closest('[data-offline-circuit]');
+    if (!sel) return;
+    var val = sel.value, name = val ? sel.options[sel.selectedIndex].text : '';
+    progress = val ? 'Keeping the leaderboards for ' + name + '...' : '';
+    ls(CIRCUIT_KEY, val || null); ls(CIRCUIT_NAME_KEY, val ? name : null);
+    var old = e.target.getAttribute('data-was') || '';
+    sel.setAttribute('data-was', val);
+    labels();
+    setCircuit(val, name, old).then(function (n) {
+      progress = '';
+      labels();
+      if (val) say(n ? 'ok' : 'info', n ? '<b>Leaderboards kept.</b> Every leaderboard for ' + esc(name) + ' is on this device.' : '<b>' + esc(name) + ' will be kept</b> when Offline mode is on and you are online.', 6000);
+    });
+  });
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-offline-toggle]');
     if (!t) return;
@@ -705,7 +863,11 @@
     sync: sync,
     enabled: enabled,
     say: say,
+    read: read,
+    circuit: circuit,
+    setCircuit: setCircuit,
     refreshCopy: refreshCopy,
+    localSession: localSession,
     setEnabled: setEnabled,
     labels: labels
   };

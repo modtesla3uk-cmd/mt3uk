@@ -26,7 +26,7 @@
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta name="robots" content="noindex">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
-<link rel="stylesheet" href="css/site-header.css?v=20271015">
+<link rel="stylesheet" href="css/site-header.css?v=20271016">
 <link rel="stylesheet" href="css/laps-strip.css?v=2">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
@@ -196,6 +196,16 @@
 
   .mb-signin-newbuild-btn { background: var(--orange); border-color: var(--orange); margin-top: 12px; }
   .mb-signin-newbuild-btn:hover { background: var(--ink); border-color: var(--ink); }
+  .mb-member-switch { margin: 0 0 18px; font-size: 0.92rem; color: var(--steel); }
+  .mb-linkbtn { background: none; border: 0; padding: 0; min-height: 44px; font: inherit; font-weight: 600; color: var(--orange); text-decoration: underline; cursor: pointer; }
+  .mb-more { margin: 0 0 16px; border: 1px solid var(--hairline, #d9d6cc); border-radius: var(--radius-sm, 8px); background: #fff; }
+  .mb-more > summary { min-height: 44px; display: flex; align-items: center; padding: 0 14px; font-weight: 600; cursor: pointer; color: var(--ink); }
+  .mb-more[open] > summary { border-bottom: 1px solid var(--hairline, #d9d6cc); }
+  .mb-more > .mb-field, .mb-more > .mb-field-pair { margin: 14px 14px 0; }
+  .mb-more > :last-child { margin-bottom: 14px; }
+  .mb-new-first { margin: 0 0 22px; width: 100%; }
+  .mb-member-head { padding-top: 22px; border-top: 1px solid var(--hairline, #d9d6cc); }
+  .mb-photo-pick-note { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius-sm, 8px); background: #fdf3ef; font-weight: 600; }
   .mb-join-note { margin: 18px 0 0; font-size: 0.88rem; color: var(--steel); }
   .mb-join-note a { color: var(--orange); font-weight: 600; }
   .mb-submit-card { margin-top: 18px; text-align: left; }
@@ -1089,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="nav-center">
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
+      <a href="#add-photo" class="nav-link-addphoto"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>Add your photo</a>
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <div class="nav-item">
         <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
@@ -1251,9 +1262,11 @@ document.addEventListener('DOMContentLoaded', function () {
       })();
     </script>
 
+    <span id="add-photo"></span>
     <div id="mb-signin-view">
       <div class="mb-card" id="mb-signin-card">
-        <h2>Sign in</h2>
+        <button type="button" class="mb-btn mb-signin-newbuild-btn mb-new-first" id="mb-new-toggle-btn">New here? Add your photo</button>
+        <h2 class="mb-member-head">Already a member? Sign in</h2>
         <p>Enter the email you used when submitting a build, or that you commented with, and we'll send you a sign-in link. You don't need to have a build of your own. If someone's replied to a comment you left, you can sign in to see it.</p>
         <form id="mb-signin-form">
           <div class="mb-field">
@@ -1287,13 +1300,12 @@ document.addEventListener('DOMContentLoaded', function () {
           </details>
         </div>
         <p class="mb-join-note">Just want to like and comment? <a href="signin.html">Join free without adding a car</a>.</p>
-        <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
       </div>
 
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">
-        <h2>Submit your first build</h2>
-        <p>Send us a shot of your build and a caption, and we'll get it added to the gallery and set you up with an account so you can manage it here.</p>
-        <p class="mb-field-hint">A Tesla goes in the Gallery. A Hyundai, a Porsche or any other make is kept in your garage, where you can still build its mods list and use it in Track sessions.</p>
+        <h2>Add your photo</h2>
+        <p>Add a photo of your car and we&rsquo;ll set up your free MT3UK account at the same time. It takes a minute.</p>
+        <p class="mb-member-switch">Already a member? <button type="button" class="mb-linkbtn" id="mb-member-signin-btn">Sign in instead</button></p>
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
@@ -1316,24 +1328,30 @@ document.addEventListener('DOMContentLoaded', function () {
             <span class="mb-field-label" id="mb-submit-model-label">Model</span>
             <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-model-label"></div>
           </div>
-          <div class="mb-field-pair">
-            <div class="mb-field">
-            <label for="mb-submit-version">Version (optional)</label>
-            <select id="mb-submit-version" name="version" data-version-select><option value="">Pick the model first</option></select>
-            </div>
-            <div class="mb-field">
-            <label for="mb-submit-year">Year (optional)</label>
-            <select id="mb-submit-year" name="year" data-year-select><option value="">Choose</option></select>
-            </div>
-          </div>
-          <div class="mb-field">
+                    <div class="mb-field">
             <label class="mono" for="mb-submit-carname">Car name</label>
             <input type="text" id="mb-submit-carname" name="carName" placeholder="Enter a name for this build" required>
           </div>
           <div class="mb-field">
+            <label class="mono" for="mb-submit-email">Email</label>
+            <input type="email" id="mb-submit-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <details class="mb-more" id="mb-submit-more">
+            <summary>More details (optional)</summary>
+            <div class="mb-field-pair">
+              <div class="mb-field">
+              <label for="mb-submit-version">Version (optional)</label>
+              <select id="mb-submit-version" name="version" data-version-select><option value="">Pick the model first</option></select>
+              </div>
+              <div class="mb-field">
+              <label for="mb-submit-year">Year (optional)</label>
+              <select id="mb-submit-year" name="year" data-year-select><option value="">Choose</option></select>
+              </div>
+            </div>
+          <div class="mb-field">
             <label class="mono" for="mb-submit-color">Car colour</label>
-            <select id="mb-submit-color" name="color" required>
-              <option value="" disabled selected>Select a colour</option>
+            <select id="mb-submit-color" name="color">
+              <option value="" selected>Choose a colour</option>
               <option value="Red">Red</option>
               <option value="White">White</option>
               <option value="Black">Black</option>
@@ -1348,13 +1366,10 @@ document.addEventListener('DOMContentLoaded', function () {
             <label class="mono" for="mb-submit-caption">Caption (optional)</label>
             <input type="text" id="mb-submit-caption" name="caption" placeholder="e.g. Viper Green Model Y">
           </div>
+          </details>
+          <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once you're in, you can build your mods list.</span></p>
           <div class="mb-field">
-            <label class="mono" for="mb-submit-email">Email</label>
-            <input type="email" id="mb-submit-email" name="email" placeholder="you@example.com" autocomplete="email" required>
-          </div>
-          <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your car is in the garage we'll help you build its mods list, one area at a time.</span></p>
-          <div class="mb-field">
-            <label class="mono" for="mb-submit-photo">Photos (up to 3)</label>
+            <label class="mono" for="mb-submit-photo">Your photos (up to 3)</label>
             <input type="file" id="mb-submit-photo" name="photo" accept="image/*" multiple required>
             <span class="mb-field-hint">JPG, PNG or WEBP only (not HEIC)</span>
           </div>
@@ -1371,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <p><strong>PLEASE READ:</strong> Upload up to 3 full photos of your build. The first photo you pick is the primary shot used for the daily vote, and any mods you add above are credited against that one.</p>
             <p>Photos go live in the gallery shortly after you submit, no approval wait. You can submit again 24 hours after your last upload.</p>
           </div>
-          <button type="submit" class="mb-btn" id="mb-submit-btn">Submit photos</button>
+          <button type="submit" class="mb-btn" id="mb-submit-btn">Add my photo</button>
           <p class="mb-status" id="mb-submit-status"></p>
         </form>
       </div>
@@ -1418,6 +1433,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </form>
       </div>
       <div id="mb-car-selector-view">
+        <p class="mb-photo-pick-note" id="mb-photo-pick-note" hidden>Tap the car you want to add photos to, or add a new vehicle below.</p>
         <div class="mb-upload-toggle-row" id="build-upload">
           <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Vehicle No.1</button>
           <div class="mb-track-links" id="mb-track-links">
@@ -1945,16 +1961,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // #add-photo from the menu, the homepage or the Gallery: a signed-in member goes to adding photos once their cars have
+    // loaded (their only car's Add photo, or a pick of cars, or Add a vehicle when they have none).
+    var pendingAddPhoto = /^#(add-photo|build-upload)$/.test(window.location.hash);
+    function openAddPhoto() {
+      pendingAddPhoto = false;
+      var note = document.getElementById('mb-photo-pick-note');
+      var withCars = carsData.filter(function (c) { return c && c.id; });
+      if (withCars.length === 1) {
+        showDetail(withCars[0].id);
+        if (addPhotoCard.style.display === 'none') addPhotoToggleBtn.click();
+        addPhotoCard.scrollIntoView({ block: 'start' });
+      } else if (withCars.length > 1) {
+        note.hidden = false;
+        note.scrollIntoView({ block: 'start' });
+      } else {
+        if (addCarCard.style.display === 'none') addCarToggleBtn.click();
+        document.getElementById('build-upload').scrollIntoView({ block: 'start' });
+      }
+    }
+
     function showApp(email) {
       doneLoading();
       signinView.style.display = 'none';
       appView.style.display = 'block';
       accountEmailEl.textContent = email;
       myGarageEmail = email;
-      if (window.location.hash === '#build-upload' && addCarCard.style.display === 'none') {
-        addCarToggleBtn.click();
-        document.getElementById('build-upload').scrollIntoView({ block: 'start' });
-      }
     }
 
     function findCar(carId) {
@@ -2363,6 +2395,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showSelector();
           }
           renderCarGrid(carsData, alerts);
+          if (pendingAddPhoto) openAddPhoto();
           var alertsTotal = Object.keys(alerts).reduce(function (sum, k) { return sum + alerts[k]; }, 0);
           if (alertsTotal > 0) showNavCommentAlert(alertsTotal);
           maybeOpenLinkedComments();
@@ -2627,12 +2660,32 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
-    if (newToggleBtn) {
-      newToggleBtn.addEventListener('click', function () {
-        var opening = submitCard.style.display === 'none';
-        submitCard.style.display = opening ? 'block' : 'none';
-        newToggleBtn.textContent = opening ? '- New here? Submit your first build' : '+ New here? Submit your first build';
+    // One thing on screen at a time when signed out: either the short Add your photo form (new members, and
+    // existing ones who want to send a photo with their email) or the sign-in card. The menu, the homepage and
+    // the Gallery all link to my-builds.html#add-photo, which opens the photo form straight away.
+    var signinCard = document.getElementById('mb-signin-card');
+    var memberSigninBtn = document.getElementById('mb-member-signin-btn');
+    function showSignedOutMode(mode) {
+      var photo = mode === 'photo';
+      submitCard.style.display = photo ? 'block' : 'none';
+      if (signinCard) signinCard.style.display = photo ? 'none' : 'block';
+    }
+    if (newToggleBtn) newToggleBtn.addEventListener('click', function () { showSignedOutMode('photo'); submitCard.scrollIntoView({ block: 'start' }); });
+    if (memberSigninBtn) memberSigninBtn.addEventListener('click', function () { showSignedOutMode('signin'); signinCard.scrollIntoView({ block: 'start' }); });
+    var wantsPhotoForm = /^#(add-photo|build-upload)$/.test(window.location.hash);
+    if (wantsPhotoForm) showSignedOutMode('photo');
+
+    // The car name starts from the model picked, so there is one less thing to type. It can still be changed.
+    if (submitForm) {
+      var carNameBox = document.getElementById('mb-submit-carname');
+      var carNameEdited = false;
+      carNameBox.addEventListener('input', function () { carNameEdited = true; });
+      submitForm.addEventListener('change', function (e) {
+        if (!e.target || e.target.name !== 'model' || carNameEdited || e.target.value === '__other__') return;
+        carNameBox.value = e.target.value;
       });
+      // A required Version inside the closed "More details" would block the send with no message: open it.
+      submitForm.addEventListener('invalid', function () { document.getElementById('mb-submit-more').open = true; }, true);
     }
 
     if (submitForm) {
@@ -2675,7 +2728,7 @@ document.addEventListener('DOMContentLoaded', function () {
           .then(function (res) { return res.json(); })
           .then(function (json) {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit photos';
+            submitBtn.textContent = 'Add my photo';
             if (json.success) {
               setStatus(submitStatus, 'Thanks, your photo' + (files.length > 1 ? 's are' : ' is') + ' live in the gallery now. Check your email for a sign-in link to manage it here. 👍', 'ok');
               submitForm.reset();
@@ -2685,7 +2738,7 @@ document.addEventListener('DOMContentLoaded', function () {
           })
           .catch(function () {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit photos';
+            submitBtn.textContent = 'Add my photo';
             setStatus(submitStatus, 'Something went wrong, please try again.', 'err');
           });
       });

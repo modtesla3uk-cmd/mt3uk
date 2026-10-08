@@ -3294,8 +3294,8 @@
     if (s.mine && !s.hasSource) wireReadingsAgain();
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? (isHillSession(s, library) ? 'Hill climb run' : 'Sprint run') : 'Track session', res = sessionResult(s);
-      wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
-        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK' });
+      wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | Laps by MT3UK', campaign: 'track_session',
+        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on Laps by MT3UK' });
     }
     if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
       var slot = document.getElementById('tp-rank-slot');
@@ -4876,8 +4876,8 @@
       h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
-      wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'MT3UK build') + ' | MT3UK', campaign: 'track_build',
-        text: (c.name || 'This MT3UK build') + '’s track sessions on MT3UK' });
+      wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'Laps build') + ' | Laps by MT3UK', campaign: 'track_build',
+        text: (c.name || 'This build') + '’s track sessions on Laps by MT3UK' });
     }).catch(function () { failed('That build could not be loaded.'); });
   }
 

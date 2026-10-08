@@ -277,3 +277,18 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
     page.goto("/index.html")
     expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42, Rich")
 
+
+
+def test_the_laps_share_button_says_laps_by_mt3uk_and_links_to_the_laps_address(page):
+    """Sharing a Laps page uses Laps by MT3UK in the words and laps.mt3uk.com in the link, not MT3UK and mt3uk.com."""
+    from urllib.parse import unquote
+    open_home(page)
+    page.locator(".lh-hero h1 .mt3uk-share-dot").click()
+    whatsapp = page.locator('.mt3uk-share-panel a[data-channel="whatsapp"], a[data-channel="whatsapp"]').first
+    whatsapp.wait_for(state="attached")
+    href = unquote(whatsapp.get_attribute("href"))
+    assert "Every lap, mapped and measured on Laps by MT3UK: Upload the file from your lap timer" in href, href
+    assert "https://laps.mt3uk.com/share/section/laps.html?utm_source=whatsapp" in href, href
+    assert "https://mt3uk.com" not in href and "on MT3UK" not in href, href
+    email = unquote(page.locator('a[data-channel="email"]').first.get_attribute("href"))
+    assert "subject=Every lap, mapped and measured. | Laps by MT3UK" in email, email

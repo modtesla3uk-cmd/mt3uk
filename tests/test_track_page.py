@@ -984,7 +984,7 @@ def test_the_track_share_link_carries_the_week_and_the_picture_sets_version(page
     page.locator("h1 .mt3uk-share-dot").click()
     page.wait_for_timeout(300)
     url = page.evaluate("() => window.__shared.length ? window.__shared.pop().url : (document.querySelector('.mt3uk-share-pop [data-channel=facebook]') ? new URL(document.querySelector('.mt3uk-share-pop [data-channel=facebook]').href).searchParams.get('u') : null)")
-    assert url and url.startswith("https://mt3uk.com/share/section/track.html?") and "utm_campaign=page_track" in url, url
+    assert url and url.startswith("https://laps.mt3uk.com/share/section/track.html?") and "utm_campaign=page_track" in url, url
     assert re.search(r"&w=\d{4}-W\d{2}\.7$", url), url
 
 

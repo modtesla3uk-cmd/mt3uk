@@ -61,8 +61,6 @@
 .lo-field select { width: 100%; }
 .lb-old { margin: 8px 0; }
 /* Circuits kept offline: the badge on a Sessions track row, the hint, the hold, and the list in Profile. */
-.lo-kept { display: inline-flex; vertical-align: -3px; margin-left: 4px; color: #2e9d4a; }
-.lo-kept .icon { width: 20px; height: 16px; fill: none; stroke: currentColor; }
 .lo-hint { margin: 6px 0 10px; color: var(--steel, #5b6475); }
 .lo-hint[hidden] { display: none; }
 [data-keep-hold] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -71,3 +69,11 @@
 .lo-circuits[hidden] { display: none; }
 .lo-circuits li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
 .lo-count { font-weight: 400; color: var(--steel, #5b6475); margin-left: 6px; }
+/* The cloud button on a Sessions track row: a second way to keep a circuit, for the keyboard and for anyone who has not found the hold. */
+.tp-keep { position: absolute; top: 4px; right: 10px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel, #5b6475); cursor: pointer; }
+.tp-keep[hidden] { display: none; }
+.tp-keep:hover, .tp-keep:focus-visible { background: var(--hairline); color: var(--ink); }
+.tp-keep .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.tp-keep[aria-pressed="true"] { color: #2e9d4a; }
+.tp-keep[aria-pressed="true"] .icon { fill: currentColor; fill-opacity: 0.2; }
+.tp-trackwrap:has(> .tp-keep:not([hidden])) > .tp-trackrow { padding-right: 64px; }

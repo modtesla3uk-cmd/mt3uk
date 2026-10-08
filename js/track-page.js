@@ -38,6 +38,7 @@
     }).join('');
   }
   var ICON = {
+    cloud: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5 4.8 4.8 0 0 1 17 18Z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     prev: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
@@ -1008,7 +1009,7 @@
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+    else h += trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second, or use its cloud button, to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
     h += '</div><div id="tp-find-results"></div>';
     return h + '</div>';
   }
@@ -1146,7 +1147,9 @@
     return trackEntries(list).map(function (t) {
             var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
       var here = list.filter(function (x) { return trackKeyOf(x) === t.key; }), lays = layoutEntries(here);
-      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (t.key.indexOf('v:') === 0 ? ' data-keep-hold data-keep-venue="' + esc(t.key.slice(2)) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
+      var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
+      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
+        (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
@@ -1223,7 +1226,7 @@
     m.cars.forEach(function (c) { carNames[c.id] = c.name; });
     function redrawList() {
       var tracks = document.getElementById('tp-tracks');
-      if (tracks) tracks.innerHTML = trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+      if (tracks) tracks.innerHTML = trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second, or use its cloud button, to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
       applyRanks(list);
       wireTrackToggles();
       wireTools();

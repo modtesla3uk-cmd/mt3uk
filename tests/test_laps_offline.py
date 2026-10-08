@@ -495,14 +495,61 @@ def test_holding_a_track_in_sessions_keeps_it_offline_without_opening_it(page):
     expect(page.locator("[data-keep-hint]").first).to_be_visible()
     hold(page, row)
     expect(page.locator("#lo-bar")).to_contain_text("is kept on this device", timeout=15000)
-    expect(row.locator(".lo-kept")).to_be_visible()
+    cloud = page.locator(".tp-trackwrap[data-keep-venue] [data-keep-toggle]").first
+    expect(cloud).to_have_attribute("aria-pressed", "true")
     expect(row).to_have_attribute("aria-expanded", "false")
     assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
     # Hold again: asks, then takes it off.
     page.once("dialog", lambda d: d.accept())
     hold(page, row)
-    expect(row.locator(".lo-kept")).to_have_count(0)
+    expect(cloud).to_have_attribute("aria-pressed", "false")
     assert page.evaluate("MT3UKOffline.circuits().length") == 0
+
+
+def test_a_circuit_on_sessions_is_kept_from_the_keyboard_with_its_cloud_button(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s="))
+    page.goto("/track.html")
+    cloud = page.locator(".tp-trackwrap[data-keep-venue] [data-keep-toggle]").first
+    expect(cloud).to_be_visible()
+    expect(cloud).to_have_attribute("aria-pressed", "false")
+    expect(cloud).to_have_attribute("aria-label", re.compile(r"^Keep .* for offline use$"))
+    # Reachable with Tab after the row, and pressed with Enter.
+    page.locator(".tp-trackrow[data-keep-hold]").first.focus()
+    page.keyboard.press("Tab")
+    assert page.evaluate("document.activeElement.hasAttribute('data-keep-toggle')") is True
+    page.keyboard.press("Enter")
+    expect(cloud).to_have_attribute("aria-pressed", "true", timeout=15000)
+    assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
+    # The row did not open, and Enter again asks, then takes it off.
+    expect(page.locator(".tp-trackrow[data-keep-hold]").first).to_have_attribute("aria-expanded", "false")
+    page.once("dialog", lambda d: d.accept())
+    page.keyboard.press("Enter")
+    expect(cloud).to_have_attribute("aria-pressed", "false")
+    assert page.evaluate("MT3UKOffline.circuits().length") == 0
+
+
+def test_the_one_time_offer_has_the_circuit_choice_and_keeps_it(page):
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 300;")
+    open_page(page, FakeWorker())
+    offer = page.locator("#lo-offer")
+    expect(offer).to_be_visible()
+    pick = offer.locator("#lo-offer-circuit")
+    expect(pick.locator("option[value='thruxton']")).to_have_count(1)
+    pick.select_option("thruxton")
+    offer.get_by_role("button", name="Turn on offline mode").click()
+    assert page.evaluate("JSON.parse(localStorage.getItem('mt3ukLapsOfflineCircuits'))") == [{"id": "thruxton", "name": "Thruxton"}]
+
+
+def test_the_one_time_offer_with_no_circuit_picked_keeps_none(page):
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 300;")
+    open_page(page, FakeWorker())
+    page.locator("#lo-offer").get_by_role("button", name="Turn on offline mode").click()
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuits')") is None
 
 
 def test_a_circuit_on_the_leaderboard_is_kept_by_its_cloud_or_by_holding_and_letting_go(page):
@@ -522,6 +569,65 @@ def test_a_circuit_on_the_leaderboard_is_kept_by_its_cloud_or_by_holding_and_let
     assert page.evaluate("MT3UKOffline.circuits().map(c => c.id).sort()") == ["silverstone", "thruxton"]
     # And it did not count as moving the card: the list has no saved order.
     assert page.evaluate("Object.keys(localStorage).filter(k => /order/i.test(k) && localStorage.getItem(k) && localStorage.getItem(k) !== 'null').length") == 0
+
+
+def other_members_session(page, fake):
+    """Saves one session through the page, then makes a copy of it that belongs to someone else (not in this member's list)
+    and puts it on Thruxton's board."""
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s="))
+    rec = dict(next(iter(fake.sessions.values())))
+    rec.update(id="other1", ownerName="Sam", carId="carB")
+    fake.sessions["other1"] = rec
+    fake.boards = {"/track/board:thruxton:main": [board_row("carB", "other1", 100.0)]}
+
+
+def test_a_session_opened_from_a_kept_circuits_leaderboard_still_opens_with_no_signal(page):
+    """Opening a row on a leaderboard opens another member's session. Keeping the circuit keeps those sessions too."""
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    other_members_session(page, fake)
+    page.goto("/leaderboards.html?type=track")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    r = page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
+    assert r["ok"] and r["boards"] == 1 and r["sessions"] >= 2, r
+    go_offline(page, link)
+    page.goto("/leaderboards.html?board=thruxton:main")
+    page.locator(".lb-row a.lb-name").first.click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=other1$"))
+    expect(page.locator("#tp-headline")).to_be_visible()
+    expect(page.get_by_text("not on this device")).to_have_count(0)
+
+
+def test_a_circuit_not_kept_leaves_the_leaderboard_sessions_off_the_device(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    other_members_session(page, fake)
+    assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1')") is None
+
+
+def test_the_sessions_of_a_kept_circuit_are_not_trimmed_away_and_are_released_with_it(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    other_members_session(page, fake)
+    page.goto("/leaderboards.html?type=track")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
+    assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1').then(d => !!(d && d.session))") is True
+    # Far more sessions than the device keeps, opened afterwards: the kept circuit's sessions stay.
+    page.evaluate("(async () => { for (let i = 0; i < 80; i++) { await MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } }); await new Promise(r => setTimeout(r, 3)); } })()")
+    page.wait_for_timeout(1500)
+    assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1').then(d => !!(d && d.session))") is True
+    assert page.evaluate("MT3UKOffline.recall('/track/session?id=zz0')") is None, "the ordinary pool is still trimmed"
+    # Taking the circuit off releases them to the ordinary pool.
+    page.evaluate("MT3UKOffline.removeCircuit('thruxton')")
+    page.evaluate("for (let i = 80; i < 160; i++) MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } })")
+    page.wait_for_timeout(1500)
+    assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1')") is None
 
 
 def test_a_fourth_circuit_is_refused_with_a_message(page):

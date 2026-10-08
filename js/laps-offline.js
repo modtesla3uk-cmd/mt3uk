@@ -139,8 +139,10 @@
     kvSet(k, { at: Date.now(), value: copy }).then(function () {
       if (path.indexOf('/track/session?id=') !== 0) return;
       // Keep only the latest few sessions: each one carries its lap traces.
-      return kvAll().then(function (all) {
-        var mine = all.filter(function (x) { return x.key.indexOf('get:' + (ls(EMAIL_KEY) || '') + ':/track/session?id=') === 0; }).sort(function (a, b) { return b.value.at - a.value.at; });
+      // Sessions of a kept circuit (pinSessions) are never trimmed: they are why the circuit was kept.
+      return Promise.all([kvAll(), pinnedIds()]).then(function (r) {
+        var prefix = 'get:' + (ls(EMAIL_KEY) || '') + ':/track/session?id=', pins = r[1];
+        var mine = r[0].filter(function (x) { return x.key.indexOf(prefix) === 0 && !pins[decodeURIComponent(x.key.slice(prefix.length))]; }).sort(function (a, b) { return b.value.at - a.value.at; });
         return Promise.all(mine.slice(KEEP_SESSIONS).map(function (x) { return kvDel(x.key); }));
       });
     });
@@ -474,7 +476,7 @@
   // CIRCUIT_SESSIONS, with their maps), beside the track list and the counts. A board not kept is not on the device.
   // A circuit is added on the confirm card, in Profile, by holding its card on the Leaderboard and letting go (or its cloud
   // button), or by holding its row on Sessions.
-  var CIRCUITS_KEY = 'mt3ukLapsOfflineCircuits', MAX_CIRCUITS = 3, CIRCUIT_SESSIONS = 40;
+  var CIRCUITS_KEY = 'mt3ukLapsOfflineCircuits', MAX_CIRCUITS = 3, CIRCUIT_SESSIONS = 40, BOARD_TOP = 10, BOARD_SESSIONS = 30;
   function circuits() {
     var a = null;
     try { a = JSON.parse(ls(CIRCUITS_KEY) || 'null'); } catch (e) { a = null; }
@@ -538,39 +540,63 @@
     if (v.type === 'drag') return ['/drag/board?venue=' + enc(v.id)];
     return (v.layouts || []).slice(0, 40).map(function (l) { return (v.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + enc(v.id) + '&layout=' + enc(l.id); });
   }
-  // Fetches and keeps one circuit's boards and the counts. Never throws; resolves with how many boards were kept.
+  // Fetches and keeps one circuit's boards and the counts. Never throws; resolves { n, ids }: how many boards were kept and
+  // the sessions their top BOARD_TOP rows open (the best session of each car), up to BOARD_SESSIONS in all, so a row opened
+  // offline has its session on the device too.
   function keepBoards(id) {
-    if (!id || offline) return Promise.resolve(0);
+    var none = { n: 0, ids: [] };
+    if (!id || offline) return Promise.resolve(none);
     return venueList().then(function (list) {
       var v = list.filter(function (x) { return x.id === id; })[0];
-      if (!v) return 0;
-      var paths = boardPaths(v), at = 0, n = 0;
+      if (!v) return none;
+      var paths = boardPaths(v), at = 0, n = 0, ids = [];
       function next() {
         if (at >= paths.length) return Promise.resolve();
         var p = paths[at++];
-        return getJson(p).then(function (d) { if (d && d.success !== false && !(d.status >= 400)) { remember(p, d); n++; } }).catch(function () {}).then(next);
+        return getJson(p).then(function (d) {
+          if (!d || d.success === false || d.status >= 400) return;
+          remember(p, d); n++;
+          var drag = /^\/drag\//.test(p);
+          (d.entries || []).filter(function (e) { return e && e.sessionId; })
+            .sort(function (a, b) { return drag ? (a.quarter || 1e9) - (b.quarter || 1e9) : (a.time || 1e9) - (b.time || 1e9); })
+            .slice(0, BOARD_TOP).forEach(function (e) { if (ids.indexOf(e.sessionId) === -1) ids.push(e.sessionId); });
+        }).catch(function () {}).then(next);
       }
       var counts = getJson('/track/counts').then(function (d) { remember('/track/counts', d); }).catch(function () {});
-      return Promise.all([next(), next(), next(), counts]).then(function () { return n; });
-    }, function () { return 0; });
+      return Promise.all([next(), next(), next(), counts]).then(function () { return { n: n, ids: ids.slice(0, BOARD_SESSIONS) }; });
+    }, function () { return none; });
   }
-  // The member's own sessions at a circuit (their newest CIRCUIT_SESSIONS), with their maps.
-  function keepCircuitSessions(id, report) {
-    var out = { sessions: 0, tiles: 0 };
-    if (!id || offline || !token()) return Promise.resolve(out);
+  // The member's own sessions at a circuit (their newest CIRCUIT_SESSIONS). Resolves their ids.
+  function ownSessionIds(id) {
+    if (!id || offline || !token()) return Promise.resolve([]);
     return getJson('/track/sessions').then(function (d) {
-      if (!d || !d.sessions) return out;
+      if (!d || !d.sessions) return [];
       remember('/track/sessions', d);
-      var ids = d.sessions.filter(function (x) { return x.venueId === id; })
+      return d.sessions.filter(function (x) { return x.venueId === id; })
         .sort(function (a, b) { return String(b.date + (b.time || '')) < String(a.date + (a.time || '')) ? -1 : 1; })
         .slice(0, CIRCUIT_SESSIONS).map(function (x) { return x.id; });
-      return keepSessionIds(ids, out, report || function () {});
-    }).catch(function () { return out; });
+    }).catch(function () { return []; });
   }
-  // One circuit: its boards, then your sessions there.
+  // The sessions kept for each circuit are pinned: one KV key per circuit, so trimming (remember) leaves them alone and
+  // taking the circuit off lets them go back to the ordinary pool.
+  function pinKey(id) { return 'pins:' + (ls(EMAIL_KEY) || '') + ':' + id; }
+  function pinSessions(id, ids) { return kvSet(pinKey(id), { at: Date.now(), ids: ids }); }
+  function unpinSessions(id) { return kvDel(pinKey(id)); }
+  function pinnedIds() {
+    var prefix = 'pins:' + (ls(EMAIL_KEY) || '') + ':';
+    return kvAll().then(function (all) {
+      var out = {};
+      all.forEach(function (x) { if (String(x.key).indexOf(prefix) === 0 && x.value && x.value.ids) x.value.ids.forEach(function (i) { out[i] = 1; }); });
+      return out;
+    });
+  }
+  // One circuit: its boards, then the sessions behind them and your own there, with their maps.
   function keepCircuit(id, report) {
-    return keepBoards(id).then(function (boards) {
-      return keepCircuitSessions(id, report).then(function (o) { o.boards = boards; return o; });
+    return Promise.all([keepBoards(id), ownSessionIds(id)]).then(function (r) {
+      var boards = r[0], ids = r[1].slice();
+      boards.ids.forEach(function (i) { if (ids.indexOf(i) === -1) ids.push(i); });
+      var out = { sessions: 0, tiles: 0, boards: boards.n };
+      return keepSessionIds(ids, out, report || function () {}).then(function () { return pinSessions(id, ids); }).then(function () { return out; });
     });
   }
   // Every kept circuit, one after another. Resolves with the totals.
@@ -610,7 +636,7 @@
   function removeCircuit(id) {
     saveCircuits(circuits().filter(function (c) { return c.id !== id; }));
     labels();
-    return dropBoards(id).then(function () { labels(); return { ok: true }; });
+    return Promise.all([dropBoards(id), unpinSessions(id)]).then(function () { labels(); return { ok: true }; });
   }
   // Fills a "add a circuit" drop-down (the confirm card's and Profile's).
   function fillCircuitSelect(sel, placeholder) {
@@ -664,18 +690,12 @@
       say('ok', '<b>' + esc(name) + ' is kept on this device.</b> ' + (r.boards ? plural(r.boards, 'leaderboard', 'leaderboards') : 'Its leaderboards') + (r.sessions ? ' and ' + plural(r.sessions, 'of your sessions', 'of your sessions') : '') + ' open with no signal.', 8000);
     });
   }
-  var CLOUD = '<svg class="icon" viewBox="0.5 1 28 22.5" aria-hidden="true">' + ICON.cloud + '</svg>';
   // Shows which circuits are kept on every card, row and button that names one, and the hint where there is one.
   function markKept() {
     var ok = allowed();
     [].slice.call(document.querySelectorAll('[data-keep-venue]')).forEach(function (el) {
       var kept = ok && isKept(el.getAttribute('data-keep-venue'));
       if (el.classList.contains('is-kept') !== kept) el.classList.toggle('is-kept', kept);
-      var badge = el.querySelector('.lo-kept');
-      if (el.hasAttribute('data-keep-hold')) {
-        if (kept && !badge) { var host = el.querySelector('b') || el; host.insertAdjacentHTML('beforeend', ' <span class="lo-kept" title="Kept for offline use">' + CLOUD + '</span>'); }
-        else if (!kept && badge) badge.remove();
-      }
       var btn = el.querySelector('[data-keep-toggle]');
       if (btn) {
         if (btn.hidden === ok) btn.hidden = !ok;
@@ -985,14 +1005,23 @@
     el.id = 'lo-offer'; el.className = 'lo-offer card'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Offline mode');
     el.innerHTML = '<h3>Use Laps without a signal?</h3><p>Offline mode keeps a copy of Laps on this device (a few megabytes). At the track with no signal you can open your past sessions and their maps. You can also add a session from a file already on your device, and it is sent when you\'re back online.</p>' +
       '<p class="lo-small">Adding a session offline depends on your logger. Some, such as RaceBox, only let you download the file once you are online.</p>' +
+      '<label class="lo-field"><span>Keep a circuit for offline use (optional)</span><select class="field" id="lo-offer-circuit"><option value="">None</option></select></label>' +
       '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-offer="on">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-offer="no">Not now</button></div>' +
       '<p class="lo-small">You can change this any time at the bottom of the page, or in Profile.</p>';
     document.body.appendChild(el);
+    var offerPick = el.querySelector('#lo-offer-circuit');
+    fillCircuitSelect(offerPick, 'None');
     el.addEventListener('click', function (e) {
       var b = e.target.closest('[data-lo-offer]');
       if (!b) return;
+      var turnOn = b.getAttribute('data-lo-offer') === 'on';
+      if (turnOn && offerPick && offerPick.value) {
+        // Only the choice is stored here: Offline mode goes on next and keeps everything, the circuit included.
+        var cur = circuits();
+        if (!cur.some(function (x) { return x.id === offerPick.value; }) && cur.length < MAX_CIRCUITS) { cur.push({ id: offerPick.value, name: offerPick.options[offerPick.selectedIndex].text }); saveCircuits(cur); }
+      }
       el.remove();
-      if (b.getAttribute('data-lo-offer') === 'on') setEnabled(true, true);
+      if (turnOn) setEnabled(true, true);
     });
   }
 

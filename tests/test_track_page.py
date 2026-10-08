@@ -1355,6 +1355,7 @@ def test_delete_a_whole_day_from_its_group(page):
     messages = []
     page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
     day.locator("[data-day-delete]").click()
+    page.wait_for_timeout(400)
     assert messages and "Confirm delete?" in messages[0] and "all 4 sessions for this day (Castle Combe - 14 Jul 2026)" in messages[0]
     assert len(fake.sessions) == 5
     # Accepting deletes the day and its drives, and nothing from another day.
@@ -6681,14 +6682,11 @@ def test_holding_sessions_of_a_day_picks_them_and_the_bulk_edit_changes_only_tho
     expect(page.locator("a.tp-row.is-picked")).to_have_count(0)
 
 
-def assert_in(part, text):
-    assert part in text, text
-
-
 def test_delete_follows_the_picked_sessions_of_a_day(page):
     """Delete this day becomes Delete this session once one session is picked, and removes only that one."""
     fake = FakeWorker(earlier=False)
     _many_days(fake, 1)
+    fake.sessions["g1"]["fileName"] = "RaceBox one.vbo"
     open_page(page, fake)
     page.set_viewport_size({"width": 1100, "height": 900})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
@@ -6705,7 +6703,14 @@ def test_delete_follows_the_picked_sessions_of_a_day(page):
     expect(delete).to_have_text("Delete 2 selected sessions")
     row("g2").click()
     expect(delete).to_have_text("Delete this session")
-    page.once("dialog", lambda d: (assert_in("delete this session", d.message), d.accept()))
+    # The confirm names the session by date, time and the file it came from.
+    messages = []
+    page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
+    delete.click()
+    page.wait_for_timeout(400)
+    assert messages and "delete this session" in messages[0] and "- 14 Jul 2026, " in messages[0] and "file RaceBox one.vbo" in messages[0], messages
+    assert re.search(r"- 14 Jul 2026, \d\d:\d\d, file RaceBox one\.vbo", messages[0]), messages[0]
+    page.once("dialog", lambda d: d.accept())
     delete.click()
     expect(page.locator("#tp-saved")).to_contain_text("Deleted the session")
     assert "g1" not in fake.sessions and "g2" in fake.sessions and "g3" in fake.sessions

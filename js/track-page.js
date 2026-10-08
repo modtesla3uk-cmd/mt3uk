@@ -1721,16 +1721,29 @@
     var b = e.target.closest && e.target.closest('[data-day-delete]');
     if (!b || b.disabled) return;
     var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
-    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : b.hasAttribute('data-picked') ? 'This will delete the ' + ids.length + ' selected sessions (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
     b.disabled = true;
-    var chain = Promise.resolve(), failed = 0;
-    ids.forEach(function (id) {
-      chain = chain.then(function () { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
-    });
-    chain.then(function () {
-      mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
-      route();
+    // The confirm names each session (date, time and the file it came from), so it is clear what goes.
+    var known = {};
+    ((mine && mine.sessions) || []).forEach(function (x) { known[x.id] = x; });
+    Promise.all(ids.map(function (id) {
+      return api('GET', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { return d && d.session ? d.session : null; }).catch(function () { return null; });
+    })).then(function (recs) {
+      var lines = ids.map(function (id, n) {
+        var x = recs[n] || known[id] || {}, k = known[id] || {};
+        return [niceDate(x.date || k.date || ''), x.time || k.time || '', x.fileName ? 'file ' + x.fileName : ''].filter(Boolean).join(', ');
+      });
+      var shown = lines.slice(0, 10).map(function (l) { return '- ' + l; }).join('\n') + (lines.length > 10 ? '\n- and ' + (lines.length - 10) + ' more' : '');
+      var intro = ids.length === 1 ? 'This will delete this session (' + what + '):' : b.hasAttribute('data-picked') ? 'This will delete the ' + ids.length + ' selected sessions (' + what + '):' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + '):';
+      if (!window.confirm('Confirm delete?\n\n' + intro + '\n' + shown + '\n\nThis can\'t be undone.')) { b.disabled = false; return; }
+      var chain = Promise.resolve(), failed = 0;
+      ids.forEach(function (id) {
+        chain = chain.then(function () { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
+      });
+      chain.then(function () {
+        mine = null; counts = null;
+        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
+        route();
+      });
     });
   });
   // The switch on a day's group: share every session that day at that track, or make them all Only me.

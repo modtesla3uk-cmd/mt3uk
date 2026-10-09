@@ -925,4 +925,21 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   ok(lt.length === 2 && lt.every(t => t > 82 && t < 83.5), 'two laps of about 1:22.6 to 1:23 (' + lt.join(', ') + ')');
   const others = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv'), lib);
   ok(!('dashcam' in others) && !T.read(vbo, 'x.vbo').dashcam, 'no other format is marked as dashcam');
+  // Clips saved as separate files (a minute each, frames carrying on, a few dropped between them) join as one drive.
+  const rows = text.trim().split('\n'), head = rows[0], body = rows.slice(1);
+  const cuts = []; for (let i = 1; i < body.length; i++) if (Number(body[i].split(',')[0]) - Number(body[i - 1].split(',')[0]) > 15) cuts.push(i);
+  const parts = [body.slice(0, cuts[0]), body.slice(cuts[0], cuts[1]), body.slice(cuts[1])].map(b => head + '\n' + b.join('\n') + '\n');
+  const names = ['2026-08-24_12-09-35-front_sei.csv', '2026-08-24_12-10-35-front_sei.csv', '2026-08-24_12-11-35-front_sei.csv'];
+  const clips = parts.map((t, i) => T.read(t, names[i]));
+  ok(cuts.length === 2 && clips.every(c => c.dashcam), 'three clips read on their own');
+  const jd = T.joinDashcam([clips[2], clips[0], clips[1]]);
+  ok(jd.rds[1] && !jd.rds[0] && !jd.rds[2] && jd.rds[1].clips === 3, 'clips given out of order are joined into the earliest one');
+  const joinedS = T.analyse(T.combine([jd.rds[1]]), lib);
+  const whole = T.analyse(T.read(text, names[0]), lib);
+  const jl = joinedS.laps.filter(l => l.kind === 'timed').map(l => l.time), wl = whole.laps.filter(l => l.kind === 'timed').map(l => l.time);
+  ok(jl.length === 2 && jl.every((t, i) => near(t, wl[i], 0.15)), 'the joined clips give the same laps as the one file (' + jl.join(', ') + ' against ' + wl.join(', ') + ')');
+  ok(near(jd.rds[1].points[jd.rds[1].points.length - 1].t, whole.laps ? T.read(text, names[0]).points.slice(-1)[0].t : 0, 0.6), 'the dropped frames between clips are counted when joining');
+  const far = T.read(parts[2].replace(/^(\d+)/gm, (m) => String(Number(m) + 100000)), names[2]);
+  const apart = T.joinDashcam([clips[0], far]);
+  ok(apart.rds[0] === clips[0] && apart.rds[1] === far && !Object.keys(apart.into).length, 'clips from different drives (frames far apart) are not joined');
 }

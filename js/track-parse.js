@@ -423,7 +423,37 @@
     if (!pts.length) throw new Error('No readings with a position were found in this file.');
     var t0 = pts[0].t;
     pts.forEach(function (p) { p.t -= t0; });
-    return { format: 'CSV', dashcam: true, points: pts, startLine: null, venueName: '', startedAt: null, speedUnit: 'm/s' };
+    // Where the readings sit in the car's frame count, so clips from one drive can be joined (joinDashcam).
+    return { format: 'CSV', dashcam: true, frame0: f0 + t0 * DASHCAM_FPS, frameN: f0 + prev * DASHCAM_FPS, points: pts, startLine: null, venueName: '', startedAt: null, speedUnit: 'm/s' };
+  }
+
+  // The clips of one drive (a clip is about a minute, and each is its own file) as one reading. The frame numbers carry on
+  // from one clip to the next, so a clip that starts within DASHCAM_JOIN seconds of the end of the one before is the same
+  // drive: its readings are placed by their frame number, which counts the frames the car dropped between clips. Clips
+  // that do not follow on stay as they are. Returns { rds, into }: the readings to use (null for a clip that was joined
+  // into an earlier one) and, for each such clip, the index of the reading it went into.
+  var DASHCAM_JOIN = 15;
+  function joinDashcam(rds) {
+    var order = rds.map(function (rd, i) { return { rd: rd, i: i }; }).filter(function (o) { return o.rd.dashcam && isFinite(o.rd.frame0); })
+      .sort(function (a, b) { return a.rd.frame0 - b.rd.frame0; });
+    var groups = [];
+    order.forEach(function (o) {
+      var g = groups[groups.length - 1], last = g && g[g.length - 1];
+      if (last && o.rd.frame0 > last.rd.frameN && (o.rd.frame0 - last.rd.frameN) / DASHCAM_FPS <= DASHCAM_JOIN) g.push(o); else groups.push([o]);
+    });
+    var out = rds.slice(), into = {};
+    groups.forEach(function (g) {
+      if (g.length < 2) return;
+      var first = g[0].rd, pts = [];
+      g.forEach(function (o) {
+        var shift = (o.rd.frame0 - first.frame0) / DASHCAM_FPS + first.points[0].t;
+        o.rd.points.forEach(function (p) { var q = Object.assign({}, p); q.t = p.t - o.rd.points[0].t + shift; pts.push(q); });
+      });
+      var made = Object.assign({}, first, { points: pts, frameN: g[g.length - 1].rd.frameN, clips: g.length });
+      out[g[0].i] = made;
+      g.slice(1).forEach(function (o) { out[o.i] = null; into[o.i] = g[0].i; });
+    });
+    return { rds: out, into: into };
   }
 
   // savedAt (optional): when the file was last saved on the device, from
@@ -1743,7 +1773,7 @@
   }
 
   var api = {
-    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
+    read: read, combine: combine, joinDashcam: joinDashcam, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, isHill: isHill, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     mergeSources: mergeSources, alignSpeeds: alignSpeeds, haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
   };

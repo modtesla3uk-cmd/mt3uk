@@ -6964,3 +6964,29 @@ def test_a_tesla_dashcam_file_is_read_as_a_beta_logger_and_kept_off_the_leaderbo
     expect(page.locator("#tp-dashcam")).to_contain_text("Not on the leaderboards yet")
     expect(page.locator("#tp-logger-line")).to_have_text("Logger: Tesla Dashcam (Beta)")
 
+
+def test_dashcam_clips_added_together_are_one_session(page, tmp_path):
+    """Tesla dashcam clips are a minute each, with the frame numbers carrying on from one to the next. Added together
+    they are one drive and one session (one clip alone has no full lap), not one session each."""
+    rows = (ROOT / "tests" / "fixtures" / "tesla-dashcam-castle-combe.csv").read_text().strip().split("\n")
+    head, body = rows[0], rows[1:]
+    cuts = [i for i in range(1, len(body)) if int(body[i].split(",")[0]) - int(body[i - 1].split(",")[0]) > 15]
+    parts = [body[:cuts[0]], body[cuts[0]:cuts[1]], body[cuts[1]:]]
+    files = []
+    for n, part in enumerate(parts):
+        f = tmp_path / f"2026-08-24_12-{9 + n:02d}-35-front_sei.csv"
+        f.write_text(head + "\n" + "\n".join(part) + "\n")
+        files.append(str(f))
+    fake = FakeWorker()
+    open_page(page, fake, "/track.html?add=1")
+    page.set_input_files("#tp-file", files)
+    page.locator("#tp-result").wait_for()
+    expect(page.locator(".tp-file")).to_contain_text("Joined to")
+    expect(page.locator(".tp-file")).not_to_contain_text("each is saved as its own session")
+    expect(page.locator("#tp-logger")).to_have_value("Tesla Dashcam (Beta)")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    assert len(fake.saved) == 1
+    assert fake.saved[-1]["session"]["dashcam"] is True
+    assert len([l for l in fake.saved[-1]["session"]["laps"] if l["kind"] == "timed"]) == 2
+

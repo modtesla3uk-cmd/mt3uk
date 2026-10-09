@@ -1952,7 +1952,7 @@
     var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
     var items = list.map(function (x) {
       var w = x.rd ? fileWhen(x.rd) : '';
-      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.mergedInto ? '<span class="tp-file-when">Car data added to the session from ' + esc(x.mergedInto) + '.</span>' : '') + (x.merged ? '<span class="tp-file-when">With the car data from ' + esc(x.merged.name) + ' (lined up, match ' + x.merged.match.toFixed(2) + ').</span>' : '') + (x.noMerge && x.rd ? '<span class="tp-file-when">Saved on its own: ' + esc(x.noMerge) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.clipOf ? '<span class="tp-file-when">Joined to ' + esc(x.clipOf) + ' as one drive (the clips follow on).</span>' : x.mergedInto ? '<span class="tp-file-when">Car data added to the session from ' + esc(x.mergedInto) + '.</span>' : '') + (x.clips > 1 ? '<span class="tp-file-when">' + x.clips + ' dashcam clips joined as one drive.</span>' : '') + (x.merged ? '<span class="tp-file-when">With the car data from ' + esc(x.merged.name) + ' (lined up, match ' + x.merged.match.toFixed(2) + ').</span>' : '') + (x.noMerge && x.rd ? '<span class="tp-file-when">Saved on its own: ' + esc(x.noMerge) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
     }).join('');
     var meta = a.rd ? fileMeta() : '';
     // Several files are saved as one session each, not merged.
@@ -2075,7 +2075,14 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
-      var jr = joinCarFiles(good, a.mergeOff), joined = jr.joined;
+      // Dashcam clips of one drive (a minute each, the frame numbers carrying on) are one session, not one each.
+      var dj = T.joinDashcam(good.map(function (x) { return x.rd; })), clipsJoined = [];
+      good = good.filter(function (x, i) {
+        if (dj.rds[i] === null) { var head = good[dj.into[i]]; x.mergedInto = head.f.name; x.clipOf = head.f.name; head.clips = (head.clips || 1) + 1; clipsJoined.push(x); return false; }
+        x.rd = dj.rds[i];
+        return true;
+      });
+      var jr = joinCarFiles(good, a.mergeOff), joined = jr.joined.concat(clipsJoined);
       good = jr.good;
       a.canMerge = jr.canMerge;
       var rds = good.map(function (x) { return x.rd; });

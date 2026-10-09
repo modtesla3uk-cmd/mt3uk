@@ -61,6 +61,13 @@
       {"name": "RS42"},
       {"name": "RSL1"}
     ] },
+    { "name": "PBS", "compounds": [
+      {"name": "ProTrack"},
+      {"name": "ProRace"},
+      {"name": "ProComp"},
+      {"name": "ProComp R"},
+      {"name": "ProComp S1"}
+    ] },
     { "name": "Performance Friction", "compounds": [
       {"name": "08", "use": "Endurance", "notes": "Endurance pad for high temperatures, smooth bite, very long wearing, low disc wear", "source": "https://pfc.parts/motorsports/pad-compounds/08-compound-2/"},
       {"name": "11", "use": "Race", "notes": "Sprint and medium distance pad: smooth bite, friction rising with temperature, good release", "source": "https://pfc.parts/motorsports/pad-compounds/11-compound-2/"},

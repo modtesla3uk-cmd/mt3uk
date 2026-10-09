@@ -407,7 +407,13 @@
   function readDashcam(text) {
     var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
     var h = splitCsv(lines[0], ',').map(normHeader);
-    var ci = { fr: h.indexOf('frame_seq_no'), lat: h.indexOf('latitude_deg'), lng: h.indexOf('longitude_deg'), v: h.indexOf('vehicle_speed_mps') };
+    var ci = { fr: h.indexOf('frame_seq_no'), lat: h.indexOf('latitude_deg'), lng: h.indexOf('longitude_deg'), v: h.indexOf('vehicle_speed_mps'), ax: h.indexOf('linear_acceleration_mps2_x'), ay: h.indexOf('linear_acceleration_mps2_y') };
+    // The car's own accelerometer, a row a frame. Checked against the speed and the heading of a real Castle Combe file: the
+    // x column is the sideways g (matches speed times the turn rate, positive in a right hander) and the y column the
+    // lengthways g (matches the change in speed, positive when braking), so the signs here put them the way every other
+    // logger has them. The GPS position only moves about 10 times a second, so g worked out from it is far too noisy
+    // (over 4 g in the corners); the rows between two fixes are averaged for each kept reading instead.
+    var imu = ci.ax >= 0 && ci.ay >= 0, sx = 0, sy = 0, sn = 0;
     var pts = [], f0 = null, prev = null, lastLat = NaN, lastLng = NaN;
     for (var i = 1; i < lines.length; i++) {
       var f = splitCsv(lines[i], ',');
@@ -416,9 +422,11 @@
       if (f0 === null) f0 = fr;
       var t = (fr - f0) / DASHCAM_FPS;
       if (prev !== null && t <= prev) continue;
+      if (imu) { var gx = num(f[ci.ax]), gy = num(f[ci.ay]); if (isFinite(gx) && isFinite(gy)) { sx += gx; sy += gy; sn++; } }
       if (lat === lastLat && lng === lastLng) continue;
       lastLat = lat; lastLng = lng; prev = t;
-      pts.push({ t: t, lat: lat, lng: lng, v: ci.v >= 0 ? num(f[ci.v]) : NaN, la: NaN, lo: NaN, sats: NaN });
+      pts.push({ t: t, lat: lat, lng: lng, v: ci.v >= 0 ? num(f[ci.v]) : NaN, la: sn ? -sx / sn / 9.81 : NaN, lo: sn ? -sy / sn / 9.81 : NaN, sats: NaN });
+      sx = 0; sy = 0; sn = 0;
     }
     if (!pts.length) throw new Error('No readings with a position were found in this file.');
     var t0 = pts[0].t;

@@ -923,6 +923,13 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   ok(ds.venueId === 'castle-combe' && ds.type === 'track' && ds.dashcam === true, 'Castle Combe found, and the session is marked as dashcam');
   const lt = ds.laps.filter(l => l.kind === 'timed').map(l => l.time);
   ok(lt.length === 2 && lt.every(t => t > 82 && t < 83.5), 'two laps of about 1:22.6 to 1:23 (' + lt.join(', ') + ')');
+  // The g figures come from the car's own accelerometer (sideways g in x, lengthways g in y), not from the noisy GPS path,
+  // which gave over 3 g in a corner. Real figures for this file: about 1.3 g across, braking under 1 g.
+  ok(!ds.gDerived && ds.latMax > 0.9 && ds.latMax < 1.6 && ds.brakeMax > 0.6 && ds.brakeMax < 1.1, 'cornering and braking g come from the accelerometer (' + ds.latMax + ' g across, ' + ds.brakeMax + ' g braking)');
+  const fastest = dc.points.reduce((m, p) => p.v > m.v ? p : m, dc.points[0]);
+  ok(dc.points.some(p => p.la > 0.5) && dc.points.some(p => p.la < -0.5) && dc.points.filter(p => p.lo < -0.5).every(p => p.v > 20), 'g has both signs, and hard braking happens at speed');
+  const noImu = T.read(text.split('\n').map(l => l.split(',').slice(0, 4).join(',')).join('\n'), '2026-08-24_12-09-35.csv');
+  ok(noImu.dashcam && noImu.gDerived === true && dc.gDerived !== true, 'with no accelerometer columns the g is worked out from the path as before');
   const others = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv'), lib);
   ok(!('dashcam' in others) && !T.read(vbo, 'x.vbo').dashcam, 'no other format is marked as dashcam');
   // Clips saved as separate files (a minute each, frames carrying on, a few dropped between them) join as one drive.

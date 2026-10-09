@@ -4797,12 +4797,13 @@
         tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       var dp = [];
-      for (var x = 0; x <= dmax; x += 10) dp.push([x, at(B.trace, x)[1] - at(A.trace, x)[1]]);
+      // Lap A against lap B as the reference, as racing apps show a delta: below the line A is quicker (negative), above it slower.
+      for (var x = 0; x <= dmax; x += 10) dp.push([x, at(A.trace, x)[1] - at(B.trace, x)[1]]);
       var gmin = Math.min.apply(null, dp.map(function (p) { return p[1]; })), gmax = Math.max.apply(null, dp.map(function (p) { return p[1]; }));
-      var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
+      var gyt = V.nice(Math.min(-0.5, gmin), Math.max(0, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(A.trace, x)[1] - at(B.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       // Hovering a chart takes over from playback.
       function userHover() { stopPlay(); pb.active = false; }
@@ -4821,7 +4822,7 @@
         if (resume.playing) startPlay(resume.dir);
       }
       var total = B.time - A.time;
-      document.getElementById('tp-gap-cap').textContent = 'Above the line, A is ahead. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'ahead' : 'behind') + '.';
+      document.getElementById('tp-gap-cap').textContent = 'Below the line, A is faster. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'faster' : 'slower') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];
       document.getElementById('tp-corners').innerHTML = gains.length ? '<thead><tr><th>Corner</th><th>Slowest, A</th><th>Slowest, B</th><th>A gains</th></tr></thead><tbody>' + gains.map(function (g) { return '<tr><td>' + g.n + (g.name ? ' ' + esc(g.name) : '') + '</td><td>' + Math.round(V.spd(g.va)) + '</td><td>' + Math.round(V.spd(g.vb)) + '</td><td>' + (g.gain >= 0 ? '+' : '') + g.gain.toFixed(2) + ' s</td></tr>'; }).join('') + '</tbody>' : '<tbody><tr><td>No corners found on this lap.</td></tr></tbody>';
       V.gg(document.getElementById('tp-gg'), A.trace, c1);

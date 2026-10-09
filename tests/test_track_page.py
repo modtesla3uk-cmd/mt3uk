@@ -3177,7 +3177,10 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     page.locator("#tp-cmp-b").select_option("x:m1")
     expect(page.locator("#tp-key")).to_contain_text("Ann, best, 28/05 (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
-    expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
+    # The gap is lap A against lap B as the reference, as racing apps show a delta: A faster is negative, below the line.
+    expect(page.locator("#tp-gap-cap")).to_contain_text("Below the line, A is faster")
+    expect(page.locator("#tp-gap-cap")).to_contain_text("faster.")
+    assert "-" in page.locator("#tp-delta").text_content() and "+" not in page.locator("#tp-delta").text_content()
     # Their lap is on the map as lap B.
     expect(page.locator("#tp-map2 polyline.tv-line[stroke-dasharray]")).to_have_count(1)
 

@@ -86,9 +86,14 @@
       {"name": "XR3"}
     ] },
     { "name": "Dixcel", "compounds": [
-      {"name": "Type M"},
-      {"name": "Type Z"},
-      {"name": "Type X"}
+      {"name": "Type M", "use": "Road", "mu": "0.40", "tempMin": 0, "tempMax": 500, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Ultra low dust street pad that works from cold; friction is the average", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Type ES", "use": "Fast road", "mu": "0.48", "tempMin": 0, "tempMax": 600, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Street pad with more bite than Type M for spirited road driving, low dust", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Type S", "use": "Fast road", "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Street sport pad for spirited road use with medium dust; its two tables disagree on the figures (0 to 650C and 0.38, or 0 to 700C and 0.54), so none are set", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Type Z", "use": "Track day", "mu": "0.50 to 0.67", "tempMin": 0, "tempMax": 850, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. All-rounder for road, sprint and circuit use, average friction about 0.57, more dust and disc wear", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Type X"},
+      {"name": "Type RA", "use": "Race", "mu": "0.40 to 0.45", "tempMin": 200, "tempMax": 900, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Competition pad with strong initial bite, needs heat, very high dust, not road legal; its text also gives 0.40 to 0.51", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Type RE", "use": "Race", "mu": "0.40 to 0.45", "tempMin": 200, "tempMax": 900, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Like Type RA with a lower initial bite for ABS compatibility, needs heat, very high dust, not road legal", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"},
+      {"name": "Specom", "use": "Endurance", "tempMin": 200, "tempMax": 900, "notes": "Figures from Torque GT's Dixcel guide (a UK retailer quoting Dixcel's published data), not Dixcel's own page. Endurance competition pad with high, stable friction (no figure given) and a range given as 200 to 900C and over; very high dust, competition use only", "source": "https://torque-gt.co.uk/blogs/torque-parts-news/dixcel-brake-pad-guide-which-compound-is-best"}
     ] },
     { "name": "G-LOC", "compounds": [
       {"name": "R6", "tempMin": 0, "tempMax": 537, "notes": "Autocross compound with ultra-high cold torque from dead cold; maker does not recommend it for road racing (closed circuit) in most applications; maker does not say whether the range is rotor or pad temperature", "source": "https://www.g-locbrakes.com/products/brake-compounds/compunds-r6/"},

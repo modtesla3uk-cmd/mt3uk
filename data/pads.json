@@ -37,7 +37,8 @@
       {"name": "DS Performance", "use": "Road", "mu": "0.46", "tempMin": 0, "tempMax": 460, "notes": "Road pad with a racing feel and ECE R90 approval; 0.46 is the average from a fast-road test schedule and would be lower for race use", "source": "https://www.ferodoracing.com/ecat/code-compound/car-tuning/brake-pads/FDS1463"}
     ] },
     { "name": "Hardron", "compounds": [
-      {"name": "ZR"}
+      {"name": "Z Racing", "use": "Race", "notes": "HARDRON Z RACING, sold as ZR: maker says it is a pad for race cars with a high friction coefficient even at high-speed circuit braking; no figures published", "source": "https://www.sangsin.com/eng/product/introduce/speed"},
+      {"name": "Z Street", "notes": "HARDRON Z STREET: maker says it is for tuning enthusiasts, with an expensive ceramic material, minimal disc wear, reliable braking and less noise; no figures published", "source": "https://www.sangsin.com/eng/product/introduce/speed"}
     ] },
     { "name": "Hawk", "compounds": [
       {"name": "HP+", "use": "Fast road", "tempMin": 40, "tempMax": 425, "notes": "Crossover road and race pad for low to mid temperatures, smooth torque", "source": "https://www.hawkperformance.com/hp-plus"},

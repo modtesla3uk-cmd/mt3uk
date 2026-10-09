@@ -1139,7 +1139,7 @@
   // The Tesla screen blocks every page load with no connection, so with Laps offline on a car browser a link to another
   // Laps page fetches that page from the saved copy (the service worker answers from it) and writes it over this one,
   // with the address moved on, so the car has no page load to block. The browser's Back works the same way (popstate).
-  var LAPS_FILES_RE = /\/(laps|track|leaderboards)\.html$/;
+  var LAPS_FILES_RE = /\/(laps|track|leaderboards|profile)\.html$/;
   var pageFile = (location.pathname.split('/').pop() || 'index.html');
   function teardown() {
     stopPoll();
@@ -1163,12 +1163,16 @@
       window.scrollTo(0, 0);
       return true;
     }, function () {
+      // With a signal the car can load it the usual way; without one it cannot be opened at all.
+      if (!offline) { location.assign(url.href); return false; }
       say('warn', '<b>That page is not kept on this device.</b> It opens again once you have a signal.', 8000);
       return false;
     });
   }
   function softNavWanted(url) {
-    return carBrowser() && offline && url.origin === location.origin && LAPS_FILES_RE.test(url.pathname);
+    // Whenever Offline mode is on, not only once offline is noticed: the car's own online state cannot be trusted, and
+    // a move made in the open tab works the same with or without a signal.
+    return carBrowser() && (offline || enabled()) && url.origin === location.origin && LAPS_FILES_RE.test(url.pathname);
   }
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

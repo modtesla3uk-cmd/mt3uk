@@ -91,7 +91,9 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  if (request.mode === 'navigate') {
+  // A Laps page fetched by another page (the car browser's in-tab move) is treated like a navigation: network first,
+  // the kept copy with no signal.
+  if (request.mode === 'navigate' || /\.html$/i.test(pathname)) {
     event.respondWith(
       fetch(request)
         .then(function (response) {

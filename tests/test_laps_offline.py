@@ -1015,3 +1015,29 @@ def test_a_phone_offline_still_changes_page_the_normal_way(page):
     page.locator("#tp-lb-pill").click()
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
     assert page.evaluate("window.__sameWindow") is None
+
+
+def test_on_a_car_browser_with_offline_mode_on_pages_load_inside_the_tab_even_before_offline_is_noticed(page):
+    """The car's own online state cannot be trusted, so with Offline mode on a move between Laps pages is made inside the
+    open tab whether or not Laps has noticed the loss of signal."""
+    page.add_init_script("window.MT3UK_CAR_BROWSER = true; localStorage.setItem('mt3ukLapsOffline', '1');")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    page.evaluate("window.__sameWindow = 'yes'")
+    page.locator("#tp-lb-pill").click()
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    expect(page.locator(".tp-board-card").first).to_be_visible(timeout=15000)
+    assert page.evaluate("window.__sameWindow") == "yes"
+    page.locator("#lb-my-sessions").click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    assert page.evaluate("window.__sameWindow") == "yes"
+
+
+def test_a_car_browser_with_offline_mode_off_changes_page_the_normal_way(page):
+    page.add_init_script("window.MT3UK_CAR_BROWSER = true;")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    page.evaluate("window.__sameWindow = 'yes'")
+    page.locator("#tp-lb-pill").click()
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    assert page.evaluate("window.__sameWindow") is None

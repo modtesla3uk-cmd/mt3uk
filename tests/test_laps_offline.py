@@ -948,3 +948,70 @@ def test_a_car_browser_keeps_fewer_sessions_per_circuit_and_fewer_map_pictures(p
     expect(page.locator("#lo-confirm")).to_contain_text("Track to keep for offline use")
     expect(page.locator("#lo-confirm")).to_contain_text("latest 5 sessions")
     expect(page.locator("#lo-confirm")).to_contain_text("fewer pictures are fetched ahead")
+
+
+def test_a_car_browser_is_told_to_keep_the_tab_open(page):
+    """The Tesla screen blocks every page load with no connection, so on a car browser the confirm card and the offline
+    bar say to keep the tab open and not refresh. A phone gets no such note."""
+    page.add_init_script("window.MT3UK_CAR_BROWSER = true;")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    page.locator("#tp-offline").click()
+    expect(page.locator("#lo-confirm .lo-car-note")).to_contain_text("keep this tab open and do not refresh")
+    page.locator("#lo-confirm").get_by_role("button", name="Cancel").click()
+    go_offline(page, link)
+    expect(page.locator("#lo-bar")).to_contain_text("keep this tab open")
+
+
+def test_a_phone_is_not_told_to_keep_the_tab_open(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    page.locator("#tp-offline").click()
+    expect(page.locator("#lo-confirm")).to_be_visible()
+    expect(page.locator("#lo-confirm .lo-car-note")).to_have_count(0)
+    page.locator("#lo-confirm").get_by_role("button", name="Cancel").click()
+    go_offline(page, link)
+    expect(page.locator("#lo-bar")).to_be_visible()
+    expect(page.locator("#lo-bar")).not_to_contain_text("keep this tab open")
+
+
+def test_on_a_car_browser_offline_the_laps_pages_load_inside_the_open_tab(page):
+    """Sessions to the Leaderboard, a board, a session from it and Back, all with no signal, without a page load the car
+    could block: the window object survives throughout."""
+    page.add_init_script("window.MT3UK_CAR_BROWSER = true; localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    other_members_session(page, fake)
+    page.goto("/leaderboards.html?type=track")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    r = page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
+    assert r["ok"] and r["boards"] == 1, r
+    page.goto("/track.html")
+    expect(page.locator("#tp-lb-pill")).to_be_visible()
+    page.evaluate("window.__sameWindow = 'yes'")
+    go_offline(page, link)
+    page.locator("#tp-lb-pill").click()
+    expect(page.locator(".tp-board-card").first).to_be_visible(timeout=15000)
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    assert page.evaluate("window.__sameWindow") == "yes"
+    page.locator(".lb-layout[href*='thruxton']").first.click()
+    expect(page.locator(".lb-row a.lb-name").first).to_be_visible(timeout=15000)
+    page.locator(".lb-row a.lb-name").first.click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=other1$"))
+    expect(page.locator("#tp-headline")).to_be_visible(timeout=15000)
+    assert page.evaluate("window.__sameWindow") == "yes"
+    page.go_back()
+    expect(page.locator(".lb-row a.lb-name").first).to_be_visible(timeout=15000)
+    expect(page).to_have_url(re.compile(r"leaderboards\.html\?board="))
+    assert page.evaluate("window.__sameWindow") == "yes"
+
+
+def test_a_phone_offline_still_changes_page_the_normal_way(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    page.evaluate("window.__sameWindow = 'yes'")
+    go_offline(page, link)
+    page.locator("#tp-lb-pill").click()
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    assert page.evaluate("window.__sameWindow") is None

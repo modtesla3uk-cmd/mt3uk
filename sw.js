@@ -14,7 +14,10 @@ function putFresh(cache, request, copy, onlyIfKept) {
   return cache.keys().then(function (ks) {
     var same = ks.filter(function (k) { return new URL(k.url).pathname === path; });
     if (onlyIfKept && !same.length) return null;
-    return Promise.all(same.map(function (k) { return cache.delete(k); })).then(function () { return cache.put(request, copy); });
+    // A page is kept under its address without the query (track.html?s=... is track.html), so a page that fetches
+    // another Laps page by its plain address finds it.
+    var key = /\.html$/i.test(path) ? new Request(new URL(request.url || request, self.location.origin).origin + path) : request;
+    return Promise.all(same.map(function (k) { return cache.delete(k); })).then(function () { return cache.put(key, copy); });
   });
 }
 const LAPS_PAGES = ['/laps.html', '/track.html', '/leaderboards.html', '/laps-signin.html'];

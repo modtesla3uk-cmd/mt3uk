@@ -120,3 +120,13 @@ const tileEvent = () => {
   await new Promise(r => setTimeout(r, 20));
   ok(!w2.stores.has('mt3uk-laps-offline-v1'), 'a device with Offline mode off gets no Laps copy');
 }
+{ // A page is kept under its address without the query, so a page fetched by another page finds it.
+  const w = build();
+  const laps = new Map([['https://laps.test/track.html', 'old']]);
+  w.stores.set('mt3uk-laps-offline-v1', laps);
+  let answer;
+  w.handlers.fetch({ request: { url: 'https://laps.test/track.html?s=abc', method: 'GET', mode: 'navigate' }, respondWith: p => { answer = p; } });
+  await answer;
+  await new Promise(r => setTimeout(r, 20));
+  ok([...laps.keys()].join() === 'https://laps.test/track.html', 'a page is kept under its plain address (' + [...laps.keys()].join() + ')');
+}

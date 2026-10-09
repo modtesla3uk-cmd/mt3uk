@@ -30,6 +30,11 @@
     return /Tesla|QtCarBrowser/i.test(navigator.userAgent || '') || !!(navigator.deviceMemory && navigator.deviceMemory <= 2);
   }
   function prepareSessions() { return PREPARE_SESSIONS; }
+  // The Tesla screen refuses every page load while the car has no connection (a fresh open, a browser refresh, a move
+  // to another page), before the saved copy gets a look in, so on a car browser Laps says to keep the tab open, and
+  // moves between its pages are made inside the open tab (softNav below).
+  var CAR_NOTE = 'On this car\'s screen, keep this tab open and do not refresh: the car cannot load pages with no signal. Moving between Sessions, the Leaderboard and a session still works from this tab.';
+  function carNoteHtml(cls) { return carBrowser() ? '<p class="' + (cls || 'lo-small') + ' lo-car-note"><b>Car screen:</b> ' + esc(CAR_NOTE) + '</p>' : ''; }
   var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/';
   var REFRESH_AFTER = 20 * 3600 * 1000;
 
@@ -167,7 +172,8 @@
   }
 
   // ---------- Are we offline? ----------
-  var offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  var offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || window.MT3UK_OFFLINE_HINT === true;
+  try { delete window.MT3UK_OFFLINE_HINT; } catch (e) { window.MT3UK_OFFLINE_HINT = undefined; }
   var closed = false, pollTimer = null, syncing = false, lastSync = null;
   function isNetworkError(e) {
     return !!e && (e.offline === true || e instanceof TypeError || /Failed to fetch|NetworkError|Load failed|network/i.test(String(e.message || '')));
@@ -250,6 +256,7 @@
         (circuits().length ? ' The leaderboards and your sessions for ' + esc(circuitNames()) + ' still open.' : '') +
         (n ? ' <b>' + n + ' session' + (n === 1 ? ' is' : 's are') + ' waiting to be sent.</b>' : '') +
         (kept ? '' : ' <button type="button" class="lo-link" data-lo="on">Keep Laps on this device</button> for next time (needs a connection).') +
+        (carBrowser() ? ' <b>Car screen:</b> ' + esc(CAR_NOTE) : '') +
         '</div><button type="button" class="lo-x" data-lo="close" aria-label="Close">' + icon('x') + '</button>';
     });
   }
@@ -776,11 +783,12 @@
       if (host) holdKeep(host.getAttribute('data-keep-venue'), host.getAttribute('data-keep-name'));
     }
   }, true);
-  var markTimer = null;
+  var markTimer = null, markObserver = null;
   function markSoon() { clearTimeout(markTimer); markTimer = setTimeout(markKept, 80); }
   function watchMarks() {
     if (!window.MutationObserver || !document.body) return;
-    new MutationObserver(markSoon).observe(document.body, { childList: true, subtree: true });
+    markObserver = new MutationObserver(markSoon);
+    markObserver.observe(document.body, { childList: true, subtree: true });
     markKept();
   }
 
@@ -868,6 +876,7 @@
     // Profile's Offline mode card is for Laps (js/laps-shared.js marks the page); on mt3uk.com it stays hidden.
     var card = document.getElementById('offline-mode');
     if (card) card.hidden = !(allowed() && document.documentElement.classList.contains('laps-shared'));
+    [].slice.call(document.querySelectorAll('[data-offline-car]')).forEach(function (el) { el.hidden = !carBrowser(); if (carBrowser() && !el.textContent) el.textContent = 'Car screen: ' + CAR_NOTE; });
     [].slice.call(document.querySelectorAll('[data-offline-toggle]')).forEach(function (el) {
       el.hidden = !allowed();
       if (el.getAttribute('role') === 'switch') { el.setAttribute('aria-checked', on ? 'true' : 'false'); }
@@ -896,6 +905,7 @@
         '<p>This needs a connection now, and takes a minute or so. It also keeps:</p>' +
         '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars and your latest ' + prepareSessions() + ' sessions</li>' +
         '<li>' + icon('check') + 'any session you open while you have a signal, with its map' + (carBrowser() ? ' (a car screen has little memory, so fewer pictures are fetched ahead)' : '') + '</li></ul>' +
+        carNoteHtml() +
         '<p class="lo-small">Sessions waiting to be sent go first. With no signal you can open these sessions and maps, and add a session from a file already on your device: it is sent when you are next online. Whether you have the file offline depends on your logger (RaceBox, for example, only lets you download it once you are online). Other leaderboards, sharing and sign-in still need a connection.</p>' +
         '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-confirm="yes">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-confirm="no">Cancel</button></div>';
       document.body.appendChild(el);
@@ -1086,6 +1096,7 @@
     el.innerHTML = '<h3>Use Laps without a signal?</h3><p>Pick the track you are going to and Offline mode keeps its leaderboards, your sessions there and their maps on this device (a few megabytes), so you can look at them at the track with no signal. You can also add a session from a file already on your device, and it is sent when you\'re back online.</p>' +
       '<label class="lo-field"><span>Track to keep for offline use</span><select class="field" id="lo-offer-circuit"><option value="">None yet</option></select></label>' +
       '<p class="lo-small">Adding a session offline depends on your logger. Some, such as RaceBox, only let you download the file once you are online.</p>' +
+      carNoteHtml() +
       '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-offer="on">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-offer="no">Not now</button></div>' +
       '<p class="lo-small">You can change this any time at the bottom of the page, or in Profile.</p>';
     document.body.appendChild(el);
@@ -1122,7 +1133,63 @@
   // A footer or Profile card drawn after load (shared pages swap the Laps footer in) gets its words too.
   window.addEventListener('load', function () { setTimeout(labels, 300); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && !offline) sync(); });
-  setInterval(function () { if (!offline && !document.hidden) pendingCount().then(function (n) { if (n) sync(); }); }, 60000);
+  var syncTimer = setInterval(function () { if (!offline && !document.hidden) pendingCount().then(function (n) { if (n) sync(); }); }, 60000);
+
+  // ---------- Moving between the Laps pages inside the open tab (car browsers) ----------
+  // The Tesla screen blocks every page load with no connection, so with Laps offline on a car browser a link to another
+  // Laps page fetches that page from the saved copy (the service worker answers from it) and writes it over this one,
+  // with the address moved on, so the car has no page load to block. The browser's Back works the same way (popstate).
+  var LAPS_FILES_RE = /\/(laps|track|leaderboards)\.html$/;
+  var pageFile = (location.pathname.split('/').pop() || 'index.html');
+  function teardown() {
+    stopPoll();
+    clearInterval(syncTimer);
+    clearTimeout(markTimer); clearTimeout(barTimer);
+    if (markObserver) { markObserver.disconnect(); markObserver = null; }
+  }
+  function softNav(href, push) {
+    var url;
+    try { url = new URL(href, location.href); } catch (e) { return Promise.resolve(false); }
+    return fetch(url.pathname, { credentials: 'same-origin' }).then(function (r) {
+      if (!r.ok) throw new Error('not kept');
+      return r.text();
+    }).then(function (html) {
+      if (push) history.pushState(null, '', url.href);
+      window.MT3UK_OFFLINE_HINT = offline;
+      teardown();
+      document.open();
+      document.write(html);
+      document.close();
+      window.scrollTo(0, 0);
+      return true;
+    }, function () {
+      say('warn', '<b>That page is not kept on this device.</b> It opens again once you have a signal.', 8000);
+      return false;
+    });
+  }
+  function softNavWanted(url) {
+    return carBrowser() && offline && url.origin === location.origin && LAPS_FILES_RE.test(url.pathname);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || a.hasAttribute('download') || a.hasAttribute('data-go')) return;
+    var url;
+    try { url = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
+    if (!softNavWanted(url)) return;
+    // A link to a section of this page stays a hash change.
+    if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
+    e.preventDefault(); e.stopPropagation();
+    softNav(url.href, true);
+  }, true);
+  window.addEventListener('popstate', function (e) {
+    var file = location.pathname.split('/').pop() || 'index.html';
+    if (file === pageFile) return;
+    var url = new URL(location.href);
+    if (!softNavWanted(url)) return;
+    e.stopImmediatePropagation();
+    softNav(url.href, false);
+  });
 
   window.MT3UKOffline = {
     isOffline: function () { return offline; },
@@ -1149,6 +1216,7 @@
     refreshCopy: refreshCopy,
     keepTiles: keepTiles,
     carBrowser: carBrowser,
+    softNav: softNav,
     prepareSessions: prepareSessions,
     refreshCircuits: refreshCircuits,
     localSession: localSession,

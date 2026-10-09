@@ -235,6 +235,23 @@ def test_a_slow_read_with_no_copy_is_not_cut_short(page):
     page.unroute_all(behavior="ignoreErrors")
 
 
+def test_a_session_opened_with_a_signal_is_not_kept_unless_offline_mode_keeps_it(page):
+    """Only what Offline mode keeps opens with no signal: a session merely looked at is not added to the copy."""
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    got = page.evaluate("""async () => {
+        const O = window.MT3UKOffline, d = { success: true, session: { id: 'x1' } };
+        O.remember('/track/session?id=loose', d);
+        O.remember('/track/session?id=chosen', d, true);
+        await new Promise(r => setTimeout(r, 300));
+        O.remember('/track/session?id=chosen', { success: true, session: { id: 'x1', again: 1 } });
+        await new Promise(r => setTimeout(r, 300));
+        return [await O.recall('/track/session?id=loose'), await O.recall('/track/session?id=chosen')];
+    }""")
+    assert got[0] is None, "a loose session is not kept"
+    assert got[1] and got[1]["session"].get("again") == 1, "a kept session is refreshed"
+
+
 def test_a_session_not_opened_before_says_it_is_not_on_the_device(page):
     fake = FakeWorker()
     link = open_signed_in(page, fake)
@@ -635,13 +652,13 @@ def test_the_sessions_of_a_kept_circuit_are_not_trimmed_away_and_are_released_wi
     page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
     assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1').then(d => !!(d && d.session))") is True
     # Far more sessions than the device keeps, opened afterwards: the kept circuit's sessions stay.
-    page.evaluate("(async () => { for (let i = 0; i < 80; i++) { await MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } }); await new Promise(r => setTimeout(r, 3)); } })()")
+    page.evaluate("(async () => { for (let i = 0; i < 80; i++) { await MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } }, true); await new Promise(r => setTimeout(r, 3)); } })()")
     page.wait_for_timeout(1500)
     assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1').then(d => !!(d && d.session))") is True
     assert page.evaluate("MT3UKOffline.recall('/track/session?id=zz0')") is None, "the ordinary pool is still trimmed"
     # Taking the circuit off releases them to the ordinary pool.
     page.evaluate("MT3UKOffline.removeCircuit('thruxton')")
-    page.evaluate("for (let i = 80; i < 160; i++) MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } })")
+    page.evaluate("for (let i = 80; i < 160; i++) MT3UKOffline.remember('/track/session?id=zz' + i, { success: true, session: { id: 'zz' + i } }, true)")
     page.wait_for_timeout(1500)
     assert page.evaluate("MT3UKOffline.recall('/track/session?id=other1')") is None
 
@@ -795,7 +812,7 @@ def test_turning_offline_mode_on_asks_first_and_cancel_leaves_it_off(page):
     expect(confirm).to_contain_text("Keep Laps on this device?")
     expect(confirm).to_contain_text("your latest 5 sessions")
     expect(confirm).to_contain_text("Pick the track you are going to")
-    expect(confirm).to_contain_text("any session you open while you have a signal, with its map")
+    expect(confirm).to_contain_text("the maps under those sessions")
     expect(confirm).to_contain_text("Sessions waiting to be sent go first")
     expect(confirm).to_contain_text("depends on your logger")
     confirm.get_by_role("button", name="Cancel").click()

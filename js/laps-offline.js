@@ -143,12 +143,17 @@
   function boardPath(path) { return /^\/(track|sprint|drag)\/board\?/.test(path); }
   function venueOf(path) { var m = /[?&]venue=([^&]*)/.exec(path); return m ? decodeURIComponent(m[1]) : ''; }
   function cacheKey(path) { return 'get:' + (ls(EMAIL_KEY) || '') + ':' + path; }
-  function remember(path, d) {
+  // A session opened with a signal is only refreshed here if Offline mode already keeps it; the ones Offline mode keeps
+  // (the chosen circuits, the latest few when none is chosen) come in with keep = true. So what opens offline is what was chosen.
+  function remember(path, d, keep) {
     if (!cacheable(path) || !d || d.success === false || (d.status && d.status >= 400)) return;
     var copy;
     try { copy = JSON.parse(JSON.stringify(d)); } catch (e) { return; }
     delete copy.status;
     var k = cacheKey(path);
+    if (!keep && path.indexOf('/track/session?id=') === 0) {
+      return kvGet(k).then(function (old) { if (old) return kvSet(k, { at: Date.now(), value: copy }); });
+    }
     kvSet(k, { at: Date.now(), value: copy }).then(function () {
       if (path.indexOf('/track/session?id=') !== 0) return;
       // Keep only the latest few sessions: each one carries its lap traces.
@@ -570,7 +575,7 @@
         var p = paths[at++];
         return getJson(p).then(function (d) {
           if (!d || d.success === false || d.status >= 400) return;
-          remember(p, d); n++;
+          remember(p, d, true); n++;
           var drag = /^\/drag\//.test(p);
           (d.entries || []).filter(function (e) { return e && e.sessionId; })
             .sort(function (a, b) { return drag ? (a.quarter || 1e9) - (b.quarter || 1e9) : (a.time || 1e9) - (b.time || 1e9); })
@@ -808,9 +813,19 @@
         }
       }).catch(function () {});
     })).then(function () {
+      // With a circuit chosen, the circuits are what is kept; the latest few are only the fallback when none is.
+      if (circuits().length) ids = [];
       out.wanted = ids.length;
-      return keepSessionIds(ids, out, report);
+      return keepSessionIds(ids, out, report).then(function () { return ids.length ? pinSessions('_latest', ids) : unpinSessions('_latest'); }).then(function () { return out; });
     });
+  }
+  // Sessions looked at before Offline mode was switched on (or loose ones from an earlier version) are let go, so what
+  // opens offline is what was chosen. Anything pinned to a circuit or the fallback stays.
+  function dropLoose() {
+    var prefix = 'get:' + (ls(EMAIL_KEY) || '') + ':/track/session?id=';
+    return Promise.all([kvAll(), pinnedIds()]).then(function (r) {
+      return Promise.all(r[0].filter(function (x) { return String(x.key).indexOf(prefix) === 0 && !r[1][decodeURIComponent(String(x.key).slice(prefix.length))]; }).map(function (x) { return kvDel(x.key); }));
+    }).catch(function () {});
   }
   // Fetches and keeps these sessions (three at a time) and the satellite tiles under their routes. out.sessions and out.tiles
   // are counted; never throws.
@@ -826,7 +841,7 @@
       if (at >= ids.length) return Promise.resolve();
       var id = ids[at++], path = '/track/session?id=' + encodeURIComponent(id);
       return getJson(path).then(function (d) {
-        if (d && d.success && d.session) { remember(path, d); out.sessions = (out.sessions || 0) + 1; tilesFor(d.session, tiles); }
+        if (d && d.success && d.session) { remember(path, d, true); out.sessions = (out.sessions || 0) + 1; tilesFor(d.session, tiles); }
         report('Keeping your sessions (' + (out.sessions || 0) + ' of ' + ids.length + ')...');
       }).catch(function () {}).then(next);
     }
@@ -857,8 +872,8 @@
       if (!r.ok) throw new Error('Laps could not be kept on this device.');
       ls(KEPT_KEY, String(r.kept)); ls('mt3ukLapsOfflineAt', String(Date.now()));
       return prepare(report).then(function (out) {
-        if (!circuits().length) return out;
-        return keepAllCircuits(report).then(function (t) { out.boards = t.boards; out.circuitSessions = t.sessions; return out; });
+        var done = !circuits().length ? Promise.resolve(out) : keepAllCircuits(report).then(function (t) { out.boards = t.boards; out.circuitSessions = t.sessions; return out; });
+        return done.then(dropLoose).then(function () { return out; });
       });
     });
   }
@@ -903,8 +918,9 @@
         '<label class="lo-field"><span>Track to keep for offline use</span><select class="field" id="lo-circuit"><option value="">None yet</option></select></label>' +
         '<p class="lo-small">You can keep up to ' + MAX_CIRCUITS + ' circuits. Hold a circuit on the Leaderboard or Sessions pages, or use Profile, to change them any time, and press Refresh kept circuits in Profile before a trip.</p>' +
         '<p>This needs a connection now, and takes a minute or so. It also keeps:</p>' +
-        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars and your latest ' + prepareSessions() + ' sessions</li>' +
-        '<li>' + icon('check') + 'any session you open while you have a signal, with its map' + (carBrowser() ? ' (a car screen has little memory, so fewer pictures are fetched ahead)' : '') + '</li></ul>' +
+        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars' + ' (and your latest ' + prepareSessions() + ' sessions if you pick no track)</li>' +
+        '<li>' + icon('check') + 'the maps under those sessions' + (carBrowser() ? ' (a car screen has little memory, so fewer pictures are fetched ahead)' : '') + '</li></ul>' +
+        '<p class="lo-small">Only what you pick is kept. A session from another track says it is not on this device.</p>' +
         carNoteHtml() +
         '<p class="lo-small">Sessions waiting to be sent go first. With no signal you can open these sessions and maps, and add a session from a file already on your device: it is sent when you are next online. Whether you have the file offline depends on your logger (RaceBox, for example, only lets you download it once you are online). Other leaderboards, sharing and sign-in still need a connection.</p>' +
         '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-confirm="yes">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-confirm="no">Cancel</button></div>';

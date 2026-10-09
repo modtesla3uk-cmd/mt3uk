@@ -36,6 +36,9 @@
       {"name": "DS3000"},
       {"name": "DS Performance"}
     ] },
+    { "name": "Hardron", "compounds": [
+      {"name": "ZR"}
+    ] },
     { "name": "Hawk", "compounds": [
       {"name": "HP+", "use": "Fast road", "tempMin": 40, "tempMax": 425, "notes": "Crossover road and race pad for low to mid temperatures, smooth torque", "source": "https://www.hawkperformance.com/hp-plus"},
       {"name": "DTC-60", "use": "Race", "tempMin": 205, "tempMax": 870, "notes": "For very high deceleration, good release and torque control, low disc wear", "source": "https://www.hawkperformance.com/dtc-60"},

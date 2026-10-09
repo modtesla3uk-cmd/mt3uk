@@ -21,7 +21,15 @@
   var ON_KEY = 'mt3ukLapsOffline', ASKED_KEY = 'mt3ukLapsOfflineAsked', KEPT_KEY = 'mt3ukLapsOfflineKept';
   // Sessions kept for offline viewing: the latest few are fetched when Offline mode goes on, and any opened later are kept
   // too, up to KEEP_SESSIONS (the oldest go first).
-  var KEEP_SESSIONS = 60, PREPARE_SESSIONS = 25;
+  var KEEP_SESSIONS = 60, PREPARE_SESSIONS = 5;
+  // A car's browser (the Tesla screen) has little memory and closed while Offline mode fetched the latest 25 sessions
+  // and their maps, so Offline mode is now about the circuits picked (see Circuits kept on the device): the latest
+  // sessions are a small fallback on every device, and a car browser keeps fewer per circuit and fewer map pictures.
+  function carBrowser() {
+    if (window.MT3UK_CAR_BROWSER != null) return !!window.MT3UK_CAR_BROWSER;
+    return /Tesla|QtCarBrowser/i.test(navigator.userAgent || '') || !!(navigator.deviceMemory && navigator.deviceMemory <= 2);
+  }
+  function prepareSessions() { return PREPARE_SESSIONS; }
   var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/';
   var REFRESH_AFTER = 20 * 3600 * 1000;
 
@@ -476,7 +484,7 @@
   // CIRCUIT_SESSIONS, with their maps), beside the track list and the counts. A board not kept is not on the device.
   // A circuit is added on the confirm card, in Profile, by holding its card on the Leaderboard and letting go (or its cloud
   // button), or by holding its row on Sessions.
-  var CIRCUITS_KEY = 'mt3ukLapsOfflineCircuits', MAX_CIRCUITS = 3, CIRCUIT_SESSIONS = 40, BOARD_TOP = 10, BOARD_SESSIONS = 30;
+  var CIRCUITS_KEY = 'mt3ukLapsOfflineCircuits', MAX_CIRCUITS = 3, CIRCUIT_SESSIONS = 40, BOARD_TOP = 10, BOARD_SESSIONS = 30, CAR_CIRCUIT_SESSIONS = 8, CAR_BOARD_SESSIONS = 10;
   function circuits() {
     var a = null;
     try { a = JSON.parse(ls(CIRCUITS_KEY) || 'null'); } catch (e) { a = null; }
@@ -563,7 +571,7 @@
         }).catch(function () {}).then(next);
       }
       var counts = getJson('/track/counts').then(function (d) { remember('/track/counts', d); }).catch(function () {});
-      return Promise.all([next(), next(), next(), counts]).then(function () { return { n: n, ids: ids.slice(0, BOARD_SESSIONS) }; });
+      return Promise.all([next(), next(), next(), counts]).then(function () { return { n: n, ids: ids.slice(0, carBrowser() ? CAR_BOARD_SESSIONS : BOARD_SESSIONS) }; });
     }, function () { return none; });
   }
   // The member's own sessions at a circuit (their newest CIRCUIT_SESSIONS). Resolves their ids.
@@ -574,7 +582,7 @@
       remember('/track/sessions', d);
       return d.sessions.filter(function (x) { return x.venueId === id; })
         .sort(function (a, b) { return String(b.date + (b.time || '')) < String(a.date + (a.time || '')) ? -1 : 1; })
-        .slice(0, CIRCUIT_SESSIONS).map(function (x) { return x.id; });
+        .slice(0, carBrowser() ? CAR_CIRCUIT_SESSIONS : CIRCUIT_SESSIONS).map(function (x) { return x.id; });
     }).catch(function () { return []; });
   }
   // The sessions kept for each circuit are pinned: one KV key per circuit, so trimming (remember) leaves them alone and
@@ -788,7 +796,7 @@
       return getJson(path).then(function (d) {
         remember(path, d);
         if (path === '/track/sessions' && d.sessions) {
-          ids = d.sessions.slice().sort(function (a, b) { return String(b.date + (b.time || '')) < String(a.date + (a.time || '')) ? -1 : 1; }).slice(0, PREPARE_SESSIONS).map(function (x) { return x.id; });
+          ids = d.sessions.slice().sort(function (a, b) { return String(b.date + (b.time || '')) < String(a.date + (a.time || '')) ? -1 : 1; }).slice(0, prepareSessions()).map(function (x) { return x.id; });
         }
       }).catch(function () {});
     })).then(function () {
@@ -801,9 +809,8 @@
   var TILE_CHUNK = 60;
   // How many map pictures one run may keep: a car's browser (Tesla) or a low-memory device keeps fewer.
   function tileBudget() {
-    if (window.MT3UK_TILE_BUDGET) return window.MT3UK_TILE_BUDGET;
-    var small = /Tesla|QtCarBrowser/i.test(navigator.userAgent || '') || (navigator.deviceMemory && navigator.deviceMemory <= 2);
-    return small ? 120 : 400;
+    if (window.MT3UK_TILE_BUDGET != null) return window.MT3UK_TILE_BUDGET;
+    return carBrowser() ? 120 : 400;
   }
   function keepSessionIds(ids, out, report) {
     var tiles = {}, at = 0;
@@ -883,18 +890,19 @@
       if (old) old.remove();
       var el = document.createElement('div');
       el.id = 'lo-confirm'; el.className = 'lo-offer lo-confirm card'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Turn on offline mode');
-      el.innerHTML = '<h3>Keep Laps on this device?</h3><p>This needs a connection now, and takes a minute or so. It keeps:</p>' +
-        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars and your latest ' + PREPARE_SESSIONS + ' sessions, so you can open them with no signal</li>' +
-        '<li>' + icon('check') + 'the maps under those sessions (satellite pictures, a few megabytes)</li></ul>' +
-        '<label class="lo-field"><span>Keep a circuit for offline use (optional)</span><select class="field" id="lo-circuit"><option value="">None</option></select></label>' +
-        '<p class="lo-small">Pick a track and every leaderboard for it is kept, with your own sessions there, so you can look at them with no signal. You can keep up to ' + MAX_CIRCUITS + ' circuits. Hold a circuit on the Leaderboard or Sessions pages, or use Profile, to change them any time.</p>' +
-        '<p class="lo-small">Sessions waiting to be sent go first. With no signal you can open these sessions and maps, and add a session from a file already on your device: it is sent when you are next online. Whether you have the file offline depends on your logger (RaceBox, for example, only lets you download it once you are online). Leaderboards, sharing and sign-in still need a connection.</p>' +
+      el.innerHTML = '<h3>Keep Laps on this device?</h3><p>Pick the track you are going to. Every leaderboard for it is kept on this device, with your own sessions there and the top sessions on its boards, and their maps, so you can look at them with no signal.</p>' +
+        '<label class="lo-field"><span>Track to keep for offline use</span><select class="field" id="lo-circuit"><option value="">None yet</option></select></label>' +
+        '<p class="lo-small">You can keep up to ' + MAX_CIRCUITS + ' circuits. Hold a circuit on the Leaderboard or Sessions pages, or use Profile, to change them any time, and press Refresh kept circuits in Profile before a trip.</p>' +
+        '<p>This needs a connection now, and takes a minute or so. It also keeps:</p>' +
+        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars and your latest ' + prepareSessions() + ' sessions</li>' +
+        '<li>' + icon('check') + 'any session you open while you have a signal, with its map' + (carBrowser() ? ' (a car screen has little memory, so fewer pictures are fetched ahead)' : '') + '</li></ul>' +
+        '<p class="lo-small">Sessions waiting to be sent go first. With no signal you can open these sessions and maps, and add a session from a file already on your device: it is sent when you are next online. Whether you have the file offline depends on your logger (RaceBox, for example, only lets you download it once you are online). Other leaderboards, sharing and sign-in still need a connection.</p>' +
         '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-confirm="yes">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-confirm="no">Cancel</button></div>';
       document.body.appendChild(el);
       var b = el.querySelector('[data-lo-confirm="yes"]');
       if (b) b.focus();
       var pick = el.querySelector('#lo-circuit');
-      fillCircuitSelect(pick, 'None');
+      fillCircuitSelect(pick, 'None yet');
       el.addEventListener('click', function (e) {
         var c = e.target.closest('[data-lo-confirm]');
         if (!c) return;
@@ -1075,14 +1083,14 @@
     ls(ASKED_KEY, '1');
     var el = document.createElement('div');
     el.id = 'lo-offer'; el.className = 'lo-offer card'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Offline mode');
-    el.innerHTML = '<h3>Use Laps without a signal?</h3><p>Offline mode keeps a copy of Laps on this device (a few megabytes). At the track with no signal you can open your past sessions and their maps. You can also add a session from a file already on your device, and it is sent when you\'re back online.</p>' +
+    el.innerHTML = '<h3>Use Laps without a signal?</h3><p>Pick the track you are going to and Offline mode keeps its leaderboards, your sessions there and their maps on this device (a few megabytes), so you can look at them at the track with no signal. You can also add a session from a file already on your device, and it is sent when you\'re back online.</p>' +
+      '<label class="lo-field"><span>Track to keep for offline use</span><select class="field" id="lo-offer-circuit"><option value="">None yet</option></select></label>' +
       '<p class="lo-small">Adding a session offline depends on your logger. Some, such as RaceBox, only let you download the file once you are online.</p>' +
-      '<label class="lo-field"><span>Keep a circuit for offline use (optional)</span><select class="field" id="lo-offer-circuit"><option value="">None</option></select></label>' +
       '<div class="lo-actions"><button type="button" class="btn btn-accent btn-sm" data-lo-offer="on">Turn on offline mode</button><button type="button" class="btn btn-ghost btn-sm" data-lo-offer="no">Not now</button></div>' +
       '<p class="lo-small">You can change this any time at the bottom of the page, or in Profile.</p>';
     document.body.appendChild(el);
     var offerPick = el.querySelector('#lo-offer-circuit');
-    fillCircuitSelect(offerPick, 'None');
+    fillCircuitSelect(offerPick, 'None yet');
     el.addEventListener('click', function (e) {
       var b = e.target.closest('[data-lo-offer]');
       if (!b) return;
@@ -1140,6 +1148,8 @@
     markKept: markKept,
     refreshCopy: refreshCopy,
     keepTiles: keepTiles,
+    carBrowser: carBrowser,
+    prepareSessions: prepareSessions,
     refreshCircuits: refreshCircuits,
     localSession: localSession,
     setEnabled: setEnabled,

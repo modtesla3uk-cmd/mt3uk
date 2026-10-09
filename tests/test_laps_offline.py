@@ -793,8 +793,9 @@ def test_turning_offline_mode_on_asks_first_and_cancel_leaves_it_off(page):
     page.locator("#tp-offline").click()
     confirm = page.locator("#lo-confirm")
     expect(confirm).to_contain_text("Keep Laps on this device?")
-    expect(confirm).to_contain_text("your latest 25 sessions")
-    expect(confirm).to_contain_text("the maps under those sessions")
+    expect(confirm).to_contain_text("your latest 5 sessions")
+    expect(confirm).to_contain_text("Pick the track you are going to")
+    expect(confirm).to_contain_text("any session you open while you have a signal, with its map")
     expect(confirm).to_contain_text("Sessions waiting to be sent go first")
     expect(confirm).to_contain_text("depends on your logger")
     confirm.get_by_role("button", name="Cancel").click()
@@ -921,3 +922,29 @@ def test_map_pictures_are_asked_for_in_small_chunks_closer_zoom_first_within_a_b
     assert r["sizes"] == [60, 60, 30], r
     assert "/tile/16/" in r["first"], r
     assert r["tiles"] == 150, r
+
+
+def test_a_car_browser_keeps_fewer_sessions_per_circuit_and_fewer_map_pictures(page):
+    """The Tesla screen closed while Offline mode fetched the latest 25 sessions and their maps: the latest sessions are
+    a fallback of 5 on every device, a car browser keeps fewer per circuit and at most 120 pictures a run, and the
+    confirm card leads with the track to keep."""
+    page.add_init_script("""
+      window.MT3UK_CAR_BROWSER = true;
+      window.__msgs = [];
+      const fake = { register: () => Promise.resolve(), ready: Promise.resolve({ active: { postMessage: (m, ports) => { window.__msgs.push(m); ports[0].postMessage({ ok: true, kept: (m.urls || []).length }); } } }), controller: null, addEventListener() {} };
+      Object.defineProperty(navigator, 'serviceWorker', { value: fake, configurable: true });
+    """)
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    base = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/"
+    r = page.evaluate("""async (base) => {
+      navigator.serviceWorker.register = () => Promise.resolve();
+      const urls = []; for (let i = 0; i < 300; i++) urls.push(base + '16/' + i + '/1');
+      const out = {}; await MT3UKOffline.keepTiles(urls, out, () => {});
+      return { sizes: window.__msgs.filter(m => m.type === 'laps-offline-tiles').map(m => m.urls.length), tiles: out.tiles || 0, car: MT3UKOffline.carBrowser(), prep: MT3UKOffline.prepareSessions() };
+    }""", base)
+    assert r == {"sizes": [60, 60], "tiles": 120, "car": True, "prep": 5}, r
+    page.locator("#tp-offline").click()
+    expect(page.locator("#lo-confirm")).to_contain_text("Track to keep for offline use")
+    expect(page.locator("#lo-confirm")).to_contain_text("latest 5 sessions")
+    expect(page.locator("#lo-confirm")).to_contain_text("fewer pictures are fetched ahead")

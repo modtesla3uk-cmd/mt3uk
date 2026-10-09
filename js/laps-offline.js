@@ -798,6 +798,13 @@
   }
   // Fetches and keeps these sessions (three at a time) and the satellite tiles under their routes. out.sessions and out.tiles
   // are counted; never throws.
+  var TILE_CHUNK = 60;
+  // How many map pictures one run may keep: a car's browser (Tesla) or a low-memory device keeps fewer.
+  function tileBudget() {
+    if (window.MT3UK_TILE_BUDGET) return window.MT3UK_TILE_BUDGET;
+    var small = /Tesla|QtCarBrowser/i.test(navigator.userAgent || '') || (navigator.deviceMemory && navigator.deviceMemory <= 2);
+    return small ? 120 : 400;
+  }
   function keepSessionIds(ids, out, report) {
     var tiles = {}, at = 0;
     function next() {
@@ -808,14 +815,26 @@
         report('Keeping your sessions (' + (out.sessions || 0) + ' of ' + ids.length + ')...');
       }).catch(function () {}).then(next);
     }
-    return Promise.all([next(), next(), next()]).then(function () {
-      var urls = Object.keys(tiles);
-      if (!urls.length) return out;
-      report('Keeping the maps (' + urls.length + ' pictures)...');
-      // The maps are a bonus: never wait on them for ever (MT3UK_TILE_WAIT_MS shortens it in tests).
-      var wait = new Promise(function (resolve) { setTimeout(function () { resolve({}); }, window.MT3UK_TILE_WAIT_MS || 60000); });
-      return Promise.race([ask({ type: 'laps-offline-tiles', urls: urls }), wait]).then(function (r) { out.tiles = (out.tiles || 0) + (r.kept || 0); return out; }, function () { return out; });
-    });
+    return Promise.all([next(), next(), next()]).then(function () { return keepTiles(Object.keys(tiles), out, report); });
+  }
+  // The pictures are the heaviest step: a car's browser (Tesla) has little memory and closed on 1,500 at once. So the
+  // closer zoom first, a budget per run (smaller on a car screen or a low-memory device), and a few dozen at a time.
+  function keepTiles(all, out, report) {
+    var urls = all.filter(function (u) { return /\/tile\/16\//.test(u); }).concat(all.filter(function (u) { return !/\/tile\/16\//.test(u); })).slice(0, tileBudget());
+    if (!urls.length) return Promise.resolve(out);
+    var chunks = [], i;
+    for (i = 0; i < urls.length; i += TILE_CHUNK) chunks.push(urls.slice(i, i + TILE_CHUNK));
+    var started = Date.now(), limit = window.MT3UK_TILE_WAIT_MS || 60000, stop = false, ci = 0;
+    function nextChunk() {
+      if (stop || ci >= chunks.length) return Promise.resolve(out);
+      var chunk = chunks[ci++];
+      report('Keeping the maps (' + Math.min(urls.length, (ci - 1) * TILE_CHUNK + chunk.length) + ' of ' + urls.length + ' pictures)...');
+      // The maps are a bonus: never wait on them for ever, and stop asking for more once time is up.
+      var left = Math.max(1000, limit - (Date.now() - started));
+      var wait = new Promise(function (resolve) { setTimeout(function () { stop = true; resolve({}); }, left); });
+      return Promise.race([ask({ type: 'laps-offline-tiles', urls: chunk }), wait]).then(function (r) { out.tiles = (out.tiles || 0) + (r.kept || 0); }, function () { stop = true; }).then(nextChunk);
+    }
+    return nextChunk();
   }
   // The copy, then what the pages need. report is shown as the progress.
   function keepCopy(report) {
@@ -1120,6 +1139,7 @@
     holdKeep: holdKeep,
     markKept: markKept,
     refreshCopy: refreshCopy,
+    keepTiles: keepTiles,
     refreshCircuits: refreshCircuits,
     localSession: localSession,
     setEnabled: setEnabled,

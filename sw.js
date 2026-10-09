@@ -210,7 +210,7 @@ function tilesKeep(urls) {
         return fetch(u, { mode: 'cors' }).then(function (r) { if (r.ok) { kept++; return cache.put(u, r); } }).catch(function () {});
       }).then(worker);
     }
-    return Promise.all([worker(), worker(), worker(), worker()]).then(function () { return tileTrim(cache); }).then(function () { return { kept: kept, total: urls.length }; });
+    return Promise.all([worker(), worker()]).then(function () { return tileTrim(cache); }).then(function () { return { kept: kept, total: urls.length }; });
   });
 }
 self.addEventListener('message', function (event) {
@@ -218,7 +218,7 @@ self.addEventListener('message', function (event) {
   if (data.type === 'laps-offline-on') {
     event.waitUntil(lapsPrecache().then(function (r) { if (port) port.postMessage({ ok: r.kept > 0, kept: r.kept, total: r.total }); }, function () { if (port) port.postMessage({ ok: false }); }));
   } else if (data.type === 'laps-offline-tiles') {
-    var urls = (data.urls || []).filter(function (u) { return typeof u === 'string' && u.indexOf('https://' + TILE_HOST + '/') === 0; }).slice(0, 1500);
+    var urls = (data.urls || []).filter(function (u) { return typeof u === 'string' && u.indexOf('https://' + TILE_HOST + '/') === 0; }).slice(0, 200);
     event.waitUntil(tilesKeep(urls).then(function (r) { if (port) port.postMessage({ ok: true, kept: r.kept, total: r.total }); }, function () { if (port) port.postMessage({ ok: false }); }));
   } else if (data.type === 'laps-offline-off') {
     event.waitUntil(Promise.all([caches.delete(LAPS_CACHE), caches.delete(TILE_CACHE)]).then(function () { if (port) port.postMessage({ ok: true }); }));

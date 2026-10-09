@@ -896,3 +896,28 @@ def test_a_kept_circuit_says_how_many_sessions_it_holds_and_can_be_refreshed(pag
     refresh.click()
     expect(page.locator("#x [data-offline-status]")).to_contain_text("Refreshed", timeout=15000)
     expect(row).to_contain_text("sessions kept")
+
+
+def test_map_pictures_are_asked_for_in_small_chunks_closer_zoom_first_within_a_budget(page):
+    """A car's browser (Tesla) closed on 1,500 pictures at once: they go in chunks of 60, zoom 16 first, up to a budget."""
+    page.add_init_script("""
+      window.__msgs = [];
+      const fake = { register: () => Promise.resolve(), ready: Promise.resolve({ active: { postMessage: (m, ports) => { window.__msgs.push(m); ports[0].postMessage({ ok: true, kept: (m.urls || []).length }); } } }), controller: null, addEventListener() {} };
+      Object.defineProperty(navigator, 'serviceWorker', { value: fake, configurable: true });
+      window.MT3UK_TILE_BUDGET = 150;
+    """)
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    base = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/"
+    r = page.evaluate("""async (base) => {
+      const urls = [];
+      for (let i = 0; i < 300; i++) urls.push(base + '17/' + i + '/1');
+      for (let i = 0; i < 100; i++) urls.push(base + '16/' + i + '/1');
+      navigator.serviceWorker.register = () => Promise.resolve();
+      const out = {};
+      await MT3UKOffline.keepTiles(urls, out, () => {});
+      return { sizes: window.__msgs.filter(m => m.type === 'laps-offline-tiles').map(m => m.urls.length), first: window.__msgs[0].urls[0], tiles: out.tiles };
+    }""", base)
+    assert r["sizes"] == [60, 60, 30], r
+    assert "/tile/16/" in r["first"], r
+    assert r["tiles"] == 150, r

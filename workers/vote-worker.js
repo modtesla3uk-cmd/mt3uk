@@ -7197,6 +7197,9 @@ function cleanTrackVenue(v) {
   if (!id || !name || lat === null || lng === null) return null;
   var out = { id: id, name: name, type: ['drag', 'sprint'].indexOf(v.type) !== -1 ? v.type : 'circuit', lat: lat, lng: lng, radius: trackNum(v.radius, 200, 10000) || 2000 };
   if (v.check) out.check = true;
+  // The label the admin types for this entry on the Tracks list (blank keeps the built-in words).
+  var kindLabel = trackText(v.kindLabel, 40);
+  if (kindLabel) out.kindLabel = kindLabel;
   // Added by a member from the Add a session page, live straight away and waiting for the admin's review.
   if (v.review) out.review = true;
   // A sprint-type venue that is a hill climb: the leaderboards list those on their own.

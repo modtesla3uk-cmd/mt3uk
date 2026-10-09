@@ -389,6 +389,11 @@ def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
     page.locator("#tk-cancel").click()
     page.locator("#tk-list [data-edit='curborough']").click()
     expect(page.locator("#tk-type")).to_have_value("sprint")
+    page.locator("#tk-cancel").click()
+    page.locator("#tk-list [data-edit='thruxton']").click()
+    expect(page.locator("#tk-type")).to_have_value("circuit")
+    expect(page.locator("#tk-label")).to_have_attribute("placeholder", "Circuit (track day)")
+    expect(page.locator("#tk-label")).to_have_value("")
 
 
 def test_admin_early_access_panel_approves_declines_revokes_and_opens(page):

@@ -252,7 +252,7 @@
   function entryHtml(v, g, changed) {
     var layouts = v.layouts || [], kind = kindOf(v);
     var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
-    return '<div class="tk-kind" data-kind="' + kind + '"><div class="tk-kind-head"><b class="tk-kindname">' + KIND_LONG[kind] + '</b>' +
+    return '<div class="tk-kind" data-kind="' + kind + '"><div class="tk-kind-head"><b class="tk-kindname">' + esc(v.kindLabel || KIND_LONG[kind]) + '</b>' +
       (v.name !== g.name ? ' <span class="iv-sub">listed as ' + esc(v.name) + '</span>' : '') +
       (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') +
       (v.type === 'drag' ? '' : ' <span class="iv-sub">' + layouts.length + (layouts.length === 1 ? (v.type === 'sprint' ? ' course' : ' layout') : (v.type === 'sprint' ? ' courses' : ' layouts')) + '</span>') + '</div>' +
@@ -333,6 +333,7 @@
     formEl.hidden = false;
     formEl.innerHTML = '<h3>' + (v.id ? 'Edit ' + esc(v.name) : v.name ? 'Add a ' + (v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill climb' : 'sprint') : v.type) + ' to ' + esc(v.name) : 'Add a track') + '</h3>' +
       '<div class="tk-row"><label>Name<input type="text" id="tk-name" value="' + esc(v.name) + '"></label><label>Type<select id="tk-type"><option value="circuit"' + (v.type === 'circuit' || !v.type ? ' selected' : '') + '>Circuit</option><option value="drag"' + (v.type === 'drag' ? ' selected' : '') + '>Drag strip</option><option value="sprint"' + (v.type === 'sprint' && !window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Sprint</option><option value="hill"' + (window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Hill climb</option></select></label></div>' +
+      '<div class="tk-row"><label>Label on the list<input type="text" id="tk-label" maxlength="40" value="' + esc(v.kindLabel || '') + '" placeholder="' + esc(KIND_LONG[v.type === 'drag' ? 'drag' : v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill' : 'sprint') : 'circuit']) + '"></label></div>' +
       '<div class="tk-row"><label>Centre latitude<input type="text" inputmode="decimal" id="tk-lat" value="' + esc(v.lat) + '"></label><label>Centre longitude<input type="text" inputmode="decimal" id="tk-lng" value="' + esc(v.lng) + '"></label><label>Radius (m)<input type="text" inputmode="numeric" id="tk-radius" value="' + esc(v.radius || 2000) + '"></label></div>' +
       '<p class="iv-note">A file is matched to this track when most of it is inside the radius. Layouts are told apart by lap length. A place used for more than one kind of event (a circuit, a sprint and a hill climb, say) is listed once, with an entry for each kind: use the Add circuit, Add sprint or Add hill climb button on the place.</p>' +
       '<div id="tk-layouts">' + (v.type === 'drag' ? '' : (v.layouts || []).map(layoutHtml).join('')) + '</div>' +
@@ -344,7 +345,7 @@
   }
 
   function readForm() {
-    var v = { id: editing.id || '', name: document.getElementById('tk-name').value.trim(), type: document.getElementById('tk-type').value === 'hill' ? 'sprint' : document.getElementById('tk-type').value, hill: document.getElementById('tk-type').value === 'hill', lat: parseFloat(document.getElementById('tk-lat').value), lng: parseFloat(document.getElementById('tk-lng').value), radius: parseInt(document.getElementById('tk-radius').value, 10) || 2000, check: document.getElementById('tk-check').getAttribute('aria-checked') === 'true' };
+    var v = { id: editing.id || '', name: document.getElementById('tk-name').value.trim(), type: document.getElementById('tk-type').value === 'hill' ? 'sprint' : document.getElementById('tk-type').value, hill: document.getElementById('tk-type').value === 'hill', lat: parseFloat(document.getElementById('tk-lat').value), lng: parseFloat(document.getElementById('tk-lng').value), radius: parseInt(document.getElementById('tk-radius').value, 10) || 2000, check: document.getElementById('tk-check').getAttribute('aria-checked') === 'true', kindLabel: document.getElementById('tk-label').value.trim() };
     if (v.type !== 'drag') {
       v.layouts = [].slice.call(formEl.querySelectorAll('.tk-layout')).map(function (fs) {
         function f(k) { var el = fs.querySelector('[data-l="' + k + '"]'); return el ? el.value : ''; }

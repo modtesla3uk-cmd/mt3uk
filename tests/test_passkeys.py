@@ -199,7 +199,7 @@ def test_set_up_a_passkey_card_beside_your_details(device_page):
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
     card = page.locator("#passkey-setup")
     card.wait_for(state="visible", timeout=5000)
-    assert page.evaluate("[...document.querySelectorAll('.pf-side > .pf-card')].map(e => e.id)") == ["passkey-setup", "app"]
+    assert page.evaluate("[...document.querySelectorAll('.pf-side > .pf-card:not([hidden])')].map(e => e.id)") == ["passkey-setup", "app"]
     assert page.evaluate("document.querySelector('.pf-grid > .pf-card').id") == "details"
     page.wait_for_function("document.getElementById('pf-passkeys').textContent.indexOf('No passkeys yet') !== -1", timeout=5000)
     assert card.locator("h2").inner_text() == "Set up a passkey"

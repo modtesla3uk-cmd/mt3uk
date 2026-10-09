@@ -3865,7 +3865,7 @@
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '</div><div class="tp-board" id="tp-board"><div class="card tp-o-speed" data-tile="speed"><div class="tp-chart-head">' + '<h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + '</div>' +
-        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><select class="field tp-layoutsel" id="tp-layout" aria-label="Screen layout" title="Screen layout"><option value="auto">Layout: Auto</option><option value="upright">Layout: Upright</option><option value="wide">Layout: Wide</option></select><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
@@ -3876,12 +3876,12 @@
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
-        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
+        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button><select class="field tp-layoutsel" id="tp-layout2" aria-label="Screen layout" title="Screen layout"><option value="auto">Layout: Auto</option><option value="upright">Layout: Upright</option><option value="wide">Layout: Wide</option></select></div></div></div>' +
         '<div class="tp-fs-laps" id="tp-fs-laps"></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
 '<div class="tp-splith" id="tp-splith" role="separator" aria-orientation="horizontal" aria-label="Drag to make the map taller or shorter" title="Drag to make the map taller or shorter (double tap to reset)"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
-        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>G-Force</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
@@ -4090,7 +4090,22 @@
   }
   // A phone on its side in full screen: the map and the charts share the screen, split where the member drags the
   // divider (remembered in this browser), the map having at least a third and at most most of it.
-  function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 760; }
+  // The full screen layouts: Upright (taller than wide), Wide (wider than tall, up to 760px high: a phone on its side, a
+  // Tesla, a small laptop) and Large (wider than tall and over 760px high). Auto picks by the window; the member can
+  // force Upright or Wide with the Layout choice, remembered in this browser.
+  function layoutPref() { try { var v = localStorage.getItem('mt3ukTrackLayout'); return v === 'upright' || v === 'wide' ? v : 'auto'; } catch (e) { return 'auto'; } }
+  function layoutMode() {
+    var p = layoutPref();
+    if (p !== 'auto') return p;
+    var w = window.innerWidth, h = window.innerHeight;
+    return w > h ? (h <= 760 ? 'wide' : 'large') : 'upright';
+  }
+  function applyFullLayout() {
+    var card = document.getElementById('tp-mapcard'), sels = document.querySelectorAll('.tp-layoutsel');
+    if (card) { if (cmpFull) card.setAttribute('data-layout', layoutMode()); else card.removeAttribute('data-layout'); }
+    for (var i = 0; i < sels.length; i++) sels[i].value = layoutPref();
+  }
+  function landFull() { return cmpFull && layoutMode() === 'wide'; }
   var mapSplit = 60;
   try { var ms = parseFloat(localStorage.getItem('mt3ukTrackSplit')); if (ms >= 30 && ms <= 85) mapSplit = ms; } catch (e) { /* storage blocked */ }
   // Portrait full screen: the map's height as a share of the screen, set by dragging the bar under it (none until it has
@@ -4341,6 +4356,7 @@
   function fullUi() {
     var b = document.getElementById('tp-full'), card = document.getElementById('tp-mapcard');
     if (card) card.classList.toggle('is-full', cmpFull);
+    applyFullLayout();
     document.body.classList.toggle('tp-noscroll', cmpFull);
     if (b) {
       b.innerHTML = icon(cmpFull ? 'x' : 'expand') + (cmpFull ? 'Exit full screen' : 'Full screen');
@@ -4392,7 +4408,7 @@
   window.addEventListener('resize', function () {
     if (!cmpFull) return;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { panelClamp(); placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
+    resizeTimer = setTimeout(function () { applyFullLayout(); panelClamp(); placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
   });
   // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
   var cmpMap = null;
@@ -4442,6 +4458,13 @@
     panelApply();
     function showCarSpeed() { var mc = document.getElementById('tp-mapcard'); if (mc) mc.setAttribute('data-carspeed', carSpeed ? 'on' : 'off'); if (cs) cs.setAttribute('aria-checked', String(carSpeed)); }
     showCarSpeed();
+    Array.prototype.forEach.call(document.querySelectorAll('.tp-layoutsel'), function (lsel) {
+      lsel.addEventListener('change', function () {
+        try { localStorage.setItem('mt3ukTrackLayout', lsel.value); } catch (e) { /* storage blocked */ }
+        applyFullLayout(); placeHead();
+        if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
+      });
+    });
     if (cs) cs.addEventListener('click', function () {
       carSpeed = !carSpeed;
       showCarSpeed();
@@ -4640,11 +4663,11 @@
         if (!defs.length) { alignScrub(); return; }
         // One chart has the full height (in full screen a share of a tall screen); stacked ones are shorter each. In
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
-        var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
+        var base = cmpFull ? Math.max(110, Math.min(layoutMode() === 'large' ? 260 : 200, Math.round(window.innerHeight * 0.22))) : 150;
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
-        if (cmpFull && ((window.innerWidth > window.innerHeight && window.innerHeight <= 760) || (mapH && !landFull()))) {
+        if (cmpFull && (layoutMode() === 'wide' || (mapH && !landFull()))) {
           // The room left in the panel once the chips, switches, figures, slider and clock have theirs (they wrap on a
           // narrow screen, so they are measured rather than guessed).
           var pbox = document.getElementById('tp-gbox'), used = 0;

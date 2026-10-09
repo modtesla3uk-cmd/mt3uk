@@ -3850,7 +3850,7 @@ def test_full_screen_map_on_a_phone(page):
     page.locator("#tp-mopts-x").click()
     expect(page.locator("#tp-mopts-card")).to_be_hidden()
     expect(page.locator("#tp-mopts-btn")).to_be_visible()
-    expect(page.locator("#tp-gshow")).to_contain_text("Show G-Forces")
+    expect(page.locator("#tp-gshow")).to_contain_text("G-Force")
     # Who is who, with the date and the time of day at the playhead, at the foot of the controls.
     expect(page.locator("#tp-play #tp-when")).to_be_visible()
     expect(page.locator("#tp-when .tp-wrow")).to_have_count(2)
@@ -3868,7 +3868,7 @@ def test_full_screen_map_on_a_phone(page):
     gb, mb = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-map2").bounding_box()
     assert gb["x"] >= mb["x"] + mb["width"] - 1 and gb["x"] + gb["width"] <= 844 and gb["y"] + gb["height"] <= 390, (gb, mb)
     assert 480 <= mb["width"] <= 530, mb
-    # The charts panel has the Show G-Forces switch; leaving full screen is the map's own button, top right.
+    # The charts panel has the G-Force switch; leaving full screen is the map's own button, top right.
     sh = page.locator("#tp-gshow").bounding_box()
     assert sh["x"] >= gb["x"] and sh["x"] + sh["width"] <= 844, (sh, gb)
     toggles = page.locator("#tp-gtoggles .chip")
@@ -3878,7 +3878,7 @@ def test_full_screen_map_on_a_phone(page):
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
         assert b["height"] >= 40 and b["y"] + b["height"] <= 390, b
-    # The Show G-Forces switch swaps between the map alone and the map with the charts.
+    # The G-Force switch swaps between the map alone and the map with the charts.
     page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()
     assert page.locator("#tp-map2").bounding_box()["width"] >= 830
@@ -3897,7 +3897,7 @@ def test_full_screen_map_on_a_phone(page):
     page.wait_for_timeout(200)
     drawn, room = page.locator("#tp-gforce svg").first.evaluate("e => [e.viewBox.baseVal.width, e.parentNode.clientWidth]")
     assert abs(drawn - max(280, room)) <= 14, (drawn, room)
-    # The Show G-Forces switch stays at the top right of the panel, even narrowed with all three chips on.
+    # The G-Force switch stays at the top right of the panel, even narrowed with all three chips on.
     sw, gbx = page.locator("#tp-gshow").bounding_box(), page.locator("#tp-gbox").bounding_box()
     assert sw["y"] <= gbx["y"] + 40 and abs((sw["x"] + sw["width"]) - (gbx["x"] + gbx["width"])) <= 14, (sw, gbx)
     page.mouse.up()
@@ -7004,3 +7004,39 @@ def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
     assert mb["height"] > 450, mb
     assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
     assert gb["height"] > 150, gb
+
+
+def _open_full(page, w, h):
+    page.set_viewport_size({"width": w, "height": h})
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+
+
+def test_full_screen_picks_upright_wide_or_large_from_the_window(page):
+    card = page.locator("#tp-mapcard")
+    _open_full(page, 390, 844)
+    expect(card).to_have_attribute("data-layout", "upright")
+    page.set_viewport_size({"width": 844, "height": 390})
+    expect(card).to_have_attribute("data-layout", "wide")
+    page.set_viewport_size({"width": 1000, "height": 700})
+    expect(card).to_have_attribute("data-layout", "wide")
+    page.set_viewport_size({"width": 1400, "height": 900})
+    expect(card).to_have_attribute("data-layout", "large")
+
+
+def test_the_layout_choice_forces_a_layout_and_is_remembered(page):
+    _open_full(page, 1400, 900)
+    card = page.locator("#tp-mapcard")
+    expect(card).to_have_attribute("data-layout", "large")
+    page.locator("#tp-layout").select_option("wide")
+    page.locator("#tp-mopts-btn").click()
+    expect(card).to_have_attribute("data-layout", "wide")
+    mb, gb = page.locator("#tp-map2").bounding_box(), page.locator("#tp-gforce").bounding_box()
+    assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
+    page.locator("#tp-layout2").select_option("upright")
+    expect(card).to_have_attribute("data-layout", "upright")
+    assert page.evaluate("localStorage.getItem('mt3ukTrackLayout')") == "upright"
+    page.locator("#tp-layout").select_option("auto")
+    expect(card).to_have_attribute("data-layout", "large")

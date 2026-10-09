@@ -25,6 +25,7 @@
 <meta name="twitter:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/laps-offline.css?v=12">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271016">
 <link rel="stylesheet" href="css/laps-strip.css?v=2">
@@ -2364,12 +2365,40 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(function () {});
     }
 
+    // Offline mode (js/laps-offline.js): with no signal the garage opens from the copy kept on this device, read only.
+    function keptGarage() {
+      return new Promise(function (resolve) {
+        function ask() {
+          if (!window.MT3UKOffline) { resolve(null); return; }
+          MT3UKOffline.recall('/my-builds').then(function (d) { resolve(d && d.success ? d : null); }, function () { resolve(null); });
+        }
+        if (window.MT3UKOffline) ask(); else window.addEventListener('load', ask);
+      });
+    }
+    function oldGarageNote(at) {
+      if (document.getElementById('mb-old-note')) return;
+      var when = new Date(at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      var el = document.createElement('div');
+      el.id = 'mb-old-note'; el.className = 'card'; el.setAttribute('role', 'status');
+      el.style.cssText = 'margin:0 0 12px;padding:12px 14px';
+      el.textContent = 'You are offline, so this is your garage as it was on this device on ' + when + '. Changes and new photos need a connection.';
+      var host = document.getElementById('mb-app-view') || document.body;
+      host.insertBefore(el, host.firstChild);
+    }
     function loadCars() {
       var token = getSession();
       if (!token) { showSignin(); return; }
       fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
         .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; }); })
+        .catch(function (err) {
+          return keptGarage().then(function (kept) {
+            if (!kept) throw err;
+            var at = kept.cachedAt; delete kept.cachedAt;
+            return { ok: true, status: 200, data: kept, kept: at };
+          });
+        })
         .then(function (result) {
+          if (result.ok && result.data && result.data.success && window.MT3UKOffline && MT3UKOffline.enabled()) MT3UKOffline.remember('/my-builds', result.data);
           if (!result.ok || !result.data.success) {
             // Only a 401 means the sign-in has expired. Anything else is a
             // passing problem, so keep the sign-in for next time.
@@ -2379,6 +2408,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           showApp(result.data.email);
+          if (result.kept) oldGarageNote(result.kept);
           renderName(result.data.firstName, result.data.lastName, result.data.shownAs);
           markBoardsButton(token);
           loadNotifications();
@@ -4275,6 +4305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="js/notify-bell.js?v=4" defer></script>
 <script src="js/messenger.js?v=2" defer></script>
 <script src="js/search.js" defer></script>
+<script src="js/laps-offline.js?v=23" defer></script>
 
 </body>
 </html>

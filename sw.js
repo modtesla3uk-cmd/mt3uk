@@ -20,7 +20,7 @@ function putFresh(cache, request, copy, onlyIfKept) {
     return Promise.all(same.map(function (k) { return cache.delete(k); })).then(function () { return cache.put(key, copy); });
   });
 }
-const LAPS_PAGES = ['/laps.html', '/track.html', '/leaderboards.html', '/laps-signin.html'];
+const LAPS_PAGES = ['/laps.html', '/track.html', '/leaderboards.html', '/laps-signin.html', '/my-builds.html'];
 const LAPS_FILES = [
   '/data/tracks.json', '/data/tyres.json', '/data/pads.json', '/data/vehicles.json', '/laps-manifest.json',
   '/images/laps/favicon.svg', '/images/laps/icon-192.png', '/images/laps/apple-touch-icon.png'

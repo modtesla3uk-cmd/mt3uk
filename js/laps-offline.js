@@ -918,7 +918,7 @@
         '<label class="lo-field"><span>Track to keep for offline use</span><select class="field" id="lo-circuit"><option value="">None yet</option></select></label>' +
         '<p class="lo-small">You can keep up to ' + MAX_CIRCUITS + ' circuits. Hold a circuit on the Leaderboard or Sessions pages, or use Profile, to change them any time, and press Refresh kept circuits in Profile before a trip.</p>' +
         '<p>This needs a connection now, and takes a minute or so. It also keeps:</p>' +
-        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages and the track list</li><li>' + icon('check') + 'your cars' + ' (and your latest ' + prepareSessions() + ' sessions if you pick no track)</li>' +
+        '<ul class="lo-ticks"><li>' + icon('check') + 'the Laps pages, My Garage and the track list</li><li>' + icon('check') + 'your cars' + ' (and your latest ' + prepareSessions() + ' sessions if you pick no track)</li>' +
         '<li>' + icon('check') + 'the maps under those sessions' + (carBrowser() ? ' (a car screen has little memory, so fewer pictures are fetched ahead)' : '') + '</li></ul>' +
         '<p class="lo-small">Only what you pick is kept. A session from another track says it is not on this device.</p>' +
         carNoteHtml() +
@@ -1155,7 +1155,7 @@
   // The Tesla screen blocks every page load with no connection, so with Laps offline on a car browser a link to another
   // Laps page fetches that page from the saved copy (the service worker answers from it) and writes it over this one,
   // with the address moved on, so the car has no page load to block. The browser's Back works the same way (popstate).
-  var LAPS_FILES_RE = /\/(laps|track|leaderboards|profile)\.html$/;
+  var LAPS_FILES_RE = /\/(laps|track|leaderboards|profile|my-builds)\.html$/;
   var pageFile = (location.pathname.split('/').pop() || 'index.html');
   function teardown() {
     stopPoll();

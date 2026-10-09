@@ -252,6 +252,19 @@ def test_a_session_opened_with_a_signal_is_not_kept_unless_offline_mode_keeps_it
     assert got[1] and got[1]["session"].get("again") == 1, "a kept session is refreshed"
 
 
+def test_my_garage_opens_read_only_from_the_kept_copy_with_no_signal(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    page.evaluate("MT3UKOffline.setEnabled && localStorage.setItem('mt3ukLapsOffline', '1')")
+    page.goto("/my-builds.html")
+    expect(page.locator("#mb-app-view")).to_be_visible(timeout=15000)
+    page.wait_for_timeout(600)
+    link.down = True
+    page.reload()
+    expect(page.locator("#mb-app-view")).to_be_visible(timeout=15000)
+    expect(page.locator("#mb-old-note")).to_contain_text("You are offline")
+
+
 def test_a_session_not_opened_before_says_it_is_not_on_the_device(page):
     fake = FakeWorker()
     link = open_signed_in(page, fake)

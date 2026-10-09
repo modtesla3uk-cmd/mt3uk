@@ -4090,7 +4090,7 @@
   }
   // A phone on its side in full screen: the map and the charts share the screen, split where the member drags the
   // divider (remembered in this browser), the map having at least a third and at most most of it.
-  function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560; }
+  function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 760; }
   var mapSplit = 60;
   try { var ms = parseFloat(localStorage.getItem('mt3ukTrackSplit')); if (ms >= 30 && ms <= 85) mapSplit = ms; } catch (e) { /* storage blocked */ }
   // Portrait full screen: the map's height as a share of the screen, set by dragging the bar under it (none until it has
@@ -4644,7 +4644,7 @@
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
-        if (cmpFull && ((window.innerWidth > window.innerHeight && window.innerHeight <= 560) || (mapH && !landFull()))) {
+        if (cmpFull && ((window.innerWidth > window.innerHeight && window.innerHeight <= 760) || (mapH && !landFull()))) {
           // The room left in the panel once the chips, switches, figures, slider and clock have theirs (they wrap on a
           // narrow screen, so they are measured rather than guessed).
           var pbox = document.getElementById('tp-gbox'), used = 0;

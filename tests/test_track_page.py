@@ -3704,6 +3704,7 @@ def test_numbers_under_the_map_follow_the_dots(page):
 
 
 def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
+    page.set_viewport_size({"width": 1280, "height": 900})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
@@ -6990,3 +6991,16 @@ def test_dashcam_clips_added_together_are_one_session(page, tmp_path):
     assert fake.saved[-1]["session"]["dashcam"] is True
     assert len([l for l in fake.saved[-1]["session"]["laps"] if l["kind"] == "timed"]) == 2
 
+
+
+def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
+    """The Tesla browser cannot rotate: a wide window about 700px tall must not get the stacked phone layout with a thin map."""
+    page.set_viewport_size({"width": 1000, "height": 700})
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    mb, gb = page.locator("#tp-map2").bounding_box(), page.locator("#tp-gforce").bounding_box()
+    assert mb["height"] > 450, mb
+    assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
+    assert gb["height"] > 150, gb

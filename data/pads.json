@@ -10,8 +10,8 @@
       {"name": "XP10", "use": "Race", "tempMax": 800, "notes": "Very strong initial bite and high friction, very kind to discs", "source": "https://ctbrakes.com/table_dynamic/xp10/"},
       {"name": "XP12", "use": "Race", "tempMin": 120, "tempMax": 1010, "notes": "More bite, torque and fade resistance than XP10, good release and modulation; harder on discs than XP10", "source": "https://ctbrakes.com/table_dynamic/xp12/"},
       {"name": "XP16"},
-      {"name": "XP20"},
-      {"name": "1521"},
+      {"name": "XP20", "tempMin": 135, "tempMax": 1093, "notes": "Extremely aggressive initial bite, linear torque curve and excellent fade resistance; maker says not for street use", "source": "https://ctbrakes.com/table_dynamic/xp20/"},
+      {"name": "1521", "use": "Road", "tempMax": 426, "notes": "High performance street compound with good release, low dust and low noise; maker says not recommended for any track use; range starts at ambient and tops out at 426C+", "source": "https://ctbrakes.com/table_dynamic/1521/"},
       {"name": "Bobcat"}
     ] },
     { "name": "EBC", "compounds": [
@@ -21,7 +21,7 @@
       {"name": "Bluestuff", "use": "Track day", "mu": "0.52", "tempMin": 0, "tempMax": 550, "notes": "Figures for Bluestuff NDX; track day and sprint pad with road manners, short bedding-in", "source": "https://www.ebcbrakes.com/products/ebc-bluestuff-ndx-super-street-trackday-brake-pads/"},
       {"name": "Orangestuff"},
       {"name": "Blackstuff"},
-      {"name": "Ultimax"}
+      {"name": "Ultimax2", "use": "Road", "mu": "0.46", "notes": "R90 approved replacement pad for daily driving; maker says not suitable for track use", "source": "https://www.ebcbrakes.com/products/ebc-ultimax2-brake-pads/"}
     ] },
     { "name": "Endless", "compounds": [
       {"name": "ME20", "use": "Race", "tempMin": 150, "tempMax": 800, "notes": "Semi-metallic sprint race pad, stable when hot, low wear", "source": "https://endlessusa.com/products/brake-pad-racing-compound"},
@@ -33,8 +33,8 @@
       {"name": "DS1.11", "use": "Endurance", "mu": "0.46", "tempMin": 200, "tempMax": 750, "notes": "Heavy duty endurance pad, long life and very kind to discs", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DS1.11"},
       {"name": "DS3.12", "use": "Race", "tempMin": 300, "tempMax": 850, "notes": "High friction and initial bite; GT and heavy duty use, sprint and medium length races", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DS3.12"},
       {"name": "DSUNO", "use": "Endurance", "mu": "0.48", "tempMin": 200, "tempMax": 750, "notes": "Heavy duty semi-endurance pad, very controllable, kind to discs, long life", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DSUNO"},
-      {"name": "DS3000"},
-      {"name": "DS Performance"}
+      {"name": "DS3000", "use": "Race", "tempMin": 200, "tempMax": 650, "notes": "Competition compound for touring cars, rally, formula and track cars with OE brakes; maker says not suitable for road use", "source": "https://www.ferodoracing.com/ecat/code-compound/car-racing/brake-pads/FCP4218R"},
+      {"name": "DS Performance", "use": "Road", "mu": "0.46", "tempMin": 0, "tempMax": 460, "notes": "Road pad with a racing feel and ECE R90 approval; 0.46 is the average from a fast-road test schedule and would be lower for race use", "source": "https://www.ferodoracing.com/ecat/code-compound/car-tuning/brake-pads/FDS1463"}
     ] },
     { "name": "Hardron", "compounds": [
       {"name": "ZR"}
@@ -43,17 +43,17 @@
       {"name": "HP+", "use": "Fast road", "tempMin": 40, "tempMax": 425, "notes": "Crossover road and race pad for low to mid temperatures, smooth torque", "source": "https://www.hawkperformance.com/hp-plus"},
       {"name": "DTC-60", "use": "Race", "tempMin": 205, "tempMax": 870, "notes": "For very high deceleration, good release and torque control, low disc wear", "source": "https://www.hawkperformance.com/dtc-60"},
       {"name": "DTC-70", "use": "Race", "tempMin": 205, "tempMax": 870, "notes": "Very high torque and aggressive initial bite, good modulation and release", "source": "https://www.hawkperformance.com/dtc-70"},
-      {"name": "HPS"},
-      {"name": "HPS 5.0"},
-      {"name": "DTC-30"},
-      {"name": "DTC-80"},
-      {"name": "Blue 9012"},
-      {"name": "Ceramic"}
+      {"name": "HPS", "tempMin": 40, "tempMax": 370, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. Street compound for street-legal cars, excellent for spirited driving; optimal range 100-500 F", "source": "https://www.hawkperformance.com/hps"},
+      {"name": "HPS 5.0", "tempMin": 40, "tempMax": 400, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. Ferro-Carbon street compound with aggressive torque; optimal range 100-550 F", "source": "https://www.hawkperformance.com/hps-5-0"},
+      {"name": "DTC-30", "use": "Race", "tempMin": 40, "tempMax": 650, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. Controllable-torque multi-purpose race compound for circle track, drag racing and similar; optimal range 100-800 F", "source": "https://www.hawkperformance.com/dtc-30"},
+      {"name": "DTC-80", "use": "Race", "tempMin": 260, "tempMax": 925, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. High torque, high temperature race compound for circle track and road racing; optimal range 600-1500 F", "source": "https://www.hawkperformance.com/dtc-80"},
+      {"name": "Blue 9012", "use": "Endurance", "tempMin": 120, "tempMax": 540, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. Entry level endurance race compound, medium torque, easy to bed in; optimal range 350-800 F", "source": "https://www.hawkperformance.com/blue-9012"},
+      {"name": "Performance Ceramic", "use": "Road", "tempMin": 40, "tempMax": 345, "notes": "Fahrenheit figures converted to Celsius, rounded to the nearest 5. Low noise, ultra-low dust street pad; optimal range 100-450 F", "source": "https://www.hawkperformance.com/pc-performance-ceramic"}
     ] },
     { "name": "Mintex", "compounds": [
       {"name": "M1144", "use": "Track day", "notes": "Medium torque, excellent low temperature performance; track days, hill climbs and club motorsport", "source": "https://mintex.com/racing/compounds/"},
       {"name": "M1155", "use": "Race", "notes": "Track and rally pad, medium friction, positive modulation and high fade resistance", "source": "https://compbrake.com/?p=97481"},
-      {"name": "M1166"},
+      {"name": "M1166", "mu": "0.46", "notes": "High-torque racing compound with strong fade resistance and stability at high temperature; nominal mu 0.46 per maker spec sheet; maker lists track days among typical uses", "source": "https://mintex.com/wp-content/uploads/2026/03/Mintex-Racing-Spec-Sheets-M1166.pdf"},
       {"name": "M1177"}
     ] },
     { "name": "Pagid", "compounds": [
@@ -62,20 +62,22 @@
       {"name": "RSL29", "use": "Endurance", "notes": "Low metallic, medium friction, very good modulation and release; club racing, track days and GT endurance", "source": "https://www.pagidracing.com/racing-brake-pads-products/rsl-29"},
       {"name": "RS14"},
       {"name": "RS42"},
-      {"name": "RSL1"}
+      {"name": "RSL1", "use": "Endurance", "notes": "Very high heat resistance, constant friction over a wide temperature range, low wear; maker says used in GT, touring and prototype endurance racing and often in sprint races", "source": "https://www.pagidracing.com/racing-brake-pads-products/rsl-1"}
     ] },
     { "name": "PBS", "compounds": [
-      {"name": "ProTrack"},
-      {"name": "ProRace"},
-      {"name": "ProComp"},
-      {"name": "ProComp R"},
-      {"name": "ProComp S1"}
+      {"name": "ProTrack", "use": "Track day", "mu": "0.36 to 0.48", "tempMin": 0, "tempMax": 700, "notes": "Ceramic metallic compound with milder initial bite than ProRace; maker says suited to light, occasional track use or wet conditions and low grip tyres", "source": "https://pbs-brakes.com/pages/protrack"},
+      {"name": "ProRace", "use": "Track day", "mu": "0.40 to 0.50", "tempMin": 0, "tempMax": 800, "notes": "Ceramic graphite compound with great initial bite and control; maker says used in many race series and the compound of choice for many track day users", "source": "https://pbs-brakes.com/pages/prorace"},
+      {"name": "ProComp S2", "mu": "0.52 to 0.56", "tempMin": 100, "tempMax": 850, "notes": "High metallic content; maker says it has the highest friction rating of the ProComp range", "source": "https://pbs-brakes.com/pages/procomp"},
+      {"name": "ProComp E1", "use": "Endurance", "mu": "0.38 to 0.43", "tempMin": 200, "tempMax": 850, "notes": "High metallic content; maker says it suits endurance race applications and club enduro series and has the best wear rate of the ProComp range, with good modulation", "source": "https://pbs-brakes.com/pages/procomp"},
+      {"name": "ProComp E2", "mu": "0.40 to 0.43", "tempMin": 200, "tempMax": 850, "notes": "High metallic content; maker says it has a higher friction rating than the E1 with a low wear rate", "source": "https://pbs-brakes.com/pages/procomp"},
+      {"name": "ProComp R", "tempMin": 0, "tempMax": 700, "notes": "Made for rear applications with lower bite and torque, smooth release, works with ABS, low wear rates", "source": "https://pbs-brakes.com/pages/procomp"},
+      {"name": "ProComp S1", "use": "Race", "mu": "0.47 to 0.58", "tempMin": 50, "tempMax": 800, "notes": "High metallic content; maker says suitable for sprint, race and rally, with the best lower temperature performance in the ProComp range, high bite and good modulation", "source": "https://pbs-brakes.com/pages/procomp"}
     ] },
     { "name": "Performance Friction", "compounds": [
       {"name": "08", "use": "Endurance", "notes": "Endurance pad for high temperatures, smooth bite, very long wearing, low disc wear", "source": "https://pfc.parts/motorsports/pad-compounds/08-compound-2/"},
       {"name": "11", "use": "Race", "notes": "Sprint and medium distance pad: smooth bite, friction rising with temperature, good release", "source": "https://pfc.parts/motorsports/pad-compounds/11-compound-2/"},
-      {"name": "01"},
-      {"name": "97"}
+      {"name": "01", "use": "Race", "notes": "Maker calls it a race compound with good initial bite and very little torque rise with temperature; sprint or medium distance; used in touring car, TCR, NASCAR, formula, rally and trackday", "source": "https://pfc.parts/motorsports/pad-compounds/01-compound/"},
+      {"name": "97", "use": "Endurance", "notes": "Slight friction rise with temperature, excellent release and modulation, very low disc wear and the longest pad wear of all PFC pads; maker says replaced by 08 compound in many pad shapes", "source": "https://pfc.parts/motorsports/pad-compounds/97-compound/"}
     ] },
     { "name": "Cobalt Friction", "compounds": [
       {"name": "XR1"},
@@ -88,34 +90,34 @@
       {"name": "Type X"}
     ] },
     { "name": "G-LOC", "compounds": [
-      {"name": "R6"},
-      {"name": "R8"},
-      {"name": "R10"},
-      {"name": "R12"}
+      {"name": "R6", "tempMin": 0, "tempMax": 537, "notes": "Autocross compound with ultra-high cold torque from dead cold; maker does not recommend it for road racing (closed circuit) in most applications; maker does not say whether the range is rotor or pad temperature", "source": "https://www.g-locbrakes.com/products/brake-compounds/compunds-r6/"},
+      {"name": "R8", "use": "Track day", "tempMin": 23, "tempMax": 676, "notes": "High torque with good initial bite and extremely high fade resistance, kind to rotors; maker says perfect for track day use and not recommended for daily street use; maker does not say whether the range is rotor or pad temperature", "source": "https://www.g-locbrakes.com/products/brake-compounds/compunds-r8/"},
+      {"name": "R10", "tempMin": 47, "tempMax": 801, "notes": "Stronger initial bite and higher friction than R8, leads the industry in rotor friendliness per the maker; not recommended for daily street use; maker does not say whether the range is rotor or pad temperature", "source": "https://www.g-locbrakes.com/products/brake-compounds/g-loc-r10/"},
+      {"name": "R12", "tempMin": 78, "tempMax": 1015, "notes": "Excellent initial bite, high consistent torque and outstanding fade resistance over R10, slightly more rotor aggressive than R10; not recommended for daily street use; maker does not say whether the range is rotor or pad temperature", "source": "https://www.g-locbrakes.com/products/brake-compounds/compounds-r12/"}
     ] },
     { "name": "Porterfield", "compounds": [
-      {"name": "R4-S"},
-      {"name": "R4-E"}
+      {"name": "R4-S", "use": "Road", "notes": "Maker says for high performance and heavy duty street use, rotor friendly with low dust and squeal, and not recommended for track use; no friction or temperature figures published", "source": "https://porterfield-brakes.com/wp-content/uploads/2025/07/catalog22sm.pdf"},
+      {"name": "R4-E", "use": "Race", "mu": "0.460", "tempMin": 315, "notes": "Carbon Kevlar full race compound that lasts longer than R-4 and suits club enduro events; maker says it performs best averaging over 600°F, converted to 315°C and rounded to the nearest 5; maker does not say whether this is pad or rotor temperature and gives no upper limit", "source": "https://porterfield-brakes.com/wp-content/uploads/2025/07/catalog22sm.pdf"}
     ] },
     { "name": "Project Mu", "compounds": [
-      {"name": "Club Racer"},
-      {"name": "Type PS"},
-      {"name": "Type HC+"},
-      {"name": "Racing 777"},
-      {"name": "Racing N+"}
+      {"name": "Club Racer", "mu": "0.42 to 0.55", "tempMin": 300, "tempMax": 800, "notes": "Export-only RC09 pad designed for circuit driving, circuit use only; maker's range is the applicable rotor temperature", "source": "https://www.project-mu.co.jp/en/products/pad_clubracer.html"},
+      {"name": "Type PS", "mu": "0.38 to 0.45", "tempMin": 0, "tempMax": 500, "notes": "Affordable non-steel pad for dependable braking and improved anti-fade in sport driving; maker's range is the applicable rotor temperature", "source": "https://www.project-mu.co.jp/en/products/pad_typeps.html"},
+      {"name": "Type HC+", "mu": "0.43 to 0.58", "tempMin": 0, "tempMax": 800, "notes": "Superior braking and control across a wide temperature range; maker's range is the applicable rotor temperature", "source": "https://www.project-mu.co.jp/en/products/pad_hcplus.html"},
+      {"name": "Racing 777", "use": "Race", "mu": "0.40 to 0.55", "tempMin": 300, "tempMax": 800, "notes": "Maker says full braking effect and sturdy wear resistance, ideal for sprints to semi-endurance races, circuit use only; maker's range is the applicable rotor temperature", "source": "https://www.project-mu.co.jp/en/products/pad_777.html"},
+      {"name": "Racing N+", "mu": "0.39 to 0.48", "tempMin": 100, "tempMax": 800, "notes": "Linear braking and stable control in extreme circuit driving, circuit use only and for certain vehicle models only; maker's range is the applicable rotor temperature", "source": "https://www.project-mu.co.jp/en/products/pad_nplus.html"}
     ] },
     { "name": "Wilwood", "compounds": [
-      {"name": "BP-10"},
-      {"name": "BP-20"},
-      {"name": "PolyMatrix B"},
+      {"name": "BP-10", "use": "Fast road", "notes": "BP series compound, not PolyMatrix; low-medium temperature and friction, light dusting and quiet, aimed at spirited street use; no figures published", "source": "https://www.wilwood.com/BrakePads/BrakePads.aspx"},
+      {"name": "BP-20", "use": "Track day", "notes": "BP series compound, not PolyMatrix; med-high temperature and friction, dual-sport pad for street with expanded range for autocross and track events; no figures published", "source": "https://www.wilwood.com/BrakePads/BrakePads.aspx"},
+      {"name": "PolyMatrix B", "notes": "High temperature and friction, consistent response after minimal warm-up, used in oval, road course and off-road competition; no figures published", "source": "https://www.wilwood.com/BrakePads/BrakePads.aspx"},
       {"name": "PolyMatrix C"},
       {"name": "PolyMatrix D"},
-      {"name": "PolyMatrix E"}
+      {"name": "PolyMatrix E", "notes": "Medium temperature and friction mid-level race compound with linear response, for autocross, rally, fast drag and off-road; page does not call it BP-28; no figures published", "source": "https://www.wilwood.com/BrakePads/BrakePads.aspx"}
     ] },
     { "name": "Winmax", "compounds": [
-      {"name": "W3"},
-      {"name": "W4"},
-      {"name": "W5"}
+      {"name": "W3", "mu": "0.34 to 0.37", "tempMax": 650, "notes": "Low steel, high performance street and sprint race, the most versatile pad; maker gives the range as NT to 650°C (NT presumably normal temperature, so no minimum set) and does not say rotor or pad", "source": "https://www.winmax.jp/en/product/w-series"},
+      {"name": "W4", "use": "Race", "mu": "0.37 to 0.40", "tempMin": 50, "tempMax": 700, "notes": "Low steel pad for sprint racing with superb control and excellent torque control; maker does not say rotor or pad temperature", "source": "https://www.winmax.jp/en/product/w-series"},
+      {"name": "W5", "use": "Race", "mu": "0.40 to 0.43", "tempMin": 100, "tempMax": 750, "notes": "High steel pad for club racing, a balance of effectiveness and braking control; maker does not say rotor or pad temperature", "source": "https://www.winmax.jp/en/product/w-series"}
     ] }
   ]
 }

@@ -665,18 +665,22 @@
     p.same = p.rm === p.fm && p.rc === p.fc;
     return p;
   }
+  // A make or compound that is not on the list can be typed: each drop-down ends with an Other choice that opens a text box.
   function padSelects(pre, side, make, compound, off) {
-    var known = !!(make && PD.makes[make]);
+    var known = !!(make && PD.makes[make]), makeOther = !!(make && !known);
     var makeOpts = '<option value="">Not set</option>' + Object.keys(PD.makes).map(function (m) { return '<option value="' + esc(m) + '"' + (m === make ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
-      (make && !known ? '<option value="' + esc(make) + '" selected>' + esc(make) + '</option>' : '');
-    var comps = known ? PD.compounds(make) : (compound ? [compound] : []);
-    if (compound && comps.indexOf(compound) === -1) comps = comps.concat([compound]);
-    var compOpts = '<option value="">' + (make ? 'Choose the compound' : 'Choose the make first') + '</option>' + comps.map(function (c) { return '<option value="' + esc(c) + '"' + (c === compound ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
-    var label = side === 'front' ? 'Front pads' : 'Rear pads';
+      '<option value="__other__"' + (makeOther ? ' selected' : '') + '>Another make, type it in</option>';
+    var comps = known ? PD.compounds(make) : [];
+    var compOther = !!(compound && (makeOther || comps.indexOf(compound) === -1));
+    var compOpts = '<option value="">' + (make ? 'Choose the compound' : 'Choose the make first') + '</option>' + comps.map(function (c) { return '<option value="' + esc(c) + '"' + (c === compound ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') +
+      (known ? '<option value="__other__"' + (compOther ? ' selected' : '') + '>Other compound, type it in</option>' : '');
+    var label = side === 'front' ? 'Front pads' : 'Rear pads', id = pre + '-' + side;
     return '<div class="tp-f2 tp-pad-row" data-pad-side="' + side + '"' + (off ? ' hidden' : '') + '>' +
-      '<div class="tp-field"><label for="' + pre + '-' + side + '-make">' + label + ', make</label><select class="field" id="' + pre + '-' + side + '-make">' + makeOpts + '</select></div>' +
-      '<div class="tp-field"><label for="' + pre + '-' + side + '-comp">' + label + ', compound</label><select class="field" id="' + pre + '-' + side + '-comp"' + (make ? '' : ' disabled') + '>' + compOpts + '</select></div>' +
-      '<p class="tp-small tp-pad-maker" id="' + pre + '-' + side + '-maker"></p></div>';
+      '<div class="tp-field"><label for="' + id + '-make">' + label + ', make</label><select class="field" id="' + id + '-make">' + makeOpts + '</select>' +
+      '<input class="field tp-pad-typed" id="' + id + '-make-text" type="text" maxlength="40" placeholder="Type the make" aria-label="' + label + ', make"' + (makeOther ? ' value="' + esc(make) + '"' : ' hidden') + '></div>' +
+      '<div class="tp-field"><label for="' + id + '-comp">' + label + ', compound</label><select class="field" id="' + id + '-comp"' + (makeOther ? ' hidden' : make ? '' : ' disabled') + '>' + compOpts + '</select>' +
+      '<input class="field tp-pad-typed" id="' + id + '-comp-text" type="text" maxlength="40" placeholder="Type the compound" aria-label="' + label + ', compound"' + (compOther ? ' value="' + esc(compound) + '"' : ' hidden') + '></div>' +
+      '<p class="tp-small tp-pad-maker" id="' + id + '-maker"></p></div>';
   }
   function padFields(pre, p, note) {
     if (!PD) return '';
@@ -685,16 +689,27 @@
       padSelects(pre, 'front', p.fm, p.fc, false) +
       '<button type="button" class="tp-switch tp-pad-same" role="switch" id="' + pre + '-same" aria-checked="' + (p.same !== false) + '"><span>Same pads on the rear</span><span class="tp-track"></span></button>' +
       padSelects(pre, 'rear', p.same !== false ? p.fm : p.rm, p.same !== false ? p.fc : p.rc, p.same !== false) +
-      '<p class="tp-small">Not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p></div>';
+      '<p class="tp-small">Not on the list? Choose &ldquo;type it in&rdquo; for the make or compound, or <a href="contact.html">tell us</a> and we&rsquo;ll add it.</p></div>';
+  }
+  // One side's make and compound: the drop-down's choice, or what was typed when the choice is Other.
+  function padValue(pre, side, part) {
+    var sel = document.getElementById(pre + '-' + side + '-' + part), txt = document.getElementById(pre + '-' + side + '-' + part + '-text');
+    if (!sel) return '';
+    if (sel.value === '__other__') return txt ? txt.value.trim().slice(0, 40) : '';
+    return sel.value;
+  }
+  function padSide(pre, side) {
+    var mk = document.getElementById(pre + '-' + side + '-make'), ct = document.getElementById(pre + '-' + side + '-comp-text');
+    // A make that was typed has no list of compounds, so its compound is typed too.
+    var compound = mk && mk.value === '__other__' ? (ct ? ct.value.trim().slice(0, 40) : '') : padValue(pre, side, 'comp');
+    return { make: padValue(pre, side, 'make'), compound: compound };
   }
   function readPads(pre) {
     var fm = document.getElementById(pre + '-front-make');
     if (!fm || !PD) return null;
-    function v(id) { var el = document.getElementById(pre + '-' + id); return el ? el.value : ''; }
     var same = document.getElementById(pre + '-same').getAttribute('aria-checked') === 'true';
-    var p = { fm: v('front-make'), fc: v('front-comp') };
-    p.rm = same ? p.fm : v('rear-make'); p.rc = same ? p.fc : v('rear-comp'); p.same = same;
-    return p;
+    var f = padSide(pre, 'front'), r = same ? f : padSide(pre, 'rear');
+    return { fm: f.make, fc: f.compound, rm: r.make, rc: r.compound, same: same };
   }
   function padPayload(p) {
     p = p || {};
@@ -703,21 +718,34 @@
   function wirePads(pre) {
     if (!PD || !document.getElementById(pre + '-front-make')) return;
     function maker(side) {
-      var m = document.getElementById(pre + '-' + side + '-make').value, c = document.getElementById(pre + '-' + side + '-comp').value;
-      var line = PD.makerLine(PD.info(m, c)), el = document.getElementById(pre + '-' + side + '-maker');
+      var s = padSide(pre, side);
+      var line = PD.makerLine(PD.info(s.make, s.compound)), el = document.getElementById(pre + '-' + side + '-maker');
       if (el) el.textContent = line ? "Maker's figures: " + line : '';
     }
     ['front', 'rear'].forEach(function (side) {
-      var mk = document.getElementById(pre + '-' + side + '-make'), cp = document.getElementById(pre + '-' + side + '-comp');
+      var id = pre + '-' + side, mk = document.getElementById(id + '-make'), cp = document.getElementById(id + '-comp');
+      var mt = document.getElementById(id + '-make-text'), ct = document.getElementById(id + '-comp-text');
+      // The text boxes show only for an Other choice; a typed make has no compounds, so its compound is typed too.
+      function boxes() {
+        var makeTyped = mk.value === '__other__';
+        mt.hidden = !makeTyped;
+        cp.hidden = makeTyped;
+        cp.disabled = !mk.value;
+        ct.hidden = !(makeTyped || cp.value === '__other__');
+      }
       mk.addEventListener('change', function () {
-        var list = PD.compounds(mk.value);
-        cp.innerHTML = '<option value="">' + (mk.value ? 'Choose the compound' : 'Choose the make first') + '</option>' + list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+        var list = mk.value && mk.value !== '__other__' ? PD.compounds(mk.value) : [];
+        cp.innerHTML = '<option value="">' + (mk.value ? 'Choose the compound' : 'Choose the make first') + '</option>' + list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('') +
+          (list.length ? '<option value="__other__">Other compound, type it in</option>' : '');
         // A make with one compound (the car's original pads) is picked for them.
         if (list.length === 1) cp.value = list[0];
-        cp.disabled = !mk.value;
+        boxes();
+        if (mk.value === '__other__') mt.focus();
         maker(side);
       });
-      cp.addEventListener('change', function () { maker(side); });
+      cp.addEventListener('change', function () { boxes(); if (cp.value === '__other__') ct.focus(); maker(side); });
+      mt.addEventListener('input', function () { maker(side); });
+      ct.addEventListener('input', function () { maker(side); });
       maker(side);
     });
     var same = document.getElementById(pre + '-same');

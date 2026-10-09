@@ -6351,6 +6351,41 @@ def test_pads_start_from_my_garage_and_are_saved_with_the_session(page):
     assert (saved["padFrontMake"], saved["padFrontCompound"], saved["padRearMake"], saved["padRearCompound"]) == ("Pagid", "RSL29", "Pagid", "RS29"), saved
 
 
+def test_brake_pads_can_be_typed_when_they_are_not_on_the_list(page):
+    """The make and the compound each end with an Other choice that opens a text box, so pads we do not list can still be
+    named: a typed make takes a typed compound, and a listed make can have a compound that is typed."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    # Nothing is typed until Another make is chosen.
+    expect(page.locator("#tp-pad-front-make-text")).to_be_hidden()
+    expect(page.locator("#tp-pad-front-comp-text")).to_be_hidden()
+    page.select_option("#tp-pad-front-make", "__other__")
+    expect(page.locator("#tp-pad-front-make-text")).to_be_visible()
+    expect(page.locator("#tp-pad-front-comp-text")).to_be_visible()
+    expect(page.locator("#tp-pad-front-comp")).to_be_hidden()
+    page.fill("#tp-pad-front-make-text", "Zeta Brakes")
+    page.fill("#tp-pad-front-comp-text", "DTC-60")
+    # Different pads on the rear: a listed make with a compound that is typed.
+    page.locator("#tp-pad-same").click()
+    first = page.locator("#tp-pad-rear-make option").nth(1).get_attribute("value")
+    page.select_option("#tp-pad-rear-make", first)
+    page.select_option("#tp-pad-rear-comp", "__other__")
+    expect(page.locator("#tp-pad-rear-comp-text")).to_be_visible()
+    page.fill("#tp-pad-rear-comp-text", "Prototype 1")
+    # Kept through a redraw (the units switch): the typed words are still in their boxes.
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-pad-front-make")).to_have_value("__other__")
+    expect(page.locator("#tp-pad-front-make-text")).to_have_value("Zeta Brakes")
+    expect(page.locator("#tp-pad-rear-comp-text")).to_have_value("Prototype 1")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    saved = fake.saved[0]
+    assert (saved["padFrontMake"], saved["padFrontCompound"], saved["padRearMake"], saved["padRearCompound"]) == ("Zeta Brakes", "DTC-60", first, "Prototype 1"), saved
+
+
 def _compare_board():
     """Four cars at Thruxton: one on two tyres (and two sets of pads), with temperatures and braking."""
     def best(sid, t, tyre_make, tyre_model, pads, pad_make, pad_comp, temp, brake_g, brake_temp=None, date="2026-04-01", cond="Dry"):

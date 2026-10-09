@@ -25,7 +25,7 @@ GROUPS = [
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
-    ("grp-access", "Access", ["access-wrap", "signin-wrap", "usage-wrap"]),
+    ("grp-access", "Access", ["access-wrap", "offline-wrap", "signin-wrap", "usage-wrap"]),
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
@@ -160,6 +160,68 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     a = page.locator(".admin-nav").bounding_box()
     b = sub.bounding_box()
     assert b["y"] >= a["y"] + a["height"] - 1
+
+
+def test_the_tracks_category_lists_its_headings_in_the_sub_menu(page):
+    """Tracks is one panel with two blocks inside it, so the sub menu lists those headings and jumps to them."""
+    open_admin(page, "track-admin.html")
+    sub = page.locator("#admin-subnav")
+    page.locator('.admin-nav a[href="track-admin.html#grp-tracks"]').click()
+    expect(sub).to_be_visible()
+    expect(sub.locator("a")).to_have_text(["New track requests", "Tracks"])
+    # A fold that was closed opens, and the heading comes to the top under the menus.
+    page.evaluate("document.getElementById('tracks-wrap').open = false; document.getElementById('tk-list-wrap').open = false")
+    sub.locator("a", has_text="Tracks").click()
+    expect(page.locator("#tracks-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tk-list-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tk-list-wrap > summary")).to_be_in_viewport()
+    a = page.locator(".admin-nav").bounding_box()
+    t = page.locator("#tk-list-wrap > summary").bounding_box()
+    assert t["y"] >= a["y"] + a["height"] - 1, (a, t)
+
+
+@pytest.mark.parametrize("name", ["track-admin.html", "admin.html"])
+def test_every_section_has_a_refresh_button_that_keeps_its_place(page, name):
+    """A refresh icon at the end of each panel's title bar and on each category heading: it loads the panels again without
+    opening or closing the panel, and the section stays where it was on the screen while the lists above change."""
+    open_admin(page, name)
+    panels = page.locator("details.collapsible")
+    count = panels.count()
+    assert count > 5
+    assert page.locator("details.collapsible > summary .sec-refresh").count() == count
+    assert page.locator(".admin-group > .group-head .sec-refresh").count() == page.locator(".admin-group").count()
+    # Count the refreshes, and make everything above the section grow when one happens (as the lists do when they load).
+    page.evaluate("""() => {
+      window.__refreshes = 0;
+      document.addEventListener('mt3uk-admin-refresh', () => { window.__refreshes++; });
+    }""")
+    target = page.locator("details.collapsible").nth(count // 2)
+    target.scroll_into_view_if_needed()
+    was_open = target.evaluate("e => e.open")
+    summary = target.locator("> summary")
+    top = summary.bounding_box()["y"]
+    page.evaluate("""() => {
+      document.addEventListener('mt3uk-admin-refresh', () => {
+        setTimeout(() => {
+          const pad = document.createElement('div'); pad.id = 'test-pad'; pad.style.height = '400px';
+          document.querySelector('.admin-group').prepend(pad);
+        }, 120);
+      }, { once: true });
+    }""")
+    before = page.evaluate("window.__refreshes")
+    target.locator("> summary .sec-refresh").click()
+    # It opened the panel it was pressed in (so it can load), and refreshed once.
+    expect(target).to_have_attribute("open", "")
+    assert page.evaluate("window.__refreshes") == before + 1
+    page.wait_for_timeout(900)
+    assert page.locator("#test-pad").count() == 1
+    now = summary.bounding_box()["y"]
+    assert abs(now - top) <= 3, (top, now)
+    # A category heading has one too, and it does not toggle anything.
+    page.locator(".admin-group > .group-head .sec-refresh").first.click()
+    assert page.evaluate("window.__refreshes") == before + 2
+    if was_open is False:
+        pass
 
 
 def test_the_old_admin_addresses_for_the_track_panels_lead_to_the_new_page(page):
@@ -662,7 +724,7 @@ def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_every
     expect(modal).to_have_count(0)
     # Refresh asks for everything again, including the early access list.
     before = hits["access"]
-    page.get_by_role("button", name="Refresh").click()
+    page.locator("#refresh-btn").click()
     page.wait_for_timeout(500)
     assert hits["access"] > before
 

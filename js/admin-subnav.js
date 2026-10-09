@@ -14,12 +14,14 @@
   var groups = [].slice.call(document.querySelectorAll('.admin-group'));
   var current = null;
 
+  function headText(h) {
+    var c = h.cloneNode(true);
+    [].slice.call(c.querySelectorAll('.summary-count, .count')).forEach(function (n) { n.parentNode.removeChild(n); });
+    return c.textContent.replace(/\s+/g, ' ').trim();
+  }
   function titleOf(d) {
     var h = d.querySelector('summary .panel-title');
-    if (!h) return '';
-    var c = h.cloneNode(true);
-    [].slice.call(c.querySelectorAll('.summary-count')).forEach(function (n) { n.parentNode.removeChild(n); });
-    return c.textContent.replace(/\s+/g, ' ').trim();
+    return h ? headText(h) : '';
   }
 
   function setHeights() {
@@ -31,12 +33,24 @@
   function build(group) {
     sub.innerHTML = '';
     var panels = [].slice.call(group.querySelectorAll('details.collapsible')).filter(function (d) { return !d.hidden && d.id && titleOf(d); });
-    sub.hidden = panels.length < 2;
-    panels.forEach(function (d) {
+    var entries = panels.map(function (d) { return { id: d.id, title: titleOf(d) }; });
+    // A category with one panel (Tracks) lists the headings inside it instead, so they can be reached the same way.
+    if (panels.length < 2) {
+      var inner = [];
+      [].slice.call(group.querySelectorAll('h3.sub-head')).forEach(function (h, i) {
+        var t = headText(h);
+        if (h.hidden || !t) return;
+        if (!h.id) h.id = group.id + '-sub-' + (i + 1);
+        inner.push({ id: h.id, title: t });
+      });
+      if (inner.length > 1) entries = inner;
+    }
+    sub.hidden = entries.length < 2;
+    entries.forEach(function (en) {
       var li = document.createElement('li'), a = document.createElement('a');
-      a.href = PAGE + '#' + d.id;
-      a.textContent = titleOf(d);
-      a.setAttribute('data-panel', d.id);
+      a.href = PAGE + '#' + en.id;
+      a.textContent = en.title;
+      a.setAttribute('data-panel', en.id);
       li.appendChild(a);
       sub.appendChild(li);
     });
@@ -69,7 +83,8 @@
     e.preventDefault();
     var d = document.getElementById(a.getAttribute('data-panel'));
     if (!d) return;
-    d.open = true;
+    // Open the panel, and any panel or fold the heading sits inside.
+    for (var p = d; p; p = p.parentElement) { if (p.tagName === 'DETAILS') p.open = true; }
     d.scrollIntoView({ block: 'start', behavior: 'smooth' });
     if (history.replaceState) history.replaceState(null, '', PAGE + '#' + d.id);
   });

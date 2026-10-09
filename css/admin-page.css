@@ -595,6 +595,9 @@
 #mc-list .mc-table input, #mc-list .mc-table select { min-height: 36px; width: 100%; min-width: 120px; max-width: 180px; font: inherit; }
 #mc-list .mc-table .mc-type { min-width: 76px; }
 #mc-list .mc-table input[type="number"] { min-width: 76px; max-width: 90px; }
+/* The table is wider than most windows and scrolls sideways, so its last column (Save, or Remove on a stale row) stays pinned to the right
+   edge of the box where it can always be found; the stacked phone layout below turns this off. */
+#mc-list .mc-table th:last-child, #mc-list .mc-table td:last-child { position: sticky; right: 0; z-index: 1; background: var(--card, #fff); box-shadow: -10px 0 8px -8px rgba(22, 35, 61, 0.28); padding-left: 10px; }
 #mc-list .mc-row.is-target > td { background: #fff3d6; }
 #mc-list .mc-row.is-changed > td { background: #fdf3ef; }
 #mc-list .mc-row.is-stale > td { background: #f3f4f7; color: #4a5468; }
@@ -605,6 +608,7 @@
   #mc-list .mc-table, #mc-list .mc-table tbody, #mc-list .mc-table tr, #mc-list .mc-table td { display: block; width: auto; min-width: 0; }
   #mc-list .mc-table tr { padding: 10px 0; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
   #mc-list .mc-table td { padding: 3px 0; border-bottom: 0; }
+  #mc-list .mc-table th:last-child, #mc-list .mc-table td:last-child { position: static; box-shadow: none; padding-left: 0; background: transparent; }
   #mc-list .mc-table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.72rem; color: var(--steel); }
   #mc-list .mc-table input, #mc-list .mc-table select { max-width: none; min-height: 44px; font-size: 16px; }
 }
@@ -697,3 +701,21 @@
 .ll-name { font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; }
 .ll-app { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 13px; }
 .ll-about { color: var(--steel); font-size: 0.86rem; }
+
+/* A refresh button against each section (js/admin-section-tools.js): at the end of a panel's title bar beside its "?", and at
+   the right of a category's heading. */
+summary.has-tools { display: flex; align-items: center; gap: 8px; }
+summary.has-tools .sec-refresh { order: 8; margin-left: auto; }
+summary.has-tools .help-btn { order: 9; margin-left: 0; }
+.group-head.has-tools { position: relative; padding-right: 44px; }
+.group-head .sec-refresh { position: absolute; top: 0; right: 0; }
+button.sec-refresh { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; min-width: 26px; min-height: 26px; box-sizing: border-box; padding: 0; line-height: 1; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--card); color: var(--steel); cursor: pointer; flex: 0 0 auto; position: relative; }
+button.sec-refresh::before { content: ""; position: absolute; inset: -9px; }
+button.sec-refresh:hover, button.sec-refresh:focus-visible { border-color: var(--orange); color: var(--orange); }
+.sec-refresh .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.sec-refresh.is-busy { color: var(--orange); border-color: var(--orange); }
+.sec-refresh.is-busy .icon { animation: sec-spin 0.9s linear infinite; }
+@keyframes sec-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sec-refresh.is-busy .icon { animation: none; } }
+/* The headings the second menu row jumps to inside a one-panel category (Tracks) stop clear of the sticky menus. */
+h3.sub-head[id], .tk-fold { scroll-margin-top: calc(var(--nav-h, 64px) + 70px); }

@@ -161,6 +161,12 @@
     ] },
     'ls-separate': { t: 'Laps has its own sign-in page and emails', p: 'On (the default): Laps shows its own sign-in page and sends Laps-branded emails. Off: the Laps sign-in page passes visitors on to the MT3UK sign-in and the MT3UK emails are sent. Either way the emailed link comes back to laps.mt3uk.com.' },
     'ls-mt3uk-too': { t: 'New Laps sign-ups become MT3UK members too', p: 'On (the default): joining on Laps makes a full MT3UK member. Off: joining on Laps makes a Laps-only account, which can sign in on Laps but not on mt3uk.com. If that person joins on mt3uk.com later they become a full member.' },
+    'offline-wrap': { t: 'Offline mode', p: 'Who is offered Offline mode on the Laps pages, which keeps Laps working with no signal.', i: [
+      ['Open to all members', 'On: every member is offered it. Off: only the people on the approved list are.'],
+      ['Give access', 'Type a member\'s email to approve them. They are offered Offline mode the next time their page asks.'],
+      ['Take away', 'Removes someone from the list. If they had Offline mode on, it is switched off and the copy kept on their device is removed; anything still waiting to be sent stays.'],
+      ['Find a Laps member', 'Lists members to search by name or email, with Give access or Take away on each row, and Add me for the account signed in to Laps in this browser.']
+    ] },
     'usage-wrap': { t: 'Usage', p: 'How Laps is being used, for deciding whether a paid tier is worth building.', i: [
       ['Members', 'Members with sessions, how many were active in the last 30 and 90 days, new ones, those who came back (sessions in two or more months) and those with only one session.'],
       ['Sessions', 'Saved in all and in the last 30 and 90 days, how many are shared, how many keep their readings and the storage they take, split by type.'],

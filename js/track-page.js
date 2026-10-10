@@ -137,6 +137,14 @@
     } catch (e) { return ''; }
   }
   var adminCheck = null;
+  // The Sessions tree split by kind is for the members the admin invites (Sessions tree panel of track-admin.html).
+  var treeKindsOn = false;
+  function checkTreeAccess() {
+    if (!token()) return;
+    api('GET', '/sessions-tree/access').then(function (d) {
+      if (d && d.success && d.access && !treeKindsOn) { treeKindsOn = true; if (mine) route(); }
+    }).catch(function () { /* not invited, or no signal: the list stays as it is */ });
+  }
   function isAdmin() {
     if (adminCheck) return adminCheck;
     var t = adminViewerToken();
@@ -1160,6 +1168,30 @@
     });
     return out.sort(function (a, b) { return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1; });
   }
+  // The admin's Sessions tree (treeKindsOn): under each place, one row per kind (Track day, Sprint, Hill climb, Drag strip,
+  // Drives), then the layouts in that kind. A kind with a single layout shows its days straight away, with no layout row.
+  var KIND_TREE_NAMES = { track: 'Track day', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip', other: 'Drives' };
+  var openKinds = {};
+  function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (s.hill ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
+  function byWhenDesc(rows) { return rows.slice().sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; }); }
+  function kindTreeHtml(here, tkey, list) {
+    return ['track', 'sprint', 'hill', 'drag', 'other'].filter(function (kd) {
+      return here.some(function (x) { return sessionKindOf(x) === kd; });
+    }).map(function (kd) {
+      var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;
+      var kopen = filterOpenAll || !!openKinds[kk], lays = layoutEntries(mineK), body;
+      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK), true, list, true);
+      else body = lays.map(function (l) {
+        var lk = kk + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
+        var rows = byWhenDesc(mineK.filter(function (x) { return layoutKeyOf(x) === l.key; }));
+        return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
+          '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list, true) + '</div></div>';
+      }).join('');
+      var count = mineK.length + ' session' + (mineK.length === 1 ? '' : 's') + (lays.length === 1 ? ', ' + esc(lays[0].name) : '');
+      return '<div class="tp-kindwrap"><button type="button" class="tp-row tp-kindrow" data-kind-toggle="' + esc(kk) + '" aria-expanded="' + kopen + '"><span class="tp-row-main"><b>' + KIND_TREE_NAMES[kd] + '</b><span>' + count + '</span></span>' + icon('chev') + '</button>' +
+        '<div class="tp-kind-body"' + (kopen ? '' : ' hidden') + '>' + body + '</div></div>';
+    }).join('');
+  }
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for
   // the browser session (sessionStorage mt3ukLapsListOpen), so coming back from a session finds the list as it was.
@@ -1178,12 +1210,12 @@
       var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
       return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
         (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
-        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
+        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
           return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
             '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
-        }).join('') + '</div></div>';
+        }).join('')) + '</div></div>';
     }).join('');
   }
   function wireTrackToggles() {
@@ -1191,8 +1223,13 @@
     if (!box || box.getAttribute('data-toggles')) return;
     box.setAttribute('data-toggles', '1');
     box.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-track-toggle]'), lb = e.target.closest('[data-layout-toggle]');
-      if (b) {
+      var b = e.target.closest('[data-track-toggle]'), lb = e.target.closest('[data-layout-toggle]'), kb = e.target.closest('[data-kind-toggle]');
+      if (kb) {
+        var kk = kb.getAttribute('data-kind-toggle'), kbody = kb.parentNode.querySelector('.tp-kind-body');
+        openKinds[kk] = !openKinds[kk];
+        kb.setAttribute('aria-expanded', openKinds[kk] ? 'true' : 'false');
+        if (kbody) kbody.hidden = !openKinds[kk];
+      } else if (b) {
         var k = b.getAttribute('data-track-toggle'), wrap = b.closest('.tp-trackwrap'), lays = wrap && wrap.querySelector('.tp-layouts');
         openTracks[k] = !openTracks[k];
         b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
@@ -5276,5 +5313,6 @@
     }).catch(function () { failed('That build could not be loaded.'); });
   }
 
+  checkTreeAccess();
   route();
 })();

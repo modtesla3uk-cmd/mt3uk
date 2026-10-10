@@ -25,7 +25,7 @@ GROUPS = [
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
-    ("grp-access", "Access", ["access-wrap", "offline-wrap", "signin-wrap", "usage-wrap"]),
+    ("grp-access", "Access", ["access-wrap", "offline-wrap", "tree-wrap", "signin-wrap", "usage-wrap"]),
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
@@ -486,6 +486,45 @@ def test_admin_offline_mode_panel_gives_access_to_members_and_opens_to_all(page)
     expect(page.locator("#of-open")).to_have_attribute("aria-checked", "true")
     expect(page.locator("#offline-count")).to_have_text("open to all")
     assert [c["action"] for c in calls] == ["add", "revoke", "open"]
+
+
+def test_admin_sessions_split_by_kind_panel_invites_members_and_opens_to_all(page):
+    """The invite list for the Sessions split by kind, kept apart from Offline mode: giving and taking away touch only this list."""
+    state = {"open": False, "allowed": [{"email": "old@example.com", "name": "Old", "at": "2026-09-01T10:00:00Z"}]}
+    calls = []
+
+    def tree(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            e = body.get("email")
+            if body["action"] == "open":
+                state["open"] = body["open"]
+            elif body["action"] == "add":
+                state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/sessions-tree/admin**", tree)
+    page.reload()
+    expect(page.locator("#tree-count")).to_have_text("1 approved")
+    page.locator("#tree-wrap summary").click()
+    expect(page.locator("#st-allowed")).to_contain_text("old@example.com")
+    page.fill("#st-add-email", "new@example.com")
+    page.get_by_role("button", name="Give access").click()
+    expect(page.locator("#st-allowed")).to_contain_text("new@example.com")
+    expect(page.locator("#tree-count")).to_have_text("2 approved")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#st-allowed [data-revoke='old@example.com']").click()
+    expect(page.locator("#st-allowed")).not_to_contain_text("old@example.com")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#st-open").click()
+    expect(page.locator("#tree-count")).to_have_text("open to all")
+    assert [c["action"] for c in calls] == ["add", "revoke", "open"]
+    # The Offline mode panel is untouched by this list.
+    expect(page.locator("#offline-count")).to_have_text("")
 
 
 def test_admin_offline_mode_panel_finds_laps_members_and_can_add_the_admins_own_account(page):

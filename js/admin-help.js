@@ -161,6 +161,12 @@
     ] },
     'ls-separate': { t: 'Laps has its own sign-in page and emails', p: 'On (the default): Laps shows its own sign-in page and sends Laps-branded emails. Off: the Laps sign-in page passes visitors on to the MT3UK sign-in and the MT3UK emails are sent. Either way the emailed link comes back to laps.mt3uk.com.' },
     'ls-mt3uk-too': { t: 'New Laps sign-ups become MT3UK members too', p: 'On (the default): joining on Laps makes a full MT3UK member. Off: joining on Laps makes a Laps-only account, which can sign in on Laps but not on mt3uk.com. If that person joins on mt3uk.com later they become a full member.' },
+    'tree-wrap': { t: 'Sessions split by kind', p: 'Which members see the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives.', i: [
+      ['Open to all members', 'On: every member sees the split. Off: only the people on the invited list do.'],
+      ['Give access', 'Type a member\'s email to invite them. They see the split the next time they open Sessions.'],
+      ['Take away', 'Removes someone from the list. Their Sessions list goes back to the plain view.'],
+      ['Find a member', 'Lists everyone who can sign in, with Give access or Take away on each row. Add me adds your own account, so you can test it.']
+    ] },
     'offline-wrap': { t: 'Offline mode', p: 'Who is offered Offline mode on the Laps pages, which keeps Laps working with no signal.', i: [
       ['Open to all members', 'On: every member is offered it. Off: only the people on the approved list are.'],
       ['Give access', 'Type a member\'s email to approve them. They are offered Offline mode the next time their page asks.'],

@@ -92,6 +92,20 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="of-add-form"><input type="email" id="of-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
     </details>
+    <details class="collapsible" id="tree-wrap">
+      <summary><h3 class="panel-title">Sessions split by kind <span class="summary-count" id="tree-count"></span></h3></summary>
+      <p class="iv-note">Shows the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives. Only the members you invite here see it, and it can be changed on its own: Offline mode has its own list above.</p>
+      <p class="iv-note" id="st-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="st-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Invited members</h3>
+      <div id="st-allowed"></div>
+      <h3 class="sub-head">Find a member</h3>
+      <p class="iv-note">Everyone who can sign in. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in in this browser, so you can test adding and taking away on it.</p>
+      <div class="iv-toolbar"><input type="search" id="st-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="st-load">Show members</button><button type="button" class="secondary" id="st-me" hidden>Add me</button></div>
+      <div id="st-members"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+    </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
       <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
@@ -308,13 +322,14 @@
 </main>
 <script src="js/track-admin-page.js?v=20271021"></script>
 <script src="js/admin-subnav.js?v=20271040" defer></script>
-<script src="js/admin-help.js?v=20271041" defer></script>
+<script src="js/admin-help.js?v=20271042" defer></script>
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/track-parse.js?v=20271036" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/laps-offline-admin.js?v=2" defer></script>
+<script src="js/sessions-tree-admin.js?v=1" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>

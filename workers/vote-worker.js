@@ -7850,6 +7850,49 @@ async function handleLapsOfflineAdmin(request, env) {
   return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
+// ---- Sessions tree: who sees the admin's kind-by-kind Sessions list ---------------------------
+// A separate invite list from Offline mode, so the two can be changed on their own. One KV key (sessions-tree-access),
+// read with get(). Approved members (and everyone once Open to all members is on) see the tree that splits each place
+// by kind. Managed on the Sessions tree panel of track-admin.html (js/sessions-tree-admin.js, /sessions-tree/admin).
+var SESSIONS_TREE_KEY = 'sessions-tree-access';
+async function getSessionsTreeAccess(env) {
+  var a = await getJsonKey(env, SESSIONS_TREE_KEY, {});
+  return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
+}
+async function handleSessionsTreeAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getSessionsTreeAccess(env), e = accessEmail(email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
+}
+async function handleSessionsTreeAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var a = await getSessionsTreeAccess(env);
+  if (request.method === 'GET') {
+    var reply = { success: true, open: a.open, allowed: a.allowed };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, a);
+    return json(reply);
+  }
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'add' || action === 'revoke') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        a.allowed.push({ email: e, name: nm, at: new Date().toISOString() });
+        a.allowed = a.allowed.slice(-500);
+      }
+    } else a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(SESSIONS_TREE_KEY, JSON.stringify(a));
+  return json({ success: true, open: a.open, allowed: a.allowed });
+}
+
 async function handleTrackSessionsList(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -11646,6 +11689,12 @@ export default {
     }
     if (url.pathname === '/laps/offline/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsOfflineAdmin(request, env);
+    }
+    if (url.pathname === '/sessions-tree/access' && request.method === 'GET') {
+      return handleSessionsTreeAccess(request, env);
+    }
+    if (url.pathname === '/sessions-tree/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSessionsTreeAdmin(request, env);
     }
     if (url.pathname === '/track/access' && request.method === 'GET') {
       return handleTrackAccess(request, env);

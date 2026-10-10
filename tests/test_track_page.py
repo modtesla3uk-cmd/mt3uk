@@ -51,6 +51,7 @@ class FakeWorker:
         self.car_updates = []
         self.index = [dict(EARLIER)] if earlier else []
         self.admin = admin
+        self.tree_access = False
         self.saved = []
         self.gzipped = False
         self.requests = []
@@ -300,6 +301,8 @@ class FakeWorker:
             lib["venues"].append({"id": "made-sprint", "name": body.get("name") or "Made Sprint", "type": "sprint", "lat": body["lat"], "lng": body["lng"], "radius": 2500,
                                   "layouts": [{"id": "course", "name": "Course", "length": body.get("lapLength") or 0, "startLine": body["startLine"], "finishLine": body["finishLine"]}]})
             data = {"success": True, "relinked": 0, "library": lib}
+        elif path == "/sessions-tree/access":
+            data = {"success": True, "access": self.tree_access}
         elif path == "/admin/viewer-check":
             data = {"success": self.admin}
             status = 200 if self.admin else 401
@@ -7043,3 +7046,47 @@ def test_the_layout_choice_forces_a_layout_and_is_remembered(page):
     assert page.evaluate("localStorage.getItem('mt3ukTrackLayout')") == "upright"
     page.locator("#tp-layout").select_option("auto")
     expect(card).to_have_attribute("data-layout", "large")
+
+
+def _place_with_kinds(fake):
+    """Lydden Hill: a sprint on the B19 course, a track day on its circuit layout, and a drive with no kind set."""
+    track = dict(day_session("t1", "10:00", 90.0, 4, date="2026-06-02", venue="Lydden Hill", venue_id="lydden"), layoutId="circuit", layout="Lydden Hill")
+    sprint = dict(day_session("s1", "11:00", 48.0, 2, date="2026-06-03", venue="Lydden Hill", venue_id="lydden"), type="sprint", layoutId="b19", layout="B19", organizer="B19")
+    drive = dict(day_session("o1", "12:00", 60.0, 1, date="2026-06-04", venue="Lydden Hill", venue_id="lydden"), type="other", layoutId="", layout="")
+    for r in (track, sprint, drive):
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+
+
+def test_invited_members_see_each_place_split_by_kind_and_a_single_layout_skips_its_row(page):
+    fake = FakeWorker(earlier=False)
+    fake.tree_access = True
+    _place_with_kinds(fake)
+    open_page(page, fake)
+    lydden = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
+    lydden.locator("[data-track-toggle]").click()
+    kinds = lydden.locator(".tp-kindrow b")
+    expect(kinds).to_have_text(["Track day", "Sprint", "Drives"])
+    # The track day has one layout, so its days show straight away with no layout row inside it.
+    track_kind = lydden.locator(".tp-kindwrap", has_text="Track day")
+    expect(track_kind.locator(".tp-kind-body")).to_be_hidden()
+    track_kind.locator(".tp-kindrow").click()
+    expect(track_kind.locator(".tp-layoutrow")).to_have_count(0)
+    expect(track_kind.locator(".tp-kind-body")).to_be_visible()
+    # The sprint is folded until its row is pressed.
+    sprint_kind = lydden.locator(".tp-kindwrap", has_text="Sprint")
+    expect(sprint_kind.locator(".tp-kind-body")).to_be_hidden()
+    sprint_kind.locator(".tp-kindrow").click()
+    expect(sprint_kind.locator(".tp-kind-body")).to_be_visible()
+    # One course (B19), so its row is skipped and the sprint's sessions show under the kind.
+    expect(sprint_kind.locator(".tp-layoutrow")).to_have_count(0)
+    expect(sprint_kind.locator(".tp-kind-body .tp-row")).to_have_count(1)
+
+
+def test_members_not_invited_see_the_list_without_kind_rows(page):
+    fake = FakeWorker(earlier=False)
+    _place_with_kinds(fake)
+    open_page(page, fake)
+    lydden = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
+    lydden.locator("[data-track-toggle]").click()
+    expect(page.locator("#tp-sess-list .tp-kindrow")).to_have_count(0)

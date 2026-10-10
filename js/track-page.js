@@ -1214,6 +1214,13 @@
   var openTracks = {}, openLayouts = {};
   function storeListOpen() {}
   // publicView: the read-only list others see (no Shared switches, nothing to edit).
+  // A layout row reads its type first, then the layout: Track day · MSE 'NEW hairpin' layout. A layout already named for its
+  // type (Track days) is not repeated.
+  function layoutHeadHtml(name, rows, publicView) {
+    var kn = rows.length && !publicView ? KIND_TREE_NAMES[sessionKindOf(rows[0])] || '' : '';
+    if (!kn || String(name).toLowerCase().indexOf(kn.toLowerCase()) === 0) return esc(name);
+    return esc(kn + ' · ' + name);
+  }
   // The event types a place has, for its row: Track day · Sprint (drives are not a type).
   function placeKindsText(here) {
     var names = [];
@@ -1246,7 +1253,7 @@
           var fitD = looseDrives.filter(function (d) { return !placedDrive[d.id] && rowsL.some(function (x) { return x.date === d.date; }); });
           fitD.forEach(function (d) { placedDrive[d.id] = true; });
           var rows = byWhenDesc(rowsL.concat(fitD));
-          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + (rowsL.length && !publicView ? ' · ' + esc(KIND_TREE_NAMES[sessionKindOf(rowsL[0])] || '') : '') + '</span></span>' + icon('chev') + '</button>' +
+          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + layoutHeadHtml(l.name, rowsL, publicView) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
             '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
         }).join('')) + driveTail() + '</div></div>';
     }).join('');

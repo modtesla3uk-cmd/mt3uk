@@ -2787,7 +2787,7 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(brands.locator(".tp-layouts")).to_be_visible()
     # Each layout, and the drag runs, once, newest first, with its count and last day.
     expect(layouts.locator("b")).to_have_text(["Grand Prix", "Indy", "Drag runs"])
-    expect(layouts.nth(1)).to_have_text(re.compile(r"2 sessions$"))
+    expect(layouts.nth(1)).to_contain_text("2 sessions")
     # Stays open through a sort.
     page.locator("#tp-sort").select_option("az")
     expect(brands.locator(".tp-layouts")).to_be_visible()
@@ -7149,3 +7149,19 @@ def test_a_layout_row_says_what_kind_of_event_it_is(page):
     ab = page.locator("#tp-sess-list .tp-trackwrap", has_text="Abingdon")
     ab.locator("[data-track-toggle]").click()
     expect(ab.locator(".tp-layoutrow")).to_contain_text("Track day")
+
+
+def test_in_the_plain_list_a_drive_sits_under_its_date_with_no_drives_layout(page):
+    fake = FakeWorker(earlier=False)
+    track = dict(day_session("t1", "10:00", 90.0, 4, date="2026-06-02", venue="Abingdon Airfield", venue_id="abingdon"), layoutId="mse", layout="MSE 'NEW hairpin' layout")
+    drive = dict(day_session("o1", "12:00", 60.0, 1, date="2026-06-02", venue="Abingdon Airfield", venue_id="abingdon"), type="other", layoutId="", layout="")
+    for r in (track, drive):
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    ab = page.locator("#tp-sess-list .tp-trackwrap", has_text="Abingdon")
+    ab.locator("[data-track-toggle]").click()
+    expect(ab.locator(".tp-layoutrow b")).to_have_text(["MSE 'NEW hairpin' layout"])
+    expect(ab.locator(".tp-drives")).to_have_count(0)
+    ab.locator(".tp-layoutrow").first.click()
+    expect(ab.locator(".tp-layout-sessions")).to_contain_text("1:00.00")

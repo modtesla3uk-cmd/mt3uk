@@ -1220,16 +1220,27 @@
     if (!list.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match those filters.</p></div>';
     return trackEntries(list).map(function (t) {
             var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
-      var here = list.filter(function (x) { return trackKeyOf(x) === t.key; }), lays = layoutEntries(here);
+      var here = list.filter(function (x) { return trackKeyOf(x) === t.key; });
+      // Drives are not a layout: they sit under the date they were recorded on, inside the layout with sessions that day.
+      var plainHere = here.filter(function (x) { return sessionKindOf(x) !== 'other'; }), looseDrives = here.filter(function (x) { return sessionKindOf(x) === 'other'; }), placedDrive = {};
+      var lays = layoutEntries(plainHere);
+      function driveTail() {
+        if (treeKindsOn && !publicView) return '';
+        var left = byWhenDesc(looseDrives.filter(function (d) { return !placedDrive[d.id]; }));
+        return left.length ? '<div class="tp-drives">' + sessionListHtml(left, !publicView, list, true) + '</div>' : '';
+      }
       var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
       return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
         (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
-          var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
-          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + (rows.length && !publicView ? ' · ' + esc(KIND_TREE_NAMES[sessionKindOf(rows[0])] || '') : '') + '</span></span>' + icon('chev') + '</button>' +
+          var rowsL = plainHere.filter(function (x) { return layoutKeyOf(x) === l.key; });
+          var fitD = looseDrives.filter(function (d) { return !placedDrive[d.id] && rowsL.some(function (x) { return x.date === d.date; }); });
+          fitD.forEach(function (d) { placedDrive[d.id] = true; });
+          var rows = byWhenDesc(rowsL.concat(fitD));
+          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + (rowsL.length && !publicView ? ' · ' + esc(KIND_TREE_NAMES[sessionKindOf(rowsL[0])] || '') : '') + '</span></span>' + icon('chev') + '</button>' +
             '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
-        }).join('')) + '</div></div>';
+        }).join('')) + driveTail() + '</div></div>';
     }).join('');
   }
   function wireTrackToggles() {

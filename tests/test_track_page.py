@@ -7165,3 +7165,17 @@ def test_in_the_plain_list_a_drive_sits_under_its_date_with_no_drives_layout(pag
     expect(ab.locator(".tp-drives")).to_have_count(0)
     ab.locator(".tp-layoutrow").first.click()
     expect(ab.locator(".tp-layout-sessions")).to_contain_text("1:00.00")
+
+
+def test_a_place_row_says_its_event_types(page):
+    """The place row names its types, so Abingdon reads as a track day and Lydden Hill lists Sprint and Track day."""
+    fake = FakeWorker(earlier=False)
+    a = dict(day_session("a1", "10:00", 79.95, 4, date="2024-02-23", venue="Abingdon Airfield", venue_id="abingdon"), layoutId="mse", layout="MSE 'NEW hairpin' layout")
+    l1 = dict(day_session("l1", "10:00", 60.0, 2, date="2026-06-02", venue="Lydden Hill", venue_id="lydden"), type="sprint", layoutId="b19", layout="B19", organizer="B19")
+    l2 = dict(day_session("l2", "11:00", 90.0, 4, date="2026-06-03", venue="Lydden Hill", venue_id="lydden"), layoutId="circuit", layout="Lydden Hill")
+    for r in (a, l1, l2):
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Abingdon").locator(".tp-trackrow")).to_contain_text("Track day · 1 session")
+    expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill").locator(".tp-trackrow")).to_contain_text("Track day · Sprint")

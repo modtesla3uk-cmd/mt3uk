@@ -1214,6 +1214,14 @@
   var openTracks = {}, openLayouts = {};
   function storeListOpen() {}
   // publicView: the read-only list others see (no Shared switches, nothing to edit).
+  // The event types a place has, for its row: Track day · Sprint (drives are not a type).
+  function placeKindsText(here) {
+    var names = [];
+    ['track', 'sprint', 'hill', 'drag'].forEach(function (kd) {
+      if (here.some(function (x) { return sessionKindOf(x) === kd; })) names.push(KIND_TREE_NAMES[kd]);
+    });
+    return names.join(' · ');
+  }
   function trackListHtml(list, carId, publicView) {
     filterOpenAll = filtersOn();
     list = filteredList(list);
@@ -1230,7 +1238,7 @@
         return left.length ? '<div class="tp-drives">' + sessionListHtml(left, !publicView, list, true) + '</div>' : '';
       }
       var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
-      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
+      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + (placeKindsText(here) ? esc(placeKindsText(here)) + ' · ' : '') + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
         (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];

@@ -7092,3 +7092,33 @@ def test_members_not_invited_see_the_list_without_kind_rows(page):
     lydden = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
     lydden.locator("[data-track-toggle]").click()
     expect(page.locator("#tp-sess-list .tp-kindrow")).to_have_count(0)
+
+
+def test_a_drive_sits_inside_the_date_it_was_recorded_on(page):
+    """A drive on the same day as a track day session is shown inside that day, not in a row of its own."""
+    fake = FakeWorker(earlier=False)
+    fake.tree_access = True
+    track = dict(day_session("t1", "10:00", 90.0, 4, date="2026-06-02", venue="Lydden Hill", venue_id="lydden"), layoutId="circuit", layout="Lydden Hill")
+    drive = dict(day_session("o1", "12:00", 60.0, 1, date="2026-06-02", venue="Lydden Hill", venue_id="lydden"), type="other", layoutId="", layout="")
+    for r in (track, drive):
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    lydden = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
+    lydden.locator("[data-track-toggle]").click()
+    lydden.locator(".tp-kindwrap", has_text="Track day").locator(".tp-kindrow").click()
+    expect(page.locator("#tp-sess-list .tp-drives")).to_have_count(0)
+    expect(lydden.locator(".tp-kindwrap", has_text="Track day").locator(".tp-kind-body")).to_contain_text("1:00.00")
+
+
+def test_a_sprint_at_a_hill_climb_track_is_listed_under_hill_climb(page):
+    """Shelsley Walsh is a hill climb in the track list, so its sessions show under Hill climb even when saved as a sprint."""
+    fake = FakeWorker(earlier=False)
+    fake.tree_access = True
+    s = dict(day_session("h1", "10:00", 40.0, 2, date="2026-06-02", venue="Shelsley Walsh", venue_id="shelsley-walsh"), type="sprint", layoutId="hill", layout="Hill climb")
+    fake.sessions[s["id"]] = dict(s)
+    fake.index.append(summary(s))
+    open_page(page, fake)
+    shelsley = page.locator("#tp-sess-list .tp-trackwrap", has_text="Shelsley Walsh")
+    shelsley.locator("[data-track-toggle]").click()
+    expect(shelsley.locator(".tp-kindrow b")).to_have_text(["Hill climb"])

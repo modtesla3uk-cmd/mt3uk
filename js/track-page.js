@@ -1172,20 +1172,28 @@
   // Drives), then the layouts in that kind. A kind with a single layout shows its days straight away, with no layout row.
   var KIND_TREE_NAMES = { track: 'Track day', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip', other: 'Drives' };
   var openKinds = {};
-  function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (s.hill ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
+  // A sprint at a track the list marks as a hill climb is a hill climb too (the track decides, as on the leaderboard).
+  function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (isHillSession(s, library) ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
   function byWhenDesc(rows) { return rows.slice().sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; }); }
   function kindTreeHtml(here, tkey, list) {
-    // Drives are not a kind: they sit under their date, after the kinds, as session rows.
-    var drives = byWhenDesc(here.filter(function (x) { return sessionKindOf(x) === 'other'; }));
+    // Drives are not a kind. Each one goes into the day it was recorded on, inside the kind or layout that has
+    // sessions on that date; a drive with no session on its date sits under the place, as its own day.
+    var drives = byWhenDesc(here.filter(function (x) { return sessionKindOf(x) === 'other'; })), placed = {};
+    function dayDrives(rows) {
+      return drives.filter(function (d) { return !placed[d.id] && rows.some(function (x) { return x.date === d.date; }); })
+        .map(function (d) { placed[d.id] = true; return d; });
+    }
     var kinds = ['track', 'sprint', 'hill', 'drag'].filter(function (kd) {
       return here.some(function (x) { return sessionKindOf(x) === kd; });
     }).map(function (kd) {
       var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;
       var kopen = filterOpenAll || !!openKinds[kk], lays = layoutEntries(mineK), body;
-      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK), true, list, true);
-      else body = lays.map(function (l) {
+      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK.concat(dayDrives(mineK))), true, list, true);
+      else body = lays.map(function (l, n) {
         var lk = kk + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
-        var rows = byWhenDesc(mineK.filter(function (x) { return layoutKeyOf(x) === l.key; }));
+        var rowsL = mineK.filter(function (x) { return layoutKeyOf(x) === l.key; });
+        var fit = dayDrives(rowsL).concat(n === 0 ? dayDrives(mineK).filter(function (d) { return !placed[d.id]; }) : []);
+        var rows = byWhenDesc(rowsL.concat(fit));
         return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
           '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list, true) + '</div></div>';
       }).join('');
@@ -1193,7 +1201,8 @@
       return '<div class="tp-kindwrap"><button type="button" class="tp-row tp-kindrow" data-kind-toggle="' + esc(kk) + '" aria-expanded="' + kopen + '"><span class="tp-row-main"><b>' + KIND_TREE_NAMES[kd] + '</b><span>' + count + '</span></span>' + icon('chev') + '</button>' +
         '<div class="tp-kind-body"' + (kopen ? '' : ' hidden') + '>' + body + '</div></div>';
     }).join('');
-    return kinds + (drives.length ? '<div class="tp-drives">' + sessionListHtml(drives, true, list, true) + '</div>' : '');
+    var loose = drives.filter(function (d) { return !placed[d.id]; });
+    return kinds + (loose.length ? '<div class="tp-drives">' + sessionListHtml(loose, true, list, true) + '</div>' : '');
   }
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for

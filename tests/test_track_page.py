@@ -7122,3 +7122,18 @@ def test_a_sprint_at_a_hill_climb_track_is_listed_under_hill_climb(page):
     shelsley = page.locator("#tp-sess-list .tp-trackwrap", has_text="Shelsley Walsh")
     shelsley.locator("[data-track-toggle]").click()
     expect(shelsley.locator(".tp-kindrow b")).to_have_text(["Hill climb"])
+
+
+def test_a_hill_climb_whose_organiser_is_the_venue_name_is_named_hill_climb(page):
+    """Shelsley Walsh's organiser is the venue's own name, so the course row says Hill climb, not Shelsley Walsh."""
+    fake = FakeWorker(earlier=False)
+    fake.tree_access = True
+    s = dict(day_session("h2", "10:00", 40.0, 2, date="2026-07-25", venue="Shelsley Walsh", venue_id="shelsley-walsh"), type="sprint", hill=True, organizer="Shelsley Walsh", layout="Shelsley Walsh")
+    fake.sessions[s["id"]] = dict(s)
+    fake.index.append(summary(s))
+    open_page(page, fake)
+    shelsley = page.locator("#tp-sess-list .tp-trackwrap", has_text="Shelsley Walsh")
+    shelsley.locator("[data-track-toggle]").click()
+    expect(shelsley.locator(".tp-kindrow b")).to_have_text(["Hill climb"])
+    expect(shelsley.locator(".tp-kind-body")).to_contain_text("0:40.00")
+    expect(shelsley.locator(".tp-layoutrow b")).to_have_count(0)

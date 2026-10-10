@@ -1154,8 +1154,10 @@
   var KIND_WORD = { drag: 'Drag runs', sprint: 'Sprint', other: 'Drives', track: 'Track days' };
   function layoutTitleOf(s) {
     if (s.layout && s.layout !== s.venue) return s.layout;
-    if (s.organizer) return s.organizer;
-    return s.type === 'sprint' && s.hill ? 'Hill climb' : KIND_WORD[s.type] || KIND_WORD.track;
+    // An organiser that is just the venue's own name (Shelsley Walsh at Shelsley Walsh) says nothing about the course.
+    var org = String(s.organizer || '').toLowerCase() !== String(s.venue || '').toLowerCase() ? s.organizer : '';
+    if (org) return org;
+    return s.type === 'sprint' && (s.hill || isHillSession(s, library)) ? 'Hill climb' : KIND_WORD[s.type] || KIND_WORD.track;
   }
   function layoutKeyOf(s) { return s.layoutId ? 'l:' + s.layoutId : 'n:' + layoutTitleOf(s).toLowerCase(); }
   function layoutEntries(list) {

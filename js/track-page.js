@@ -1227,7 +1227,7 @@
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
-          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
+          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + (rows.length && !publicView ? ' · ' + esc(KIND_TREE_NAMES[sessionKindOf(rows[0])] || '') : '') + '</span></span>' + icon('chev') + '</button>' +
             '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
         }).join('')) + '</div></div>';
     }).join('');

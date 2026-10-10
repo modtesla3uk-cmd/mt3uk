@@ -7137,3 +7137,15 @@ def test_a_hill_climb_whose_organiser_is_the_venue_name_is_named_hill_climb(page
     expect(shelsley.locator(".tp-kindrow b")).to_have_text(["Hill climb"])
     expect(shelsley.locator(".tp-kind-body")).to_contain_text("0:40.00")
     expect(shelsley.locator(".tp-layoutrow b")).to_have_count(0)
+
+
+def test_a_layout_row_says_what_kind_of_event_it_is(page):
+    """Without the split by kind, a layout row still says whether it is a track day, sprint or hill climb."""
+    fake = FakeWorker(earlier=False)
+    s = dict(day_session("a1", "10:00", 79.95, 4, date="2024-02-23", venue="Abingdon Airfield", venue_id="abingdon"), layoutId="mse", layout="MSE 'NEW hairpin' layout")
+    fake.sessions[s["id"]] = dict(s)
+    fake.index.append(summary(s))
+    open_page(page, fake)
+    ab = page.locator("#tp-sess-list .tp-trackwrap", has_text="Abingdon")
+    ab.locator("[data-track-toggle]").click()
+    expect(ab.locator(".tp-layoutrow")).to_contain_text("Track day")

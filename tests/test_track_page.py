@@ -7066,7 +7066,9 @@ def test_invited_members_see_each_place_split_by_kind_and_a_single_layout_skips_
     lydden = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
     lydden.locator("[data-track-toggle]").click()
     kinds = lydden.locator(".tp-kindrow b")
-    expect(kinds).to_have_text(["Track day", "Sprint", "Drives"])
+    # Drives are not a kind: no Drives row, and the drive sits under its date.
+    expect(kinds).to_have_text(["Track day", "Sprint"])
+    expect(lydden.locator(".tp-drives")).to_contain_text("1:00.00")
     # The track day has one layout, so its days show straight away with no layout row inside it.
     track_kind = lydden.locator(".tp-kindwrap", has_text="Track day")
     expect(track_kind.locator(".tp-kind-body")).to_be_hidden()

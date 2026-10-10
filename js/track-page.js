@@ -1175,7 +1175,9 @@
   function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (s.hill ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
   function byWhenDesc(rows) { return rows.slice().sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; }); }
   function kindTreeHtml(here, tkey, list) {
-    return ['track', 'sprint', 'hill', 'drag', 'other'].filter(function (kd) {
+    // Drives are not a kind: they sit under their date, after the kinds, as session rows.
+    var drives = byWhenDesc(here.filter(function (x) { return sessionKindOf(x) === 'other'; }));
+    var kinds = ['track', 'sprint', 'hill', 'drag'].filter(function (kd) {
       return here.some(function (x) { return sessionKindOf(x) === kd; });
     }).map(function (kd) {
       var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;
@@ -1191,6 +1193,7 @@
       return '<div class="tp-kindwrap"><button type="button" class="tp-row tp-kindrow" data-kind-toggle="' + esc(kk) + '" aria-expanded="' + kopen + '"><span class="tp-row-main"><b>' + KIND_TREE_NAMES[kd] + '</b><span>' + count + '</span></span>' + icon('chev') + '</button>' +
         '<div class="tp-kind-body"' + (kopen ? '' : ' hidden') + '>' + body + '</div></div>';
     }).join('');
+    return kinds + (drives.length ? '<div class="tp-drives">' + sessionListHtml(drives, true, list, true) + '</div>' : '');
   }
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for

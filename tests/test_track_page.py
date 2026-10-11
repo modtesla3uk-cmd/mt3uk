@@ -7219,33 +7219,27 @@ def test_my_sessions_chip_is_only_for_signed_in_members(page):
     expect(page.locator("#lb-mine")).to_have_count(0)
 
 
-def test_my_sessions_on_the_main_leaderboard_page_lists_mine_by_track_quickest_first(page):
-    """The main Leaderboard page lists the member's own sessions of the kind on show, grouped by track and layout,
-    quickest first in each group. Signed out it is not there."""
+
+def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_mine_in_each_track_card(page):
+    """The Sort by drop-down on the main Leaderboard page has My sessions: each track card keeps its layout, with the
+    member's own count and top sessions in place of the car board's. Signed out there is no such option."""
     fake = FakeWorker()
     fake.index = [
-        {"id": "p1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-01", "time": "10:00", "bestTime": 99.5, "conditions": "Dry", "privacy": "private"},
-        {"id": "p2", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-06-01", "time": "11:00", "bestTime": 97.25, "conditions": "Damp", "privacy": "build"},
-        {"id": "p3", "type": "track", "venueId": "thruxton", "layoutId": "other", "date": "2026-07-01", "time": "12:00", "bestTime": 60.0, "privacy": "build"},
+        {"id": "p1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-01", "time": "10:00", "bestTime": 99.5, "conditions": "Dry", "privacy": "private", "car": "PROJECT 3"},
+        {"id": "p2", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-06-01", "time": "11:00", "bestTime": 97.25, "conditions": "Damp", "privacy": "build", "car": "PROJECT 3"},
     ]
     open_page(page, fake, path="/leaderboards.html")
-    section = page.locator(".lb-mine-kind")
-    expect(section).to_be_visible()
-    expect(section.locator("h3")).to_have_text("My sessions")
-    groups = section.locator(".lb-mine-group")
-    expect(groups).to_have_count(2)
-    main = groups.filter(has=page.locator('a[href="track.html?s=p2"]'))
-    expect(main.locator(".lb-row")).to_have_count(2)
-    expect(main.locator(".lb-row").first).to_contain_text("1:37.25")
-    expect(main.locator(".lb-row").first).to_contain_text("Quickest")
-    expect(main.locator(".lb-row").first.locator("a")).to_have_attribute("href", "track.html?s=p2")
-    expect(section).not_to_contain_text("p3")
-    page.locator('.lb-types a[href="leaderboards.html?type=drag"]').click()
+    expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(1)
+    page.locator("#lb-sort").select_option("sessions")
+    card = page.locator(".lb-layout", has_text="Thruxton").first
+    expect(card).to_contain_text("Your 2 sessions")
+    expect(card.locator(".lb-podium li").first).to_contain_text("You")
+    expect(card.locator(".lb-podium li").first).to_contain_text("1:37.25")
+    expect(page.locator(".lb-podium")).not_to_contain_text("Ann")
     expect(page.locator(".lb-mine-kind")).to_have_count(0)
 
 
-def test_my_sessions_on_the_main_page_is_only_for_signed_in_members(page):
+def test_my_sessions_sort_option_is_only_for_signed_in_members(page):
     open_page(page, FakeWorker(), path="/leaderboards.html", signed_in=False)
     expect(page.locator(".lb-venues")).to_be_visible()
-    expect(page.locator(".lb-mine-kind")).to_have_count(0)
-
+    expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(0)

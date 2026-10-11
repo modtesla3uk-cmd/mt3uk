@@ -1702,6 +1702,17 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(got.email === 'alice@example.com' || got.email === undefined || typeof got.email === 'string', 'each row says who the member is (' + got.email + ')');
   const byLogger = await call('GET', '/track/admin/all-sessions?key=secret&logger=' + encodeURIComponent('All Sessions Logger'));
   ok(byLogger.body.sessions.length >= 1 && byLogger.body.sessions.every(x => /all sessions logger/i.test(x.logger)), 'the logger filter keeps only that logger');
+  // The member box matches the start of an email or of a name (first, last or nickname).
+  const row = all.body.sessions.find(x => x.id === sid) || {};
+  const byEmail = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent((row.email || 'zz').slice(0, 4)));
+  ok(byEmail.body.sessions.some(x => x.id === sid), 'the member box finds a member by the start of their email');
+  const prof = stored('profile:' + row.email) || {};
+  if (prof.firstName) {
+    const byName = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent(prof.firstName.slice(0, 3)));
+    ok(byName.body.sessions.some(x => x.id === sid), 'and by the start of their first name (' + prof.firstName + ')');
+  }
+  const byNoName = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent('qqqq-no-one'));
+  ok(byNoName.body.sessions.length === 0, 'a name that is not there finds nothing');
   const byMember = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent('nobody-here@example.com'));
   ok(byMember.status === 200 && byMember.body.sessions.length === 0, 'the member filter keeps nothing for someone who has no sessions');
   ok(all.body.done === true || typeof all.body.cursor === 'string', 'the list says whether there is more to read');

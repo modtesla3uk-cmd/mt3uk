@@ -10277,6 +10277,13 @@ async function handleTrackAdminLoggerRename(request, env) {
   return json({ success: true, sessions: sessions, dry: dry, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
 }
 
+// Whether the member search matches: the start of the email, or of the first name, last name, nickname or any word of the
+// full name. The owner's profile is read once per member.
+function memberStartsWith(c, q) {
+  if (String(c.email || '').toLowerCase().indexOf(q) === 0) return true;
+  var words = [c.first, c.last, c.nick].concat(String(c.full || '').split(' '));
+  return words.some(function (w) { return String(w || '').toLowerCase().indexOf(q) === 0; });
+}
 // Every Track session from every member, read-only, for the All sessions panel on track-admin.html. Owners are read a page
 // at a time (the index keys are listed, so this is admin only), and each page's sessions are filtered by the member, track,
 // logger and type given. The page says whether there are more to read (cursor).
@@ -10300,10 +10307,12 @@ async function handleTrackAdminAllSessions(request, env) {
       if (!cars[s.carId]) {
         var rec = await getCarRecord(env, s.carId);
         var email = rec ? await carOwnerEmail(env, rec) : null;
-        cars[s.carId] = { car: (rec && rec.name) || '', email: email || '' };
+        var prof = email ? await getProfileRecord(env, email) : {};
+        var full = prof && prof.firstName && prof.lastName ? prof.firstName + ' ' + prof.lastName : '';
+        cars[s.carId] = { car: (rec && rec.name) || '', email: email || '', first: (prof && prof.firstName) || '', last: (prof && prof.lastName) || '', nick: (prof && prof.nickname) || '', full: full };
       }
       var c = cars[s.carId];
-      if (member && c.email.toLowerCase().indexOf(member) === -1) continue;
+      if (member && !memberStartsWith(c, member)) continue;
       rows.push({ id: s.id, carId: s.carId, car: c.car, email: c.email, type: s.type || '', venue: s.venue || '', layout: s.layout || '', date: s.date || '', time: s.time || '', logger: s.logger || '', privacy: s.privacy || '', conditions: s.conditions || '', tyres: s.tyres || '', bestTime: s.bestTime || null, dashcam: !!s.dashcam, unlisted: !!s.unlisted });
     }
   }

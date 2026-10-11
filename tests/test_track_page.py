@@ -7235,8 +7235,11 @@ def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_my_place_o
     card = page.locator(".lb-layout", has_text="Thruxton").first
     expect(card).to_contain_text("of 3 cars")
     expect(card.locator(".lb-pos.lb-medal-gold")).to_have_text("2")
+    # The member's own board row is shown with its name, as on the board, not a bare number.
+    expect(card.locator(".lb-podium li")).to_have_count(1)
+    expect(card.locator(".lb-podium .lb-who b")).to_have_text("X")
+    expect(card.locator(".lb-podium .lb-res")).to_have_text("1:37.25")
     expect(card).not_to_contain_text("sessions")
-    expect(card.locator(".lb-podium")).to_have_count(0)
     expect(page.locator(".lb-mine-kind")).to_have_count(0)
     # Opening the board shows it as normal, every car, not filtered to the member's sessions.
     card.click()

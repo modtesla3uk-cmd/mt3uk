@@ -200,18 +200,25 @@
       resultsOf(e, type).forEach(function (b) { if (best === null || scoreOf(b, type) < best) best = scoreOf(b, type); });
       return { e: e, s: best };
     }).filter(function (x) { return x.s !== null && isFinite(x.s); }).sort(function (a, b) { return a.s - b.s; });
-    for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length };
+    for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length, e: cars[i].e, s: cars[i].s };
     return { pos: 0, of: cars.length };
   }
-  // The place is shown with the same medal circles as the board's rows: 1st platinum, 2nd gold, 3rd silver, 4th bronze.
+  // The place is shown as the board shows a row: the medal circle, the member's name, car and date, and the time,
+  // with the medals 1st platinum, 2nd gold, 3rd silver, 4th bronze.
   var MEDALS = ['', 'platinum', 'gold', 'silver', 'bronze'];
-  function rankText(type, venueId, layoutId) {
+  function rankCount(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId), r = myRanks[key];
     if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }
     if (r.error) return '';
     if (!r.pos) return 'Not on the board yet';
-    var medal = r.pos < MEDALS.length ? ' lb-medal-' + MEDALS[r.pos] : '';
-    return '<span class="lb-rank"><span class="lb-pos' + medal + '">' + r.pos + '</span> of ' + r.of + ' car' + (r.of === 1 ? '' : 's') + '</span>';
+    return 'of ' + r.of + ' car' + (r.of === 1 ? '' : 's');
+  }
+  function rankRow(type, venueId, layoutId) {
+    var r = myRanks[boardKey(type, venueId, layoutId)];
+    if (!r || !r.pos) return '';
+    var e = r.e, drag = type === 'drag', medal = r.pos < MEDALS.length ? ' lb-medal-' + MEDALS[r.pos] : '';
+    var res = drag ? Number(r.s).toFixed(2) + ' s' : V.fmtLap(r.s);
+    return '<ol class="lb-podium">' + '<li><span class="lb-pos' + medal + '">' + r.pos + '</span><span class="lb-who"><b>' + esc(e.owner || 'You') + '</b><small>' + esc(e.car === 'MT3UK member build' && e.model ? e.model : e.car) + '</small>' + (e.date ? '<small class="lb-date">' + esc(T.niceDate(e.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li></ol>';
   }
   function loadRank(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId);
@@ -235,9 +242,9 @@
   // link to the whole board.
   function layoutBlock(type, v, l) {
     var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
-    var count = listSessions ? (n ? rankText(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
+    var count = listSessions ? (n ? rankCount(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
     return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><span class="lb-layout-head"><b>' + esc(l.name) + '</b>' +
-      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? '' : podium(key, false)) + '</a>';
+      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false)) + '</a>';
   }
 
   // The venues of one type, busiest first, each with the top three per layout.
@@ -299,7 +306,7 @@
       if (t[0] === 'drag') {
         var q = boardQuery('drag', v.id), key = boardKey('drag', v.id);
         if (listSessions) return wrap(v, '<a class="tp-board-card lb-venue' + (meCount('drag', v.id, '') ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
-          '<span class="tp-small">' + (meCount('drag', v.id, '') ? rankText('drag', v.id, '') : 'Not driven yet') + '</span></div></a>');
+          '<span class="tp-small">' + (meCount('drag', v.id, '') ? rankCount('drag', v.id, '') : 'Not driven yet') + '</span></div>' + (meCount('drag', v.id, '') ? rankRow('drag', v.id, '') : '') + '</a>');
         return wrap(v, '<a class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
           (x.total ? '<span class="tp-small">' + x.total + ' run' + (x.total === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No runs yet</span>') + '</div>' +
           (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>');

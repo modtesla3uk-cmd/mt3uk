@@ -10277,6 +10277,40 @@ async function handleTrackAdminLoggerRename(request, env) {
   return json({ success: true, sessions: sessions, dry: dry, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
 }
 
+// Every Track session from every member, read-only, for the All sessions panel on track-admin.html. Owners are read a page
+// at a time (the index keys are listed, so this is admin only), and each page's sessions are filtered by the member, track,
+// logger and type given. The page says whether there are more to read (cursor).
+async function handleTrackAdminAllSessions(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var cursor = params.get('cursor') || undefined;
+  var member = String(params.get('member') || '').trim().toLowerCase();
+  var track = String(params.get('track') || '').trim().toLowerCase();
+  var logger = String(params.get('logger') || '').trim().toLowerCase();
+  var type = String(params.get('type') || '').trim().toLowerCase();
+  var page = await env.VOTES.list({ prefix: 'track-index:', limit: 20, cursor: cursor });
+  var cars = {}, rows = [];
+  for (var i = 0; i < page.keys.length; i++) {
+    var idx = await getJsonKey(env, page.keys[i].name, []);
+    for (var j = 0; j < idx.length; j++) {
+      var s = idx[j];
+      if (type && String(s.type || '').toLowerCase() !== type) continue;
+      if (logger && String(s.logger || '').toLowerCase().indexOf(logger) === -1) continue;
+      if (track && String(s.venue || '').toLowerCase().indexOf(track) === -1 && String(s.layout || '').toLowerCase().indexOf(track) === -1) continue;
+      if (!cars[s.carId]) {
+        var rec = await getCarRecord(env, s.carId);
+        var email = rec ? await carOwnerEmail(env, rec) : null;
+        cars[s.carId] = { car: (rec && rec.name) || '', email: email || '' };
+      }
+      var c = cars[s.carId];
+      if (member && c.email.toLowerCase().indexOf(member) === -1) continue;
+      rows.push({ id: s.id, carId: s.carId, car: c.car, email: c.email, type: s.type || '', venue: s.venue || '', layout: s.layout || '', date: s.date || '', time: s.time || '', logger: s.logger || '', privacy: s.privacy || '', conditions: s.conditions || '', tyres: s.tyres || '', bestTime: s.bestTime || null, dashcam: !!s.dashcam, unlisted: !!s.unlisted });
+    }
+  }
+  rows.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+  return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
+}
+
 // A member leaving: their sessions, index, shared lists and board places.
 async function deleteMemberTrackData(env, email) {
   // Off the early preview lists too.
@@ -11863,6 +11897,9 @@ export default {
     }
     if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
       return handleTrackBoardsRebuild(request, env);
+    }
+    if (url.pathname === '/track/admin/all-sessions' && request.method === 'GET') {
+      return handleTrackAdminAllSessions(request, env);
     }
     if (url.pathname === '/track/admin/logger-rename' && request.method === 'POST') {
       return handleTrackAdminLoggerRename(request, env);

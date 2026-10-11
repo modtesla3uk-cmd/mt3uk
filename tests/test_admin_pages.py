@@ -26,7 +26,7 @@ GROUPS = [
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
     ("grp-access", "Access", ["access-wrap", "offline-wrap", "tree-wrap", "signin-wrap", "usage-wrap"]),
-    ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
+    ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap", "all-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
     ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
@@ -150,7 +150,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     sub = page.locator("#admin-subnav")
     # Access has one panel, so no sub menu; the second category lists its two.
     page.locator('.admin-nav a[href="track-admin.html#grp-sessions"]').click()
-    expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
+    expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
     expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
@@ -2396,4 +2396,32 @@ def test_admin_can_rename_the_old_dashcam_logger_in_steps(page):
     expect(page.locator("#tk-logger-rename-note")).to_have_text('Done: 3 sessions renamed to "Tesla Dashcam".')
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=50" in calls[1]
     expect(page.locator("#tk-logger-rename")).to_be_enabled()
+
+
+def test_admin_can_see_every_members_sessions_and_load_more(page):
+    calls = []
+
+    def sessions(route):
+        url = route.request.url
+        calls.append(url)
+        if "cursor=" in url:
+            data = {"success": True, "done": True, "cursor": "", "sessions": [
+                {"id": "b2", "email": "ann@example.com", "car": "Blue Y", "carId": "c2", "type": "sprint", "venue": "Lydden Hill", "layout": "", "date": "2026-09-01", "time": "10:00", "logger": "RaceBox", "privacy": "private", "bestTime": 61.2}]}
+        else:
+            data = {"success": True, "done": False, "cursor": "20", "sessions": [
+                {"id": "a1", "email": "bob@example.com", "car": "PROJECT 3", "carId": "c1", "type": "track", "venue": "Castle Combe", "layout": "Castle Combe", "date": "2026-10-01", "time": "12:09", "logger": "Tesla Dashcam", "privacy": "build", "bestTime": 82.8, "dashcam": True}]}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/all-sessions**", sessions)
+    page.locator("#all-sessions-wrap > summary").click()
+    page.locator("#as-find").click()
+    expect(page.locator("#as-list tbody tr")).to_have_count(1)
+    expect(page.locator("#as-list")).to_contain_text("bob@example.com")
+    expect(page.locator("#as-list")).to_contain_text("Tesla Dashcam")
+    expect(page.locator("#as-more")).to_be_visible()
+    page.locator("#as-more").click()
+    expect(page.locator("#as-list tbody tr")).to_have_count(2)
+    expect(page.locator("#as-list")).to_contain_text("ann@example.com")
+    expect(page.locator("#as-more")).to_be_hidden()
+    assert "key=test-key" in calls[0] and "cursor=20" in calls[1]
 

@@ -165,6 +165,20 @@
       <h3 class="sub-head">Recent admin views</h3>
       <div id="ms-views"></div>
     </details>
+    <details class="collapsible" id="all-sessions-wrap">
+      <summary><h3 class="panel-title">All sessions <span class="summary-count" id="all-sessions-count"></span></h3></summary>
+      <p class="iv-note">Every Track session from every member, read only. Narrow it with the boxes, then press Find. Members' notes are not shown, and private sessions are marked. The list fills a page at a time, so press Load more to read on.</p>
+      <p class="iv-note" id="as-note" role="status"></p>
+      <div class="iv-toolbar">
+        <input type="search" class="field" id="as-member" placeholder="Member email" aria-label="Member email" autocomplete="off">
+        <input type="search" class="field" id="as-track" placeholder="Track or layout" aria-label="Track or layout" autocomplete="off">
+        <input type="search" class="field" id="as-logger" placeholder="Logger" aria-label="Logger" autocomplete="off">
+        <select class="field" id="as-type" aria-label="Type"><option value="">Any type</option><option value="track">Track day</option><option value="sprint">Sprint or hill climb</option><option value="drag">Drag strip</option><option value="other">Drive</option></select>
+        <button type="button" class="iv-act" id="as-find">Find</button>
+      </div>
+      <div id="as-list"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="as-more" hidden>Load more</button></div>
+    </details>
     </div>
   </section>
 
@@ -338,6 +352,7 @@
 <script src="js/track-lines-admin.js?v=20271021" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>
+<script src="js/all-sessions-admin.js?v=1" defer></script>
 <script src="js/track-admin.js?v=20270133" defer></script>
 <script src="js/laps-logo.js?v=1"></script>
 <script src="js/track-share-card.js?v=20261185"></script>

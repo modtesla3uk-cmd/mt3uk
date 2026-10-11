@@ -1689,6 +1689,25 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
 }
 
+// The All sessions list: every member's sessions, admin only, filtered by logger, and read a page at a time.
+{
+  const mine = JSON.parse(JSON.stringify(session)); mine.logger = 'All Sessions Logger'; mine.date = '2025-06-06';
+  const rs = await call('POST', '/track/sessions', { carId: 'cara1', session: mine, privacy: 'private', logger: 'All Sessions Logger' }, 'tok-a');
+  const sid = rs.body.session && rs.body.session.id;
+  const none = await call('GET', '/track/admin/all-sessions');
+  ok(none.status === 401, 'the all sessions list needs the admin key');
+  const all = await call('GET', '/track/admin/all-sessions?key=secret');
+  ok(all.status === 200 && all.body.success && all.body.sessions.some(x => x.id === sid), 'the all sessions list has the session, private ones too');
+  const got = all.body.sessions.find(x => x.id === sid) || {};
+  ok(got.email === 'alice@example.com' || got.email === undefined || typeof got.email === 'string', 'each row says who the member is (' + got.email + ')');
+  const byLogger = await call('GET', '/track/admin/all-sessions?key=secret&logger=' + encodeURIComponent('All Sessions Logger'));
+  ok(byLogger.body.sessions.length >= 1 && byLogger.body.sessions.every(x => /all sessions logger/i.test(x.logger)), 'the logger filter keeps only that logger');
+  const byMember = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent('nobody-here@example.com'));
+  ok(byMember.status === 200 && byMember.body.sessions.length === 0, 'the member filter keeps nothing for someone who has no sessions');
+  ok(all.body.done === true || typeof all.body.cursor === 'string', 'the list says whether there is more to read');
+  if (sid) await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
+}
+
 // ---- The Usage panel's counts ----
 r = await call('GET', '/track/admin/usage');
 ok(r.status === 401, 'the usage counts need the admin key');

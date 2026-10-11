@@ -200,6 +200,8 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Track sessions: leaderboards
 
+- **My Sessions on the main Leaderboard page** (October 2026, asked for by Richard): when signed in, the main page shows a **My sessions** card under the kind tabs (`#lb-mine-list`, `myKindHtml` and `myKindRows` in `js/leaderboard-page.js`). It lists the member's own timed sessions of the kind on show (track days, drag, sprint or hill climb), grouped by track and layout, quickest first in each group, each with a link. It reads the same list as a board's My sessions (`loadMine`). Tests: `test_my_sessions_on_the_main_leaderboard_page_lists_mine_by_track_quickest_first`, `test_my_sessions_on_the_main_page_is_only_for_signed_in_members`.
+
 - **My sessions on a board** (October 2026, asked for by Richard): a **Show** drop-down on each board (`#lb-mine`, All cars or My sessions, signed in only, `js/leaderboard-page.js`) lists the member's own sessions at that track and layout (`mineRows`), quickest first, each with a link. It reads the member's list once per board opened (`loadMine`, the Sessions list's token, `mt3ukMyBuildsSession`). The board's filters do not apply to that list. Tests: `test_my_sessions_on_a_board_lists_only_mine_here_quickest_first`, `test_my_sessions_chip_is_only_for_signed_in_members`.
 
 - `leaderboards.html` (headed **Leaderboard**) is drawn by `js/leaderboard-page.js`. The track list shows each venue's top three per layout from `/track/counts` (`counts` and `leaders`, both single KV keys, read with `get()`). A board page filters by model, conditions and tyre make or model.

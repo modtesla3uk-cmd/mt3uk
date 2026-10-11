@@ -203,13 +203,15 @@
     for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length };
     return { pos: 0, of: cars.length };
   }
-  function ordinal(n) { var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+  // The place is shown with the same medal circles as the board's rows: 1st platinum, 2nd gold, 3rd silver, 4th bronze.
+  var MEDALS = ['', 'platinum', 'gold', 'silver', 'bronze'];
   function rankText(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId), r = myRanks[key];
     if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }
     if (r.error) return '';
     if (!r.pos) return 'Not on the board yet';
-    return ordinal(r.pos) + ' of ' + r.of + ' car' + (r.of === 1 ? '' : 's');
+    var medal = r.pos < MEDALS.length ? ' lb-medal-' + MEDALS[r.pos] : '';
+    return '<span class="lb-rank"><span class="lb-pos' + medal + '">' + r.pos + '</span> of ' + r.of + ' car' + (r.of === 1 ? '' : 's') + '</span>';
   }
   function loadRank(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId);

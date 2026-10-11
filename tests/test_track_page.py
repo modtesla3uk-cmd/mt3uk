@@ -7233,10 +7233,17 @@ def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_my_place_o
     expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(1)
     page.locator("#lb-sort").select_option("sessions")
     card = page.locator(".lb-layout", has_text="Thruxton").first
-    expect(card).to_contain_text("2nd of 3 cars")
+    expect(card).to_contain_text("of 3 cars")
+    expect(card.locator(".lb-pos.lb-medal-gold")).to_have_text("2")
     expect(card).not_to_contain_text("sessions")
     expect(card.locator(".lb-podium")).to_have_count(0)
     expect(page.locator(".lb-mine-kind")).to_have_count(0)
+    # Opening the board shows it as normal, every car, not filtered to the member's sessions.
+    card.click()
+    expect(page.locator("#lb-mine")).to_have_value("all")
+    expect(page.locator(".lb-row, .lb-list li").first).to_be_visible()
+    expect(page.get_by_text("Car car2")).to_be_visible()
+    expect(page.get_by_text("Car car3")).to_be_visible()
 
 
 def test_my_sessions_sort_option_is_only_for_signed_in_members(page):

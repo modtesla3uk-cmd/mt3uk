@@ -1657,16 +1657,15 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   if (rb.status === 200) await call('DELETE', '/track/session?id=' + rb.body.session.id, undefined, 'tok-a');
 }
 
-// Tesla dashcam telemetry (Beta): the session is saved and shared, but it never takes a place on a leaderboard, even when it
-// is quicker than the car's session already there.
+// Tesla dashcam telemetry: the session is saved, shared and on the leaderboard like any other, when it is the car's quickest.
 {
   const before = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(e => e.carId === 'cara1');
-  const dc = JSON.parse(JSON.stringify(session)); dc.dashcam = true; dc.logger = 'Tesla Dashcam (Beta)'; dc.bestTime = session.bestTime - 0.2; dc.date = '2025-04-04';
+  const dc = JSON.parse(JSON.stringify(session)); dc.dashcam = true; dc.logger = 'Tesla Dashcam'; dc.bestTime = session.bestTime - 0.2; dc.date = '2025-04-04';
   const rr = await call('POST', '/track/sessions', { carId: 'cara1', session: dc, privacy: 'build' }, 'tok-a');
   const rec = rr.status === 200 && stored('track-session:' + rr.body.session.id);
   ok(rec && rec.dashcam === true, 'a dashcam session is saved with its flag (' + rr.status + ' ' + JSON.stringify(rr.body).slice(0, 120) + ')');
   const after = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(e => e.carId === 'cara1');
-  ok(!(after && after.sessionId === (rr.body.session || {}).id) && (!before || (after && after.sessionId === before.sessionId && after.sessions === before.sessions)), 'but it is not on the leaderboard, even as the quickest, and does not change the car\'s entry');
+  ok(after && after.sessionId === (rr.body.session || {}).id, 'and it is the car\'s entry on the board (' + (after && after.sessionId) + ')');
   if (rr.status === 200) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
 }
 

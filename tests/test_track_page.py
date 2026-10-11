@@ -6953,9 +6953,9 @@ def test_what_others_see_is_a_simple_track_tree_with_a_way_back_for_the_owner(pa
     expect(page.locator(".tp-head [data-tp-share]")).to_have_count(1)
 
 
-def test_a_tesla_dashcam_file_is_read_as_a_beta_logger_and_kept_off_the_leaderboards(page, tmp_path):
+def test_a_tesla_dashcam_file_is_read_as_a_beta_logger(page, tmp_path):
     """Tesla dashcam telemetry has frame numbers, not times. The Add page reads it (Castle Combe, two laps), guesses
-    the logger as Tesla Dashcam (Beta), sends the dashcam flag with the session, and the session page says it is
+    the logger as Tesla Dashcam, sends the dashcam flag with the session, and the session page says it is
     a beta kept off the leaderboards."""
     fake = FakeWorker()
     open_page(page, fake, "/track.html?add=1")
@@ -6963,13 +6963,13 @@ def test_a_tesla_dashcam_file_is_read_as_a_beta_logger_and_kept_off_the_leaderbo
     f.write_bytes((ROOT / "tests" / "fixtures" / "tesla-dashcam-castle-combe.csv").read_bytes())
     page.set_input_files("#tp-file", str(f))
     page.locator("#tp-result").wait_for()
-    expect(page.locator("#tp-logger")).to_have_value("Tesla Dashcam (Beta)")
+    expect(page.locator("#tp-logger")).to_have_value("Tesla Dashcam")
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head")).to_be_visible()
-    assert fake.saved[-1]["logger"] == "Tesla Dashcam (Beta)"
+    assert fake.saved[-1]["logger"] == "Tesla Dashcam"
     assert fake.saved[-1]["session"]["dashcam"] is True
-    expect(page.locator("#tp-dashcam")).to_contain_text("Not on the leaderboards yet")
-    expect(page.locator("#tp-logger-line")).to_have_text("Logger: Tesla Dashcam (Beta)")
+    expect(page.locator("#tp-dashcam")).to_contain_text("Tesla dashcam")
+    expect(page.locator("#tp-logger-line")).to_have_text("Logger: Tesla Dashcam")
 
 
 def test_dashcam_clips_added_together_are_one_session(page, tmp_path):
@@ -6990,7 +6990,7 @@ def test_dashcam_clips_added_together_are_one_session(page, tmp_path):
     page.locator("#tp-result").wait_for()
     expect(page.locator(".tp-file")).to_contain_text("Joined to")
     expect(page.locator(".tp-file")).not_to_contain_text("each is saved as its own session")
-    expect(page.locator("#tp-logger")).to_have_value("Tesla Dashcam (Beta)")
+    expect(page.locator("#tp-logger")).to_have_value("Tesla Dashcam")
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     assert len(fake.saved) == 1

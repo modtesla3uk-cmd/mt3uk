@@ -908,7 +908,7 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   ok(!farRes.lapsFromTrace && !farRes.layoutId, 'or when the car never passed its line');
 }
 
-// Tesla dashcam telemetry (Beta): no time column, only frame numbers at 36 a second. tests/fixtures/tesla-dashcam-castle-combe.csv
+// Tesla dashcam telemetry: no time column, only frame numbers at 36 a second. tests/fixtures/tesla-dashcam-castle-combe.csv
 // is three dashcam clips joined in one file (frames 30690 to 32828, 32850 to 35009 and 35046 on, so the car dropped 21 and
 // 36 frames between clips), cut to the rows where the GPS fix moves. Castle Combe, 24 August 2026.
 {

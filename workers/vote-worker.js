@@ -7396,7 +7396,7 @@ function cleanTrackSession(s, library) {
     }
   }
   out.startLineFromMember = !!s.startLineFromMember;
-  // Tesla dashcam telemetry (Beta): timed from frame numbers, so kept off the leaderboards for now.
+  // Tesla dashcam telemetry: timed from frame numbers, and on the leaderboards like any other session.
   if (s.dashcam) out.dashcam = true;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
   if (s.linesAccepted) out.linesAccepted = true;
@@ -7565,7 +7565,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
   // "On my build" and "Leaderboard"), unless the admin took it off. The
   // entry also counts the car's shared sessions here, for the track list.
   var shared = await getJsonKey(env, 'track-public:' + carId, []);
-  var here = shared.filter(function (s) { return (s.privacy === 'board' || s.privacy === 'build') && !s.street && trackBoardKey(s) === boardKey && trackScore(s) && !s.dashcam; });
+  var here = shared.filter(function (s) { return (s.privacy === 'board' || s.privacy === 'build') && !s.street && trackBoardKey(s) === boardKey && trackScore(s); });
   var mine = here.filter(function (s) { return !s.offBoard; }).sort(function (a, b) { return trackScore(a) - trackScore(b); })[0];
   var board = await getJsonKey(env, boardKey, []);
   board = board.filter(function (e) { return e.carId !== carId; });
@@ -9662,14 +9662,13 @@ function trackBoardWhy(rec, lib, entries) {
   }
   if (rec.privacy === 'private') reasons.push('Its sharing is "Only me", so it is not on any board. The member turns Shared on in Session settings.');
   if (rec.offBoard) reasons.push('It was taken off the leaderboard by the admin.');
-  if (rec.dashcam) reasons.push('It is from Tesla dashcam telemetry (Beta), which is kept off the leaderboards for now.');
   var score = rec.type === 'drag' ? rec.quarter : rec.bestTime;
   if (!score && rec.type !== 'other') bad('It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.');
   var mine = entries ? entries.find(function (e) { return e.carId === rec.carId; }) : null;
   var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? (venue ? (venue.hill || /hill\s*-?\s*climb|hillclimb/i.test(venue.name || '')) : (rec.hill || /hill\s*-?\s*climb|hillclimb/i.test(rec.venue || ''))) ? 'Hill climb' : 'Sprint' : 'Track days';
   var onBoard = !!(mine && mine.sessionId === rec.id);
   if (key && mine && !onBoard) reasons.push('Its car is on the board, but with another session (' + (mine.date || '') + ', ' + (mine.time || mine.quarter || '') + '): each car shows only its fastest. This session still counts in the car\'s number of sessions and its bests by conditions and tyres.');
-  var shared = rec.privacy !== 'private' && !rec.street && !rec.offBoard && !rec.dashcam;
+  var shared = rec.privacy !== 'private' && !rec.street && !rec.offBoard;
   if (key && shared && !mine && !fixable && score) { bad('Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it.'); }
   return { key: key, tab: tab, reasons: reasons, onBoard: onBoard, fixable: fixable && shared, venue: venue, layout: layout, mine: mine || null };
 }
@@ -9685,7 +9684,7 @@ async function handleTrackAdminBoardCheck(request, env) {
   var why = trackBoardWhy(rec, lib, entries);
   var reasons = why.reasons.slice(), repairable = false;
   // The lists the board is built from: the member's list, and the car's shared list (what a board reads).
-  if (key && rec.privacy !== 'private' && !rec.street && !rec.offBoard && !rec.dashcam) {
+  if (key && rec.privacy !== 'private' && !rec.street && !rec.offBoard) {
     var shared = await getJsonKey(env, 'track-public:' + rec.carId, []);
     var inShared = shared.find(function (x) { return x.id === rec.id; });
     if (!inShared) { reasons.push('The car\'s shared list does not have this session, so a board cannot include it. Repair rebuilds the lists from the session.'); repairable = true; }

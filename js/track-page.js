@@ -2303,7 +2303,7 @@
   // Every session says which logger or app recorded it (required on the Add page, shown to everyone on the session).
   // The popular ones are listed; Other takes a typed name. The pick is guessed from the file, else it is the member's
   // last one.
-  var DASHCAM_LOGGER = 'Tesla Dashcam (Beta)';
+  var DASHCAM_LOGGER = 'Tesla Dashcam';
   var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', DASHCAM_LOGGER, "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
   var LOGGER_MAX = 40;
   function loggerGuess(files) {
@@ -5027,10 +5027,10 @@
     if (s.type !== 'sprint' || !l || !l.from) return '';
     return '<p class="tp-small tp-launch" id="tp-launch">' + icon('info') + (l.from === 'g' ? 'Clock started from the accelerometer, ' + Number(l.lead).toFixed(2) + ' s before the speed rose.' : 'Clock started from the speed (the accelerometer did not move first).') + '</p>';
   }
-  // A session from Tesla dashcam telemetry (Beta): timed from frame numbers, and kept off the leaderboards for now.
+  // A session from Tesla dashcam telemetry: timed from frame numbers, and on the leaderboards.
   function dashcamLine(s) {
     if (!s.dashcam && s.logger !== DASHCAM_LOGGER) return '';
-    return '<p class="tp-small tp-dashcam" id="tp-dashcam">' + icon('info') + 'Tesla dashcam (Beta): timed from the video frame numbers at 36 a second. Not on the leaderboards yet.</p>';
+    return '<p class="tp-small tp-dashcam" id="tp-dashcam">' + icon('info') + 'Tesla dashcam: timed from the video frame numbers at 36 a second.</p>';
   }
   function ownerHtml(s) {
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));

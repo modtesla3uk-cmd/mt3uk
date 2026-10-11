@@ -398,7 +398,7 @@
     return { format: 'GPX', points: pts, startLine: gpxStartLine(text, pts), venueName: name, startedAt: a0, speedUnit: 'km/h' };
   }
 
-  // Tesla dashcam telemetry (Beta): the CSV the community tools pull from the data a Tesla embeds in its dashcam
+  // Tesla dashcam telemetry: the CSV the community tools pull from the data a Tesla embeds in its dashcam
   // clips. There is no time column, only frame_seq_no, and Tesla records at 36 frames a second, so the time is the
   // frame number counted from the first frame. A clip is about a minute and the car drops a few frames between
   // clips, but the frame numbers keep counting through the gap, so the time stays true when clips are joined in one

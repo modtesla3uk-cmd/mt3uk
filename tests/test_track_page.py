@@ -7220,22 +7220,22 @@ def test_my_sessions_chip_is_only_for_signed_in_members(page):
 
 
 
-def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_mine_in_each_track_card(page):
-    """The Sort by drop-down on the main Leaderboard page has My sessions: each track card keeps its layout, with the
-    member's own count and top sessions in place of the car board's. Signed out there is no such option."""
+def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_my_place_on_each_board(page):
+    """The Sort by drop-down on the main Leaderboard page has My sessions: each layout card shows only where the
+    member's car ranks on that board ("2nd of 3 cars"), not their sessions. Signed out there is no such option."""
     fake = FakeWorker()
     fake.index = [
-        {"id": "p1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-01", "time": "10:00", "bestTime": 99.5, "conditions": "Dry", "privacy": "private", "car": "PROJECT 3"},
-        {"id": "p2", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-06-01", "time": "11:00", "bestTime": 97.25, "conditions": "Damp", "privacy": "build", "car": "PROJECT 3"},
+        {"id": "p1", "carId": "car1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-01", "time": "10:00", "bestTime": 99.5, "conditions": "Dry", "privacy": "private", "car": "PROJECT 3"},
+        {"id": "p2", "carId": "car1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-06-01", "time": "11:00", "bestTime": 97.25, "conditions": "Damp", "privacy": "build", "car": "PROJECT 3"},
     ]
+    fake.boards = {"/track/board:thruxton:main": [board_row("car2", "a2", 95.0), board_row("car1", "p2", 97.25), board_row("car3", "a3", 98.0)]}
     open_page(page, fake, path="/leaderboards.html")
     expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(1)
     page.locator("#lb-sort").select_option("sessions")
     card = page.locator(".lb-layout", has_text="Thruxton").first
-    expect(card).to_contain_text("Your 2 sessions")
-    expect(card.locator(".lb-podium li").first).to_contain_text("You")
-    expect(card.locator(".lb-podium li").first).to_contain_text("1:37.25")
-    expect(page.locator(".lb-podium")).not_to_contain_text("Ann")
+    expect(card).to_contain_text("2nd of 3 cars")
+    expect(card).not_to_contain_text("sessions")
+    expect(card.locator(".lb-podium")).to_have_count(0)
     expect(page.locator(".lb-mine-kind")).to_have_count(0)
 
 

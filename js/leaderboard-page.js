@@ -188,26 +188,59 @@
     });
     return best;
   }
-  function mePodium(type, venueId, layoutId, drag) {
-    var rows = mineRows(mineList || [], type, venueId, layoutId).slice(0, 3);
-    if (!rows.length) return '';
-    return '<ol class="lb-podium">' + rows.map(function (x, i) {
-      var s = x.s, res = drag ? Number(x.t).toFixed(2) + ' s' : V.fmtLap(x.t);
-      return '<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>You</b><small>' + esc(s.car || '') + '</small>' + (s.date ? '<small class="lb-date">' + esc(T.niceDate(s.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>';
-    }).join('') + '</ol>';
+  // The member's place on a board, for the My sessions sort: where their car's best comes among every car's best
+  // on that board (unfiltered, as the board opens), so a track card says "2nd of 7 cars" and nothing more.
+  var myRanks = {}, rankPending = {}, listShown = null, rankRedrawing = false;
+  function boardPath(type, venueId, layoutId) {
+    return type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
+  }
+  function placeOn(entries, type, carIds) {
+    var cars = entries.map(function (e) {
+      var best = null;
+      resultsOf(e, type).forEach(function (b) { if (best === null || scoreOf(b, type) < best) best = scoreOf(b, type); });
+      return { e: e, s: best };
+    }).filter(function (x) { return x.s !== null && isFinite(x.s); }).sort(function (a, b) { return a.s - b.s; });
+    for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length };
+    return { pos: 0, of: cars.length };
+  }
+  function ordinal(n) { var s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+  function rankText(type, venueId, layoutId) {
+    var key = boardKey(type, venueId, layoutId), r = myRanks[key];
+    if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }
+    if (r.error) return '';
+    if (!r.pos) return 'Not on the board yet';
+    return ordinal(r.pos) + ' of ' + r.of + ' car' + (r.of === 1 ? '' : 's');
+  }
+  function loadRank(type, venueId, layoutId) {
+    var key = boardKey(type, venueId, layoutId);
+    if (rankPending[key] || !mineList) return;
+    rankPending[key] = true;
+    var carIds = mineRows(mineList, type, venueId, layoutId).map(function (x) { return x.s.carId; });
+    Promise.resolve(rd(boardPath(type, venueId, layoutId))).then(function (d) {
+      myRanks[key] = placeOn((d && d.entries) || [], type, carIds);
+    }, function () {
+      myRanks[key] = { error: true };
+    }).then(function () { rankPending[key] = false; scheduleRankRedraw(); });
+  }
+  // Redraw the track list once the places come in (a short wait, so several boards land in one redraw).
+  function scheduleRankRedraw() {
+    if (rankRedrawing) return;
+    rankRedrawing = true;
+    setTimeout(function () { rankRedrawing = false; if (listSessions && listShown) showList(listShown); }, 30);
   }
 
   // A layout or course: its name and number of sessions, its top three, and a
   // link to the whole board.
   function layoutBlock(type, v, l) {
     var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
-    var count = listSessions ? (n ? 'Your ' + n + ' session' + (n === 1 ? '' : 's') : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
+    var count = listSessions ? (n ? rankText(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
     return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><span class="lb-layout-head"><b>' + esc(l.name) + '</b>' +
-      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? mePodium(type, v.id, l.id, false) : podium(key, false)) + '</a>';
+      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? '' : podium(key, false)) + '</a>';
   }
 
   // The venues of one type, busiest first, each with the top three per layout.
   function showList(type) {
+    listShown = type;
     var t = TYPES.filter(function (x) { return x[0] === type; })[0] || TYPES[0];
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
@@ -263,13 +296,15 @@
       var v = x.v;
       if (t[0] === 'drag') {
         var q = boardQuery('drag', v.id), key = boardKey('drag', v.id);
+        if (listSessions) return wrap(v, '<a class="tp-board-card lb-venue' + (meCount('drag', v.id, '') ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
+          '<span class="tp-small">' + (meCount('drag', v.id, '') ? rankText('drag', v.id, '') : 'Not driven yet') + '</span></div></a>');
         return wrap(v, '<a class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
           (x.total ? '<span class="tp-small">' + x.total + ' run' + (x.total === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No runs yet</span>') + '</div>' +
-          (x.total ? (listSessions ? mePodium('drag', v.id, '', true) : podium(key, true)) : '') + '<span class="tp-small lb-what">' + (listSessions ? 'Your quickest quarter mile' : 'Quickest quarter mile per car') + '</span></a>');
+          (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>');
       }
       var layouts = v.layouts || [], active = layouts.filter(function (l) { return listSessions ? meCount(bt, v.id, l.id) : counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
       return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
-        (x.total ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
+        (x.total && !listSessions ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
         active.map(function (l) { return layoutBlock(bt, v, l); }).join('') +
         (idle.length ? (active.length ? '<p class="tp-small lb-idle">' + (listSessions ? 'Not driven yet: ' : 'No sessions yet: ') + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');
     }).join('') + '</div>';
@@ -622,6 +657,7 @@
   }
 
   function showBoard(type, q) {
+    listShown = null;
     var venueId = q.split(':')[0], layoutId = q.split(':')[1] || '';
     var v = library.venues.filter(function (x) { return x.id === venueId; })[0];
     var l = v && v.layouts ? v.layouts.filter(function (x) { return x.id === layoutId; })[0] : null;

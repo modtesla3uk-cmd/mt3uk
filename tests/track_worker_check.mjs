@@ -1669,6 +1669,26 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   if (rr.status === 200) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
 }
 
+// Sessions saved as "Tesla Dashcam (Beta)" are renamed to "Tesla Dashcam" in the session, the member's index and the car's
+// shared list. A dry run only counts.
+{
+  const old = JSON.parse(JSON.stringify(session)); old.logger = 'Tesla Dashcam (Beta)'; old.date = '2025-05-05';
+  const rs = await call('POST', '/track/sessions', { carId: 'cara1', session: old, privacy: 'build', logger: 'Tesla Dashcam (Beta)' }, 'tok-a');
+  const sid = rs.body.session && rs.body.session.id;
+  const dry = await call('POST', '/track/admin/logger-rename?key=secret&dry=1');
+  ok(dry.status === 200 && dry.body.sessions >= 1 && stored('track-session:' + sid).logger === 'Tesla Dashcam (Beta)', 'a dry run counts the old-name sessions and changes nothing (' + dry.body.sessions + ')');
+  const ren = await call('POST', '/track/admin/logger-rename?key=secret');
+  const rec = stored('track-session:' + sid);
+  const idx = (stored('track-index:' + rec.owner) || []).find(x => x.id === sid);
+  const pub = (stored('track-public:cara1') || []).find(x => x.id === sid);
+  ok(ren.status === 200 && rec.logger === 'Tesla Dashcam' && idx && idx.logger === 'Tesla Dashcam' && (!pub || pub.logger === 'Tesla Dashcam'), 'the session, the member index and the shared list all say "Tesla Dashcam"');
+  const left = await call('POST', '/track/admin/logger-rename?key=secret&dry=1');
+  ok(left.status === 200 && left.body.sessions === 0, 'no session is left with the old name');
+  const bad = await call('POST', '/track/admin/logger-rename');
+  ok(bad.status === 401, 'the rename needs the admin key');
+  await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
+}
+
 // ---- The Usage panel's counts ----
 r = await call('GET', '/track/admin/usage');
 ok(r.status === 401, 'the usage counts need the admin key');

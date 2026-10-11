@@ -2378,3 +2378,22 @@ def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email
     page.locator('.lm-remove[data-email="rae@example.com"]').click()
     expect(page.locator("#lm-list")).to_contain_text("No Laps-only accounts")
     assert posts[1] == {"remove": "rae@example.com", "notify": False} and "without an email" in messages[1]
+
+
+def test_admin_can_rename_the_old_dashcam_logger_in_steps(page):
+    calls = []
+
+    def rename(route):
+        url = route.request.url
+        calls.append(url)
+        data = {"success": True, "sessions": 2, "done": False, "cursor": "50"} if "cursor=" not in url else {"success": True, "sessions": 1, "done": True, "cursor": ""}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/logger-rename**", rename)
+    page.locator("#boards-wrap > summary").click()
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#tk-logger-rename").click()
+    expect(page.locator("#tk-logger-rename-note")).to_have_text('Done: 3 sessions renamed to "Tesla Dashcam".')
+    assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=50" in calls[1]
+    expect(page.locator("#tk-logger-rename")).to_be_enabled()
+

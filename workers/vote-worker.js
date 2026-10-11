@@ -10239,6 +10239,44 @@ async function handleTrackBoardsRebuild(request, env) {
   return json({ success: true, cars: done, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
 }
 
+// The dashcam logger's name changed from "Tesla Dashcam (Beta)" to "Tesla Dashcam". Sessions saved under the old name keep
+// it in three places: the session record, the member's index and the car's shared list. This renames it in all three,
+// a few members at a time (the index keys are listed, fine for an admin route). Dry run only counts.
+var DASHCAM_OLD_LOGGER = 'Tesla Dashcam (Beta)', DASHCAM_NEW_LOGGER = 'Tesla Dashcam';
+async function handleTrackAdminLoggerRename(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var dry = params.get('dry') === '1';
+  var cursor = params.get('cursor') || undefined;
+  var page = await env.VOTES.list({ prefix: 'track-index:', limit: 50, cursor: cursor });
+  var sessions = 0, cars = {};
+  for (var i = 0; i < page.keys.length; i++) {
+    var idx = await getJsonKey(env, page.keys[i].name, []);
+    var changed = false;
+    for (var j = 0; j < idx.length; j++) {
+      if (idx[j].logger !== DASHCAM_OLD_LOGGER) continue;
+      sessions++;
+      cars[idx[j].carId] = true;
+      if (dry) continue;
+      idx[j].logger = DASHCAM_NEW_LOGGER;
+      changed = true;
+      var rec = await getTrackSession(env, idx[j].id);
+      if (rec && rec.logger === DASHCAM_OLD_LOGGER) { rec.logger = DASHCAM_NEW_LOGGER; await putTrackSession(env, rec); }
+    }
+    if (changed) await env.VOTES.put(page.keys[i].name, JSON.stringify(idx));
+  }
+  // The car's shared lists carry the same summaries (only the cars this page touched).
+  if (!dry) {
+    var carIds = Object.keys(cars);
+    for (var c = 0; c < carIds.length; c++) {
+      var pKey = 'track-public:' + carIds[c], shared = await getJsonKey(env, pKey, []), touched = false;
+      shared.forEach(function (s) { if (s.logger === DASHCAM_OLD_LOGGER) { s.logger = DASHCAM_NEW_LOGGER; touched = true; } });
+      if (touched) await env.VOTES.put(pKey, JSON.stringify(shared));
+    }
+  }
+  return json({ success: true, sessions: sessions, dry: dry, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
+}
+
 // A member leaving: their sessions, index, shared lists and board places.
 async function deleteMemberTrackData(env, email) {
   // Off the early preview lists too.
@@ -11825,6 +11863,9 @@ export default {
     }
     if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
       return handleTrackBoardsRebuild(request, env);
+    }
+    if (url.pathname === '/track/admin/logger-rename' && request.method === 'POST') {
+      return handleTrackAdminLoggerRename(request, env);
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);

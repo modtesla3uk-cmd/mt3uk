@@ -522,6 +522,24 @@
     });
   });
 
+  // Renames the dashcam logger on sessions saved under its old name, a few members at a time (Richard, October 2026).
+  var loggerBtn = document.getElementById('tk-logger-rename'), loggerNote = document.getElementById('tk-logger-rename-note');
+  if (loggerBtn) loggerBtn.addEventListener('click', function () {
+    if (!window.confirm('Rename the logger on every session saved as "Tesla Dashcam (Beta)" to "Tesla Dashcam"? Nothing else on those sessions changes.')) return;
+    var n = 0;
+    loggerBtn.disabled = true;
+    function step(cursor) {
+      call('POST', '/track/admin/logger-rename' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+        if (!d.ok || !d.success) { loggerNote.textContent = d.message || 'Could not rename the logger.'; loggerBtn.disabled = false; return; }
+        n += d.sessions || 0;
+        if (d.done) { loggerNote.textContent = 'Done: ' + n + ' session' + (n === 1 ? '' : 's') + ' renamed to "Tesla Dashcam".'; loggerBtn.disabled = false; return; }
+        loggerNote.textContent = 'Working... ' + n + ' sessions so far.';
+        step(d.cursor);
+      }).catch(function () { loggerNote.textContent = 'Could not reach the server.'; loggerBtn.disabled = false; });
+    }
+    loggerNote.textContent = 'Working...';
+    step('');
+  });
   // Brings every leaderboard place up to date, a few cars at a time.
   var rebuildBtn = document.getElementById('tk-rebuild'), rebuildNote = document.getElementById('tk-rebuild-note');
   if (rebuildBtn) rebuildBtn.addEventListener('click', function () {

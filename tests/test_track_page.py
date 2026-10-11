@@ -7180,3 +7180,41 @@ def test_a_place_row_says_its_event_types(page):
     open_page(page, fake)
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Abingdon").locator(".tp-trackrow")).to_contain_text("Track day · 1 session")
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill").locator(".tp-trackrow")).to_contain_text("Track day · Sprint")
+
+
+def test_my_sessions_on_a_board_lists_only_mine_here_quickest_first(page):
+    """On a board, My sessions shows the member's own sessions at that track and layout, quickest first, with links, and
+    none of the other cars or other layouts. Signed out there is no such chip."""
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": _compare_board()}
+    fake.index = [
+        {"id": "m1", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-01", "time": "10:00", "bestTime": 99.5, "conditions": "Dry", "tyres": "Michelin Pilot Sport 4S", "privacy": "private", "car": "PROJECT 3"},
+        {"id": "m2", "type": "track", "venueId": "thruxton", "layoutId": "main", "date": "2026-06-01", "time": "11:00", "bestTime": 97.25, "conditions": "Damp", "tyres": "Michelin Pilot Sport Cup 2 R", "privacy": "build", "car": "PROJECT 3"},
+        {"id": "m3", "type": "track", "venueId": "thruxton", "layoutId": "other", "date": "2026-07-01", "time": "12:00", "bestTime": 60.0, "privacy": "build"},
+    ]
+    open_page(page, fake, path="/leaderboards.html?board=thruxton:main")
+    expect(page.locator(".lb-row").first).to_be_visible()
+    mine = page.locator("#lb-mine")
+    expect(mine).to_have_value("all")
+    mine.select_option("mine")
+    rows = page.locator(".lb-card .lb-row")
+    expect(rows).to_have_count(2)
+    expect(rows.nth(0)).to_contain_text("1:37.25")
+    expect(rows.nth(0)).to_contain_text("Quickest")
+    expect(rows.nth(1)).to_contain_text("1:39.50")
+    expect(rows.nth(1)).to_contain_text("+2.25 s")
+    expect(rows.nth(0).locator("a")).to_have_attribute("href", "track.html?s=m2")
+    expect(page.locator("#lb-cmp")).to_have_count(0)
+    expect(page.locator(".lb-card")).not_to_contain_text("Ann")
+    mine.select_option("all")
+    expect(page.locator(".lb-row").nth(2)).to_be_visible()
+    expect(page.locator("#lb-mine")).to_have_value("all")
+
+
+def test_my_sessions_chip_is_only_for_signed_in_members(page):
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": _compare_board()}
+    open_page(page, fake, path="/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator(".lb-row").first).to_be_visible()
+    expect(page.locator("#lb-mine")).to_have_count(0)
+

@@ -547,6 +547,44 @@
     return h + '</section>';
   }
 
+  // My sessions on a board (signed in): the member's own sessions at this track and layout, quickest first, so each one
+  // can be compared, not just the car's fastest. Read once per board opened (with the Sessions list's sign-in).
+  var SESSION_TOKEN_KEY = 'mt3ukMyBuildsSession', mineOnly = false, mineList = null;
+  function signedInToken() { try { return localStorage.getItem(SESSION_TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  function loadMine() {
+    if (mineList) return Promise.resolve(mineList);
+    var t = signedInToken();
+    if (!t) return Promise.resolve(null);
+    return fetch(API + '/track/sessions', { cache: 'no-store', headers: { 'X-Session-Token': t } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) { mineList = d && d.success ? (d.sessions || []) : []; return mineList; })
+      .catch(function () { mineList = []; return mineList; });
+  }
+  // The member's sessions at this board: drag boards are by strip, track and sprint boards by venue and layout.
+  function mineRows(list, type, venueId, layoutId) {
+    return list.filter(function (s) {
+      if (s.type !== type || s.venueId !== venueId) return false;
+      return type === 'drag' || s.layoutId === layoutId;
+    }).map(function (s) {
+      var t = type === 'drag' ? s.quarter : s.bestTime;
+      return { s: s, t: t };
+    }).filter(function (x) { return isFinite(x.t) && x.t > 0; }).sort(function (a, b) { return a.t - b.t; });
+  }
+  function mineHtml(rows, type) {
+    if (!rows.length) return '<div class="card tp-empty">' + icon('trophy') + '<p>You have no sessions on this board yet. Add one from the Add a session button.</p></div>';
+    return '<p class="tp-small lb-count" role="status">' + rows.length + ' of your session' + (rows.length === 1 ? '' : 's') + ' here, quickest first.</p>' +
+      '<div class="card lb-card"><ol class="lb-list">' + rows.map(function (x, i) {
+        var s = x.s, gap = i ? '+' + (x.t - rows[0].t).toFixed(2) + ' s' : 'Quickest';
+        var detail = [s.car, s.conditions, s.privacy === 'private' ? 'Only me' : ''].filter(Boolean).join(' · ');
+        return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
+          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small></div>' +
+          '<div class="lb-time"><b>' + fmtRes(x.t, type) + '</b><small>' + gap + '</small></div>' +
+          '<div class="lb-info"><span class="lb-tyre' + (s.tyres ? '' : ' is-none') + '">' + (s.tyres ? esc(s.tyres) : 'Tyres not given') + '</span></div>' +
+          icon('chev') + '</li>';
+      }).join('') + '</ol></div>' +
+      '<p class="tp-small lb-note">Only your own sessions are listed here. Each board shows every car\'s fastest, so a car\'s other sessions are not on it.</p>';
+  }
+
   function showBoard(type, q) {
     var venueId = q.split(':')[0], layoutId = q.split(':')[1] || '';
     var v = library.venues.filter(function (x) { return x.id === venueId; })[0];
@@ -554,6 +592,7 @@
     var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
     var path = type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
     fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; viewMode = 'board';
+    mineOnly = false; mineList = null;
     // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
     var FOLD = 10, foldOpen = false;
     rd(path).then(function (d) {
@@ -581,9 +620,10 @@
         var cmp = viewMode !== 'board', anyWeight = entries.some(function (e) { return weightOf(e); });
         var views = [['board', 'Leaderboard'], ['tyres', 'Compare tyres']].concat(type === 'drag' ? [] : [['pads', 'Compare pads']]);
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
+        var signedIn = !!signedInToken();
         var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" data-back aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
-          '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+          '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + (signedIn && viewMode === 'board' ? '<label class="lb-sort lb-show"><span>Show</span><select class="field" id="lb-mine"><option value="all"' + (mineOnly ? '' : ' selected') + '>All cars</option><option value="mine"' + (mineOnly ? ' selected' : '') + '>My sessions</option></select></label>' : '') + '</div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div><div class="tp-head-side">' + refreshChip() + unitsChip() + '</div></div>' +
           (conds.length > 1 || makes.length || cmp ? '<div class="lb-selects">' +
             (conds.length > 1 || cmp ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
@@ -593,7 +633,8 @@
             (makes.length && viewMode !== 'tyres' ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
             (fMake !== 'All' && viewMode !== 'tyres' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
             (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>';
-        if (cmp) h += compareHtml(entries, type);
+        if (mineOnly && !cmp) h += mineList ? mineHtml(mineRows(mineList, type, venueId, layoutId), type) : '<p class="tp-small" role="status">Reading your sessions...</p>';
+        else if (cmp) h += compareHtml(entries, type);
         else if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
@@ -622,6 +663,13 @@
         document.getElementById('lb-views').addEventListener('click', function (ev) {
           var vb = ev.target.closest('[data-view]');
           if (vb && vb.getAttribute('data-view') !== viewMode) { viewMode = vb.getAttribute('data-view'); if (viewMode === 'tyres') { fMake = 'All'; fTyre = 'All'; } draw(); }
+        });
+        var mineSel = document.getElementById('lb-mine');
+        if (mineSel) mineSel.addEventListener('change', function () {
+          mineOnly = mineSel.value === 'mine';
+          if (!mineOnly) return draw('lb-mine');
+          draw('lb-mine');
+          loadMine().then(function () { draw('lb-mine'); });
         });
         var clear = document.getElementById('lb-clear');
         if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; draw(); });

@@ -32,6 +32,16 @@ jobs:
           grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
           echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
 
+      - name: Make the test copy of the worker
+        run: |
+          # The worker's own links (sign-in emails, passkey origins) use live addresses. The test copy uses the test ones.
+          sed -e 's#https://late-darkness-ebc8.modtesla3uk.workers.dev#https://mt3uk-test.modtesla3uk.workers.dev#g' \
+              -e 's#https://laps.mt3uk.com#https://test.laps.mt3uk.com#g' \
+              -e 's#https://www.mt3uk.com#https://test.laps.mt3uk.com#g' \
+              -e 's#https://mt3uk.com#https://test.laps.mt3uk.com#g' \
+              workers/vote-worker.js > workers/test/vote-worker.js
+          echo "Live addresses left in the test worker: $(grep -c 'late-darkness-ebc8\|https://mt3uk.com\|https://laps.mt3uk.com' workers/test/vote-worker.js)"
+
       - name: Find the test KV namespace id
         run: |
           id=$(npx --yes wrangler@4 kv namespace list | python3 -c "import json,sys; print(next(n['id'] for n in json.load(sys.stdin) if n['title']=='mt3uk-test-votes'))")

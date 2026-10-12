@@ -11,6 +11,8 @@ keep_vars = true
 directory = "./site"
 binding = "ASSETS"
 html_handling = "none"
+# Send every request through the worker first, so the test banner and the test address changes apply to pages too.
+run_worker_first = true
 
 [[kv_namespaces]]
 binding = "VOTES"

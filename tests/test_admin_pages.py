@@ -2720,12 +2720,18 @@ def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(p
     expect(page.locator("#lxa-sound-style")).to_have_value("pad")
 
 
-def test_the_laps_video_sound_is_on_by_default_and_starts_on_the_first_press(page):
+def test_the_laps_video_waits_for_click_to_play_and_then_starts_the_sound_too(page):
+    """Nothing plays on load and a press elsewhere on the page does not start it. Click to play starts the animation and,
+    with sound enabled, the sound."""
     from tests.test_laps_home import open_home
     open_home(page)
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator(".lxe-sound")).to_contain_text("Sound on")
+    expect(page.locator(".lxe-go")).to_be_visible()
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
     page.mouse.click(5, 5)
+    expect(page.locator(".lxe-go")).to_be_visible()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Play video")
+    page.locator(".lxe-go").click()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
 
 

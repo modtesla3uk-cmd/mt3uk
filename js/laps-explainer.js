@@ -358,7 +358,9 @@
     '.lxe-btn:hover,.lxe-btn:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
     '.lxe-btn svg,.lxe-sound svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
     '.lxe-sound{height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:600 14px ' + FONT + ';cursor:pointer}' +
-    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}';
+    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
+    '.lxe-go{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);height:52px;padding:0 28px;border-radius:26px;border:0;background:' + ORANGE + ';color:#fff;font:700 18px ' + HEAD + ';cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)}' +
+    '.lxe-go:focus-visible{outline:3px solid #fff;outline-offset:3px}.lxe-go[hidden]{display:none}';
   var styled = false;
   function addStyle() {
     if (styled || !document.head) return;
@@ -392,11 +394,20 @@
     soundBtn.type = 'button'; soundBtn.className = 'lxe-sound';
     bar.appendChild(playBtn);
     if (S.sound) bar.appendChild(soundBtn);
+    // On the Laps front page the picture waits for a press: 'Click to play' starts the animation and, if sound is enabled, the sound.
+    var go = null;
+    if (opts.clickToPlay) {
+      go = document.createElement('button');
+      go.type = 'button'; go.className = 'lxe-go'; go.textContent = 'Click to play';
+      wrap.appendChild(go);
+    }
     wrap.appendChild(canvas); wrap.appendChild(bar); el.appendChild(wrap);
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: !!(opts.autoSound && S.sound), scene: -1, raf: 0, scale: 1 };
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, scene: -1, raf: 0, scale: 1 };
+    // The first start hides the 'Click to play' button for good.
+    function started() { st.started = true; if (go) go.hidden = true; }
 
     function sizeCanvas() {
       var w = wrap.clientWidth || W, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -455,6 +466,7 @@
     }
 
     playBtn.addEventListener('click', function () {
+      started();
       if (!st.playing && st.t >= TOTAL - 0.01) st.t = 0;
       st.playing = !st.playing;
       if (st.playing && st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
@@ -467,17 +479,16 @@
       st.soundOn = !st.soundOn;
       syncSound(); showControls();
     });
-    // On by default: the first press anywhere on the page starts the sound (browsers allow sound only after a press).
-    if (opts.autoSound && S.sound) {
-      var firstPress = function () {
-        document.removeEventListener('pointerdown', firstPress, true);
-        document.removeEventListener('keydown', firstPress, true);
+    // Click to play: starts the animation, and the sound too when sound is enabled (browsers allow sound only after a press).
+    if (go) {
+      go.addEventListener('click', function () {
+        started();
         st.gestured = true;
-        // The labels already say Sound on, so the buttons are not redrawn here (a redraw under a press loses its click).
-        if (st.soundOn) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); syncSound(); }
-      };
-      document.addEventListener('pointerdown', firstPress, true);
-      document.addEventListener('keydown', firstPress, true);
+        if (S.sound) { st.soundOn = true; ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); }
+        if (st.t >= TOTAL - 0.01) st.t = 0;
+        st.playing = true;
+        syncSound(); showControls();
+      });
     }
 
     // On the Laps front page the whole picture is a link to sign in while the end card is showing (the 'Sign in to start' line says so).
@@ -525,8 +536,8 @@
     if (!el) return;
     fetch(API + '/laps/explainer', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true, autoSound: true }); })
-      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true, autoSound: true }); });
+      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: false, clickToPlay: true, link: true }); })
+      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: false, clickToPlay: true, link: true }); });
   }
   window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

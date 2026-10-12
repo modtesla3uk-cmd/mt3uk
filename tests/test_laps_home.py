@@ -319,11 +319,14 @@ def test_the_laps_home_explainer_uses_the_saved_circuit_units_and_words(page):
     expect(wrap).to_have_attribute("data-units", "kph")
     expect(page.locator(".lxe canvas")).to_be_visible()
     toggle = page.locator(".lxe-btn")
+    # The picture waits for a press: Click to play starts it and, with sound enabled, the sound.
+    expect(toggle).to_have_attribute("aria-label", "Play video")
+    page.locator(".lxe-go").click()
     expect(toggle).to_have_attribute("aria-label", "Pause video")
+    expect(page.locator(".lxe-go")).to_be_hidden()
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
     toggle.click()
     expect(toggle).to_have_attribute("aria-label", "Play video")
-    # The sound is on by default, so its button still reads Sound on.
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
     # The poster is replaced by the live picture, so the page has one canvas and no video file.
     assert page.locator("[data-laps-explainer] img").count() == 0
 

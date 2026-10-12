@@ -94,6 +94,8 @@
     }
     audioRemove.disabled = !(audio && audio.url);
   }
+  // The Enable sound switch reads Yes or No beside it.
+  function soundLabel() { var o = document.getElementById('lxa-sound-state'); if (o) o.textContent = sound.getAttribute('aria-checked') === 'true' ? 'Yes' : 'No'; }
   function fill(s) {
     s = E.merge(s || {});
     showAudio(s.audio);
@@ -106,6 +108,7 @@
     loop.setAttribute('aria-checked', String(s.loop !== false));
     previewLabel.setAttribute('aria-checked', String(s.previewLabel !== false));
     sound.setAttribute('aria-checked', String(!!s.sound));
+    soundLabel();
     volume.value = String(s.volume);
     E.SCENES.forEach(function (id) {
       var saved = (s.texts && s.texts[id]) || {};
@@ -132,7 +135,7 @@
   [loop, previewLabel, audioLoopSw].forEach(function (b) {
     b.addEventListener('click', function () { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
   });
-  sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
+  sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); soundLabel(); refreshPreview(); });
   volume.addEventListener('input', refreshPreview);
   E.SCENES.forEach(function (id) {
     fields[id].title.addEventListener('input', refreshPreview);

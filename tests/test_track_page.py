@@ -940,7 +940,7 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     fake = FakeWorker()
     open_page(page, fake, "/leaderboards.html", signed_in=False)
     tip = page.locator(".lb-hero #laps-tip")
-    bulb = tip.locator(".laps-tip-bulbbtn")
+    bulb = page.locator(".lb-hero .laps-tip-titlebulb")
     expect(bulb).to_be_visible()
     expect(bulb).to_have_attribute("aria-label", "Tip: the more you upload, the more the board tells you")
     expect(page.locator("#lb-app #laps-tip")).to_have_count(0)
@@ -948,7 +948,7 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
     # On desktop, as on a phone, it sits on the button row, just left of Add a session.
-    assert abs(k["y"] - a["y"]) < 12 and k["x"] + k["width"] <= a["x"] + 2 and a["x"] - (k["x"] + k["width"]) < 40
+    assert page.locator(".lb-hero h1 .laps-tip-titlebulb").count() == 1 and k["y"] < a["y"], (k, a)
     bulb.click()
     expect(bulb).to_have_attribute("aria-expanded", "true")
     expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")
@@ -961,16 +961,16 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     # Sessions has the same bulb, beside its Add a session in the heading.
     open_page(page, fake, "/track.html", signed_in=True)
     tip = page.locator(".page-hero #laps-tip")
-    expect(tip.locator(".laps-tip-bulbbtn")).to_be_visible()
+    expect(page.locator(".page-hero .laps-tip-titlebulb")).to_be_visible()
     expect(page.locator("#tp-app #laps-tip")).to_have_count(0)
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
-    tip.locator(".laps-tip-bulbbtn").click()
+    page.locator(".page-hero .laps-tip-titlebulb").click()
     expect(tip.locator(".laps-tip-body")).to_be_visible()
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
     # The admin's words, and the switch that hides it.
     fake.copy = {"tipHeading": "Keep uploading", "tipText": "More <b>data</b>, better boards."}
     open_page(page, fake, "/leaderboards.html", signed_in=False)
-    page.locator("#laps-tip .laps-tip-bulbbtn").click()
+    page.locator(".laps-tip-titlebulb").click()
     expect(page.locator("#laps-tip .laps-tip-body b")).to_have_text("Keep uploading")
     expect(page.locator("#laps-tip .laps-tip-body p")).to_have_text("More <b>data</b>, better boards.")
     fake.copy = {"tipOff": True}
@@ -1637,12 +1637,13 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     trophy, d = page.locator(".lb-hero h1 svg.lb-trophy").bounding_box(), page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
     word = page.evaluate("(() => { const r = document.createRange(); r.selectNodeContents(document.querySelector('.lb-hero h1')); const s = [...document.querySelector('.lb-hero h1').childNodes].find(n => n.nodeType === 3); const q = document.createRange(); q.selectNodeContents(s); return q.getBoundingClientRect().right; })()")
     assert trophy["x"] >= word - 1 and trophy["x"] - word < 20, (trophy, word)
-    assert trophy["x"] + trophy["width"] <= d["x"] < trophy["x"] + trophy["width"] + 20 and abs(centre(d) - centre(h)) < 12, (trophy, d)
-    bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
+    # On a phone the share button sits at the far right of the title row, after the trophy.
+    assert trophy["x"] + trophy["width"] <= d["x"] and d["x"] + d["width"] >= 390 - 40 and abs(centre(d) - centre(h)) < 12, (trophy, d)
+    bulb = page.locator(".lb-hero .laps-tip-titlebulb").bounding_box()
     what = page.locator(".lb-hero .tp-what summary").bounding_box()
-    # On a phone the bulb sits on Back's row, between Back and My Sessions, and What is...? is last.
-    assert abs(centre(bulb) - centre(k)) < 8 and bulb["x"] > k["x"] + k["width"] and bulb["x"] + bulb["width"] <= b["x"], (bulb, k, b)
-    assert what["y"] >= a["y"] + a["height"] - 2, (what, a)
+    # On a phone the smaller bulb sits at the right end of the What is...? line, under the buttons.
+    assert abs(centre(bulb) - centre(h)) < 12 and bulb["x"] > h["x"] + 100, (bulb, h)
+    assert what["y"] >= a["y"] + a["height"] - 2 and what["y"] - (a["y"] + a["height"]) < 30, (what, a)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
@@ -1669,7 +1670,7 @@ def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_c
     fake = FakeWorker()
     fake.counts = LAPS_COUNTS
     open_page(page, fake, "/track.html", signed_in=True)
-    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    bulb = page.locator(".page-hero .laps-tip-titlebulb")
     expect(bulb).to_have_class(re.compile("is-lit"))
     bulb.click()
     pop = page.locator(".page-hero .laps-tip-pop")
@@ -1680,11 +1681,11 @@ def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_c
     # Seen: next time it is not lit, until a leader changes, which is marked New.
     open_page(page, fake, "/track.html", signed_in=True)
     page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
-    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    expect(page.locator(".page-hero .laps-tip-titlebulb")).not_to_have_class(re.compile("is-lit"))
     fake.counts = json.loads(json.dumps(LAPS_COUNTS))
     fake.counts["leaders"]["track-board:thruxton:main"] = [{"car": "Venom", "owner": "Kit", "model": "Model S", "time": 79.9}]
     open_page(page, fake, "/track.html", signed_in=True)
-    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    bulb = page.locator(".page-hero .laps-tip-titlebulb")
     expect(bulb).to_have_class(re.compile("is-lit"))
     bulb.click()
     expect(page.locator(".page-hero .lh-fast-pop a").first.locator(".lh-new")).to_have_text("New")
@@ -1693,14 +1694,14 @@ def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_c
     page.evaluate("localStorage.setItem('mt3ukLapsFastSeen', JSON.stringify(['track-board:thruxton:main|1:19.90|Kit', 'drag-board:santa-pod|10.84 s|Kit']))")
     open_page(page, fake, "/track.html", signed_in=True)
     page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
-    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    expect(page.locator(".page-hero .laps-tip-titlebulb")).not_to_have_class(re.compile("is-lit"))
     expect(page.locator(".page-hero .lh-fast-pop .lh-new")).to_have_count(0)
     # A leader's nickname or car name changing is not a new leader: nothing is lit or marked New.
     fake.counts = json.loads(json.dumps(fake.counts))
     fake.counts["leaders"]["track-board:thruxton:main"] = [{"car": "Venom II", "owner": "Kit Chambers", "model": "Model S", "time": 79.9}]
     open_page(page, fake, "/track.html", signed_in=True)
     page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
-    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    expect(page.locator(".page-hero .laps-tip-titlebulb")).not_to_have_class(re.compile("is-lit"))
     expect(page.locator(".page-hero .lh-fast-pop .lh-new")).to_have_count(0)
 
 

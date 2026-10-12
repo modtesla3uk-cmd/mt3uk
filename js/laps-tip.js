@@ -50,18 +50,23 @@
     var slots = document.querySelectorAll('[data-laps-tip]');
     if (!slots.length) return Promise.resolve();
     return load().then(function () {
+      // A slot marked data-laps-tip-title takes its bulb button into the page heading (beside the title icon); the box stays here.
+      document.querySelectorAll('.laps-tip-titlebulb').forEach(function (n) { n.parentNode.removeChild(n); });
       document.querySelectorAll('[data-laps-tip]').forEach(function (el) {
         var mode = el.getAttribute('data-laps-tip');
         el.innerHTML = html(mode === 'bulb' || mode === 'bulb-fast' ? mode : mode === 'plain');
+        var titleSel = el.getAttribute('data-laps-tip-title'), title = titleSel && document.querySelector(titleSel), bulb = el.querySelector('.laps-tip-bulbbtn');
+        if (title && bulb) { bulb.classList.add('laps-tip-titlebulb'); title.insertBefore(bulb, title.querySelector('.mt3uk-share-dot')); }
         // Sessions: Fastest right now at the top of the bulb's box, and the bulb lit when a leader has changed.
-        if (mode === 'bulb-fast' && window.MT3UKLapsPanels) window.MT3UKLapsPanels.fastBulb(el.querySelector('.laps-tip-bulbbtn'), el.querySelector('.laps-tip-pop'));
+        if (mode === 'bulb-fast' && window.MT3UKLapsPanels) window.MT3UKLapsPanels.fastBulb(bulb, el.querySelector('.laps-tip-pop'));
       });
     });
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-laps-tip-toggle]');
     if (!b) return;
-    var tip = b.closest('.laps-tip'), body = tip.querySelector('.laps-tip-body'), open = tip.classList.toggle('is-closed');
+    // The bulb may sit in the heading now, so the box is found by the id the button controls.
+    var body = document.getElementById(b.getAttribute('aria-controls') || 'laps-tip-body'), tip = body.closest('.laps-tip'), open = tip.classList.toggle('is-closed');
     body.hidden = open;
     b.setAttribute('aria-expanded', String(!open));
     if (tip.classList.contains('laps-tip-bulbmode')) return;

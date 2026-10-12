@@ -10,6 +10,7 @@ keep_vars = true
 [assets]
 directory = "./site"
 binding = "ASSETS"
+html_handling = "none"
 
 [[kv_namespaces]]
 binding = "VOTES"

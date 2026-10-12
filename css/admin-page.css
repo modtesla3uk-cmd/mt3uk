@@ -721,3 +721,9 @@ button.sec-refresh:hover, button.sec-refresh:focus-visible { border-color: var(-
 @media (prefers-reduced-motion: reduce) { .sec-refresh.is-busy .icon { animation: none; } }
 /* The headings the second menu row jumps to inside a one-panel category (Tracks) stop clear of the sticky menus. */
 h3.sub-head[id], .tk-fold { scroll-margin-top: calc(var(--nav-h, 64px) + 70px); }
+
+/* Sound panel (track-admin.html, js/ev-sound-admin.js): one slider per row, its value beside it and its hint under it. */
+.snd-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 4px 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--hairline, #e3e6ea); }
+.snd-row small { grid-column: 1 / -1; color: var(--muted, #5b6470); }
+.snd-row output { min-width: 3.5em; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 780px) { .snd-row { grid-template-columns: 1fr auto; } .snd-row input { grid-column: 1 / -1; } }

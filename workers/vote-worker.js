@@ -9157,6 +9157,47 @@ async function handleLapsExplainerAudio(request, env) {
   return json({ success: true, settings: old });
 }
 
+// ---------- Motor sound (the Sound panel of track-admin.html) ----------
+// The settings for the electric motor sound made in js/ev-sound.js. One KV key (ev-sound), read with get(). The ranges
+// here match LIMITS in js/ev-sound.js. The public route is read by any page that plays the sound; the admin reads and writes.
+var EV_SOUND_KEY = 'ev-sound';
+var EV_SOUND_LIMITS = {
+  f0: [40, 400], fPeak: [60, 1200], fEnd: [40, 800], rise: [0.5, 4], hold: [0, 3], length: [2, 6],
+  sub: [0, 1], whine: [0, 0.3], texture: [0, 0.2], cut: [400, 4000], volume: [0, 100]
+};
+var EV_SOUND_HARM = [0, 1];
+function cleanEvSound(body) {
+  var src = body || {}, out = {};
+  Object.keys(EV_SOUND_LIMITS).forEach(function (k) {
+    var n = Number(src[k]), lim = EV_SOUND_LIMITS[k];
+    if (src[k] !== undefined && src[k] !== null && src[k] !== '' && isFinite(n)) out[k] = Math.max(lim[0], Math.min(lim[1], n));
+  });
+  var harm = Array.isArray(src.harm) ? src.harm : [];
+  if (harm.length) {
+    out.harm = [0, 1, 2, 3].map(function (i) {
+      var n = Number(harm[i]);
+      return isFinite(n) ? Math.max(EV_SOUND_HARM[0], Math.min(EV_SOUND_HARM[1], n)) : 0;
+    });
+  }
+  return out;
+}
+async function handleEvSoundPublic(request, env) {
+  var settings = await getJsonKey(env, EV_SOUND_KEY, {});
+  var res = json({ success: true, settings: settings || {} });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleEvSoundAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, EV_SOUND_KEY, {})) || {} });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.reset) { await env.VOTES.delete(EV_SOUND_KEY); return json({ success: true, settings: {} }); }
+  var settings = cleanEvSound(body);
+  await env.VOTES.put(EV_SOUND_KEY, JSON.stringify(settings));
+  return json({ success: true, settings: settings });
+}
+
 // ---------- Laps logo ----------
 // Which mark the Laps header, footer, favicon and sharing card use: one of four, chosen on the Laps logo panel of
 // track-admin.html (js/laps-logo.js holds the marks). One KV key, read with get().
@@ -12021,6 +12062,12 @@ export default {
     }
     if (url.pathname === '/laps/explainer/admin/audio' && (request.method === 'POST' || request.method === 'DELETE')) {
       return handleLapsExplainerAudio(request, env);
+    }
+    if (url.pathname === '/sound/ev' && request.method === 'GET') {
+      return handleEvSoundPublic(request, env);
+    }
+    if (url.pathname === '/sound/ev/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleEvSoundAdmin(request, env);
     }
     if (url.pathname === '/laps/logo' && request.method === 'GET') {
       return handleLapsLogoPublic(request, env);

@@ -311,6 +311,14 @@
       <h3 class="sub-head">Preview</h3>
       <div id="lxa-preview"></div>
     </details>
+    <details class="collapsible" id="sound-wrap">
+      <summary><h3 class="panel-title">Sound</h3></summary>
+      <p class="iv-note">Make an electric motor sound: a pull up to the top pitch, a hold, then a lift. Move the sliders and press Play to hear it. Save puts the settings on the worker; Download gives a WAV you can turn into an MP3 with any converter.</p>
+      <p class="iv-note" id="snd-note" role="status"></p>
+      <div class="ts-new" id="snd-controls"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="snd-play">Play</button><button type="button" class="secondary" id="snd-stop">Stop</button><button type="button" class="secondary" id="snd-wav">Download WAV</button></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="snd-save">Save</button><button type="button" class="secondary" id="snd-reset">Use the built-in sound</button></div>
+    </details>
     <details class="collapsible" id="tyres-wrap">
       <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
       <p class="iv-note">The tyre makes and models offered in Track sessions. The Model box suggests a make's models and members can still type anything. data/tyres.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
@@ -390,6 +398,8 @@
 <script src="js/laps-explainer-admin.js?v=5" defer></script>
 <script src="js/laps-news-admin.js?v=1" defer></script>
 <script src="js/laps-logo-admin.js?v=1" defer></script>
+<script src="js/ev-sound.js?v=1"></script>
+<script src="js/ev-sound-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

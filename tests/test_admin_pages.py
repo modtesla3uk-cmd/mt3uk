@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Sound", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -1199,6 +1199,43 @@ def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
     expect(page.locator(".ll-opt[data-logo='ramp'] b")).to_have_text("Speed-ramp L (in use)")
     assert posted == [{"logo": "ramp"}], posted
     expect(page.locator("#ll-save")).to_be_disabled()
+
+
+def test_admin_sound_panel_shapes_a_motor_sound_and_saves_it(page):
+    """The Sound panel has a slider for each setting, renders the sound (3.6 seconds at 44.1 kHz by default), and Save sends
+    the settings the sliders show to the worker, which the reload then shows back."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def sound_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/ev/admin**", sound_admin)
+    page.locator("#sound-wrap summary").click()
+    rows = page.locator("#snd-controls .snd-row")
+    expect(rows).to_have_count(15)
+    expect(rows.first.locator("output")).to_have_text("95")
+    expect(page.locator("#snd-controls .snd-row").nth(1).locator("output")).to_have_text("430")
+    # Move the top pitch and save it
+    page.evaluate("""() => { const r = document.querySelectorAll('#snd-controls .snd-row input')[1];
+        r.value = '520'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(page.locator("#snd-controls .snd-row").nth(1).locator("output")).to_have_text("520")
+    page.locator("#snd-save").click()
+    expect(page.locator("#snd-note")).to_have_text("Saved.")
+    assert len(posted) == 1 and posted[0]["fPeak"] == 520, posted
+    assert len(posted[0]["harm"]) == 4, posted[0]
+    # The synth itself: default length is 3.6 seconds of samples, peak-normalised
+    length, peak = page.evaluate("() => { const s = MT3UKEvSound.render({}); let m = 0; for (const v of s) m = Math.max(m, Math.abs(v)); return [s.length, m]; }")
+    assert length == 158760, length
+    assert 0.7 < peak < 0.72, peak
 
 
 LINES_API = "**/track/lines/admin**"

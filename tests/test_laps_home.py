@@ -12,10 +12,10 @@ COUNTS = {"success": True, "counts": {"track-board:thruxton:main": 14, "drag-boa
                       "track-board:gone:main": [{"car": "Old", "owner": "Nobody", "time": 70}]}}
 
 
-def open_home(page, signed_in=False, panels=None):
+def open_home(page, signed_in=False, panels=None, explainer=None):
     def answer(r):
         url = r.request.url
-        body = COUNTS if "/track/counts" in url else {"success": True, "panels": panels or {}} if "/laps/panels" in url else {"success": True}
+        body = COUNTS if "/track/counts" in url else {"success": True, "panels": panels or {}} if "/laps/panels" in url else {"success": True, "settings": explainer or {}} if "/laps/explainer" in url else {"success": True}
         r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
     page.route("**/%s/**" % API_HOST, answer)
     if signed_in:
@@ -319,17 +319,23 @@ def test_the_laps_share_button_says_laps_by_mt3uk_and_links_to_the_laps_address(
     assert "subject=Every lap, mapped and measured. | Laps by MT3UK" in email, email
 
 
-def test_the_laps_home_page_has_a_muted_looping_explainer_video_with_a_pause_button(page):
-    open_home(page)
-    video = page.locator("#lh-video")
-    expect(video).to_be_visible()
-    assert video.get_attribute("src") is None
-    assert video.evaluate("v => v.muted && v.loop") is True
-    assert page.locator("#lh-video source").first.get_attribute("src") == "images/laps/explainer.webm"
-    toggle = page.locator("#lh-video-toggle")
+def test_the_laps_home_explainer_uses_the_saved_circuit_units_and_words(page):
+    open_home(page, explainer={"map": "sweeper", "units": "kph", "sound": True, "volume": 40, "texts": {"end": {"title": "Try Laps"}}})
+    wrap = page.locator(".lxe")
+    expect(wrap).to_be_visible()
+    expect(wrap).to_have_attribute("data-map", "sweeper")
+    expect(wrap).to_have_attribute("data-units", "kph")
+    expect(page.locator(".lxe canvas")).to_be_visible()
+    toggle = page.locator(".lxe-btn")
     expect(toggle).to_have_attribute("aria-label", "Pause video")
     toggle.click()
     expect(toggle).to_have_attribute("aria-label", "Play video")
-    assert video.evaluate("v => v.paused") is True
-    # The video sits above the panels, so the panel order the test above checks is unchanged.
-    assert page.locator("main > section").first.get_attribute("id") == "what"
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
+    # The poster is replaced by the live picture, so the page has one canvas and no video file.
+    assert page.locator("[data-laps-explainer] img").count() == 0
+
+
+def test_the_laps_home_explainer_has_the_built_in_circuit_and_mph_when_nothing_is_saved(page):
+    open_home(page)
+    expect(page.locator(".lxe")).to_have_attribute("data-map", "club")
+    expect(page.locator(".lxe")).to_have_attribute("data-units", "mph")

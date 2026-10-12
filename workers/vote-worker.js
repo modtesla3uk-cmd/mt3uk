@@ -9069,6 +9069,50 @@ async function handleLapsNewsAdmin(request, env) {
   return json({ success: true, news: news });
 }
 
+// ---------- Laps video (the explainer on laps.html) ----------
+// The settings for the animated explainer on the Laps front page, changed on the Laps video panel of track-admin.html.
+// One KV key (laps-explainer), read with get(). Only what the admin changed is stored: the circuit (one of three made-up
+// ones), mph or km/h, sound on or off, the volume, and the words for each scene (blank keeps the built-in words in
+// js/laps-explainer.js). Everyone reads it from /laps/explainer; the admin reads and writes /laps/explainer/admin.
+var LAPS_EXPLAINER_KEY = 'laps-explainer';
+var LAPS_EXPLAINER_MAPS = ['club', 'sweeper', 'hairpin'];
+var LAPS_EXPLAINER_SCENES = ['upload', 'map', 'delta', 'compare', 'car', 'end'];
+function cleanLapsExplainer(body) {
+  var out = {}, src = body || {};
+  if (LAPS_EXPLAINER_MAPS.indexOf(String(src.map || '')) !== -1) out.map = String(src.map);
+  if (src.units === 'kph' || src.units === 'mph') out.units = src.units;
+  if (typeof src.sound === 'boolean') out.sound = src.sound;
+  var vol = parseInt(src.volume, 10);
+  if (!isNaN(vol)) out.volume = Math.max(0, Math.min(100, vol));
+  var texts = {}, words = src.texts || {};
+  LAPS_EXPLAINER_SCENES.forEach(function (id) {
+    var t = words[id] || {}, title = trackText(t.title, 60), caption = trackText(t.caption, 140);
+    if (title || caption) {
+      texts[id] = {};
+      if (title) texts[id].title = title;
+      if (caption) texts[id].caption = caption;
+    }
+  });
+  if (Object.keys(texts).length) out.texts = texts;
+  return out;
+}
+async function handleLapsExplainerPublic(request, env) {
+  var settings = await getJsonKey(env, LAPS_EXPLAINER_KEY, {});
+  var res = json({ success: true, settings: settings || {} });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleLapsExplainerAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {} });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.reset) { await env.VOTES.delete(LAPS_EXPLAINER_KEY); return json({ success: true, settings: {} }); }
+  var settings = cleanLapsExplainer(body);
+  await env.VOTES.put(LAPS_EXPLAINER_KEY, JSON.stringify(settings));
+  return json({ success: true, settings: settings });
+}
+
 // ---------- Laps logo ----------
 // Which mark the Laps header, footer, favicon and sharing card use: one of four, chosen on the Laps logo panel of
 // track-admin.html (js/laps-logo.js holds the marks). One KV key, read with get().
@@ -11924,6 +11968,12 @@ export default {
     }
     if (url.pathname === '/laps/news/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsNewsAdmin(request, env);
+    }
+    if (url.pathname === '/laps/explainer' && request.method === 'GET') {
+      return handleLapsExplainerPublic(request, env);
+    }
+    if (url.pathname === '/laps/explainer/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsExplainerAdmin(request, env);
     }
     if (url.pathname === '/laps/logo' && request.method === 'GET') {
       return handleLapsLogoPublic(request, env);

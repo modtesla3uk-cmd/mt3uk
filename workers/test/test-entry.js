@@ -17,8 +17,8 @@ export default {
   async fetch(request, env, ctx) {
     var url = new URL(request.url);
     if ((request.method === 'GET' || request.method === 'HEAD') && isSiteFile(url.pathname)) {
-      // The root path has no file of its own, so it is served from index.html (the same page laps.mt3uk.com/ shows).
-      var assetRequest = url.pathname === '/' ? new Request(new URL('/index.html', url), request) : request;
+      // The root path has no file of its own. The test address is the Laps address, so its root is the Laps front page.
+      var assetRequest = url.pathname === '/' ? new Request(new URL('/laps.html', url), request) : request;
       var res = await env.ASSETS.fetch(assetRequest);
       if ((res.headers.get('content-type') || '').indexOf('text/html') === 0) {
         return new HTMLRewriter().on('body', {

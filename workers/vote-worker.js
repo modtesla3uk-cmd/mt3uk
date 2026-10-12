@@ -3312,6 +3312,34 @@ async function handleAdminDailySummary(request, env) {
   await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   return json({ success: true, sent: true });
 }
+// Approved testers for the test copy only (mt3uk-test sets TEST_EMAIL_TO). One KV key, read with get().
+var TEST_TESTERS_KEY = 'test-testers';
+async function testTesters(env) {
+  var list = await env.VOTES.get(TEST_TESTERS_KEY, 'json');
+  return Array.isArray(list) ? list : [];
+}
+
+async function handleTestTesters(request, env) {
+  if (!env.TEST_EMAIL_TO) return json({ success: false, message: 'Not found' }, 404);
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await testTesters(env);
+  if (request.method === 'GET') return json({ success: true, testers: list });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var email = String((body && (body.add || body.remove)) || '').trim().toLowerCase();
+  if (body && body.add) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'Enter a full email address' }, 400);
+    if (list.indexOf(email) === -1) list.push(email);
+  } else if (body && body.remove) {
+    list = list.filter(function (e) { return e !== email; });
+  } else {
+    return json({ success: false, message: 'Nothing to change' }, 400);
+  }
+  list.sort();
+  await env.VOTES.put(TEST_TESTERS_KEY, JSON.stringify(list));
+  return json({ success: true, testers: list });
+}
+
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
@@ -11581,8 +11609,11 @@ async function tallyVotesIfUkMidnight(env) {
 // Every email goes through here. On the test copy (mt3uk-test) TEST_EMAIL_TO is set, and every email goes to that
 // address instead, with the real recipient in the subject. On live it is not set, so mail is unchanged.
 var mailRedirectTo = null;
+// Approved testers on the test copy: mail to them goes to them directly (kept in KV as test-testers, see handleTestTesters).
+var mailTesters = [];
 function mailMessage(from, to, raw) {
   if (!mailRedirectTo) return new EmailMessage(from, to, raw);
+  if (mailTesters.indexOf(String(to).toLowerCase()) !== -1) return new EmailMessage(from, to, raw);
   var redirected = raw.replace(/^To: .*$/m, 'To: ' + mailRedirectTo).replace(/^Subject: (.*)$/m, 'Subject: [test, for ' + to + '] $1');
   return new EmailMessage(from, mailRedirectTo, redirected);
 }
@@ -11590,6 +11621,7 @@ function mailMessage(from, to, raw) {
 export default {
   async fetch(request, env, ctx) {
     mailRedirectTo = env.TEST_EMAIL_TO || null;
+    mailTesters = mailRedirectTo ? await testTesters(env) : [];
     var url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -12187,6 +12219,9 @@ export default {
     }
     if (url.pathname === '/my-builds/car/make-private' && request.method === 'POST') {
       return handleGarageMakePrivate(request, env);
+    }
+    if (url.pathname === '/test/testers' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTestTesters(request, env);
     }
     if (url.pathname === '/admin/alerts' && (request.method === 'GET' || request.method === 'POST')) {
       return handleAdminAlerts(request, env);

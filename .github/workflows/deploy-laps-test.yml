@@ -27,6 +27,10 @@ jobs:
             --exclude '.git' --exclude '.github' --exclude 'workers' --exclude 'tests' \
             --exclude 'scripts' --exclude 'node_modules' --exclude '.assetsignore' \
             ./ workers/test/site/
+          # The site's scripts call the worker by a fixed address. In the test copy only, point them at the test worker,
+          # so test pages never read or write live data or send live email.
+          grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
+          echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
 
       - name: Find the test KV namespace id
         run: |

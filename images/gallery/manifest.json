@@ -1,5 +1,14 @@
 [
   {
+    "file": "photo-4.jpg",
+    "caption": "PHOTO 4",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-12",
+    "group": "photo-4.jpg"
+  },
+  {
     "file": "sun-is-shining.jpg",
     "caption": "SUN IS SHINING",
     "name": "RichardHC",

@@ -11,6 +11,8 @@
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var W = 960, H = 540, TOTAL = 17, FADE = 0.35, PATH_N = 720;
+  // How fast the picture runs. Slow (0.77) is the default: the 17 second loop takes about 22 seconds.
+  var PACES = { slowest: { name: 'Slowest', rate: 0.6 }, slow: { name: 'Slow', rate: 0.77 }, normal: { name: 'Normal', rate: 1 }, quick: { name: 'Quick', rate: 1.3 } };
   var NAVY = '#14213d', NAVY2 = '#1d2d52', ORANGE = '#e8572a', CREAM = '#f4f1ea', MUTED = '#a9b6cf', BLUE = '#5aa9e6', LINE = 'rgba(244,241,234,0.14)';
   var FONT = '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif';
   var HEAD = '"Archivo", "Arial Black", Arial, sans-serif';
@@ -37,7 +39,14 @@
     car: { title: 'Your car, not just the track', caption: 'Track Mode telemetry shows what the car was doing, lap by lap.' },
     end: { title: 'Laps by MT3UK', caption: 'Every lap, mapped and measured.' }
   };
-  var DEFAULTS = { map: 'club', units: 'mph', sound: true, volume: 60, texts: {} };
+  // The sounds the admin can choose. Each is made here in the browser (no audio file). Silent offers no Sound button.
+  var SOUNDS = { pad: 'Soft pad', pulse: 'Pulse', engine: 'Engine hum', chime: 'Chime', stopwatch: 'Stopwatch', whoosh: 'Whoosh', silent: 'Silent (no Sound button)' };
+  var DEFAULTS = { map: 'club', units: 'mph', sound: true, soundStyle: 'pad', pace: 'slow', volume: 60, loop: true, previewLabel: true, texts: {} };
+  // Where the 'Sign in to start' line on the end card goes, and the area of the picture that counts as a press on it.
+  var CTA = { x0: 330, x1: 630, y0: 376, y1: 426 };
+  function signInTarget() {
+    return typeof window.mt3ukSignInUrl === 'function' ? window.mt3ukSignInUrl('track.html') : 'laps-signin.html?next=track.html';
+  }
 
   function clamp(x, a, b) { return Math.max(a === undefined ? 0 : a, Math.min(b === undefined ? 1 : b, x)); }
   function ease(x) { x = clamp(x); return x * x * (3 - 2 * x); }
@@ -46,7 +55,8 @@
   function merge(s) {
     s = s || {};
     var out = { map: MAPS[s.map] ? s.map : DEFAULTS.map, units: s.units === 'kph' ? 'kph' : 'mph',
-      sound: s.sound !== false, volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
+      loop: s.loop !== false, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', soundStyle: SOUNDS[s.soundStyle] ? s.soundStyle : 'pad', sound: s.sound !== false && s.soundStyle !== 'silent',
+      volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
     SCENES.forEach(function (sc) {
       var mine = (s.texts && s.texts[sc.id]) || {};
       out.texts[sc.id] = {
@@ -228,7 +238,7 @@
       text(ctx, S.texts.end.title, 480, 230, 56, CREAM, HEAD, 700, 'center');
       text(ctx, S.texts.end.caption, 480, 282, 26, MUTED, FONT, 400, 'center');
       ctx.restore();
-      pill(ctx, 'Early preview', 480 - 70, 320, a);
+      if (S.previewLabel) pill(ctx, 'Early preview', 480 - 70, 320, a);
       text(ctx, 'Sign in to start', 480, 410, 24, ORANGE, HEAD, 700, 'center', a);
     }
   };
@@ -254,27 +264,90 @@
     return SCENES.length - 1;
   }
 
-  // Sound: a quiet synthesised bed and a tick at each scene change. Made here, so there is no audio file to manage.
-  function makeAudio() {
+  // Sounds: made here, so there is no audio file to manage. The pad and the engine hum run all the time; the others
+  // play on a beat, a second or a scene change while the picture plays.
+  var CHIME = [523.25, 659.25, 783.99, 880];
+  var BEAT = 0.5;
+  function noiseSource(a) {
+    var src = a.ac.createBufferSource();
+    src.buffer = a.noise; src.loop = true;
+    return src;
+  }
+  function makeAudio(style) {
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
-    var ac = new AC(), master = ac.createGain(), lp = ac.createBiquadFilter(), lfo = ac.createOscillator(), lfoGain = ac.createGain();
+    var ac = new AC(), master = ac.createGain();
     master.gain.value = 0; master.connect(ac.destination);
-    lp.type = 'lowpass'; lp.frequency.value = 1100; lp.Q.value = 0.4; lp.connect(master);
-    lfo.frequency.value = 0.18; lfoGain.gain.value = 0.05; lfo.connect(lfoGain); lfo.start();
-    [110, 165, 220, 277].forEach(function (f, i) {
-      var o = ac.createOscillator(), g = ac.createGain();
-      o.type = i % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.detune.value = (i - 1.5) * 6;
-      g.gain.value = 0.12; o.connect(g); g.connect(lp); lfoGain.connect(g.gain); o.start();
-    });
-    return { ac: ac, master: master };
+    var a = { ac: ac, master: master, style: style, beat: -1, sec: -1, eng: null, noise: null };
+    a.noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+    var nd = a.noise.getChannelData(0);
+    for (var i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    if (style === 'pad') {
+      var lp = ac.createBiquadFilter(), lfo = ac.createOscillator(), lfoGain = ac.createGain();
+      lp.type = 'lowpass'; lp.frequency.value = 1100; lp.Q.value = 0.4; lp.connect(master);
+      lfo.frequency.value = 0.18; lfoGain.gain.value = 0.05; lfo.connect(lfoGain); lfo.start();
+      [110, 165, 220, 277].forEach(function (f, n) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = n % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = f; o.detune.value = (n - 1.5) * 6;
+        g.gain.value = 0.12; o.connect(g); g.connect(lp); lfoGain.connect(g.gain); o.start();
+      });
+    }
+    if (style === 'engine') {
+      a.eng = ac.createOscillator();
+      var elp = ac.createBiquadFilter(), eg = ac.createGain();
+      a.eng.type = 'sawtooth'; a.eng.frequency.value = 55;
+      elp.type = 'lowpass'; elp.frequency.value = 380; elp.Q.value = 2;
+      eg.gain.value = 0.16; a.eng.connect(elp); elp.connect(eg); eg.connect(master); a.eng.start();
+    }
+    if (style === 'whoosh') {
+      var rl = ac.createBiquadFilter(), rg = ac.createGain(), rumble = noiseSource(a);
+      rl.type = 'lowpass'; rl.frequency.value = 300; rg.gain.value = 0.05;
+      rumble.connect(rl); rl.connect(rg); rg.connect(master); rumble.start();
+    }
+    return a;
   }
-  function tick(a) {
-    var ac = a.ac, len = Math.floor(ac.sampleRate * 0.04), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
-    var src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
-    src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 2400; g.gain.value = 0.35;
-    src.connect(bp); bp.connect(g); g.connect(a.master); src.start();
+  function click(a, when, freq, len, vol) {
+    var src = a.ac.createBufferSource(), bp = a.ac.createBiquadFilter(), g = a.ac.createGain();
+    src.buffer = a.noise; bp.type = 'bandpass'; bp.frequency.value = freq;
+    g.gain.setValueAtTime(vol, when); g.gain.exponentialRampToValueAtTime(0.001, when + len);
+    src.connect(bp); bp.connect(g); g.connect(a.master); src.start(when, 0, len + 0.01);
+  }
+  function tone(a, when, freq, len, vol) {
+    var o = a.ac.createOscillator(), g = a.ac.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, when); g.gain.exponentialRampToValueAtTime(vol, when + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, when + len);
+    o.connect(g); g.connect(a.master); o.start(when); o.stop(when + len + 0.05);
+  }
+  function kick(a, when) {
+    var o = a.ac.createOscillator(), g = a.ac.createGain();
+    o.frequency.setValueAtTime(120, when); o.frequency.exponentialRampToValueAtTime(45, when + 0.2);
+    g.gain.setValueAtTime(0.6, when); g.gain.exponentialRampToValueAtTime(0.001, when + 0.3);
+    o.connect(g); g.connect(a.master); o.start(when); o.stop(when + 0.35);
+  }
+  function rush(a, when) {
+    var src = noiseSource(a), bp = a.ac.createBiquadFilter(), g = a.ac.createGain();
+    bp.type = 'bandpass'; bp.frequency.setValueAtTime(300, when); bp.frequency.exponentialRampToValueAtTime(3000, when + 0.9);
+    g.gain.setValueAtTime(0.0001, when); g.gain.exponentialRampToValueAtTime(0.25, when + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, when + 1.0);
+    src.connect(bp); bp.connect(g); g.connect(a.master); src.start(when, 0, 1.1);
+  }
+  // Called each frame with the picture's time. sceneChanged is true on the frame a new scene starts.
+  function playSound(a, t, scene, sceneChanged, playing) {
+    var now = a.ac.currentTime + 0.02;
+    if (a.eng) a.eng.frequency.setTargetAtTime(48 + 26 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2 * 0.6)), now, 0.08);
+    if (!playing) return;
+    if (sceneChanged) {
+      if (a.style === 'pad' || a.style === 'engine') click(a, now, 2400, 0.04, 0.35);
+      if (a.style === 'chime') tone(a, now, CHIME[scene % CHIME.length], 1.6, 0.14);
+      if (a.style === 'whoosh') rush(a, now);
+    }
+    if (a.style === 'pulse') {
+      var beat = Math.floor(t / BEAT);
+      if (beat !== a.beat) { a.beat = beat; kick(a, now); }
+    }
+    if (a.style === 'stopwatch') {
+      var sec = Math.floor(t);
+      if (sec !== a.sec) { a.sec = sec; click(a, now, 1800, 0.03, 0.25); }
+    }
   }
 
   var css = '.lxe{position:relative;background:' + NAVY + ';overflow:hidden;line-height:0}' +
@@ -304,6 +377,9 @@
     wrap.className = 'lxe';
     wrap.setAttribute('data-map', S.map);
     wrap.setAttribute('data-units', S.units);
+    wrap.setAttribute('data-sound', S.soundStyle);
+    wrap.setAttribute('data-pace', S.pace);
+    wrap.setAttribute('data-loop', S.loop ? 'loop' : 'once');
     var canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'img');
     canvas.setAttribute('aria-label', 'Animated introduction to Laps. The words for each scene are shown on the picture.');
@@ -348,23 +424,26 @@
       st.raf = requestAnimationFrame(frame);
       var dt = st.last ? Math.min(0.1, (now - st.last) / 1000) : 0;
       st.last = now;
-      if (st.playing) st.t = (st.t + dt) % TOTAL;
-      var k = sceneIndex(st.t);
-      if (k !== st.scene) {
-        if (st.scene !== -1 && st.playing && st.soundOn && st.audio) tick(st.audio);
-        st.scene = k;
+      if (st.playing) {
+        var nt = st.t + dt * PACES[S.pace].rate;
+        if (!S.loop && nt >= TOTAL) { st.t = TOTAL - 0.001; st.playing = false; showControls(); fadeMaster(); }
+        else st.t = nt % TOTAL;
       }
+      var k = sceneIndex(st.t), changed = k !== st.scene && st.scene !== -1;
+      st.scene = k;
+      if (st.audio && st.soundOn) playSound(st.audio, st.t, k, changed, st.playing);
       paint();
     }
 
     playBtn.addEventListener('click', function () {
+      if (!st.playing && st.t >= TOTAL - 0.01) st.t = 0;
       st.playing = !st.playing;
       if (st.playing && st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
       fadeMaster(); showControls();
     });
     soundBtn.addEventListener('click', function () {
       if (!st.audio) {
-        st.audio = makeAudio();
+        st.audio = makeAudio(S.soundStyle);
         if (!st.audio) { soundBtn.disabled = true; return; }
       }
       if (st.audio.ac.state === 'suspended') st.audio.ac.resume();
@@ -372,6 +451,16 @@
       fadeMaster(); showControls();
     });
 
+    // On the Laps front page the 'Sign in to start' line of the end card is a link to sign in.
+    function onCta(e) {
+      var r = canvas.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+      return sceneIndex(st.t) === SCENES.length - 1 && x >= CTA.x0 && x <= CTA.x1 && y >= CTA.y0 && y <= CTA.y1;
+    }
+    if (opts.link) {
+      canvas.addEventListener('mousemove', function (e) { canvas.style.cursor = onCta(e) ? 'pointer' : ''; });
+      canvas.addEventListener('click', function (e) { if (onCta(e)) window.location.href = signInTarget(); });
+    }
     sizeCanvas(); showControls(); paint();
     var resize = function () { sizeCanvas(); paint(); };
     if (window.ResizeObserver) { st.ro = new ResizeObserver(resize); st.ro.observe(wrap); }
@@ -380,8 +469,13 @@
 
     return {
       set: function (next) {
+        var before = S.soundStyle;
         S = merge(next);
-        wrap.setAttribute('data-map', S.map); wrap.setAttribute('data-units', S.units);
+        wrap.setAttribute('data-map', S.map); wrap.setAttribute('data-units', S.units); wrap.setAttribute('data-sound', S.soundStyle); wrap.setAttribute('data-pace', S.pace); wrap.setAttribute('data-loop', S.loop ? 'loop' : 'once');
+        if (S.soundStyle !== before && st.audio) {
+          st.audio.ac.close(); st.audio = null;
+          if (st.soundOn) { st.audio = makeAudio(S.soundStyle); fadeMaster(); }
+        }
         if (!S.sound && soundBtn.parentNode) soundBtn.parentNode.removeChild(soundBtn);
         if (S.sound && !soundBtn.parentNode) bar.appendChild(soundBtn);
         fadeMaster(); showControls(); paint();
@@ -404,10 +498,10 @@
     if (!el) return;
     fetch(API + '/laps/explainer', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { mount(el, d.settings || {}, { autoplay: true }); })
-      .catch(function () { mount(el, {}, { autoplay: true }); });
+      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true }); })
+      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true }); });
   }
-  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS };
+  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES, CTA: CTA };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

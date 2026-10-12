@@ -10,6 +10,8 @@
   var NAMES = { upload: 'Scene 1: upload', map: 'Scene 2: every lap mapped', delta: 'Scene 3: gained and lost', compare: 'Scene 4: compare two laps', car: 'Scene 5: car data', end: 'Scene 6: end card' };
   var mapSel = document.getElementById('lxa-map'), scenesBox = document.getElementById('lxa-scenes');
   var unitBtns = document.querySelectorAll('#lxa-units [data-units]'), sound = document.getElementById('lxa-sound');
+  var soundStyle = document.getElementById('lxa-sound-style'), pace = document.getElementById('lxa-pace');
+  var loop = document.getElementById('lxa-loop'), previewLabel = document.getElementById('lxa-preview-label');
   var volume = document.getElementById('lxa-volume'), note = document.getElementById('lxa-note');
   var saveBtn = document.getElementById('lxa-save'), resetBtn = document.getElementById('lxa-reset');
   var previewBox = document.getElementById('lxa-preview');
@@ -32,6 +34,16 @@
     var o = document.createElement('option');
     o.value = id; o.textContent = E.MAPS[id].name;
     mapSel.appendChild(o);
+  });
+  Object.keys(E.PACES).forEach(function (id) {
+    var o = document.createElement('option');
+    o.value = id; o.textContent = E.PACES[id].name;
+    pace.appendChild(o);
+  });
+  Object.keys(E.SOUNDS).forEach(function (id) {
+    var o = document.createElement('option');
+    o.value = id; o.textContent = E.SOUNDS[id];
+    soundStyle.appendChild(o);
   });
   E.SCENES.forEach(function (id) {
     var box = document.createElement('div');
@@ -56,12 +68,17 @@
       if (c && c !== E.TEXT[id].caption) mine.caption = c;
       if (mine.title || mine.caption) texts[id] = mine;
     });
-    return { map: mapSel.value, units: units, sound: sound.getAttribute('aria-checked') === 'true', volume: parseInt(volume.value, 10), texts: texts };
+    var style = soundStyle.value;
+    return { map: mapSel.value, units: units, pace: pace.value, loop: loop.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
   }
   function fill(s) {
     s = E.merge(s || {});
     mapSel.value = s.map;
     setUnits(s.units);
+    soundStyle.value = s.soundStyle;
+    pace.value = s.pace;
+    loop.setAttribute('aria-checked', String(s.loop !== false));
+    previewLabel.setAttribute('aria-checked', String(s.previewLabel !== false));
     sound.setAttribute('aria-checked', String(!!s.sound));
     volume.value = String(s.volume);
     E.SCENES.forEach(function (id) {
@@ -84,6 +101,11 @@
     b.addEventListener('click', function () { setUnits(b.getAttribute('data-units')); refreshPreview(); });
   });
   mapSel.addEventListener('change', refreshPreview);
+  soundStyle.addEventListener('change', refreshPreview);
+  pace.addEventListener('change', refreshPreview);
+  [loop, previewLabel].forEach(function (b) {
+    b.addEventListener('click', function () { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
+  });
   sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
   volume.addEventListener('input', refreshPreview);
   E.SCENES.forEach(function (id) {

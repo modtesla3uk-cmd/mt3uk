@@ -3946,7 +3946,7 @@
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
-        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button></div>' +
+        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
@@ -4346,7 +4346,28 @@
   // Play the two laps along the track in real time (x1), forwards or back.
   var cmpFollow = true;
   var pb = { raf: 0, playing: false, dir: 1, speed: 1, t: 0, last: 0, active: false, render: null, tEnd: 0 };
-  function clock(t) { var m = Math.floor(t / 60), sec = t - m * 60; return m + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1); }
+  // The Sound on switch: the motor sound follows the car's speed while the lap plays (js/motor-sound.js).
+  var soundOn = false;
+  try { soundOn = localStorage.getItem('mt3ukTrackSound') === 'on'; } catch (e) { /* storage blocked */ }
+  function setSound(on) {
+    soundOn = on;
+    try { localStorage.setItem('mt3ukTrackSound', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+    var b = document.getElementById('tp-sound');
+    if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Sound on' : 'Sound off'; }
+    if (!window.MT3UKMotorSound) return;
+    if (on && pb.playing) window.MT3UKMotorSound.start();
+    if (!on) window.MT3UKMotorSound.quiet();
+  }
+  // The speed (km/h) on a lap at a moment of its time, from the trace rows (time at 1, speed at 4).
+  function speedAtTime(trace, t) {
+    var lo = 0, hi = trace.length - 1;
+    if (!trace.length) return 0;
+    if (t <= trace[0][1]) return trace[0][4];
+    if (t >= trace[hi][1]) return trace[hi][4];
+    while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (trace[mid][1] <= t) lo = mid; else hi = mid; }
+    var a = trace[lo], b = trace[hi], f = (t - a[1]) / ((b[1] - a[1]) || 1);
+    return a[4] + f * (b[4] - a[4]);
+  }  function clock(t) { var m = Math.floor(t / 60), sec = t - m * 60; return m + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1); }
   // The time ruler above the slider: minutes and seconds, as many labels as fit.
   function drawRuler(tEnd) {
     var r = document.getElementById('tp-ruler');
@@ -4383,6 +4404,7 @@
   function stopPlay() {
     if (pb.raf) cancelAnimationFrame(pb.raf);
     pb.raf = 0; pb.playing = false;
+    if (window.MT3UKMotorSound) window.MT3UKMotorSound.quiet();
     playUi();
   }
   // Back to the start of the lap: stops playback and puts both cars on the line.
@@ -4399,6 +4421,7 @@
     if (dir > 0 && pb.t >= pb.tEnd) pb.t = 0;
     if (dir < 0 && pb.t <= 0) pb.t = pb.tEnd;
     pb.dir = dir; pb.playing = true; pb.active = true; pb.last = 0;
+    if (soundOn && window.MT3UKMotorSound) window.MT3UKMotorSound.start();
     // Starting playback always puts the cars back in view when zoomed in.
     setFollow(true);
     if (cmpMap && cmpMap.prefetchSat) cmpMap.prefetchSat();
@@ -4506,6 +4529,8 @@
     });
     var fol = document.getElementById('tp-follow');
     if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
+    var snd = document.getElementById('tp-sound');
+    if (snd) { snd.addEventListener('click', function () { setSound(!soundOn); }); setSound(soundOn); }
     var fb = document.getElementById('tp-full');
     if (fb) fb.addEventListener('click', function () { setFull(!cmpFull); });
     var sc = document.getElementById('tp-speedcol');
@@ -4680,6 +4705,11 @@
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
         if (sc) { sc.value = t; scrubFill(sc); }
         if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
+        // The motor sound follows lap A's speed while playing, and is quiet when scrubbed or paused.
+        if (soundOn && window.MT3UKMotorSound) {
+          if (pb.playing) window.MT3UKMotorSound.setSpeed(speedAtTime(A.trace, t), motorTop);
+          else window.MT3UKMotorSound.quiet();
+        }
       }
       function tipF(x) {
         var pa = at(A.trace, x), pb = at(B.trace, x), g = pb[1] - pa[1];
@@ -4888,6 +4918,7 @@
       pb.active = false; pb.t = 0;
       pb.tEnd = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       pb.render = renderAt;
+      var motorTop = A.trace.reduce(function (m, p) { return Math.max(m, p[4]); }, 0);
       drawG();
       var scrub = document.getElementById('tp-scrub'), clk = document.getElementById('tp-clock');
       if (scrub) { scrub.max = pb.tEnd; scrub.value = 0; scrubFill(scrub); }

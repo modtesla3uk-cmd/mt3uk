@@ -55,3 +55,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: workers/test
+
+      - name: Clear the edge cache for the test address
+        run: |
+          # Pages are cached at Cloudflare's edge by address, so an older copy would still be served without the banner.
+          # Only this hostname is purged, never the whole zone, so live is untouched.
+          zone=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones?name=mt3uk.com" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'][0]['id'])")
+          test -n "$zone" || { echo "Could not find the mt3uk.com zone"; exit 1; }
+          curl -sS -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+            --data '{"hosts":["test.laps.mt3uk.com"]}' \
+            "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" | tee purge.json
+          python3 -c "import json; r=json.load(open('purge.json')); print('success' if r.get('success') else 'FAILED'); exit(0 if r.get('success') else 1)"

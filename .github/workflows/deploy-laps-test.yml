@@ -68,6 +68,20 @@ jobs:
               workers/vote-worker.js > workers/test/vote-worker.js
           echo "Live addresses left in the test worker: $(grep -c 'late-darkness-ebc8\|https://mt3uk.com\|https://laps.mt3uk.com' workers/test/vote-worker.js)"
 
+      - name: Read the built-in track list from the live site in the test worker
+        run: |
+          # The worker builds the track list by fetching data/tracks.json from its own site. On the test copy that is the
+          # test worker itself, so the fetch fails and the list is empty. The test copy reads the live site's copy of the
+          # file instead (read only), so the built-in tracks show. Live is unaffected.
+          python3 - <<'PY'
+          p = 'workers/test/vote-worker.js'
+          s = open(p, encoding='utf-8').read()
+          s2 = s.replace("MY_BUILDS_SITE_URL + '/data/tracks.json'", "'https://mt3uk.com/data/tracks.json'")
+          assert s2 != s, 'TRACKS_URL line not found'
+          open(p, 'w', encoding='utf-8').write(s2)
+          print('test worker reads the track list from https://mt3uk.com/data/tracks.json')
+          PY
+
       - name: Find the test KV namespace id
         run: |
           id=$(npx --yes wrangler@4 kv namespace list | python3 -c "import json,sys; print(next(n['id'] for n in json.load(sys.stdin) if n['title']=='mt3uk-test-votes'))")

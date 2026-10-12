@@ -277,3 +277,19 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
     page.goto("/index.html")
     expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42, Rich")
 
+
+
+def test_the_laps_home_page_has_a_muted_looping_explainer_video_with_a_pause_button(page):
+    open_home(page)
+    video = page.locator("#lh-video")
+    expect(video).to_be_visible()
+    assert video.get_attribute("src") is None
+    assert video.evaluate("v => v.muted && v.loop") is True
+    assert page.locator("#lh-video source").first.get_attribute("src") == "images/laps/explainer.webm"
+    toggle = page.locator("#lh-video-toggle")
+    expect(toggle).to_have_attribute("aria-label", "Pause video")
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-label", "Play video")
+    assert video.evaluate("v => v.paused") is True
+    # The video sits above the panels, so the panel order the test above checks is unchanged.
+    assert page.locator("main > section").first.get_attribute("id") == "what"

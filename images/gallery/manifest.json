@@ -1049,6 +1049,9 @@
     "file": "64-night-time-sleek--by-ade-lucy.jpg",
     "caption": "NIGHT TIME SLEEK",
     "name": "Sleek",
+    "mods": [
+      "Performance: Acceleration Boost"
+    ],
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
@@ -1056,6 +1059,9 @@
     "file": "63-red-dual-motor--by-slt.jpg",
     "caption": "RED DUAL MOTOR",
     "name": "Sleek",
+    "mods": [
+      "Performance: Acceleration Boost"
+    ],
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
@@ -1315,6 +1321,9 @@
     "file": "39-model-y-lr-sleek-edition.jpg",
     "caption": "MODEL Y LR SLEEK EDITION",
     "name": "Sleek",
+    "mods": [
+      "Performance: Acceleration Boost"
+    ],
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },

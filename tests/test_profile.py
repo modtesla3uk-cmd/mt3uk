@@ -227,20 +227,22 @@ def test_person_icon_next_to_bell_goes_to_profile(device_page):
 
 
 @all_devices
-def test_garage_icon_after_profile_and_no_account_bar_on_a_phone(device_page):
-    """A garage icon after the person icon goes to My Garage (or Sign In first). On a phone the signed-in bar
-    (Profile, My Garage, Sign out) is left off, as the header's icons do its job, except on Profile, where Sign out is."""
+def test_home_icon_after_profile_and_no_account_bar_on_a_phone(device_page):
+    """The house icon after the person icon goes to the front page on mt3uk.com. My Garage is in the menu.
+    On a phone the signed-in bar (Profile, My Garage, Sign out) is left off, as the header's icons do its job,
+    except on Profile, where Sign out is."""
     page = device_page
     page.goto("/index.html")
-    garage = page.locator("#nav-garage")
-    garage.wait_for(state="visible", timeout=5000)
-    assert "signin.html?next=" in garage.get_attribute("href"), "Signed out: sign in first"
+    home = page.locator("#nav-home")
+    home.wait_for(state="visible", timeout=5000)
+    assert home.get_attribute("href") == "index.html"
+    assert page.locator("#nav-garage").count() == 0, "My Garage is in the menu on mt3uk.com, not the header"
     order = page.evaluate("[...document.querySelector('#nav-search').parentNode.children].map(e => e.id).filter(Boolean)")
-    assert order.index("nav-profile") < order.index("nav-garage") < order.index("nav-search"), order
+    assert order.index("nav-profile") < order.index("nav-home") < order.index("nav-search"), order
     signed_in(page)
     page.goto("/gallery.html")
-    page.locator("#nav-garage").wait_for(state="visible", timeout=5000)
-    assert page.locator("#nav-garage").get_attribute("href") == "my-builds.html"
+    page.locator("#nav-home").wait_for(state="visible", timeout=5000)
+    assert page.locator("#nav-home").get_attribute("href") == "index.html"
     assert overflow_width(page) <= 0
     page.locator("#mt3uk-account-bar").wait_for(state="attached", timeout=5000)
     phone = page.viewport_size["width"] <= 780

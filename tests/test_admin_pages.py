@@ -1249,6 +1249,54 @@ def test_the_sound_panels_play_button_plays_without_an_error(page):
     assert errors == [], errors
 
 
+def test_the_uploaded_sound_can_play_once_while_the_animation_loops(page):
+    """The Loop the uploaded sound switch is separate from the animation's Loop switch: turning it off saves audioLoop false,
+    and the animation's loop is left as it was."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {"loop": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-audio-loop")).to_have_attribute("aria-checked", "true")
+    page.locator("#lxa-audio-loop").click()
+    expect(page.locator("#lxa-audio-loop")).to_have_attribute("aria-checked", "false")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted and posted[-1]["audioLoop"] is False and posted[-1]["loop"] is True, posted
+
+
+def test_a_save_result_out_of_view_is_also_shown_at_the_bottom_of_the_screen(page):
+    """Pressing Save at the bottom of a panel shows its result at the bottom of the screen, where the button is, when the
+    result line at the top of the panel is out of view. A page load that changes a line without a press shows nothing."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def explainer_admin(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    page.locator("#lxa-save").scroll_into_view_if_needed()
+    expect(page.locator("#admin-toast.is-on")).to_have_count(0)
+    page.locator("#lxa-save").click()
+    toast = page.locator("#admin-toast")
+    expect(toast).to_have_class(re.compile("is-on"))
+    expect(toast).to_contain_text("Saved")
+    page.locator("#admin-toast").click()
+    expect(page.locator("#admin-toast.is-on")).to_have_count(0)
+
+
 def test_the_session_playback_sound_section_has_play_and_stop(page):
     """Play on the Session playback sound section plays the sliders as they are now, without a session open: no page error,
     and the note says it is playing. Stop ends it."""

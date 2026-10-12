@@ -9088,6 +9088,7 @@ function cleanLapsExplainer(body) {
   if (LAPS_EXPLAINER_SOUNDS.indexOf(String(src.soundStyle || '')) !== -1) out.soundStyle = String(src.soundStyle);
   if (LAPS_EXPLAINER_PACES.indexOf(String(src.pace || '')) !== -1) out.pace = String(src.pace);
   if (typeof src.loop === 'boolean') out.loop = src.loop;
+  if (typeof src.audioLoop === 'boolean') out.audioLoop = src.audioLoop;
   if (typeof src.previewLabel === 'boolean') out.previewLabel = src.previewLabel;
   var vol = parseInt(src.volume, 10);
   if (!isNaN(vol)) out.volume = Math.max(0, Math.min(100, vol));

@@ -12,6 +12,7 @@
   var unitBtns = document.querySelectorAll('#lxa-units [data-units]'), sound = document.getElementById('lxa-sound');
   var soundStyle = document.getElementById('lxa-sound-style'), pace = document.getElementById('lxa-pace');
   var loop = document.getElementById('lxa-loop'), previewLabel = document.getElementById('lxa-preview-label');
+  var audioLoopSw = document.getElementById('lxa-audio-loop');
   var audioNow = document.getElementById('lxa-audio-now'), audioFile = document.getElementById('lxa-audio-file');
   var audioUpload = document.getElementById('lxa-audio-upload'), audioRemove = document.getElementById('lxa-audio-remove');
   var MAX_AUDIO = 5 * 1024 * 1024;
@@ -75,7 +76,7 @@
       if (mine.title || mine.caption) texts[id] = mine;
     });
     var style = soundStyle.value;
-    return { map: mapSel.value, units: units, pace: pace.value, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
+    return { map: mapSel.value, units: units, pace: pace.value, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', audioLoop: audioLoopSw.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
   }
   // Shows the uploaded file, and offers it in the Sound menu only while there is one.
   var currentAudio = null;
@@ -96,6 +97,8 @@
   function fill(s) {
     s = E.merge(s || {});
     showAudio(s.audio);
+    // Until it is set, the uploaded sound follows the animation's loop switch, as it always did.
+    audioLoopSw.setAttribute('aria-checked', String(s.audioLoop !== undefined ? s.audioLoop : s.loop !== false));
     mapSel.value = s.map;
     setUnits(s.units);
     soundStyle.value = s.soundStyle;
@@ -126,7 +129,7 @@
   mapSel.addEventListener('change', refreshPreview);
   soundStyle.addEventListener('change', refreshPreview);
   pace.addEventListener('change', refreshPreview);
-  [loop, previewLabel].forEach(function (b) {
+  [loop, previewLabel, audioLoopSw].forEach(function (b) {
     b.addEventListener('click', function () { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
   });
   sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); refreshPreview(); });

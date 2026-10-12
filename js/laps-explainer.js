@@ -55,7 +55,7 @@
     s = s || {};
     var audio = s.audio && s.audio.url ? { url: String(s.audio.url), name: String(s.audio.name || '') } : null;
     var out = { map: MAPS[s.map] ? s.map : DEFAULTS.map, units: s.units === 'kph' ? 'kph' : 'mph',
-      loop: s.loop !== false, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
+      loop: s.loop !== false, audioLoop: typeof s.audioLoop === 'boolean' ? s.audioLoop : undefined, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
       volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
     SCENES.forEach(function (sc) {
       var mine = (s.texts && s.texts[sc.id]) || {};
@@ -434,7 +434,7 @@
       fadeMaster();
       if (!st.custom) return;
       st.custom.volume = S.volume / 100;
-      st.custom.loop = S.loop;
+      st.custom.loop = S.audioLoop !== undefined ? S.audioLoop : S.loop;
       var want = st.playing && st.soundOn && st.gestured;
       if (want && st.custom.paused) { var p = st.custom.play(); if (p && p.catch) p.catch(function () {}); }
       else if (!want && !st.custom.paused) st.custom.pause();

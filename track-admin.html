@@ -304,6 +304,7 @@
           <label>Your own sound (an MP3 or OGG file, up to 5 MB)<input type="file" id="lxa-audio-file" accept=".mp3,.ogg,audio/mpeg,audio/ogg"></label>
           <div class="iv-toolbar"><button type="button" class="secondary" id="lxa-audio-upload">Upload and use it</button><button type="button" class="secondary" id="lxa-audio-remove">Remove the file</button></div>
           <p class="iv-note" id="lxa-audio-note" role="status" aria-live="polite"></p>
+          <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="lxa-audio-loop" aria-checked="true"><span class="tk-track"></span>Loop the uploaded sound (off plays it once, even while the animation loops)</button></div>
         </div>
         <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="lxa-sound" aria-checked="true"><span class="tk-track"></span>Offer a Sound button</button></div>
         <label>Sound volume (0 to 100)<input type="range" id="lxa-volume" min="0" max="100" step="5" value="60"></label>
@@ -384,6 +385,7 @@
 <script src="js/admin-help.js?v=20271042" defer></script>
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
+<script src="js/admin-toast.js?v=1" defer></script>
 <script src="js/track-parse.js?v=20271036" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
@@ -403,8 +405,8 @@
 <script src="js/track-share-admin.js?v=20261106" defer></script>
 <script src="js/track-copy-admin.js?v=20270220" defer></script>
 <script src="js/laps-panels-admin.js?v=2" defer></script>
-<script src="js/laps-explainer.js?v=8" defer></script>
-<script src="js/laps-explainer-admin.js?v=5" defer></script>
+<script src="js/laps-explainer.js?v=9" defer></script>
+<script src="js/laps-explainer-admin.js?v=6" defer></script>
 <script src="js/laps-news-admin.js?v=1" defer></script>
 <script src="js/laps-logo-admin.js?v=1" defer></script>
 <script src="js/ev-sound.js?v=2"></script>

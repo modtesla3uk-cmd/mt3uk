@@ -381,6 +381,17 @@
   .lh-evs b { color: #fff; }
   @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; }  }
   /* The Laps video: a muted loop with a pause button, in the hero beside the words (it stacks under them on a phone). */
+  /* On a phone the video comes straight after the buttons, so it fits on the first screen; the notes go under it. */
+  @media (max-width: 780px) {
+    .lh-hero .wrap { gap: 14px; }
+    .lh-hero .wrap > div:first-child { display: contents; }
+    .lh-hero .wrap > div:first-child > h1 { order: 1; }
+    .lh-hero .wrap > div:first-child > p:first-of-type { order: 2; }
+    .lh-hero .wrap > div:first-child > #lh-actions { order: 3; }
+    .lh-hero .wrap > div:nth-child(2) { order: 4; }
+    .lh-hero .wrap > div:first-child > .lh-evs { order: 5; }
+    .lh-hero .wrap > div:first-child > #lh-note { order: 6; }
+  }
   .lh-hero .lh-video { max-width: none; margin: 0; background: #f4f1ea; border: 0; padding: 5px; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
   .lh-hero .lh-video [data-laps-explainer], .lh-hero .lh-video canvas { border-radius: 8px; }
   .lh-hero .lh-video-cap { max-width: none; margin: 10px 0 0; text-align: left; color: #b9c0cf; }

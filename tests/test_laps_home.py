@@ -317,3 +317,19 @@ def test_the_laps_share_button_says_laps_by_mt3uk_and_links_to_the_laps_address(
     assert "https://mt3uk.com" not in href and "on MT3UK" not in href, href
     email = unquote(page.locator('a[data-channel="email"]').first.get_attribute("href"))
     assert "subject=Every lap, mapped and measured. | Laps by MT3UK" in email, email
+
+
+def test_the_laps_home_page_has_a_muted_looping_explainer_video_with_a_pause_button(page):
+    open_home(page)
+    video = page.locator("#lh-video")
+    expect(video).to_be_visible()
+    assert video.get_attribute("src") is None
+    assert video.evaluate("v => v.muted && v.loop") is True
+    assert page.locator("#lh-video source").first.get_attribute("src") == "images/laps/explainer.webm"
+    toggle = page.locator("#lh-video-toggle")
+    expect(toggle).to_have_attribute("aria-label", "Pause video")
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-label", "Play video")
+    assert video.evaluate("v => v.paused") is True
+    # The video sits above the panels, so the panel order the test above checks is unchanged.
+    assert page.locator("main > section").first.get_attribute("id") == "what"

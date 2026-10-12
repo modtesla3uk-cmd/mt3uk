@@ -99,21 +99,14 @@ def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
     assert box["height"] >= 44 or page.viewport_size["width"] > 780
 
 
-def test_the_hero_picture_comes_from_the_sharing_panel(page):
-    """The front page's picture is the current pick of the Track sessions sharing set, so the admin controls it;
-    with none set, the built-in picture stays."""
-    pick = {"success": True, "pick": {"url": "http://localhost:8123/images/track-preview/session-overview.jpg", "caption": "Thruxton, lap 3"}}
-    def handler(route):
-        body = pick if "/share/track" in route.request.url else {"success": True, "counts": {}, "leaders": {}}
-        route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
-    page.route("**/%s/**" % API_HOST, handler)
-    page.goto("/laps.html")
-    expect(page.locator("#lh-shot-img")).to_have_attribute("src", pick["pick"]["url"])
-    expect(page.locator("#lh-shot-img")).to_have_attribute("alt", "Thruxton, lap 3")
-    pick = {"success": True, "pick": None}
-    page.goto("/laps.html")
-    page.wait_for_timeout(400)
-    assert page.locator("#lh-shot-img").get_attribute("src").endswith("images/track-preview/share.jpg")
+def test_the_laps_video_sits_in_the_hero_and_the_session_picture_is_gone(page):
+    """The animated Laps video is in the hero beside the words, under the buttons on a phone; the static session
+    picture (and the picture the sharing panel used to set for it) is no longer on the front page."""
+    open_home(page)
+    expect(page.locator(".lh-hero [data-laps-explainer]")).to_be_visible()
+    expect(page.locator("#lh-shot-img")).to_have_count(0)
+    expect(page.locator(".lh-shot")).to_have_count(0)
+    expect(page.locator("section.lh-video-sec")).to_have_count(0)
 
 
 def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
@@ -143,12 +136,11 @@ def test_what_laps_does_comes_first_then_the_lap_timers_then_track_mode_and_no_e
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)
 
 
-def test_the_session_picture_does_not_open_full_screen_on_a_tap(page):
+def test_the_laps_video_does_not_open_full_screen_on_a_tap_in_the_hero(page):
     open_home(page)
-    page.locator("#lh-shot-img").click()
     expect(page.locator(".lh-light")).to_have_count(0)
-
-
+    page.locator(".lh-hero [data-laps-explainer]").click()
+    expect(page.locator(".lh-light")).to_have_count(0)
 def test_track_mode_has_its_own_section_and_fastest_right_now_is_off_the_front_page(page):
     open_home(page)
     expect(page.locator("#trackmode")).to_be_visible()
@@ -218,14 +210,14 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.goto("/leaderboards.html")
     expect(page.locator("#lb-add-session")).to_have_text("Add a session")
     expect(page.locator("#lb-preview")).to_be_hidden()
-    # On a phone it keeps its words, as on Sessions, and is a round plus only on the narrowest phones.
+    # On a phone it keeps its words, as on Sessions, at the same width as My Sessions.
     page.set_viewport_size({"width": 390, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
     assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    # At 320px it keeps its words too, the same 190px width as My Sessions above it.
     page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
-    assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
-    expect(page.locator("#lb-add-session span")).to_be_hidden()
+    assert abs(b["width"] - 190) < 2 and abs(b["height"] - 44) < 2, b
 
 
 def test_members_waiting_for_early_access_are_told_they_are_on_the_list(page):

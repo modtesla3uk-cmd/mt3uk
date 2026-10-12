@@ -88,9 +88,11 @@ def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
     page.route("**/js/notify-bell.js*", lambda r: r.abort())
     page.route("**/js/messenger.js*", lambda r: r.abort())
     page.goto("/track.html")
-    for i in ("nav-bell", "nav-chat", "nav-profile", "nav-garage"):
+    for i in ("nav-bell", "nav-chat", "nav-profile", "nav-home"):
         assert page.locator("#" + i).count() == 1, i
-    box = page.locator("#nav-garage").bounding_box()
+    assert page.locator("#nav-garage").count() == 0, "My Garage is in the menu on Laps, not the header"
+    assert page.locator("#nav-home").get_attribute("href") == "laps.html"
+    box = page.locator("#nav-home").bounding_box()
     assert box["height"] >= 44 or page.viewport_size["width"] > 780
 
 

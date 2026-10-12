@@ -43,8 +43,9 @@
   }
 
   // A garage icon after it goes to My Garage (or Sign In first). Relative, so on laps.mt3uk.com it stays there.
+  // On the Laps header the Home icon takes this place, and My Garage is in the menu.
   var garageLink = document.getElementById('nav-garage');
-  if (!garageLink) {
+  if (!garageLink && !document.getElementById('nav-home')) {
     garageLink = document.createElement('a');
     garageLink.className = 'nav-profile nav-garage';
     garageLink.id = 'nav-garage';
@@ -52,6 +53,7 @@
     search.parentNode.insertBefore(garageLink, search);
   }
   function setGarageLink() {
+    if (!garageLink) return;
     var signedIn = !!session();
     garageLink.href = signedIn ? 'my-builds.html' : 'signin.html?next=' + encodeURIComponent('/my-builds.html');
     garageLink.setAttribute('aria-label', signedIn ? 'My Garage' : 'Sign in to My Garage');

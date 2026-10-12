@@ -262,11 +262,11 @@ def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_height_of_
     expect(join).to_have_attribute("href", "laps-signin.html")
     expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
     mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
-    # On desktop the banner is short: Join the early preview shares the row with My Sessions and the What is the
-    # Leaderboard? fold, at the right, the same height as My Sessions.
+    # On desktop My Sessions sits at the right with Join the early preview under it, the same height; the What is the
+    # Leaderboard? fold is at the left of My Sessions.
     what = page.locator("#lb-what summary").bounding_box()
-    assert abs(j["y"] - mine["y"]) <= 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
-    assert mine["x"] + mine["width"] <= what["x"] and what["x"] + what["width"] <= j["x"], (mine, what, j)
+    assert j["y"] >= mine["y"] + mine["height"] - 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
+    assert what["x"] + what["width"] <= mine["x"], (mine, what, j)
     assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
     page.locator("#lb-what summary").click()
     expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)

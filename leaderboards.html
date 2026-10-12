@@ -515,6 +515,20 @@
   .a2hs-banner .a2hs-close { padding: 0 4px; }
   .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
   @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
+  /* Desktop hero: the title with its share button (next to the trophy or clock) on the top row; Back and the What is...? fold
+     on the second row at the left; the page's own button sits above Add a session at the right, with the bulb beside Add. */
+  @media (min-width: 901px) {
+    .page-hero .wrap { grid-template-columns: auto auto 1fr auto; column-gap: 16px; align-items: center; }
+    .page-hero .wrap .tp-hero-row > h1.mt3uk-share-heading { grid-column: 1 / 4; grid-row: 1; justify-self: start; margin: 0; display: flex; align-items: center; }
+    .page-hero .wrap h1.mt3uk-share-heading > .mt3uk-share-dot { float: none; margin: 0 0 0 14px; top: -4px; }
+    .page-hero .wrap > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: center; }
+    .page-hero .wrap > .tp-what { grid-column: 2; grid-row: 2; justify-self: start; text-align: left; width: max-content; max-width: 42ch; }
+    .page-hero .wrap > .tp-what p { margin: 0; max-width: 42ch; }
+    .page-hero .wrap .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 4; grid-row: 2; justify-self: end; margin-top: 0; }
+    .page-hero .wrap .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .wrap .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 4; grid-row: 3; justify-self: end; margin-top: 0; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; margin: 0 12px 0 0; }
+  }
 </style>
 
 </head>

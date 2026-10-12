@@ -1605,9 +1605,9 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
     m, a = mine.bounding_box(), add.bounding_box()
-    # On desktop the layout is the phone's: the title first, then Back (with its word), My Sessions and Add a session on one row, Add at the right.
+    # On desktop My Sessions sits at the right above Add a session, the two sharing a right edge; Back is at the left.
     assert m["height"] >= 50 and a["height"] >= 40, (m, a)
-    assert abs(a["y"] - m["y"]) < 6 and a["x"] >= m["x"] + m["width"], (m, a)
+    assert a["y"] >= m["y"] + m["height"] - 2 and abs((a["x"] + a["width"]) - (m["x"] + m["width"])) < 2, (m, a)
     assert page.locator("#lb-page-back").inner_text().strip() == "Back"
     assert page.locator(".page-hero h1").bounding_box()["y"] < m["y"]
     assert page.locator(".page-hero").bounding_box()["height"] < 230
@@ -1795,8 +1795,8 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     add, lb = page.locator("#tp-hero-add"), page.locator("#tp-lb-pill")
     expect(add).to_be_visible()
     a, l = add.bounding_box(), lb.bounding_box()
-    # On desktop it is laid out as on a phone: Back (with its word), Leaderboards and Add a session on one row, Add at the right.
-    assert abs(a["y"] - l["y"]) < 6 and a["x"] >= l["x"] + l["width"], (a, l)
+    # On desktop Leaderboards sits at the right above Add a session, the two sharing a right edge; Back is at the left.
+    assert a["y"] >= l["y"] + l["height"] - 2 and abs((a["x"] + a["width"]) - (l["x"] + l["width"])) < 2, (a, l)
     assert page.locator(".page-hero .tp-hero-top .back-link").inner_text().strip() == "Back"
     assert page.locator(".page-hero h1").bounding_box()["y"] < l["y"]
     assert page.locator(".page-hero").bounding_box()["height"] < 230

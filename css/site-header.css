@@ -534,6 +534,7 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 .navlinks .nav-chat { display: flex; width: 100%; box-sizing: border-box; height: auto; padding: 10px 14px; border: 0; border-radius: 4px; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; align-items: center; justify-content: flex-start; gap: 6px; line-height: 1; position: relative; }
 .navlinks .nav-chat svg, .navlinks #nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .navlinks .nav-chat-count { position: static; margin-left: 4px; }
+.navlinks a.nav-link { display: inline-flex; align-items: center; gap: 10px; }
 .navlinks a > svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* Loading placeholder on the Laps pages (js/track-page.js loading(), the leaderboards and the front page): a

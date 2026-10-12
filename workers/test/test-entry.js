@@ -21,9 +21,13 @@ export default {
       var assetRequest = url.pathname === '/' ? new Request(new URL('/laps.html', url), request) : request;
       var res = await env.ASSETS.fetch(assetRequest);
       if ((res.headers.get('content-type') || '').indexOf('text/html') === 0) {
-        return new HTMLRewriter().on('body', {
+        var page = new HTMLRewriter().on('body', {
           element(el) { el.append(TEST_BANNER, { html: true }); },
         }).transform(res);
+        // Pages are not cached at the edge, so a changed page (such as the banner) shows at once.
+        var fresh = new Response(page.body, page);
+        fresh.headers.set('cache-control', 'no-cache');
+        return fresh;
       }
       return res;
     }

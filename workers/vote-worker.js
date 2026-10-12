@@ -9089,6 +9089,8 @@ function cleanLapsExplainer(body) {
   if (LAPS_EXPLAINER_PACES.indexOf(String(src.pace || '')) !== -1) out.pace = String(src.pace);
   if (typeof src.loop === 'boolean') out.loop = src.loop;
   if (typeof src.audioLoop === 'boolean') out.audioLoop = src.audioLoop;
+  var delay = Number(src.soundDelay);
+  if (src.soundDelay !== undefined && src.soundDelay !== null && src.soundDelay !== '' && isFinite(delay)) out.soundDelay = Math.max(0, Math.min(10, delay));
   if (typeof src.previewLabel === 'boolean') out.previewLabel = src.previewLabel;
   var vol = parseInt(src.volume, 10);
   if (!isNaN(vol)) out.volume = Math.max(0, Math.min(100, vol));

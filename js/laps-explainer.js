@@ -55,6 +55,7 @@
     s = s || {};
     var audio = s.audio && s.audio.url ? { url: String(s.audio.url), name: String(s.audio.name || '') } : null;
     var out = { map: MAPS[s.map] ? s.map : DEFAULTS.map, units: s.units === 'kph' ? 'kph' : 'mph',
+      soundDelay: typeof s.soundDelay === 'number' ? clamp(s.soundDelay, 0, 10) : 0,
       loop: s.loop !== false, audioLoop: typeof s.audioLoop === 'boolean' ? s.audioLoop : undefined, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
       volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
     SCENES.forEach(function (sc) {
@@ -359,7 +360,8 @@
     '.lxe-btn svg,.lxe-sound svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
     '.lxe-sound{height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:600 14px ' + FONT + ';cursor:pointer}' +
     '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
-    '.lxe-go{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);height:52px;padding:0 28px;border-radius:26px;border:0;background:' + ORANGE + ';color:#fff;font:700 18px ' + HEAD + ';cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)}' +
+    '.lxe-go{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);height:28px;padding:0 12px;border-radius:14px;border:0;background:' + ORANGE + ';color:#fff;font:700 12px ' + HEAD + ';cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3)}' +
+    '.lxe-go::before{content:"";position:absolute;inset:-8px -10px}' +
     '.lxe-go:focus-visible{outline:3px solid #fff;outline-offset:3px}.lxe-go[hidden]{display:none}';
   var styled = false;
   function addStyle() {
@@ -394,11 +396,11 @@
     soundBtn.type = 'button'; soundBtn.className = 'lxe-sound';
     bar.appendChild(playBtn);
     if (S.sound) bar.appendChild(soundBtn);
-    // On the Laps front page the picture waits for a press: 'Click to play' starts the animation and, if sound is enabled, the sound.
+    // On the Laps front page the picture waits for a press: 'Press here' starts the animation and, if sound is enabled, the sound.
     var go = null;
     if (opts.clickToPlay) {
       go = document.createElement('button');
-      go.type = 'button'; go.className = 'lxe-go'; go.textContent = 'Click to play';
+      go.type = 'button'; go.className = 'lxe-go'; go.textContent = 'Press here';
       wrap.appendChild(go);
     }
     wrap.appendChild(canvas); wrap.appendChild(bar); el.appendChild(wrap);
@@ -406,7 +408,7 @@
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
     var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, scene: -1, raf: 0, scale: 1 };
-    // The first start hides the 'Click to play' button for good.
+    // The first start hides the 'Press here' button for good.
     function started() { st.started = true; if (go) go.hidden = true; }
 
     function sizeCanvas() {
@@ -469,6 +471,8 @@
       started();
       if (!st.playing && st.t >= TOTAL - 0.01) st.t = 0;
       st.playing = !st.playing;
+      if (st.playing) { st.gestured = true; if (S.sound) startSoundLater(); }
+      else { clearTimeout(st.soundTimer); st.soundTimer = 0; }
       if (st.playing && st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
       syncSound(); showControls();
     });
@@ -479,12 +483,20 @@
       st.soundOn = !st.soundOn;
       syncSound(); showControls();
     });
-    // Click to play: starts the animation, and the sound too when sound is enabled (browsers allow sound only after a press).
+    // The sound starts after the delay the admin set (0 is at once). A pause cancels a start that is still waiting.
+    function startSoundLater() {
+      clearTimeout(st.soundTimer); st.soundTimer = 0;
+      var d = S.soundDelay || 0;
+      if (d <= 0) { st.soundOn = true; return; }
+      st.soundOn = false;
+      st.soundTimer = setTimeout(function () { st.soundTimer = 0; if (st.playing) { st.soundOn = true; syncSound(); showControls(); } }, d * 1000);
+    }
+    // Press here: starts the animation, and the sound too when sound is enabled (browsers allow sound only after a press).
     if (go) {
       go.addEventListener('click', function () {
         started();
         st.gestured = true;
-        if (S.sound) { st.soundOn = true; ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); }
+        if (S.sound) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); startSoundLater(); }
         if (st.t >= TOTAL - 0.01) st.t = 0;
         st.playing = true;
         syncSound(); showControls();

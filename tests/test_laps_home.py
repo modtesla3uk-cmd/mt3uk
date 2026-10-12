@@ -319,7 +319,7 @@ def test_the_laps_home_explainer_uses_the_saved_circuit_units_and_words(page):
     expect(wrap).to_have_attribute("data-units", "kph")
     expect(page.locator(".lxe canvas")).to_be_visible()
     toggle = page.locator(".lxe-btn")
-    # The picture waits for a press: Click to play starts it and, with sound enabled, the sound.
+    # The picture waits for a press: Press here starts it and, with sound enabled, the sound.
     expect(toggle).to_have_attribute("aria-label", "Play video")
     page.locator(".lxe-go").click()
     expect(toggle).to_have_attribute("aria-label", "Pause video")
@@ -410,6 +410,15 @@ def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
     page.evaluate("window.MT3UKExplainerHome.seek(16.999)")
     page.wait_for_timeout(200)
     assert page.evaluate(orange) > 40, "sign in line missing at the end"
+
+
+def test_the_sound_waits_for_its_delay_after_press_here(page):
+    """With a start delay set, Press here starts the animation at once and the sound a little later."""
+    open_home(page, explainer={"sound": True, "soundDelay": 1})
+    page.locator(".lxe-go").click()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true", timeout=3000)
 
 
 def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):

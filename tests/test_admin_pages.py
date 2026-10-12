@@ -2712,6 +2712,8 @@ def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(p
     expect(page.locator("#lxa-sound-style")).to_have_value("custom")
     assert uploads and uploads[-1]["type"] == "audio/mpeg" and uploads[-1]["size"] == sound.stat().st_size
     assert saves[-1]["soundStyle"] == "custom"
+    assert saves[-1]["sound"] is True, saves[-1]
+    expect(page.locator("#lxa-sound-state")).to_have_text("Yes")
     expect(page.locator("#lxa-note")).to_contain_text("Uploaded and saved")
     expect(page.locator("#lxa-audio-note")).to_contain_text("Uploaded and saved")
     page.on("dialog", lambda d: d.accept())
@@ -2720,8 +2722,35 @@ def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(p
     expect(page.locator("#lxa-sound-style")).to_have_value("pad")
 
 
+def test_the_laps_video_sound_can_wait_a_set_number_of_seconds_before_it_starts(page):
+    """The Start the sound after slider saves its value with the settings."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    page.evaluate("""() => { const r = document.getElementById('lxa-sound-delay'); r.value = '3';
+        r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(page.locator("#lxa-sound-delay-out")).to_have_text("3")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted and posted[-1]["soundDelay"] == 3, posted
+
+
 def test_the_laps_video_waits_for_click_to_play_and_then_starts_the_sound_too(page):
-    """Nothing plays on load and a press elsewhere on the page does not start it. Click to play starts the animation and,
+    """Nothing plays on load and a press elsewhere on the page does not start it. Press here starts the animation and,
     with sound enabled, the sound."""
     from tests.test_laps_home import open_home
     open_home(page)

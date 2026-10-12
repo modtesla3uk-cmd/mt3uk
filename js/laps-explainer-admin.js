@@ -17,6 +17,7 @@
   var audioUpload = document.getElementById('lxa-audio-upload'), audioRemove = document.getElementById('lxa-audio-remove');
   var MAX_AUDIO = 5 * 1024 * 1024;
   var volume = document.getElementById('lxa-volume'), note = document.getElementById('lxa-note');
+  var soundDelay = document.getElementById('lxa-sound-delay'), soundDelayOut = document.getElementById('lxa-sound-delay-out');
   var saveBtn = document.getElementById('lxa-save'), resetBtn = document.getElementById('lxa-reset');
   var previewBox = document.getElementById('lxa-preview');
   var fields = {}, preview = null, loaded = false, units = 'mph';
@@ -76,7 +77,7 @@
       if (mine.title || mine.caption) texts[id] = mine;
     });
     var style = soundStyle.value;
-    return { map: mapSel.value, units: units, pace: pace.value, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', audioLoop: audioLoopSw.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
+    return { map: mapSel.value, units: units, pace: pace.value, soundDelay: parseFloat(soundDelay.value) || 0, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', audioLoop: audioLoopSw.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
   }
   // Shows the uploaded file, and offers it in the Sound menu only while there is one.
   var currentAudio = null;
@@ -110,6 +111,8 @@
     sound.setAttribute('aria-checked', String(!!s.sound));
     soundLabel();
     volume.value = String(s.volume);
+    soundDelay.value = String(s.soundDelay || 0);
+    soundDelayOut.textContent = String(s.soundDelay || 0);
     E.SCENES.forEach(function (id) {
       var saved = (s.texts && s.texts[id]) || {};
       var t = saved.title, c = saved.caption;
@@ -137,6 +140,7 @@
   });
   sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); soundLabel(); refreshPreview(); });
   volume.addEventListener('input', refreshPreview);
+  soundDelay.addEventListener('input', function () { soundDelayOut.textContent = soundDelay.value; refreshPreview(); });
   E.SCENES.forEach(function (id) {
     fields[id].title.addEventListener('input', refreshPreview);
     fields[id].caption.addEventListener('input', refreshPreview);
@@ -171,6 +175,8 @@
       if (!d.success) { audioUpload.disabled = false; sayAudio(d.message || 'Could not upload the file.', true); return; }
       fill(d.settings);
       soundStyle.value = 'custom';
+      // An uploaded sound is meant to be heard, so Enable sound goes to Yes with it.
+      sound.setAttribute('aria-checked', 'true'); soundLabel();
       return call('POST', '/laps/explainer/admin', read()).then(function (saved) {
         audioUpload.disabled = false;
         audioFile.value = '';

@@ -768,7 +768,7 @@ def test_the_header_icon_is_the_size_of_its_neighbours_on_a_phone(page):
     page.set_viewport_size({"width": 390, "height": 800})
     open_signed_in(page, fake, admin=True)
     box = page.locator("#nav-offline").bounding_box()
-    chat = page.locator("#nav-chat").bounding_box()
+    chat = page.locator("#nav-bell-btn").bounding_box()
     assert abs(box["height"] - chat["height"]) < 1 and box["width"] <= chat["width"] + 4, (box, chat)
     # Nothing in the header runs off the side of the phone.
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")

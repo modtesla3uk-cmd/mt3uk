@@ -216,6 +216,8 @@
   placeIcon();
   // js/notify-bell.js adds the profile icon; keep the chat icon before it.
   document.addEventListener('DOMContentLoaded', function () {
+    // On the Laps header Messages is a row in the menu, so it stays there.
+    if (icon.closest('#navlinks')) return;
     var profile = document.getElementById('nav-profile');
     if (profile && icon.nextElementSibling !== profile) profile.parentNode.insertBefore(icon, profile);
     else placeIcon();

@@ -84,12 +84,15 @@ def test_play_intro_is_a_worded_link_in_the_footer_not_the_header(page):
 
 
 def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
-    """The bell, messages, profile and garage icons are in the header markup, so they do not pop in after load."""
+    """The bell, Sessions, Leaderboard and Home icons are in the header markup, so they do not pop in after load.
+    Messages and Profile are rows in the menu on Laps, and My Garage too."""
     page.route("**/js/notify-bell.js*", lambda r: r.abort())
     page.route("**/js/messenger.js*", lambda r: r.abort())
     page.goto("/track.html")
-    for i in ("nav-bell", "nav-chat", "nav-profile", "nav-home"):
+    for i in ("nav-bell", "nav-sessions", "nav-leaders", "nav-home"):
         assert page.locator("#" + i).count() == 1, i
+    for i in ("nav-chat", "nav-profile"):
+        assert page.locator("#navlinks #" + i).count() == 1, i
     assert page.locator("#nav-garage").count() == 0, "My Garage is in the menu on Laps, not the header"
     assert page.locator("#nav-home").get_attribute("href") == "laps.html"
     box = page.locator("#nav-home").bounding_box()

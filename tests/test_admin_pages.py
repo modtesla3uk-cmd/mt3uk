@@ -1249,6 +1249,19 @@ def test_the_sound_panels_play_button_plays_without_an_error(page):
     assert errors == [], errors
 
 
+def test_the_session_playback_sound_section_has_play_and_stop(page):
+    """Play on the Session playback sound section plays the sliders as they are now, without a session open: no page error,
+    and the note says it is playing. Stop ends it."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    open_admin(page, "track-admin.html")
+    page.locator("#session-sound-wrap summary").click()
+    page.locator("#ss-play").click()
+    expect(page.locator("#ss-note")).to_have_text("Playing the session sound for four seconds.")
+    page.locator("#ss-stop").click()
+    assert errors == [], errors
+
+
 def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_the_panel(page):
     """The Session playback sound section sits under the Sound panel, has its own sliders, and Save sends its own settings to
     /sound/session/admin, not the shaping settings of the Sound panel."""

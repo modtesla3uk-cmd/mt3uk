@@ -29,13 +29,16 @@
     return out;
   }
 
-  function Engine() {
+  // With settings given (a preview on the admin page) the engine uses them and does not read the worker.
+  function Engine(settings) {
     this.ctx = null;
     this.on = false;
     this.oscs = [];
     this.master = null;
     this.filter = null;
-    this.s = merge({});
+    this.s = merge(settings);
+    this.timer = 0;
+    if (settings) { this.ready = Promise.resolve(this.s); return; }
     // Loaded once per page. Resolves whether or not the worker answered, so a start never waits on it.
     var self = this;
     this.ready = fetch(API + '/sound/session', { cache: 'no-store' })
@@ -92,6 +95,36 @@
     if (!this.ctx || !this.on) return;
     this.on = false;
     this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
+  };
+
+  // A short demonstration with the given settings (the admin's sliders): the speed rises from a standstill to the top and
+  // back over the seconds given, then the sound fades and its audio is closed. Stop ends it early.
+  Engine.prototype.preview = function (settings, seconds) {
+    this.stopPreview();
+    var e = new Engine(settings), len = seconds || 4, began = Date.now();
+    this.current = e;
+    if (!e.start()) { this.current = null; return false; }
+    e.setSpeed(0, 100);
+    this.timer = setInterval(function () {
+      var t = (Date.now() - began) / 1000, frac = 1 - Math.abs(2 * Math.min(1, t / len) - 1);
+      e.setSpeed(frac * 100, 100);
+      if (t >= len) {
+        clearInterval(this.timer); this.timer = 0;
+        e.quiet();
+        setTimeout(function () { if (e.ctx) e.ctx.close(); }, 500);
+        this.current = null;
+      }
+    }.bind(this), 50);
+    return true;
+  };
+  Engine.prototype.stopPreview = function () {
+    if (this.timer) { clearInterval(this.timer); this.timer = 0; }
+    if (this.current) {
+      var e = this.current;
+      this.current = null;
+      e.quiet();
+      setTimeout(function () { if (e.ctx) e.ctx.close(); }, 500);
+    }
   };
 
   window.MT3UKMotorSound = new Engine();

@@ -10,6 +10,7 @@
   var controls = document.getElementById('ss-controls');
   var note = document.getElementById('ss-note');
   var saveBtn = document.getElementById('ss-save'), resetBtn = document.getElementById('ss-reset');
+  var playBtn = document.getElementById('ss-play'), stopBtn = document.getElementById('ss-stop');
   var loaded = false, inputs = {};
 
   // The built-in values and ranges, as in js/motor-sound.js
@@ -107,6 +108,13 @@
       say('Save puts these on the site. Hear them on any session with Sound on.');
     }).catch(function () { say('Could not reach the server.', true); });
   }
+  // Play the sound with the sliders as they are now, so a change can be heard before it is saved.
+  playBtn.addEventListener('click', function () {
+    var ok = false;
+    try { ok = !!(window.MT3UKMotorSound && window.MT3UKMotorSound.preview(read(), 4)); } catch (e) { ok = false; }
+    say(ok ? 'Playing the session sound for four seconds.' : 'This browser could not play the sound. Try again, or save and hear it on a session.', !ok);
+  });
+  stopBtn.addEventListener('click', function () { if (window.MT3UKMotorSound) window.MT3UKMotorSound.stopPreview(); });
   root.addEventListener('toggle', function () { if (root.open && !loaded) load(); });
   document.addEventListener('mt3uk-admin-refresh', function () { if (root.open) load(); });
   fill({});

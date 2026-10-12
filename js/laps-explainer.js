@@ -158,8 +158,8 @@
       ctx.save(); ctx.globalAlpha = a * ease(clamp(local / 0.9));
       roundRect(ctx, 300, y, 360, 200, 18); ctx.fillStyle = NAVY2; ctx.fill();
       ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
-      text(ctx, 'my-session.csv', 330, y + 56, 24, CREAM, FONT, 600, 'left');
-      text(ctx, 'RaceBox export', 330, y + 88, 18, MUTED, FONT, 400, 'left');
+      text(ctx, 'Your session', 330, y + 56, 24, CREAM, FONT, 600, 'left');
+      text(ctx, 'RaceBox import', 330, y + 88, 18, MUTED, FONT, 400, 'left');
       var p = ease(clamp((local - 0.9) / 2.0));
       roundRect(ctx, 330, y + 130, 300, 12, 6); ctx.fillStyle = 'rgba(244,241,234,0.12)'; ctx.fill();
       roundRect(ctx, 330, y + 130, Math.max(12, 300 * p), 12, 6); ctx.fillStyle = ORANGE; ctx.fill();
@@ -251,7 +251,8 @@
     var k = sceneIndex(t);
     SCENES.forEach(function (sc, i) {
       if (t < sc.t0 - 0.001 || t > sc.t1 + 0.001) return;
-      var a = Math.min(clamp((t - sc.t0) / FADE), clamp((sc.t1 - t) / FADE));
+      // The end card fades in and then stays, so the sign-in line is there when the animation stops.
+      var a = sc.id === 'end' ? clamp((t - sc.t0) / FADE) : Math.min(clamp((t - sc.t0) / FADE), clamp((sc.t1 - t) / FADE));
       SCENE_DRAW[sc.id](ctx, t - sc.t0, a, S);
     });
     SCENES.forEach(function (sc, i) {

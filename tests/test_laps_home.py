@@ -404,6 +404,19 @@ def test_a_press_anywhere_on_the_end_card_goes_to_sign_in_on_the_front_page(page
     page.wait_for_url("**/*signin*", timeout=5000)
 
 
+def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
+    """The 'Sign in to start' line is still drawn at the very end of the animation, not faded away."""
+    open_home(page)
+    page.locator(".lxe canvas").scroll_into_view_if_needed()
+    orange = """() => { const c = document.querySelector('.lxe canvas'); const x = c.getContext('2d');
+        const k = c.width / 960; const d = x.getImageData(Math.floor(330 * k), Math.floor(388 * k), Math.ceil(300 * k), Math.ceil(36 * k)).data; let n = 0;
+        for (let i = 0; i < d.length; i += 4) if (d[i] > 180 && d[i + 1] < 130 && d[i + 2] < 100 && d[i + 3] > 200) n++;
+        return n; }"""
+    page.evaluate("window.MT3UKExplainerHome.seek(16.999)")
+    page.wait_for_timeout(200)
+    assert page.evaluate(orange) > 40, "sign in line missing at the end"
+
+
 def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     open_home(page, explainer={"previewLabel": False})
     expect(page.locator(".lxe")).to_have_attribute("data-loop", "loop")

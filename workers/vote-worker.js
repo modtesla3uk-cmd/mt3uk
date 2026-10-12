@@ -9131,6 +9131,17 @@ async function handleLapsExplainerAdmin(request, env) {
 // The sound the admin uploads for the Laps video: an MP3 or OGG up to 5 MB, kept in the bucket under laps/explainer/
 // and named in the settings (audio: { url, key, name, size, at }). POST uploads (the body is the file, ?name= its name),
 // DELETE removes it and goes back to a built-in sound.
+// What a file that is not an MP3 or OGG really is, from its first bytes, so the admin can see why it was refused.
+function describeAudioBytes(bytes) {
+  var ascii = '';
+  for (var i = 0; i < Math.min(12, bytes.length); i++) ascii += bytes[i] >= 32 && bytes[i] < 127 ? String.fromCharCode(bytes[i]) : '.';
+  if (bytes[0] === 0x50 && bytes[1] === 0x4B) return 'It is a zip or Word or Office file, not sound.';
+  if (ascii.slice(4, 8) === 'ftyp') return 'It is an MP4 or M4A (AAC) file. Convert it to MP3 and try again.';
+  if (ascii.slice(0, 4) === 'RIFF') return 'It is a WAV file. Convert it to MP3 and try again.';
+  if (ascii.slice(0, 1) === '<') return 'It is a web page or text file, so the download probably did not save the sound.';
+  if (ascii.slice(0, 4) === 'fLaC') return 'It is a FLAC file. Convert it to MP3 and try again.';
+  return 'It starts with ' + Array.prototype.map.call(bytes.slice(0, 4), function (b) { return b.toString(16).padStart(2, '0'); }).join(' ') + ' (' + ascii.replace(/\./g, '') + '), which is not MP3 or OGG data.';
+}
 async function handleLapsExplainerAudio(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var old = (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {};
@@ -9145,9 +9156,11 @@ async function handleLapsExplainerAudio(request, env) {
   if (!bytes.length) return json({ success: false, message: 'No file received' }, 400);
   if (bytes.length > LAPS_EXPLAINER_AUDIO_MAX) return json({ success: false, message: 'That file is over 5 MB, please use a shorter or smaller one' }, 400);
   var type = '', ext = '';
-  if ((bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) || (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0)) { type = 'audio/mpeg'; ext = 'mp3'; }
+  // Some files start with a UTF-8 byte-order mark (EF BB BF) before the MP3 data, which is still an MP3.
+  var at = bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF ? 3 : 0;
+  if ((bytes[at] === 0x49 && bytes[at + 1] === 0x44 && bytes[at + 2] === 0x33) || (bytes[at] === 0xFF && (bytes[at + 1] & 0xE0) === 0xE0)) { type = 'audio/mpeg'; ext = 'mp3'; }
   else if (bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53) { type = 'audio/ogg'; ext = 'ogg'; }
-  if (!type) return json({ success: false, message: 'The sound needs to be an MP3 or OGG file' }, 400);
+  if (!type) return json({ success: false, message: 'The sound needs to be an MP3 or OGG file. ' + describeAudioBytes(bytes) }, 400);
   var name = trackText(new URL(request.url).searchParams.get('name') || 'sound', 60) || 'sound';
   var key = 'laps/explainer/sound-' + randomToken().slice(0, 16) + '.' + ext;
   if (old.audio && old.audio.key) await env.GALLERY_BUCKET.delete(old.audio.key);

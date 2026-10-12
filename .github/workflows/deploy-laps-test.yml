@@ -1,0 +1,43 @@
+name: Deploy Laps test copy
+
+# Copies the site and worker from the branch you run this on into the test worker (mt3uk-test) at
+# test.laps.mt3uk.com. Test only: it never touches the live worker, its data or its cron.
+# Run by hand from Actions, choosing the branch. Nothing deploys to test on a push.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy the site into the test worker
+        run: |
+          mkdir -p workers/test/site
+          rsync -a --delete \
+            --exclude '.git' --exclude '.github' --exclude 'workers' --exclude 'tests' \
+            --exclude 'scripts' --exclude 'node_modules' --exclude '.assetsignore' \
+            ./ workers/test/site/
+
+      - name: Find the test KV namespace id
+        run: |
+          id=$(npx --yes wrangler@4 kv namespace list | python3 -c "import json,sys; print(next(n['id'] for n in json.load(sys.stdin) if n['title']=='mt3uk-test-votes'))")
+          test -n "$id" || { echo "mt3uk-test-votes not found: run the create-laps-test-resources workflow first"; exit 1; }
+          sed -i "s/REPLACE_BY_DEPLOY/$id/" workers/test/wrangler.toml
+          echo "Using KV namespace $id"
+
+      - name: Deploy to mt3uk-test
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/test

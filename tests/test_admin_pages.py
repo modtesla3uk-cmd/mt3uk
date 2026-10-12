@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap", "all-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "explainer-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "explainer-wrap", "sound-wrap", "session-sound-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Sound", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Sound", "Session playback sound", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -1236,6 +1236,51 @@ def test_admin_sound_panel_shapes_a_motor_sound_and_saves_it(page):
     length, peak = page.evaluate("() => { const s = MT3UKEvSound.render({}); let m = 0; for (const v of s) m = Math.max(m, Math.abs(v)); return [s.length, m]; }")
     assert length == 158760, length
     assert 0.7 < peak < 0.72, peak
+
+
+def test_the_sound_panels_play_button_plays_without_an_error(page):
+    """Play on the Sound panel renders the sound and plays it: no page error, and the note says it is playing."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    open_admin(page, "track-admin.html")
+    page.locator("#sound-wrap summary").click()
+    page.locator("#snd-play").click()
+    expect(page.locator("#snd-note")).to_have_text("Playing the sound.")
+    assert errors == [], errors
+
+
+def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_the_panel(page):
+    """The Session playback sound section sits under the Sound panel, has its own sliders, and Save sends its own settings to
+    /sound/session/admin, not the shaping settings of the Sound panel."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def session_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/session/admin**", session_admin)
+    page.locator("#session-sound-wrap summary").click()
+    rows = page.locator("#ss-controls .snd-row")
+    expect(rows).to_have_count(10)
+    expect(rows.first.locator("output")).to_have_text("95")
+    page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[1];
+        r.value = '600'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    page.locator("#ss-save").click()
+    expect(page.locator("#ss-note")).to_contain_text("Saved")
+    assert len(posted) == 1 and posted[0]["fPeak"] == 600, posted
+    assert "sub" in posted[0] and len(posted[0]["harm"]) == 4, posted[0]
+    assert "fEnd" not in posted[0] and "length" not in posted[0], posted[0]
+    # The Sound panel above keeps its own settings
+    sub = page.locator("#admin-subnav")
+    expect(sub.locator("a", has_text="Session playback sound")).to_have_count(1)
 
 
 LINES_API = "**/track/lines/admin**"

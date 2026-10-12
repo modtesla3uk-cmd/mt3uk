@@ -108,8 +108,9 @@
   }
 
   playBtn.addEventListener('click', function () {
-    var ok = S.play(read(), Number(inputs.volume.input.value));
-    say(ok ? 'Playing the sound.' : 'This browser cannot play sound here.', !ok);
+    var ok = false;
+    try { ok = S.play(read(), Number(inputs.volume.input.value)); } catch (e) { ok = false; }
+    say(ok ? 'Playing the sound.' : 'This browser could not play the sound. Try again, or Download WAV and play it on the device.', !ok);
   });
   stopBtn.addEventListener('click', function () { S.stop(); });
   wavBtn.addEventListener('click', function () {

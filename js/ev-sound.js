@@ -132,7 +132,7 @@
     stop();
     var sig = render(settings);
     var buffer = ctx.createBuffer(1, sig.length, SR);
-    buffer.copyToChannel(sig, 0);
+    buffer.copyToChannel(new Float32Array(sig), 0);
     var src = ctx.createBufferSource(), gain = ctx.createGain();
     var v = merge(settings).volume;
     if (volume !== undefined) v = clamp(Number(volume), 0, 100);

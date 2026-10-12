@@ -9198,6 +9198,44 @@ async function handleEvSoundAdmin(request, env) {
   return json({ success: true, settings: settings });
 }
 
+// ---------- Session playback sound (the Session playback sound section of the Sound panel) ----------
+// The settings for the motor sound on a session's playback (js/motor-sound.js), kept apart from the shaping settings above
+// so the two can differ. One KV key (session-sound), read with get(). The ranges match DEFAULTS and LIMITS in js/motor-sound.js.
+var SESSION_SOUND_KEY = 'session-sound';
+var SESSION_SOUND_LIMITS = { f0: [40, 400], fPeak: [60, 1200], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100] };
+var SESSION_SOUND_HARM = [0, 1];
+function cleanSessionSound(body) {
+  var src = body || {}, out = {};
+  Object.keys(SESSION_SOUND_LIMITS).forEach(function (k) {
+    var n = Number(src[k]), lim = SESSION_SOUND_LIMITS[k];
+    if (src[k] !== undefined && src[k] !== null && src[k] !== '' && isFinite(n)) out[k] = Math.max(lim[0], Math.min(lim[1], n));
+  });
+  var harm = Array.isArray(src.harm) ? src.harm : [];
+  if (harm.length) {
+    out.harm = [0, 1, 2, 3].map(function (i) {
+      var n = Number(harm[i]);
+      return isFinite(n) ? Math.max(SESSION_SOUND_HARM[0], Math.min(SESSION_SOUND_HARM[1], n)) : 0;
+    });
+  }
+  return out;
+}
+async function handleSessionSoundPublic(request, env) {
+  var settings = await getJsonKey(env, SESSION_SOUND_KEY, {});
+  var res = json({ success: true, settings: settings || {} });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleSessionSoundAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, SESSION_SOUND_KEY, {})) || {} });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.reset) { await env.VOTES.delete(SESSION_SOUND_KEY); return json({ success: true, settings: {} }); }
+  var settings = cleanSessionSound(body);
+  await env.VOTES.put(SESSION_SOUND_KEY, JSON.stringify(settings));
+  return json({ success: true, settings: settings });
+}
+
 // ---------- Laps logo ----------
 // Which mark the Laps header, footer, favicon and sharing card use: one of four, chosen on the Laps logo panel of
 // track-admin.html (js/laps-logo.js holds the marks). One KV key, read with get().
@@ -12068,6 +12106,12 @@ export default {
     }
     if (url.pathname === '/sound/ev/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleEvSoundAdmin(request, env);
+    }
+    if (url.pathname === '/sound/session' && request.method === 'GET') {
+      return handleSessionSoundPublic(request, env);
+    }
+    if (url.pathname === '/sound/session/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSessionSoundAdmin(request, env);
     }
     if (url.pathname === '/laps/logo' && request.method === 'GET') {
       return handleLapsLogoPublic(request, env);

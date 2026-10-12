@@ -3089,6 +3089,18 @@ def test_the_sound_on_switch_makes_the_motor_sound_while_the_lap_plays(page):
     assert page.evaluate("localStorage.getItem('mt3ukTrackSound')") == "off"
 
 
+def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(page):
+    """The motor sound on a session takes its settings from /sound/session (the Session playback sound section of the Sound
+    panel). Without them, or if they cannot be read, the built-in sound is used."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.route("**/sound/session**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"fPeak": 600, "harm": [0.5, 0.2, 0.1, 0.05], "volume": 80}}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.reload()
+    settings = page.evaluate("MT3UKMotorSound.ready.then(function (s) { return s; })")
+    assert settings["fPeak"] == 600 and settings["volume"] == 80, settings
+    assert settings["f0"] == 95 and settings["harm"][0] == 0.5, settings
+
+
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     """Play moves both laps along the track in real time (x1), Rewind goes back
     the same way, and x0.5, x2 and x5 change the pace. The slider moves the

@@ -319,6 +319,13 @@
       <div class="iv-toolbar"><button type="button" class="secondary" id="snd-play">Play</button><button type="button" class="secondary" id="snd-stop">Stop</button><button type="button" class="secondary" id="snd-wav">Download WAV</button></div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="snd-save">Save</button><button type="button" class="secondary" id="snd-reset">Use the built-in sound</button></div>
     </details>
+    <details class="collapsible" id="session-sound-wrap">
+      <summary><h3 class="panel-title">Session playback sound</h3></summary>
+      <p class="iv-note">The motor sound that plays with a session's laps (the Sound on switch beside Follow cars). It rises and falls with the car's speed. These settings are separate from the Sound panel above, so changing one does not change the other. Move the sliders to hear the sound on a real session; Save puts them on the site.</p>
+      <p class="iv-note" id="ss-note" role="status"></p>
+      <div class="ts-new" id="ss-controls"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ss-save">Save</button><button type="button" class="secondary" id="ss-reset">Use the built-in sound</button></div>
+    </details>
     <details class="collapsible" id="tyres-wrap">
       <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
       <p class="iv-note">The tyre makes and models offered in Track sessions. The Model box suggests a make's models and members can still type anything. data/tyres.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
@@ -398,8 +405,9 @@
 <script src="js/laps-explainer-admin.js?v=5" defer></script>
 <script src="js/laps-news-admin.js?v=1" defer></script>
 <script src="js/laps-logo-admin.js?v=1" defer></script>
-<script src="js/ev-sound.js?v=1"></script>
-<script src="js/ev-sound-admin.js?v=1" defer></script>
+<script src="js/ev-sound.js?v=2"></script>
+<script src="js/ev-sound-admin.js?v=2" defer></script>
+<script src="js/session-sound-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

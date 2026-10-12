@@ -32,6 +32,12 @@ jobs:
           grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
           echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
 
+      - name: Make the test address's index page the Laps front page
+        run: |
+          # index.html is the MT3UK homepage. Its script sends visitors to Laps only on the live Laps address, so on the
+          # test address it showed MT3UK. The test copy uses the Laps front page for index.html too (test only).
+          cp workers/test/site/laps.html workers/test/site/index.html
+
       - name: Add the Test Site banner to every page of the test copy
         run: |
           # Added to the files themselves, not by the worker: pages are served straight from the asset store, so the

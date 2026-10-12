@@ -32,6 +32,13 @@ jobs:
           grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
           echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
 
+      - name: Add the Test Site banner to every page of the test copy
+        run: |
+          # Added to the files themselves, not by the worker: pages are served straight from the asset store, so the
+          # worker never sees them. Every page of the test copy shows it, the live site never has it.
+          find workers/test/site -name '*.html' -print0 | xargs -0 sed -i 's#</body>#<div id="mt3uk-test-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:\#e8572a;color:\#fff;font:700 13px/1.4 system-ui,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 -2px 8px rgba(0,0,0,.2)">This is the Test Site for Laps</div>\n</body>#'
+          echo "Pages with the banner: $(grep -rl 'Test Site for Laps' workers/test/site --include='*.html' | wc -l)"
+
       - name: Add the test-only panel to the test copy of the admin page
         run: |
           # Only the test copy of admin.html gets the Test testers panel; the live admin page never loads it.

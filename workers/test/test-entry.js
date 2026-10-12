@@ -9,8 +9,7 @@ function isSiteFile(path) {
   return path === '/' || /\.[a-z0-9]+$/i.test(path);
 }
 
-// A banner on every page of the test copy. Added here, on the way out, so the site files stay the same as live and
-// the live worker never gets it.
+// The same banner the deploy adds to the page files (see .github/workflows/deploy-laps-test.yml).
 var TEST_BANNER = '<div id="mt3uk-test-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#e8572a;color:#fff;font:700 13px/1.4 system-ui,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 -2px 8px rgba(0,0,0,.2)">This is the Test Site for Laps</div>';
 
 export default {
@@ -21,16 +20,22 @@ export default {
       var assetRequest = url.pathname === '/' ? new Request(new URL('/laps.html', url), request) : request;
       var res = await env.ASSETS.fetch(assetRequest);
       if ((res.headers.get('content-type') || '').indexOf('text/html') === 0) {
-        var page = new HTMLRewriter().on('body', {
-          element(el) { el.append(TEST_BANNER, { html: true }); },
-        }).transform(res);
-        // Pages are not cached at the edge, so a changed page (such as the banner) shows at once.
-        var fresh = new Response(page.body, page);
+        // Pages are not cached at the edge, so a changed page shows at once. The banner itself is added to the
+        // page files by the deploy (see the workflow), so it is on every page however it is served.
+        var fresh = new Response(res.body, res);
         fresh.headers.set('cache-control', 'no-cache');
         return fresh;
       }
       return res;
     }
-    return worker.fetch(request, env, ctx);
+    // Pages the worker builds itself (its own message page) do not come from the copied files, so the banner is
+    // added here. Every other page gets it from the deploy.
+    var out = await worker.fetch(request, env, ctx);
+    if ((out.headers.get('content-type') || '').indexOf('text/html') === 0) {
+      return new HTMLRewriter().on('body', {
+        element(el) { el.append(TEST_BANNER, { html: true }); },
+      }).transform(out);
+    }
+    return out;
   },
 };

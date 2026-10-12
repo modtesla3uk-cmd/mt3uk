@@ -1640,8 +1640,9 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     assert trophy["x"] + trophy["width"] <= d["x"] < trophy["x"] + trophy["width"] + 20 and abs(centre(d) - centre(h)) < 12, (trophy, d)
     bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
     what = page.locator(".lb-hero .tp-what summary").bounding_box()
-    # On a phone the bulb sits on the Add a session row, just left of it, and What is...? is last.
-    assert bulb["x"] + bulb["width"] <= a["x"] and abs(centre(bulb) - centre(a)) < 8 and what["y"] >= a["y"] + a["height"] - 2, (bulb, a, what)
+    # On a phone the bulb sits on Back's row, between Back and My Sessions, and What is...? is last.
+    assert abs(centre(bulb) - centre(k)) < 8 and bulb["x"] > k["x"] + k["width"] and bulb["x"] + bulb["width"] <= b["x"], (bulb, k, b)
+    assert what["y"] >= a["y"] + a["height"] - 2, (what, a)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

@@ -9077,11 +9077,17 @@ async function handleLapsNewsAdmin(request, env) {
 var LAPS_EXPLAINER_KEY = 'laps-explainer';
 var LAPS_EXPLAINER_MAPS = ['club', 'sweeper', 'hairpin'];
 var LAPS_EXPLAINER_SCENES = ['upload', 'map', 'delta', 'compare', 'car', 'end'];
+var LAPS_EXPLAINER_SOUNDS = ['pad', 'pulse', 'engine', 'chime', 'stopwatch', 'whoosh', 'silent'];
+var LAPS_EXPLAINER_PACES = ['slowest', 'slow', 'normal', 'quick'];
 function cleanLapsExplainer(body) {
   var out = {}, src = body || {};
   if (LAPS_EXPLAINER_MAPS.indexOf(String(src.map || '')) !== -1) out.map = String(src.map);
   if (src.units === 'kph' || src.units === 'mph') out.units = src.units;
   if (typeof src.sound === 'boolean') out.sound = src.sound;
+  if (LAPS_EXPLAINER_SOUNDS.indexOf(String(src.soundStyle || '')) !== -1) out.soundStyle = String(src.soundStyle);
+  if (LAPS_EXPLAINER_PACES.indexOf(String(src.pace || '')) !== -1) out.pace = String(src.pace);
+  if (typeof src.loop === 'boolean') out.loop = src.loop;
+  if (typeof src.previewLabel === 'boolean') out.previewLabel = src.previewLabel;
   var vol = parseInt(src.volume, 10);
   if (!isNaN(vol)) out.volume = Math.max(0, Math.min(100, vol));
   var texts = {}, words = src.texts || {};

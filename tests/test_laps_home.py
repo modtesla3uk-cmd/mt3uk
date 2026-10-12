@@ -339,3 +339,60 @@ def test_the_laps_home_explainer_has_the_built_in_circuit_and_mph_when_nothing_i
     open_home(page)
     expect(page.locator(".lxe")).to_have_attribute("data-map", "club")
     expect(page.locator(".lxe")).to_have_attribute("data-units", "mph")
+
+
+def test_every_explainer_sound_plays_without_an_error(page):
+    open_home(page)
+    page.evaluate("""() => new Promise(resolve => {
+        const errs = [];
+        window.addEventListener('error', e => errs.push(String(e.message)));
+        const el = document.createElement('div');
+        el.style.width = '480px';
+        document.body.appendChild(el);
+        const styles = Object.keys(window.MT3UKExplainer.SOUNDS).filter(s => s !== 'silent');
+        let i = 0;
+        const next = () => {
+            if (i >= styles.length) { window.__soundErrors = errs; resolve(errs); return; }
+            const inst = window.MT3UKExplainer.mount(el, { soundStyle: styles[i], sound: true }, { autoplay: true });
+            inst.seek(0.2);
+            const btn = el.querySelector('.lxe-sound');
+            btn.click();
+            setTimeout(() => {
+                inst.seek(3.1); inst.set({ soundStyle: styles[i], sound: true });
+                setTimeout(() => { inst.destroy(); i += 1; next(); }, 300);
+            }, 400);
+        };
+        next();
+    })""")
+    assert page.evaluate("window.__soundErrors") == []
+    assert page.evaluate("Object.keys(window.MT3UKExplainer.SOUNDS).length") == 7
+    # Silent offers no Sound button at all.
+    silent = page.evaluate("() => { const el = document.createElement('div'); document.body.appendChild(el); window.MT3UKExplainer.mount(el, { soundStyle: 'silent' }, { autoplay: false }); return el.querySelectorAll('.lxe-sound').length; }")
+    assert silent == 0
+
+
+def test_the_explainer_can_play_once_and_stop_on_the_end_card(page):
+    open_home(page, explainer={"loop": False, "previewLabel": False})
+    expect(page.locator(".lxe")).to_have_attribute("data-loop", "once")
+    page.evaluate("window.MT3UKExplainerHome.seek(16.9)")
+    page.locator(".lxe-btn").click()
+    # Plays to the end and stops on the end card, showing Play rather than Pause.
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Play video", timeout=5000)
+    assert page.evaluate("window.MT3UKExplainerHome.seek.length") == 1
+
+
+def test_the_end_card_sign_in_line_is_a_link_to_sign_in_on_the_front_page(page):
+    open_home(page)
+    page.evaluate("window.MT3UKExplainerHome.seek(15.6)")
+    page.locator(".lxe canvas").scroll_into_view_if_needed()
+    page.wait_for_timeout(200)
+    box = page.locator(".lxe canvas").bounding_box()
+    # The 'Sign in to start' line sits at the middle of the end card, a little below the title.
+    page.mouse.click(box["x"] + box["width"] * (480 / 960), box["y"] + box["height"] * (401 / 540))
+    page.wait_for_url("**/*signin*", timeout=5000)
+
+
+def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
+    open_home(page, explainer={"previewLabel": False})
+    expect(page.locator(".lxe")).to_have_attribute("data-loop", "loop")
+    assert page.evaluate("window.MT3UKExplainer.DEFAULTS.previewLabel") is True

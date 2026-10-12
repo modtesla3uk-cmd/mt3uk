@@ -1045,12 +1045,39 @@ def test_admin_laps_video_panel_edits_the_circuit_units_words_and_volume(page):
     expect(page.locator("#lxa-note")).to_contain_text("Saved")
     body = posted[-1]
     assert body["map"] == "hairpin" and body["units"] == "kph" and body["volume"] == 30 and body["sound"] is True
+    assert body["soundStyle"] == "pad"
     # Only the words that differ from the built-in ones are sent.
     assert body["texts"] == {"upload": {"title": "Upload your timer file"}}, body
     page.on("dialog", lambda d: d.accept())
     page.locator("#lxa-reset").click()
     expect(page.locator("#lxa-note")).to_contain_text("Reset")
     assert posted[-1] == {"reset": True}
+
+
+def test_admin_laps_video_sound_menu_saves_the_chosen_sound_and_silent_hides_the_button(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        if route.request.method == "POST":
+            posted.append(json.loads(route.request.post_data))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    options = page.locator("#lxa-sound-style option").all_text_contents()
+    assert options == ["Soft pad", "Pulse", "Engine hum", "Chime", "Stopwatch", "Whoosh", "Silent (no Sound button)"], options
+    page.locator("#lxa-sound-style").select_option("chime")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-sound", "chime")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted[-1]["soundStyle"] == "chime" and posted[-1]["sound"] is True
+    page.locator("#lxa-sound-style").select_option("silent")
+    expect(page.locator("#lxa-preview .lxe-sound")).to_have_count(0)
+    page.locator("#lxa-save").click()
+    assert posted[-1]["soundStyle"] == "silent" and posted[-1]["sound"] is False
 
 
 def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page):
@@ -2461,3 +2488,50 @@ def test_admin_can_see_every_members_sessions_and_load_more(page):
     expect(page.locator("#as-more")).to_be_hidden()
     assert "key=test-key" in calls[0] and "cursor=20" in calls[1]
 
+
+
+def test_admin_laps_video_speed_menu_saves_the_pace_and_slow_is_the_default(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        if route.request.method == "POST":
+            posted.append(json.loads(route.request.post_data))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    assert page.locator("#lxa-pace option").all_text_contents() == ["Slowest", "Slow", "Normal", "Quick"]
+    expect(page.locator("#lxa-pace")).to_have_value("slow")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-pace", "slow")
+    page.locator("#lxa-pace").select_option("quick")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-pace", "quick")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted[-1]["pace"] == "quick"
+    assert page.evaluate("window.MT3UKExplainer.PACES.slow.rate") == 0.77
+
+
+def test_admin_laps_video_loop_and_early_preview_label_switches_are_saved(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        if route.request.method == "POST":
+            posted.append(json.loads(route.request.post_data))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    expect(page.locator("#lxa-loop")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#lxa-preview-label")).to_have_attribute("aria-checked", "true")
+    page.locator("#lxa-loop").click()
+    page.locator("#lxa-preview-label").click()
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-loop", "once")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted[-1]["loop"] is False and posted[-1]["previewLabel"] is False

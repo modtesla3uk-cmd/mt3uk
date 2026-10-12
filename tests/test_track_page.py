@@ -1628,17 +1628,20 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     assert b["width"] > 90 and a["width"] > 90, (b, a)
     expect(mine).to_have_attribute("aria-label", "My Sessions")
     centre = lambda r: r["y"] + r["height"] / 2
-    assert abs(centre(b) - centre(k)) < 4 and abs(centre(a) - centre(k)) < 4
-    assert k["x"] + k["width"] < b["x"] < a["x"] and a["x"] + a["width"] <= 375
+    # On a phone Back and My Sessions share a row, and Add a session sits under My Sessions with the same right edge.
+    assert abs(centre(b) - centre(k)) < 4 and a["y"] >= b["y"] + b["height"] - 2, (b, k, a)
+    assert abs((a["x"] + a["width"]) - (b["x"] + b["width"])) < 2 and k["x"] + k["width"] < b["x"], (b, k, a)
+    assert a["x"] + a["width"] <= 375
     assert h["y"] + h["height"] <= k["y"] + 2, "The title is above the buttons"
     assert h["x"] < 24, h
     trophy, d = page.locator(".lb-hero h1 svg.lb-trophy").bounding_box(), page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
     word = page.evaluate("(() => { const r = document.createRange(); r.selectNodeContents(document.querySelector('.lb-hero h1')); const s = [...document.querySelector('.lb-hero h1').childNodes].find(n => n.nodeType === 3); const q = document.createRange(); q.selectNodeContents(s); return q.getBoundingClientRect().right; })()")
     assert trophy["x"] >= word - 1 and trophy["x"] - word < 20, (trophy, word)
-    assert d["x"] + d["width"] >= 390 - 24 and abs(centre(d) - centre(h)) < 12, d
+    assert trophy["x"] + trophy["width"] <= d["x"] < trophy["x"] + trophy["width"] + 20 and abs(centre(d) - centre(h)) < 12, (trophy, d)
     bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
     what = page.locator(".lb-hero .tp-what summary").bounding_box()
-    assert bulb["x"] + bulb["width"] >= 390 - 24 and bulb["y"] >= a["y"] + a["height"] - 2 and abs(centre(bulb) - centre(what)) < 8, (bulb, what)
+    # On a phone the bulb sits on the Add a session row, just left of it, and What is...? is last.
+    assert bulb["x"] + bulb["width"] <= a["x"] and abs(centre(bulb) - centre(a)) < 8 and what["y"] >= a["y"] + a["height"] - 2, (bulb, a, what)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

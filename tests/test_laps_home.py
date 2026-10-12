@@ -421,6 +421,17 @@ def test_the_sound_waits_for_its_delay_after_press_here(page):
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true", timeout=3000)
 
 
+def test_the_sound_fades_out_in_the_second_before_the_end_card(page):
+    """The sound is full until a second before the end card, falls to silence as it begins, and is full again when the
+    animation loops back to the start."""
+    open_home(page)
+    fade = lambda t: page.evaluate("t => window.MT3UKExplainer.soundFadeAt(t)", t)
+    assert fade(0) == 1 and fade(14.1) == 1
+    assert abs(fade(14.7) - 0.5) < 0.01
+    assert fade(15.2) == 0 and fade(16.9) == 0
+    assert fade(0.5) == 1
+
+
 def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     open_home(page, explainer={"previewLabel": False})
     expect(page.locator(".lxe")).to_have_attribute("data-loop", "loop")

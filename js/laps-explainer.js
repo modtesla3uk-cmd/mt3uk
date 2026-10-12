@@ -333,6 +333,14 @@
     src.connect(bp); bp.connect(g); g.connect(a.master); src.start(when, 0, 1.1);
   }
   // Called each frame with the picture's time. sceneChanged is true on the frame a new scene starts.
+  // The sound fades out over the second before the end card, so the closing words come in on silence.
+  var FADE_BEFORE_END = 1;
+  function soundFadeAt(t) {
+    var end = SCENES[SCENES.length - 1].t0, from = end - FADE_BEFORE_END;
+    if (t <= from) return 1;
+    if (t >= end) return 0;
+    return 1 - (t - from) / FADE_BEFORE_END;
+  }
   function playSound(a, t, scene, sceneChanged, playing) {
     var now = a.ac.currentTime + 0.02;
     if (a.eng) a.eng.frequency.setTargetAtTime(48 + 26 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2 * 0.6)), now, 0.08);
@@ -407,7 +415,7 @@
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, scene: -1, raf: 0, scale: 1 };
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1 };
     // The first start hides the 'Press here' button for good.
     function started() { st.started = true; if (go) go.hidden = true; }
 
@@ -439,14 +447,14 @@
     }
     function fadeMaster() {
       if (!st.audio) return;
-      var target = st.playing && st.soundOn ? (S.volume / 100) * 0.5 : 0;
+      var target = st.playing && st.soundOn ? (S.volume / 100) * 0.5 * st.duck : 0;
       st.audio.master.gain.setTargetAtTime(target, st.audio.ac.currentTime, 0.05);
     }
     // Starts, pauses and sets the level of whichever sound is in use. Nothing plays before the first press on the page.
     function syncSound() {
       fadeMaster();
       if (!st.custom) return;
-      st.custom.volume = S.volume / 100;
+      st.custom.volume = (S.volume / 100) * st.duck;
       st.custom.loop = S.audioLoop !== undefined ? S.audioLoop : S.loop;
       var want = st.playing && st.soundOn && st.gestured;
       if (want && st.custom.paused) { var p = st.custom.play(); if (p && p.catch) p.catch(function () {}); }
@@ -463,6 +471,9 @@
       }
       var k = sceneIndex(st.t), changed = k !== st.scene && st.scene !== -1;
       st.scene = k;
+      // Fade the sound out before the end card, and bring it back when the animation loops.
+      var duck = soundFadeAt(st.t);
+      if (duck !== st.duck) { st.duck = duck; if (st.custom) st.custom.volume = (S.volume / 100) * duck; fadeMaster(); }
       if (st.audio && st.soundOn) playSound(st.audio, st.t, k, changed, st.playing);
       paint();
     }
@@ -551,7 +562,7 @@
       .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: false, clickToPlay: true, link: true }); })
       .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: false, clickToPlay: true, link: true }); });
   }
-  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
+  window.MT3UKExplainer = { mount: mount, merge: merge, soundFadeAt: soundFadeAt, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

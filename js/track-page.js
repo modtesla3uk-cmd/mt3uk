@@ -368,6 +368,11 @@
       go(a.getAttribute('data-go'));
     });
   })();
+  function setDynamicCanonical() {
+    var canon = document.querySelector('link[rel="canonical"]');
+    if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+    canon.href = location.href;
+  }
   function route() {
     stopPlay();
     syncPageBack();
@@ -377,6 +382,7 @@
     if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
+    setDynamicCanonical();
     // Sessions and builds have their own share button, so the page one steps aside.
     document.body.setAttribute('data-tp-view', p.get('s') ? 'session' : p.get('car') && !p.get('add') ? 'car' : '');
     if (p.get('s')) return showSession(p.get('s'));

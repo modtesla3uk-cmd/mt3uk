@@ -102,10 +102,16 @@
     b.hidden = !!inner;
     if (inner) heroTop.insertBefore(inner, b);
   }
+  function setDynamicCanonical() {
+    var canon = document.querySelector('link[rel="canonical"]');
+    if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+    canon.href = location.href;
+  }
   function route() {
     V.hideTip();
     if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     var p = params();
+    setDynamicCanonical();
     app.innerHTML = '<div class="tp-loading" id="lb-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards...</p></div>';
     setTimeout(function () {
       var el = document.getElementById('lb-loading');

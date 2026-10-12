@@ -160,7 +160,7 @@
       items.push({
         id: 'lines:' + row.getAttribute('data-key'), group: rn ? (state === 'changed' ? 'Track renames to approve' : 'Track rename requests') : state === 'changed' ? 'Map changes to approve' : 'Map edit requests', section: 'lines', el: row, img: '',
         title: who,
-        sub: rn ? (state === 'changed' ? 'Sent a new track name for ' : 'Wants to rename the track on ') + what.replace(/Rename the track$/, '').trim() : state === 'changed' ? 'Moved the lines on ' + what + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + what
+        sub: rn ? (state === 'changed' ? 'Suggested a new ' + (/layout/i.test(what) ? 'layout' : 'track') + ' name for ' : 'Wants to rename the track on ') + what.replace(/Rename the (track|layout, for everyone)$/, '').trim() : state === 'changed' ? 'Moved the lines on ' + what + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + what
       });
     });
     return items;

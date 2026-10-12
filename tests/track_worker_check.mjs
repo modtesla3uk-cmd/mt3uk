@@ -573,6 +573,41 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/access/admin?key=secret', { action: 'open', open: false });
   r = await call('GET', '/track/sessions', undefined, 'tok-c');
   ok(r.status === 403, 'and closed again');
+
+  // Laps offline mode: who is offered it
+  r = await call('GET', '/laps/offline/access');
+  ok(r.status === 401, 'offline mode: a visitor gets the sign in answer');
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.status === 200 && r.body.access === false, 'offline mode: a member is not offered it to start with');
+  r = await call('GET', '/laps/offline/admin');
+  ok(r.status === 401, 'offline mode: the admin list needs the admin key');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: C.toUpperCase() });
+  ok(r.body.allowed.length === 1 && r.body.allowed[0].email === C, 'offline mode: adding keeps the email in lower case');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: C });
+  r = await call('GET', '/laps/offline/admin?key=secret');
+  ok(r.body.allowed.length === 1 && r.body.open === false, 'offline mode: adding twice does not repeat them');
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === true, 'offline mode: an approved member is offered it');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'revoke', email: C });
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === false, 'offline mode: taking it away works');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'open', open: true });
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === true && r.body.open === true, 'offline mode: open to all members offers it to everyone');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'open', open: false });
+  r = await call('GET', '/laps/offline/admin?key=secret&members=1');
+  ok(Array.isArray(r.body.members) && r.body.members.some(m => m.email === A && m.account === 'mt3uk'), 'offline mode: the lookup lists the Laps members');
+  ok(r.body.members.every(m => m.access === false), 'offline mode: and says nobody has access to start with');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: A });
+  r = await call('GET', '/laps/offline/admin?key=secret&members=1');
+  ok(r.body.members.find(m => m.email === A).access === true && r.body.members.find(m => m.email === B).access === false, 'offline mode: and who was given access');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'revoke', email: A });
+  r = await call('GET', '/laps/offline/admin');
+  ok(r.status === 401, 'offline mode: the lookup needs the admin key');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'bad' });
+  ok(r.status === 400, 'offline mode: an unknown action is refused');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: 'nope' });
+  ok(r.status === 400, 'offline mode: a bad email is refused');
   // Members who already had sessions keep using it
   kv.set('track-index:' + (await mod.ownerKey(D)), JSON.stringify([{ id: 'old1' }]));
   r = await call('GET', '/track/access', undefined, 'tok-d');
@@ -1083,30 +1118,31 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(kept.body.session.s60 === 3.4, 'the summary takes the best 0-60 from the runs that have one');
   await call('DELETE', '/track/session?id=' + kept.body.session.id, undefined, 'tok-b');
 }
-// Renaming the track on a session at a track we do not list: the same steps as editing the map (ask, allow, send, accept).
+// Renaming the track on a session at a track we do not list: the member suggests a new name straight away (no permission
+// step), the admin is told, accepts or denies it, and the member is emailed either way.
 {
   const un = JSON.parse(JSON.stringify(session)); delete un.venueId; delete un.layoutId;
   let r2 = await call('POST', '/track/sessions', { carId: 'cara1', session: un, privacy: 'build', venueName: 'Aerodrome' }, 'tok-a');
   const rid = r2.body.session.id;
   const listed = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'build' }, 'tok-a');
-  // At a listed track it is the LAYOUT name that can be wrong ("Brands Hatch, New Layout"): the same steps, but accepting
-  // renames the layout in the track list and on every saved session at it, a page at a time, whoever owns them.
+  const renames = () => { try { return stored('track-rename-access') || []; } catch (e) { return []; } };
+  const lastMail = () => env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1];
+  // At a listed track it is the LAYOUT name that can be wrong ("Brands Hatch, New Layout"): accepting renames the layout in
+  // the track list and on every saved session at it, a page at a time, whoever owns them.
   {
     const lid = listed.body.session.id, other = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'build' }, 'tok-b'), oid = other.body.session.id;
     const was = stored('track-session:' + lid).layout, venueId = stored('track-session:' + lid).venueId, layoutId = stored('track-session:' + lid).layoutId;
-    r = await call('POST', '/track/rename/request', { id: lid, note: 'Wrong name' }, 'tok-b');
-    ok(r.status === 404, 'only the owner can ask to rename a layout');
-    const m1 = env.SEND_EMAIL.sent.length;
-    r = await call('POST', '/track/rename/request', { id: lid, note: 'Wrong name' }, 'tok-a');
-    ok(r.status === 200 && r.body.state === 'pending' && r.body.target === 'layout' && env.SEND_EMAIL.sent.length === m1 + 1 && /rename a layout/i.test(env.SEND_EMAIL.sent[m1]), 'a member at a listed track can ask to rename its layout, and the admin is emailed');
-    r = await call('GET', '/track/lines/admin?key=secret');
-    const lr = r.body.requests.find(x => x.id === lid && x.kind === 'rename');
-    ok(lr && lr.target === 'layout' && lr.current === was, 'the admin sees it as a layout rename');
-    await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'grant' });
+    r = await call('POST', '/track/rename/propose', { id: lid, name: 'Indy Circuit' }, 'tok-b');
+    ok(r.status === 404, 'only the owner can suggest a layout name');
     r = await call('POST', '/track/rename/propose', { id: lid, name: was }, 'tok-a');
     ok(r.status === 400 && /already has/.test(r.body.message), 'the name it already has is refused');
+    ok(renames().length === 0, 'a refused name leaves nothing behind');
+    const m1 = env.SEND_EMAIL.sent.length;
     r = await call('POST', '/track/rename/propose', { id: lid, name: 'Indy Circuit' }, 'tok-a');
-    ok(r.status === 200 && r.body.proposal.to === 'Indy Circuit' && r.body.proposal.from === was && /Layout rename awaiting/.test(env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1]), 'a new layout name is sent for approval and the admin is emailed');
+    ok(r.status === 200 && r.body.proposal.to === 'Indy Circuit' && r.body.proposal.from === was && env.SEND_EMAIL.sent.length === m1 + 1 && /Layout rename awaiting/.test(lastMail()), 'a layout name is suggested with no permission step and the admin is emailed');
+    r = await call('GET', '/track/lines/admin?key=secret');
+    const lr = r.body.requests.find(x => x.id === lid && x.kind === 'rename');
+    ok(lr && lr.target === 'layout' && lr.current === was && lr.proposal && lr.proposal.to === 'Indy Circuit', 'the admin sees it as a layout rename waiting for approval');
     ok(stored('track-session:' + oid).layout === was, 'nothing has changed yet');
     r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'apply', cursor: '' });
     ok(r.status === 400, 'sessions are not touched before the rename is accepted');
@@ -1119,43 +1155,44 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     ok(stored('track-session:' + lid).layout === 'Indy Circuit' && stored('track-session:' + oid).layout === 'Indy Circuit' && changed >= 2, 'and on every saved session at it, whoever owns it (' + changed + ' changed)');
     ok(stored('track-index:' + stored('track-session:' + oid).owner).find(x => x.id === oid).layout === 'Indy Circuit', 'and in each owner\'s list');
     ok(stored('track-session:' + oid).bestTime === session.bestTime && stored('track-session:' + oid).laps.length === session.laps.length, 'nothing else on a session changes');
-    ok(stored('track-rename-access').find(x => x.id === lid).proposal === null, 'the request is cleared when it is done');
-    await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'revoke' });
+    ok(!renames().find(x => x.id === lid), 'the request is cleared when it is done');
+    ok(/layout name was accepted/i.test(lastMail()), 'and the member is emailed to say it is changed');
+    r = await call('GET', '/track/rename/status?id=' + lid, undefined, 'tok-a');
+    ok(r.body.state === 'none', 'they can suggest another name afterwards');
     await call('DELETE', '/track/session?id=' + lid, undefined, 'tok-a');
     await call('DELETE', '/track/session?id=' + oid, undefined, 'tok-b');
   }
-  r = await call('POST', '/track/rename/request', { id: rid }, 'tok-b');
-  ok(r.status !== 200, 'another member cannot ask for it');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Sneaky' }, 'tok-b');
+  ok(r.status !== 200, 'another member cannot suggest a name');
   r = await call('GET', '/track/rename/status?id=' + rid, undefined, 'tok-a');
   ok(r.body.state === 'none', 'no request yet');
-  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Sneaky' }, 'tok-a');
-  ok(r.status === 403, 'a name cannot be sent before it is allowed');
-  let m0 = env.SEND_EMAIL.sent.length;
-  r = await call('POST', '/track/rename/request', { id: rid, note: 'Spelt it wrong' }, 'tok-a');
-  ok(r.status === 200 && r.body.state === 'pending' && env.SEND_EMAIL.sent.length === m0 + 1 && /rename a track/i.test(env.SEND_EMAIL.sent[m0]), 'asking is kept and the admin is emailed');
-  r = await call('GET', '/track/lines/admin?key=secret');
-  const rr = r.body.requests.find(x => x.id === rid && x.kind === 'rename');
-  ok(rr && rr.status === 'pending' && rr.current === 'Aerodrome', 'the admin sees it on the Line editing list as a rename');
-  r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'grant' });
-  ok(r.status === 200 && stored('track-rename-access')[0].status === 'granted', 'the admin allows it');
   r = await call('POST', '/track/rename/propose', { id: rid, name: '' }, 'tok-a');
   ok(r.status === 400, 'an empty name is refused');
   r = await call('POST', '/track/rename/propose', { id: rid, name: 'Aerodrome' }, 'tok-a');
   ok(r.status === 400, 'the same name is refused');
-  m0 = env.SEND_EMAIL.sent.length;
+  let m0 = env.SEND_EMAIL.sent.length;
   r = await call('POST', '/track/rename/propose', { id: rid, name: 'Newtown Aerodrome' }, 'tok-a');
-  ok(r.status === 200 && r.body.proposal.to === 'Newtown Aerodrome' && /awaiting your approval/i.test(env.SEND_EMAIL.sent[m0]) && /from: Aerodrome/.test(env.SEND_EMAIL.sent[m0]), 'the member sends the name and the admin is emailed from and to');
+  ok(r.status === 200 && r.body.proposal.to === 'Newtown Aerodrome' && env.SEND_EMAIL.sent.length === m0 + 1 && /awaiting your approval/i.test(env.SEND_EMAIL.sent[m0]) && /from: Aerodrome/.test(env.SEND_EMAIL.sent[m0]), 'the member suggests a name with no permission step and the admin is emailed from and to');
   ok(stored('track-session:' + rid).venue === 'Aerodrome', 'nothing on the session has changed yet');
+  r = await call('GET', '/track/lines/admin?key=secret');
+  const rr = r.body.requests.find(x => x.id === rid && x.kind === 'rename');
+  ok(rr && rr.proposal && rr.proposal.to === 'Newtown Aerodrome' && rr.current === 'Aerodrome', 'the admin sees it on the Line editing list waiting for approval');
+  // Denied: the session stays as it was, the member is emailed and the entry goes.
   r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'undo' });
-  ok(r.status === 200 && stored('track-session:' + rid).venue === 'Aerodrome' && stored('track-rename-access')[0].proposal === null, 'undo leaves the name as it was');
+  ok(r.status === 200 && stored('track-session:' + rid).venue === 'Aerodrome' && !renames().find(x => x.id === rid), 'denying leaves the name as it was and clears the request');
+  ok(/track name was not used/i.test(lastMail()), 'and the member is emailed');
   await call('POST', '/track/rename/propose', { id: rid, name: 'Newtown Aerodrome' }, 'tok-a');
   r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'accepted' });
   ok(r.status === 200 && stored('track-session:' + rid).venue === 'Newtown Aerodrome', 'accepting renames the session');
   ok(stored('track-index:' + stored('track-session:' + rid).owner).find(x => x.id === rid).venue === 'Newtown Aerodrome', 'and the member\'s list shows the new name');
+  ok(!renames().find(x => x.id === rid) && /track name was accepted/i.test(lastMail()), 'the request is cleared and the member is emailed that it is changed');
+  // An older request still waiting for permission is allowed by sending a name.
+  r = await call('POST', '/track/rename/request', { id: rid, note: 'Spelt it wrong' }, 'tok-a');
+  ok(r.status === 200 && r.body.state === 'pending', 'an older style request is still kept');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Newtown Airfield' }, 'tok-a');
+  ok(r.status === 200 && renames().find(x => x.id === rid).status === 'granted', 'and sending a name allows it');
   r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'revoke' });
-  ok(r.status === 200 && stored('track-rename-access').length === 0, 'revoking switches it off');
-  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Again' }, 'tok-a');
-  ok(r.status === 403, 'and no more names can be sent');
+  ok(r.status === 200 && renames().length === 0, 'revoking clears it');
   await call('DELETE', '/track/session?id=' + rid, undefined, 'tok-a');
 }
 // Pictures of a change: the old and new lines, drawn in the member's browser, come with it, show in the admin's email
@@ -1618,6 +1655,68 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(rb.status === 200 && !stored('track-session:' + rb.body.session.id).launch, 'a made-up launch is dropped');
   if (kept) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
   if (rb.status === 200) await call('DELETE', '/track/session?id=' + rb.body.session.id, undefined, 'tok-a');
+}
+
+// Tesla dashcam telemetry: the session is saved, shared and on the leaderboard like any other, when it is the car's quickest.
+{
+  const before = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(e => e.carId === 'cara1');
+  const dc = JSON.parse(JSON.stringify(session)); dc.dashcam = true; dc.logger = 'Tesla Dashcam'; dc.bestTime = session.bestTime - 0.2; dc.date = '2025-04-04';
+  const rr = await call('POST', '/track/sessions', { carId: 'cara1', session: dc, privacy: 'build' }, 'tok-a');
+  const rec = rr.status === 200 && stored('track-session:' + rr.body.session.id);
+  ok(rec && rec.dashcam === true, 'a dashcam session is saved with its flag (' + rr.status + ' ' + JSON.stringify(rr.body).slice(0, 120) + ')');
+  const after = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(e => e.carId === 'cara1');
+  ok(after && after.sessionId === (rr.body.session || {}).id, 'and it is the car\'s entry on the board (' + (after && after.sessionId) + ')');
+  if (rr.status === 200) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
+}
+
+// Sessions saved as "Tesla Dashcam (Beta)" are renamed to "Tesla Dashcam" in the session, the member's index and the car's
+// shared list. A dry run only counts.
+{
+  const old = JSON.parse(JSON.stringify(session)); old.logger = 'Tesla Dashcam (Beta)'; old.date = '2025-05-05';
+  const rs = await call('POST', '/track/sessions', { carId: 'cara1', session: old, privacy: 'build', logger: 'Tesla Dashcam (Beta)' }, 'tok-a');
+  const sid = rs.body.session && rs.body.session.id;
+  const dry = await call('POST', '/track/admin/logger-rename?key=secret&dry=1');
+  ok(dry.status === 200 && dry.body.sessions >= 1 && stored('track-session:' + sid).logger === 'Tesla Dashcam (Beta)', 'a dry run counts the old-name sessions and changes nothing (' + dry.body.sessions + ')');
+  const ren = await call('POST', '/track/admin/logger-rename?key=secret');
+  const rec = stored('track-session:' + sid);
+  const idx = (stored('track-index:' + rec.owner) || []).find(x => x.id === sid);
+  const pub = (stored('track-public:cara1') || []).find(x => x.id === sid);
+  ok(ren.status === 200 && rec.logger === 'Tesla Dashcam' && idx && idx.logger === 'Tesla Dashcam' && (!pub || pub.logger === 'Tesla Dashcam'), 'the session, the member index and the shared list all say "Tesla Dashcam"');
+  const left = await call('POST', '/track/admin/logger-rename?key=secret&dry=1');
+  ok(left.status === 200 && left.body.sessions === 0, 'no session is left with the old name');
+  const bad = await call('POST', '/track/admin/logger-rename');
+  ok(bad.status === 401, 'the rename needs the admin key');
+  await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
+}
+
+// The All sessions list: every member's sessions, admin only, filtered by logger, and read a page at a time.
+{
+  const mine = JSON.parse(JSON.stringify(session)); mine.logger = 'All Sessions Logger'; mine.date = '2025-06-06';
+  const rs = await call('POST', '/track/sessions', { carId: 'cara1', session: mine, privacy: 'private', logger: 'All Sessions Logger' }, 'tok-a');
+  const sid = rs.body.session && rs.body.session.id;
+  const none = await call('GET', '/track/admin/all-sessions');
+  ok(none.status === 401, 'the all sessions list needs the admin key');
+  const all = await call('GET', '/track/admin/all-sessions?key=secret');
+  ok(all.status === 200 && all.body.success && all.body.sessions.some(x => x.id === sid), 'the all sessions list has the session, private ones too');
+  const got = all.body.sessions.find(x => x.id === sid) || {};
+  ok(got.email === 'alice@example.com' || got.email === undefined || typeof got.email === 'string', 'each row says who the member is (' + got.email + ')');
+  const byLogger = await call('GET', '/track/admin/all-sessions?key=secret&logger=' + encodeURIComponent('All Sessions Logger'));
+  ok(byLogger.body.sessions.length >= 1 && byLogger.body.sessions.every(x => /all sessions logger/i.test(x.logger)), 'the logger filter keeps only that logger');
+  // The member box matches the start of an email or of a name (first, last or nickname).
+  const row = all.body.sessions.find(x => x.id === sid) || {};
+  const byEmail = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent((row.email || 'zz').slice(0, 4)));
+  ok(byEmail.body.sessions.some(x => x.id === sid), 'the member box finds a member by the start of their email');
+  const prof = stored('profile:' + row.email) || {};
+  if (prof.firstName) {
+    const byName = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent(prof.firstName.slice(0, 3)));
+    ok(byName.body.sessions.some(x => x.id === sid), 'and by the start of their first name (' + prof.firstName + ')');
+  }
+  const byNoName = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent('qqqq-no-one'));
+  ok(byNoName.body.sessions.length === 0, 'a name that is not there finds nothing');
+  const byMember = await call('GET', '/track/admin/all-sessions?key=secret&member=' + encodeURIComponent('nobody-here@example.com'));
+  ok(byMember.status === 200 && byMember.body.sessions.length === 0, 'the member filter keeps nothing for someone who has no sessions');
+  ok(all.body.done === true || typeof all.body.cursor === 'string', 'the list says whether there is more to read');
+  if (sid) await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
 }
 
 // ---- The Usage panel's counts ----

@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20270131">
+<link rel="stylesheet" href="css/admin-page.css?v=20271042">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -78,6 +78,34 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
     </details>
+    <details class="collapsible" id="offline-wrap">
+      <summary><h3 class="panel-title">Offline mode <span class="summary-count" id="offline-count"></span></h3></summary>
+      <p class="iv-note">Offline mode keeps Laps on a member's device so it opens with no signal. While it is tried out, its icon in the Laps header, the one-time offer, the footer link and the Profile switch only show for the members you approve here, and for you. <b>Open to all members</b> offers it to everyone. A member who has already switched it on keeps it either way.</p>
+      <p class="iv-note" id="of-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="of-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Approved members</h3>
+      <div id="of-allowed"></div>
+      <h3 class="sub-head">Find a Laps member</h3>
+      <p class="iv-note">Everyone who can sign in to Laps. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in to Laps in this browser, so you can test adding and taking away on it: while you are signed in, the list decides for you too.</p>
+      <div class="iv-toolbar"><input type="search" id="of-find" placeholder="Name or email" aria-label="Find a Laps member" autocomplete="off"><button type="button" class="secondary" id="of-load">Show Laps members</button><button type="button" class="secondary" id="of-me" hidden>Add me</button></div>
+      <div id="of-members"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="of-add-form"><input type="email" id="of-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+    </details>
+    <details class="collapsible" id="tree-wrap">
+      <summary><h3 class="panel-title">Sessions split by kind <span class="summary-count" id="tree-count"></span></h3></summary>
+      <p class="iv-note">Shows the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives. Only the members you invite here see it, and it can be changed on its own: Offline mode has its own list above.</p>
+      <p class="iv-note" id="st-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="st-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Invited members</h3>
+      <div id="st-allowed"></div>
+      <h3 class="sub-head">Find a member</h3>
+      <p class="iv-note">Everyone who can sign in. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in in this browser, so you can test adding and taking away on it.</p>
+      <div class="iv-toolbar"><input type="search" id="st-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="st-load">Show members</button><button type="button" class="secondary" id="st-me" hidden>Add me</button></div>
+      <div id="st-members"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+    </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
       <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
@@ -92,6 +120,11 @@
         <p class="iv-note">The link, the 6-digit code and how long they last follow the opening line. Blank keeps the built-in words.</p>
       </div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="ls-save">Save</button></div>
+      <h4 class="ls-sub">Laps members</h4>
+      <p class="iv-note">Laps-only accounts, newest first: people who joined on Laps while MT3UK membership was switched off (full MT3UK members are on the Subscribers panel of admin.html). <b>Remove</b> signs them out everywhere, deletes their cars, sessions and settings, takes them off the early access and New Laps sign-ups lists, and, with the switch on, emails them that they are unsubscribed with a link to subscribe again.</p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="lm-email" aria-checked="true"><span class="tk-track"></span><span>Email them when removed</span></button></div>
+      <p class="iv-note" id="lm-note" role="status"></p>
+      <div id="lm-list"></div>
       <h4 class="ls-sub">New Laps sign-ups</h4>
       <p class="iv-note">Everyone who joins on laps.mt3uk.com, newest first (the latest 100), with whether they became an MT3UK member or have a Laps-only account. While Laps is an early preview each one also waits on the Early access panel, which has its bell item and email. Once Early access is open to all, each new sign-up is counted on the bell and emailed to MT3UK instead. <b>Clear</b> takes one off this list; their account is not changed.</p>
       <p class="iv-note" id="lsu-note" role="status"></p>
@@ -131,6 +164,20 @@
       <div id="ms-list"></div>
       <h3 class="sub-head">Recent admin views</h3>
       <div id="ms-views"></div>
+    </details>
+    <details class="collapsible" id="all-sessions-wrap">
+      <summary><h3 class="panel-title">All sessions <span class="summary-count" id="all-sessions-count"></span></h3></summary>
+      <p class="iv-note">Every Track session from every member, read only. Narrow it with the boxes, then press Find. The member box matches the start of a name (first, last or nickname) or of an email. Members' notes are not shown, and private sessions are marked. The list fills a page at a time, so press Load more to read on.</p>
+      <p class="iv-note" id="as-note" role="status"></p>
+      <div class="iv-toolbar">
+        <input type="search" class="field" id="as-member" placeholder="Name or email" aria-label="Name or email" autocomplete="off">
+        <input type="search" class="field" id="as-track" placeholder="Track or layout" aria-label="Track or layout" autocomplete="off">
+        <input type="search" class="field" id="as-logger" placeholder="Logger" aria-label="Logger" autocomplete="off">
+        <select class="field" id="as-type" aria-label="Type"><option value="">Any type</option><option value="track">Track day</option><option value="sprint">Sprint or hill climb</option><option value="drag">Drag strip</option><option value="other">Drive</option></select>
+        <button type="button" class="iv-act" id="as-find">Find</button>
+      </div>
+      <div id="as-list"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="as-more" hidden>Load more</button></div>
     </details>
     </div>
   </section>
@@ -172,6 +219,7 @@
       <summary><h3 class="panel-title">Rebuild and re-time</h3></summary>
       <p class="iv-note">Leaderboard places keep each car's best for every mix of conditions and tyres, and its track-relevant parts. Places made before that are brought up to date here: it goes through the cars a few at a time.</p>
       <div class="iv-toolbar"><button type="button" class="secondary" id="tk-rebuild">Rebuild all leaderboards</button><span class="iv-note" id="tk-rebuild-note" role="status"></span></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="tk-logger-rename">Rename old dashcam sessions</button><span class="iv-note" id="tk-logger-rename-note" role="status">Changes the logger on sessions saved as "Tesla Dashcam (Beta)" to "Tesla Dashcam". Nothing else changes.</span></div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="tk-retime-check">Check sessions</button><button type="button" class="secondary" id="tk-retime">Re-time out of date sessions</button><button type="button" class="tk-switch" role="switch" id="tk-retime-big" aria-checked="false"><span class="tk-track"></span>Also re-time big changes (best time moves over 10%)</button><span class="iv-note" id="tk-retime-note" role="status"></span></div>
       <ul class="iv-note" id="tk-retime-list" style="list-style:none;padding:0;margin:8px 0 0"></ul>
       <div id="tk-retime-picks" class="rt-picks"></div>
@@ -287,20 +335,25 @@
   </section>
 
 </main>
-<script src="js/track-admin-page.js?v=20270108"></script>
-<script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270213" defer></script>
+<script src="js/track-admin-page.js?v=20271021"></script>
+<script src="js/admin-subnav.js?v=20271040" defer></script>
+<script src="js/admin-help.js?v=20271042" defer></script>
+<script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
-<script src="js/track-parse.js?v=20270129" defer></script>
+<script src="js/track-parse.js?v=20271036" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
+<script src="js/laps-offline-admin.js?v=2" defer></script>
+<script src="js/sessions-tree-admin.js?v=1" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>
-<script src="js/track-lines-admin.js?v=20261180" defer></script>
+<script src="js/laps-members-admin.js?v=20271017" defer></script>
+<script src="js/track-lines-admin.js?v=20271021" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>
-<script src="js/track-admin.js?v=20270128" defer></script>
+<script src="js/all-sessions-admin.js?v=1" defer></script>
+<script src="js/track-admin.js?v=20270133" defer></script>
 <script src="js/laps-logo.js?v=1"></script>
 <script src="js/track-share-card.js?v=20261185"></script>
 <script src="js/track-share-admin.js?v=20261106" defer></script>

@@ -74,12 +74,29 @@ def test_the_redirect_from_the_laps_address_goes_on_to_sessions_once_seen(page):
     assert page.url.endswith("/laps.html")
 
 
-def test_play_intro_on_sessions_opens_the_front_page(page):
+def test_play_intro_is_a_worded_link_in_the_footer_not_the_header(page):
     from test_track_page import FakeWorker, open_page
     open_page(page, FakeWorker())
-    link = page.locator("#tp-play-intro")
+    assert page.locator("header #tp-play-intro").count() == 0
+    link = page.locator("footer #tp-play-intro")
     expect(link).to_have_text("Play intro")
     assert link.get_attribute("href") == "laps.html"
+
+
+def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
+    """The bell, Sessions, Leaderboard and Home icons are in the header markup, so they do not pop in after load.
+    Messages and Profile are rows in the menu on Laps, and My Garage too."""
+    page.route("**/js/notify-bell.js*", lambda r: r.abort())
+    page.route("**/js/messenger.js*", lambda r: r.abort())
+    page.goto("/track.html")
+    for i in ("nav-bell", "nav-sessions", "nav-leaders", "nav-home"):
+        assert page.locator("#" + i).count() == 1, i
+    for i in ("nav-chat", "nav-profile"):
+        assert page.locator("#navlinks #" + i).count() == 1, i
+    assert page.locator("#nav-garage").count() == 0, "My Garage is in the menu on Laps, not the header"
+    assert page.locator("#nav-home").get_attribute("href") == "laps.html"
+    box = page.locator("#nav-home").bounding_box()
+    assert box["height"] >= 44 or page.viewport_size["width"] > 780
 
 
 def test_the_hero_picture_comes_from_the_sharing_panel(page):
@@ -201,8 +218,11 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.goto("/leaderboards.html")
     expect(page.locator("#lb-add-session")).to_have_text("Add a session")
     expect(page.locator("#lb-preview")).to_be_hidden()
-    # On a phone it is a round plus, as on Sessions.
+    # On a phone it keeps its words, as on Sessions, and is a round plus only on the narrowest phones.
     page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#lb-add-session").bounding_box()
+    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
     assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
     expect(page.locator("#lb-add-session span")).to_be_hidden()
@@ -227,8 +247,9 @@ def test_the_leaderboard_invites_members_without_early_access_to_join(page):
     expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
 
 
-def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my_sessions(page):
-    """Signed out: Join the early preview (to the Laps sign-up) is the same size as My Sessions on desktop, the
+def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_height_of_my_sessions(page):
+    """Signed out: Join the early preview (to the Laps sign-up) is the same height as My Sessions on desktop, on the What is
+    the Leaderboard? row at the right, the
     note no longer asks them to join a list, and What is the Leaderboard? says what is there once the preview ends."""
     def reply(r):
         body = COUNTS if "/track/counts" in r.request.url else {"success": True}
@@ -241,7 +262,11 @@ def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my
     expect(join).to_have_attribute("href", "laps-signin.html")
     expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
     mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
-    assert abs(mine["width"] - j["width"]) < 1 and abs(mine["height"] - j["height"]) < 1, (mine, j)
+    # On desktop My Sessions sits at the right with Join the early preview under it, the same height; the What is the
+    # Leaderboard? fold is at the left of My Sessions.
+    what = page.locator("#lb-what summary").bounding_box()
+    assert j["y"] >= mine["y"] + mine["height"] - 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
+    assert what["x"] + what["width"] <= mine["x"], (mine, what, j)
     assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
     page.locator("#lb-what summary").click()
     expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)
@@ -277,6 +302,21 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
     page.goto("/index.html")
     expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42, Rich")
 
+
+
+def test_the_laps_share_button_says_laps_by_mt3uk_and_links_to_the_laps_address(page):
+    """Sharing a Laps page uses Laps by MT3UK in the words and laps.mt3uk.com in the link, not MT3UK and mt3uk.com."""
+    from urllib.parse import unquote
+    open_home(page)
+    page.locator(".lh-hero h1 .mt3uk-share-dot").click()
+    whatsapp = page.locator('.mt3uk-share-panel a[data-channel="whatsapp"], a[data-channel="whatsapp"]').first
+    whatsapp.wait_for(state="attached")
+    href = unquote(whatsapp.get_attribute("href"))
+    assert "Every lap, mapped and measured on Laps by MT3UK: Upload the file from your lap timer" in href, href
+    assert "https://laps.mt3uk.com/share/section/laps.html?utm_source=whatsapp" in href, href
+    assert "https://mt3uk.com" not in href and "on MT3UK" not in href, href
+    email = unquote(page.locator('a[data-channel="email"]').first.get_attribute("href"))
+    assert "subject=Every lap, mapped and measured. | Laps by MT3UK" in email, email
 
 
 def test_the_laps_home_page_has_a_muted_looping_explainer_video_with_a_pause_button(page):

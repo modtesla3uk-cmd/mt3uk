@@ -274,6 +274,8 @@ def page_url(page):
 
 def share_html(title, description, image, square, target, anchor):
     e = lambda v: html.escape(v, quote=True)
+    # The Laps pages are Laps by MT3UK, so their link previews say so.
+    brand = "Laps by MT3UK" if str(target).startswith(LAPS_SITE_URL) else "MT3UK"
     size = (
         '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="1200">\n'
         if square
@@ -285,16 +287,16 @@ def share_html(title, description, image, square, target, anchor):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>{e(title)} | MT3UK</title>
+<title>{e(title)} | {brand}</title>
 <meta name="description" content="{e(description)}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="MT3UK">
-<meta property="og:title" content="{e(title)} | MT3UK">
+<meta property="og:site_name" content="{brand}">
+<meta property="og:title" content="{e(title)} | {brand}">
 <meta property="og:description" content="{e(description)}">
 <meta property="og:image" content="{e(image)}">
 {size}<meta property="og:image:alt" content="{e(title)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{e(title)} | MT3UK">
+<meta name="twitter:title" content="{e(title)} | {brand}">
 <meta name="twitter:description" content="{e(description)}">
 <meta name="twitter:image" content="{e(image)}">
 <script>

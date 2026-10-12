@@ -25,6 +25,7 @@
   // What each kind of board is called in "All ..." links and buttons.
   var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };
   var ICON = {
+    cloud: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5 4.8 4.8 0 0 1 17 18Z"/>',
     refresh: '<path d="M20 11a8 8 0 0 0-14.9-3M4 5v3.5h3.5"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-3.5h-3.5"/>',
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
@@ -36,20 +37,30 @@
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
   function getJson(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }); }
+  // A read from the worker. With Offline mode (js/laps-offline.js) the answer comes from the copy kept on the device when
+  // there is no signal, with cachedAt on it; that is what the old-copy note below reads.
+  function rd(path) { var o = window.MT3UKOffline; return o && o.read ? o.read(path) : getJson(API + path); }
+  var keptAt = 0;
+  function keptNote() {
+    if (!keptAt) return '';
+    var d = new Date(keptAt), when = isNaN(d) ? '' : ' from ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return '<p class="tp-notice lb-old" id="lb-old" role="status">' + icon('warn') + '<span>This is the copy kept on this device' + when + '. It updates when you are back online.</span></p>';
+  }
 
   var library = null, counts = null, leaders = null;
   function load() {
     if (library) return Promise.resolve();
     return Promise.all([
       getJson('data/tracks.json').catch(function () { return { venues: [] }; }),
-      getJson(API + '/track/tracks').catch(function () { return {}; }),
-      getJson(API + '/track/counts').catch(function () { return {}; }),
+      rd('/track/tracks').catch(function () { return {}; }),
+      rd('/track/counts').catch(function () { return {}; }),
       window.MT3UKTyres ? window.MT3UKTyres.load().catch(function () {}) : null,
       window.MT3UKPads ? window.MT3UKPads.load().catch(function () {}) : null,
       window.MT3UKVehicles ? window.MT3UKVehicles.load().catch(function () {}) : null
     ]).then(function (r) {
       library = T.mergeLibrary(r[0], r[1] && r[1].extra);
       counts = (r[2] && r[2].counts) || {};
+      keptAt = (r[2] && r[2].cachedAt) || 0;
       leaders = (r[2] && r[2].leaders) || {};
     });
   }
@@ -117,7 +128,8 @@
       if (p.get('sprint')) return showBoard('sprint', p.get('sprint'));
       showList(p.get('type') || 'track');
     }).catch(function () {
-      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>The leaderboards could not be loaded. Check your connection and try again.</p></div>';
+      var o = window.MT3UKOffline, off = o && o.isOffline && o.isOffline();
+      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + (off ? 'This leaderboard is not on this device. Offline mode keeps the leaderboards for one circuit: choose it in Profile, while you are online.' : 'The leaderboards could not be loaded. Check your connection and try again.') + '</p></div>';
     });
   }
 
@@ -160,16 +172,84 @@
     }).join('') + '</ol>';
   }
 
+  // The member's own sessions on the track list (the My sessions sort): each layout's count, its top three, and each
+  // track's quickest, from the same read as a board's My sessions.
+  var listSessions = false;
+  function meCount(type, venueId, layoutId) { return mineList ? mineRows(mineList, type, venueId, layoutId).length : 0; }
+  function meTotal(type, v) {
+    if (type === 'drag') return meCount('drag', v.id, '');
+    return (v.layouts || []).reduce(function (n, l) { return n + meCount(type, v.id, l.id); }, 0);
+  }
+  function meBest(type, v) {
+    var best = null;
+    (type === 'drag' ? [''] : (v.layouts || []).map(function (l) { return l.id; })).forEach(function (lid) {
+      var rows = mineList ? mineRows(mineList, type, v.id, lid) : [];
+      if (rows.length && (best === null || rows[0].t < best)) best = rows[0].t;
+    });
+    return best;
+  }
+  // The member's place on a board, for the My sessions sort: where their car's best comes among every car's best
+  // on that board (unfiltered, as the board opens), so a track card says "2nd of 7 cars" and nothing more.
+  var myRanks = {}, rankPending = {}, listShown = null, rankRedrawing = false;
+  function boardPath(type, venueId, layoutId) {
+    return type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
+  }
+  function placeOn(entries, type, carIds) {
+    var cars = entries.map(function (e) {
+      var best = null;
+      resultsOf(e, type).forEach(function (b) { if (best === null || scoreOf(b, type) < best) best = scoreOf(b, type); });
+      return { e: e, s: best };
+    }).filter(function (x) { return x.s !== null && isFinite(x.s); }).sort(function (a, b) { return a.s - b.s; });
+    for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length, e: cars[i].e, s: cars[i].s };
+    return { pos: 0, of: cars.length };
+  }
+  // The place is shown as the board shows a row: the medal circle, the member's name, car and date, and the time,
+  // with the medals 1st platinum, 2nd gold, 3rd silver, 4th bronze.
+  var MEDALS = ['', 'platinum', 'gold', 'silver', 'bronze'];
+  function rankCount(type, venueId, layoutId) {
+    var key = boardKey(type, venueId, layoutId), r = myRanks[key];
+    if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }
+    if (r.error) return '';
+    if (!r.pos) return 'Not on the board yet';
+    return 'of ' + r.of + ' car' + (r.of === 1 ? '' : 's');
+  }
+  function rankRow(type, venueId, layoutId) {
+    var r = myRanks[boardKey(type, venueId, layoutId)];
+    if (!r || !r.pos) return '';
+    var e = r.e, drag = type === 'drag', medal = r.pos < MEDALS.length ? ' lb-medal-' + MEDALS[r.pos] : '';
+    var res = drag ? Number(r.s).toFixed(2) + ' s' : V.fmtLap(r.s);
+    return '<ol class="lb-podium">' + '<li><span class="lb-pos' + medal + '">' + r.pos + '</span><span class="lb-who"><b>' + esc(e.owner || 'You') + '</b><small>' + esc(e.car === 'MT3UK member build' && e.model ? e.model : e.car) + '</small>' + (e.date ? '<small class="lb-date">' + esc(T.niceDate(e.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li></ol>';
+  }
+  function loadRank(type, venueId, layoutId) {
+    var key = boardKey(type, venueId, layoutId);
+    if (rankPending[key] || !mineList) return;
+    rankPending[key] = true;
+    var carIds = mineRows(mineList, type, venueId, layoutId).map(function (x) { return x.s.carId; });
+    Promise.resolve(rd(boardPath(type, venueId, layoutId))).then(function (d) {
+      myRanks[key] = placeOn((d && d.entries) || [], type, carIds);
+    }, function () {
+      myRanks[key] = { error: true };
+    }).then(function () { rankPending[key] = false; scheduleRankRedraw(); });
+  }
+  // Redraw the track list once the places come in (a short wait, so several boards land in one redraw).
+  function scheduleRankRedraw() {
+    if (rankRedrawing) return;
+    rankRedrawing = true;
+    setTimeout(function () { rankRedrawing = false; if (listSessions && listShown) showList(listShown); }, 30);
+  }
+
   // A layout or course: its name and number of sessions, its top three, and a
   // link to the whole board.
   function layoutBlock(type, v, l) {
-    var key = boardKey(type, v.id, l.id), n = counts[key] || 0, q = boardQuery(type, v.id, l.id);
+    var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
+    var count = listSessions ? (n ? rankCount(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
     return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><span class="lb-layout-head"><b>' + esc(l.name) + '</b>' +
-      (n ? '<span class="tp-small">' + n + ' session' + (n === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No sessions yet</span>') + icon('chev') + '</span>' + podium(key, false) + '</a>';
+      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false)) + '</a>';
   }
 
   // The venues of one type, busiest first, each with the top three per layout.
   function showList(type) {
+    listShown = type;
     var t = TYPES.filter(function (x) { return x[0] === type; })[0] || TYPES[0];
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
@@ -177,16 +257,26 @@
     // The order the member moved the tracks into, when there is one for this kind of track, is the one to start from.
     var mine = savedOrder(t[0]), mode = sortMode === 'mine' && !mine ? 'busy' : sortMode;
     if (!sortChosen && mine) mode = 'mine';
-    h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + (mine ? [['mine', 'My layout']] : []).concat(SORTS).map(function (o) {
+    if (mode === 'sessions' && !signedInToken()) mode = 'busy';
+    // My sessions: the cards show the member's own sessions at each track and layout (read once, as on a board).
+    if (mode === 'sessions' && !mineList) return loadMine().then(function () { showList(type); });
+    listSessions = mode === 'sessions';
+    h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + (mine ? [['mine', 'My layout']] : []).concat(SORTS).concat(signedInToken() ? [['sessions', 'My sessions']] : []).map(function (o) {
       return '<option value="' + o[0] + '"' + (o[0] === mode ? ' selected' : '') + '>' + o[1] + '</option>';
     }).join('') + '</select></label>' + refreshChip() + '</div></div>';
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
     var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? T.isHill(v) : t[0] === 'sprint' ? !T.isHill(v) : true); }).map(function (v, i) {
-      var total = t[0] === 'drag' ? (counts[boardKey('drag', v.id)] || 0) : (v.layouts || []).reduce(function (n, l) { return n + (counts[boardKey(bt, v.id, l.id)] || 0); }, 0);
+      var total = listSessions ? meTotal(bt, v) : t[0] === 'drag' ? (counts[boardKey('drag', v.id)] || 0) : (v.layouts || []).reduce(function (n, l) { return n + (counts[boardKey(bt, v.id, l.id)] || 0); }, 0);
       var when = latestOn(t[0] === 'drag' ? [boardKey('drag', v.id)] : (v.layouts || []).map(function (l) { return boardKey(bt, v.id, l.id); }));
-      return { v: v, total: total, i: i, when: when };
+      return { v: v, total: total, i: i, when: when, best: listSessions ? meBest(bt, v) : null };
     }).sort(function (a, b) {
+      if (listSessions) {
+        // Your quickest first; tracks you have not driven follow, in their usual order.
+        if (!!a.best !== !!b.best) return a.best ? -1 : 1;
+        if (a.best && a.best !== b.best) return a.best - b.best;
+        return a.i - b.i;
+      }
       if (mode === 'mine') {
         // The tracks moved into place first, in that order; any the member has not placed follow, busiest first.
         var ia = mine.indexOf(a.v.id), ib = mine.indexOf(b.v.id);
@@ -207,22 +297,25 @@
     // A track card with the button that hides it (or, among the hidden ones, shows it again).
     function wrap(v, card) {
       var hid = hidden.indexOf(v.id) !== -1;
-      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '">' + card +
+      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card +
+        '<button type="button" class="lb-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' +
         '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '</button></div>';
     }
-    h += '<div class="tp-boards lb-venues">' + shown.map(function (x) {
+    h += '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a circuit and let go to keep it for offline use, or tap its cloud. Hold and drag to move it.</p><div class="tp-boards lb-venues">' + shown.map(function (x) {
       var v = x.v;
       if (t[0] === 'drag') {
         var q = boardQuery('drag', v.id), key = boardKey('drag', v.id);
+        if (listSessions) return wrap(v, '<a class="tp-board-card lb-venue' + (meCount('drag', v.id, '') ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
+          '<span class="tp-small">' + (meCount('drag', v.id, '') ? rankCount('drag', v.id, '') : 'Not driven yet') + '</span></div>' + (meCount('drag', v.id, '') ? rankRow('drag', v.id, '') : '') + '</a>');
         return wrap(v, '<a class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
           (x.total ? '<span class="tp-small">' + x.total + ' run' + (x.total === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No runs yet</span>') + '</div>' +
           (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>');
       }
-      var layouts = v.layouts || [], active = layouts.filter(function (l) { return counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
+      var layouts = v.layouts || [], active = layouts.filter(function (l) { return listSessions ? meCount(bt, v.id, l.id) : counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
       return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
-        (x.total ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
+        (x.total && !listSessions ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
         active.map(function (l) { return layoutBlock(bt, v, l); }).join('') +
-        (idle.length ? (active.length ? '<p class="tp-small lb-idle">No sessions yet: ' + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');
+        (idle.length ? (active.length ? '<p class="tp-small lb-idle">' + (listSessions ? 'Not driven yet: ' : 'No sessions yet: ') + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');
     }).join('') + '</div>';
     if (busy.length && quiet) h += '<p class="lb-more"><button type="button" class="btn btn-secondary btn-sm" data-showall>' + (showAll ? 'Only show ' + KIND_NAME[t[0]] + ' with sessions' : 'Show all ' + venues.length + ' (' + quiet + ' with no sessions yet)') + '</button></p>';
     // Moving and hiding tracks: kept in this browser, so the list is the member's own.
@@ -231,7 +324,7 @@
       (mine || hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-resetlayout>Reset layout</button>' : '') + '</p>';
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
-    app.innerHTML = h;
+    app.innerHTML = keptNote() + h;
     placeTip();
     syncPageBack();
     // The front page panels the admin chose for the Leaderboard, under the track list (js/laps-panels.js).
@@ -275,6 +368,7 @@
   // The same way the homepage tiles move. A drag never opens the card it ends on.
   var dragArmed = false;
   function arrange(grid, done) {
+    var travel = 0;
     var HOLD_MS = 350, TOL = 8, holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppress = false, mouse = false;
     function clearHold() { clearTimeout(holdTimer); holdTimer = null; if (tile && !dragging) tile.classList.remove('is-holding'); }
     function begin() {
@@ -291,6 +385,7 @@
       if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) { /* no vibration */ } }
     }
     function moveTo(x, y) {
+      travel = Math.max(travel, Math.abs(x - start.x), Math.abs(y - start.y));
       tile.style.left = (x - offset.x) + 'px'; tile.style.top = (y - offset.y) + 'px';
       var under = document.elementFromPoint(x, y), target = under && under.closest('.lb-cardwrap');
       if (!target || target === tile || !grid.contains(target)) return;
@@ -299,22 +394,28 @@
       if (y < 60) window.scrollBy(0, -12); else if (y > window.innerHeight - 60) window.scrollBy(0, 12);
     }
     function end() {
-      var ids = null;
+      var ids = null, held = tile;
       if (dragging) {
         grid.insertBefore(tile, placeholder); placeholder.remove();
         tile.classList.remove('is-dragging'); tile.style.width = tile.style.height = tile.style.left = tile.style.top = '';
         suppress = true; setTimeout(function () { suppress = false; }, 400);
         ids = [].slice.call(grid.querySelectorAll('.lb-cardwrap')).map(function (w) { return w.getAttribute('data-venue'); });
+        // Held and let go without moving: that is not a move, it keeps the circuit for offline use (js/laps-offline.js).
+        if (travel < 14) {
+          ids = null;
+          var o = window.MT3UKOffline;
+          if (held && o && o.holdKeep) o.holdKeep(held.getAttribute('data-keep-venue'), held.getAttribute('data-keep-name'));
+        }
       }
       clearHold();
       tile = null; start = null; dragging = false; placeholder = null;
       if (ids) done(ids);
     }
     grid.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0 || e.target.closest('[data-hide]')) return;
+      if (e.button !== 0 || e.target.closest('[data-hide], [data-keep-toggle]')) return;
       var t = e.target.closest('.lb-cardwrap');
       if (!t) return;
-      tile = t; start = { x: e.clientX, y: e.clientY }; mouse = e.pointerType === 'mouse';
+      tile = t; start = { x: e.clientX, y: e.clientY }; mouse = e.pointerType === 'mouse'; travel = 0;
       tile.classList.add('is-holding');
       holdTimer = setTimeout(begin, HOLD_MS);
     });
@@ -526,16 +627,57 @@
     return h + '</section>';
   }
 
+  // My sessions on a board (signed in): the member's own sessions at this track and layout, quickest first, so each one
+  // can be compared, not just the car's fastest. Read once per board opened (with the Sessions list's sign-in).
+  var SESSION_TOKEN_KEY = 'mt3ukMyBuildsSession', mineOnly = false, mineList = null;
+  function signedInToken() { try { return localStorage.getItem(SESSION_TOKEN_KEY) || ''; } catch (e) { return ''; } }
+  function loadMine() {
+    if (mineList) return Promise.resolve(mineList);
+    var t = signedInToken();
+    if (!t) return Promise.resolve(null);
+    return fetch(API + '/track/sessions', { cache: 'no-store', headers: { 'X-Session-Token': t } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) { mineList = d && d.success ? (d.sessions || []) : []; return mineList; })
+      .catch(function () { mineList = []; return mineList; });
+  }
+  // The member's sessions at this board: drag boards are by strip, track and sprint boards by venue and layout.
+  function mineRows(list, type, venueId, layoutId) {
+    return list.filter(function (s) {
+      if (s.type !== type || s.venueId !== venueId) return false;
+      return type === 'drag' || s.layoutId === layoutId;
+    }).map(function (s) {
+      var t = type === 'drag' ? s.quarter : s.bestTime;
+      return { s: s, t: t };
+    }).filter(function (x) { return isFinite(x.t) && x.t > 0; }).sort(function (a, b) { return a.t - b.t; });
+  }
+  function mineHtml(rows, type) {
+    if (!rows.length) return '<div class="card tp-empty">' + icon('trophy') + '<p>You have no sessions on this board yet. Add one from the Add a session button.</p></div>';
+    return '<p class="tp-small lb-count" role="status">' + rows.length + ' of your session' + (rows.length === 1 ? '' : 's') + ' here, quickest first.</p>' +
+      '<div class="card lb-card"><ol class="lb-list">' + rows.map(function (x, i) {
+        var s = x.s, gap = i ? '+' + (x.t - rows[0].t).toFixed(2) + ' s' : 'Quickest';
+        var detail = [s.car, s.conditions, s.privacy === 'private' ? 'Only me' : ''].filter(Boolean).join(' · ');
+        return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
+          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small></div>' +
+          '<div class="lb-time"><b>' + fmtRes(x.t, type) + '</b><small>' + gap + '</small></div>' +
+          '<div class="lb-info"><span class="lb-tyre' + (s.tyres ? '' : ' is-none') + '">' + (s.tyres ? esc(s.tyres) : 'Tyres not given') + '</span></div>' +
+          icon('chev') + '</li>';
+      }).join('') + '</ol></div>' +
+      '<p class="tp-small lb-note">Only your own sessions are listed here. Each board shows every car\'s fastest, so a car\'s other sessions are not on it.</p>';
+  }
+
   function showBoard(type, q) {
+    listShown = null;
     var venueId = q.split(':')[0], layoutId = q.split(':')[1] || '';
     var v = library.venues.filter(function (x) { return x.id === venueId; })[0];
     var l = v && v.layouts ? v.layouts.filter(function (x) { return x.id === layoutId; })[0] : null;
     var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
     var path = type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
     fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; viewMode = 'board';
+    mineOnly = false; mineList = null;
     // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
     var FOLD = 10, foldOpen = false;
-    getJson(API + path).then(function (d) {
+    rd(path).then(function (d) {
+      keptAt = d.cachedAt || 0;
       var entries = d.entries || [];
       // What is there to filter by, from every car's results.
       var conds = [], makes = [], tyresOf = {};
@@ -559,9 +701,10 @@
         var cmp = viewMode !== 'board', anyWeight = entries.some(function (e) { return weightOf(e); });
         var views = [['board', 'Leaderboard'], ['tyres', 'Compare tyres']].concat(type === 'drag' ? [] : [['pads', 'Compare pads']]);
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
+        var signedIn = !!signedInToken();
         var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" data-back aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
-          '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+          '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + (signedIn && viewMode === 'board' ? '<label class="lb-sort lb-show"><span>Show</span><select class="field" id="lb-mine"><option value="all"' + (mineOnly ? '' : ' selected') + '>All cars</option><option value="mine"' + (mineOnly ? ' selected' : '') + '>My sessions</option></select></label>' : '') + '</div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div><div class="tp-head-side">' + refreshChip() + unitsChip() + '</div></div>' +
           (conds.length > 1 || makes.length || cmp ? '<div class="lb-selects">' +
             (conds.length > 1 || cmp ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
@@ -571,7 +714,8 @@
             (makes.length && viewMode !== 'tyres' ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
             (fMake !== 'All' && viewMode !== 'tyres' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
             (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>';
-        if (cmp) h += compareHtml(entries, type);
+        if (mineOnly && !cmp) h += mineList ? mineHtml(mineRows(mineList, type, venueId, layoutId), type) : '<p class="tp-small" role="status">Reading your sessions...</p>';
+        else if (cmp) h += compareHtml(entries, type);
         else if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
@@ -583,7 +727,7 @@
             '<p class="tp-small lb-note">Each row shows the tyres the time was set on. Open a car to see its mods. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
         }
         h += ctaHtml();
-        app.innerHTML = h;
+        app.innerHTML = keptNote() + h;
         placeTip();
         syncPageBack();
         document.getElementById('lb-models').addEventListener('click', function (ev) {
@@ -601,6 +745,13 @@
           var vb = ev.target.closest('[data-view]');
           if (vb && vb.getAttribute('data-view') !== viewMode) { viewMode = vb.getAttribute('data-view'); if (viewMode === 'tyres') { fMake = 'All'; fTyre = 'All'; } draw(); }
         });
+        var mineSel = document.getElementById('lb-mine');
+        if (mineSel) mineSel.addEventListener('change', function () {
+          mineOnly = mineSel.value === 'mine';
+          if (!mineOnly) return draw('lb-mine');
+          draw('lb-mine');
+          loadMine().then(function () { draw('lb-mine'); });
+        });
         var clear = document.getElementById('lb-clear');
         if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; draw(); });
         var fold = document.querySelector('[data-fold]');
@@ -614,7 +765,7 @@
       }
       draw();
     }).catch(function () {
-      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>This leaderboard could not be loaded.</p></div>';
+      app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + (window.MT3UKOffline && window.MT3UKOffline.isOffline && window.MT3UKOffline.isOffline() ? 'This leaderboard is not on this device. Offline mode keeps the leaderboards for one circuit: choose it in Profile, while you are online.' : 'This leaderboard could not be loaded.') + '</p></div>';
     });
   }
 

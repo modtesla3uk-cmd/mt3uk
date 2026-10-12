@@ -49,12 +49,12 @@ def test_intro_says_what_is_here_and_can_be_played_again(device_page):
     tiles = intro.locator(".ix-finds a")
     assert tiles.count() == 8
     assert [tiles.nth(i).locator("b").inner_text() for i in range(8)] == [
-        "Member builds", "Build of the Week", "My Garage", "Owner Interviews",
+        "Member builds", "Build of the Week", "Add your photo", "Owner Interviews",
         "Meets and events", "Track day guides", "Track leaderboards", "Shop"]
     assert tiles.nth(6).get_attribute("href") == "leaderboards.html"
     # Says plainly that the site is separate from the Facebook group.
     assert "separate from the MT3UK Facebook group" in intro.locator(".ix-fb").inner_text()
-    assert intro.locator(".ix-join").get_attribute("href") == "signin.html?next=%2F"
+    assert intro.locator(".ix-join").get_attribute("href") == "my-builds.html#add-photo"
     page.wait_for_timeout(3800)
     assert page.evaluate("document.getElementById('mt3uk-intro').scrollWidth <= window.innerWidth")
     # Escape closes it.

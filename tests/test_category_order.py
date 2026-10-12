@@ -15,7 +15,7 @@ def test_hold_and_drag_rearranges_categories(device_page):
     grid.scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     start = order(page)
-    assert start[0] == "garage" and start[-1] == "interviews"
+    assert start[0] == "addphoto" and start[1] == "garage" and start[-1] == "interviews"
 
     # Hold the first tile, then drag it over the last one.
     first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
@@ -132,7 +132,7 @@ def test_mouse_can_drag_a_tile_without_holding(device_page):
     grid = page.locator(".categories-grid.hp-cats")
     grid.scroll_into_view_if_needed()
     page.wait_for_timeout(300)
-    assert order(page)[0] == "garage"
+    assert order(page)[1] == "garage"
     first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
     last = page.locator('.hp-cat[data-cat="interviews"]').bounding_box()
     page.mouse.move(first["x"] + 20, first["y"] + 20)

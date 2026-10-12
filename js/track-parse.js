@@ -398,6 +398,72 @@
     return { format: 'GPX', points: pts, startLine: gpxStartLine(text, pts), venueName: name, startedAt: a0, speedUnit: 'km/h' };
   }
 
+  // Tesla dashcam telemetry: the CSV the community tools pull from the data a Tesla embeds in its dashcam
+  // clips. There is no time column, only frame_seq_no, and Tesla records at 36 frames a second, so the time is the
+  // frame number counted from the first frame. A clip is about a minute and the car drops a few frames between
+  // clips, but the frame numbers keep counting through the gap, so the time stays true when clips are joined in one
+  // file. The GPS fix only changes about 10 times a second, so only the rows where the position moves are kept.
+  var DASHCAM_FPS = 36;
+  function readDashcam(text) {
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    var h = splitCsv(lines[0], ',').map(normHeader);
+    var ci = { fr: h.indexOf('frame_seq_no'), lat: h.indexOf('latitude_deg'), lng: h.indexOf('longitude_deg'), v: h.indexOf('vehicle_speed_mps'), ax: h.indexOf('linear_acceleration_mps2_x'), ay: h.indexOf('linear_acceleration_mps2_y') };
+    // The car's own accelerometer, a row a frame. Checked against the speed and the heading of a real Castle Combe file: the
+    // x column is the sideways g (matches speed times the turn rate, positive in a right hander) and the y column the
+    // lengthways g (matches the change in speed, positive when braking), so the signs here put them the way every other
+    // logger has them. The GPS position only moves about 10 times a second, so g worked out from it is far too noisy
+    // (over 4 g in the corners); the rows between two fixes are averaged for each kept reading instead.
+    var imu = ci.ax >= 0 && ci.ay >= 0, sx = 0, sy = 0, sn = 0;
+    var pts = [], f0 = null, prev = null, lastLat = NaN, lastLng = NaN;
+    for (var i = 1; i < lines.length; i++) {
+      var f = splitCsv(lines[i], ',');
+      var fr = num(f[ci.fr]), lat = num(f[ci.lat]), lng = num(f[ci.lng]);
+      if (!isFinite(fr) || !isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) continue;
+      if (f0 === null) f0 = fr;
+      var t = (fr - f0) / DASHCAM_FPS;
+      if (prev !== null && t <= prev) continue;
+      if (imu) { var gx = num(f[ci.ax]), gy = num(f[ci.ay]); if (isFinite(gx) && isFinite(gy)) { sx += gx; sy += gy; sn++; } }
+      if (lat === lastLat && lng === lastLng) continue;
+      lastLat = lat; lastLng = lng; prev = t;
+      pts.push({ t: t, lat: lat, lng: lng, v: ci.v >= 0 ? num(f[ci.v]) : NaN, la: sn ? -sx / sn / 9.81 : NaN, lo: sn ? -sy / sn / 9.81 : NaN, sats: NaN });
+      sx = 0; sy = 0; sn = 0;
+    }
+    if (!pts.length) throw new Error('No readings with a position were found in this file.');
+    var t0 = pts[0].t;
+    pts.forEach(function (p) { p.t -= t0; });
+    // Where the readings sit in the car's frame count, so clips from one drive can be joined (joinDashcam).
+    return { format: 'CSV', dashcam: true, frame0: f0 + t0 * DASHCAM_FPS, frameN: f0 + prev * DASHCAM_FPS, points: pts, startLine: null, venueName: '', startedAt: null, speedUnit: 'm/s' };
+  }
+
+  // The clips of one drive (a clip is about a minute, and each is its own file) as one reading. The frame numbers carry on
+  // from one clip to the next, so a clip that starts within DASHCAM_JOIN seconds of the end of the one before is the same
+  // drive: its readings are placed by their frame number, which counts the frames the car dropped between clips. Clips
+  // that do not follow on stay as they are. Returns { rds, into }: the readings to use (null for a clip that was joined
+  // into an earlier one) and, for each such clip, the index of the reading it went into.
+  var DASHCAM_JOIN = 15;
+  function joinDashcam(rds) {
+    var order = rds.map(function (rd, i) { return { rd: rd, i: i }; }).filter(function (o) { return o.rd.dashcam && isFinite(o.rd.frame0); })
+      .sort(function (a, b) { return a.rd.frame0 - b.rd.frame0; });
+    var groups = [];
+    order.forEach(function (o) {
+      var g = groups[groups.length - 1], last = g && g[g.length - 1];
+      if (last && o.rd.frame0 > last.rd.frameN && (o.rd.frame0 - last.rd.frameN) / DASHCAM_FPS <= DASHCAM_JOIN) g.push(o); else groups.push([o]);
+    });
+    var out = rds.slice(), into = {};
+    groups.forEach(function (g) {
+      if (g.length < 2) return;
+      var first = g[0].rd, pts = [];
+      g.forEach(function (o) {
+        var shift = (o.rd.frame0 - first.frame0) / DASHCAM_FPS + first.points[0].t;
+        o.rd.points.forEach(function (p) { var q = Object.assign({}, p); q.t = p.t - o.rd.points[0].t + shift; pts.push(q); });
+      });
+      var made = Object.assign({}, first, { points: pts, frameN: g[g.length - 1].rd.frameN, clips: g.length });
+      out[g[0].i] = made;
+      g.slice(1).forEach(function (o) { out[o.i] = null; into[o.i] = g[0].i; });
+    });
+    return { rds: out, into: into };
+  }
+
   // savedAt (optional): when the file was last saved on the device, from
   // the browser. Used for the date only when the file and its name have
   // none, taking the session to have ended when the file was saved.
@@ -407,6 +473,7 @@
     var out;
     if (/\.vbo$/.test(name) || /^\s*(file created|\[header\])/i.test(text) && /\[data\]/i.test(text)) out = readVbo(text);
     else if (/\.gpx$/.test(name) || /<gpx[\s>]/i.test(text.slice(0, 2000))) out = readGpx(text);
+    else if (!mapping && /frame_seq_no/.test(text.slice(0, 600)) && /latitude_deg/.test(text.slice(0, 600))) out = readDashcam(text);
     else out = readCsv(text, mapping);
     if (out.needsMapping) return out;
     finishPoints(out);
@@ -980,6 +1047,7 @@
       else type = 'track';
     }
     var session = { analysisVersion: ANALYSIS_VERSION, type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
+    if (rd.dashcam) session.dashcam = true;
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt), session.dateFrom = 'file';
     else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = rd.dateSrc || 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;
@@ -1713,7 +1781,7 @@
   }
 
   var api = {
-    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
+    read: read, combine: combine, joinDashcam: joinDashcam, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, isHill: isHill, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     mergeSources: mergeSources, alignSpeeds: alignSpeeds, haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
   };

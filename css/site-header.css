@@ -170,6 +170,24 @@ nav {
   font-weight: 600;
 }
 .nav-link-mobile:hover { opacity: 0.9; }
+/* Add your photo: the first thing in the menu on every page, for everyone. Sign Up / Sign In sits under it as the quieter button. */
+.nav-link-addphoto {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 16px;
+  margin: 12px 16px 0;
+  border-radius: var(--radius);
+  background: var(--orange);
+  color: var(--paper) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+.nav-link-addphoto:hover { opacity: 0.9; }
+.nav-link-addphoto .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-link-addphoto + .nav-link-mobile { background: transparent; color: var(--ink) !important; border: 1px solid var(--hairline-strong); margin-top: 8px; }
 @media (min-width: 781px) {
   .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
@@ -310,6 +328,33 @@ nav {
 .nav-search[data-scope="laps"] { display: none; }
 .nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nav-bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Messages icon (markup in the header partials, behaviour in js/messenger.js). */
+.nav-chat { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 34px; border: 0; background: none; color: var(--ink); cursor: pointer; padding: 0; }
+.nav-chat:hover { opacity: 0.65; }
+.nav-chat svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.nav-chat-count { position: absolute; top: 0; right: 2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--orange); color: #ffffff; font: 700 0.66rem/17px 'IBM Plex Sans', sans-serif; text-align: center; }
+.nav-chat-count[hidden] { display: none; }
+/* On a phone the header icons are bigger: 44px touch targets, with Profile and My Garage (the main ones) largest. */
+@media (max-width: 780px) {
+  .nav-bell-btn, .nav-chat, .nav-profile { width: 36px; height: 44px; }
+  .nav-profile svg { width: 27px; height: 27px; }
+  .nav-bell-btn svg, .nav-chat svg { width: 24px; height: 24px; }
+  .nav-bell-count, .nav-chat-count { top: 3px; right: 1px; }
+  .nav-search-toggle { width: 36px; height: 44px; }
+  .nav-search-toggle svg { width: 24px; height: 24px; }
+  /* The Laps wordmark is a little smaller so the bell never touches "by MT3UK". */
+  .nav-center:has(> .laps-logo) { margin-right: 20px; }
+  .logo.laps-logo { gap: 6px; }
+  .logo.laps-logo .laps-logo-mark { width: 24px; height: 24px; }
+  .logo.laps-logo .laps-logo-name { font-size: 1.2rem; }
+  .logo.laps-logo .laps-logo-by { font-size: 0.68rem; }
+}
+/* The very narrowest phones have no room for "by MT3UK" beside the five header icons. */
+@media (max-width: 340px) {
+  .logo.laps-logo .laps-logo-by { display: none; }
+  .nav-bell-btn, .nav-chat, .nav-profile, .nav-search-toggle { width: 33px; }
+  .nav-center:has(> .laps-logo) { margin-right: 8px; }
+}
 .nav-bell-count {
   position: absolute;
   top: 1px;
@@ -482,16 +527,15 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 .laps-logo-name { font-family: var(--font-head); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
 .laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
 .logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }
-/* Play intro, beside the Laps logo on every Laps page (opens the Laps front page again). Just the icon on a phone. */
-.laps-intro { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-left: -10px; padding: 0 6px; font-size: 0.86rem; font-weight: 600; color: var(--steel); text-decoration: none; white-space: nowrap; }
-.laps-intro:hover { color: var(--orange); }
-.laps-intro .icon { width: 18px; height: 18px; color: var(--orange); }
-@media (max-width: 780px) { .laps-intro { margin-left: -18px; min-width: 34px; padding: 0; justify-content: center; } .laps-intro span { display: none; } }
-/* The narrowest phones have no room for it beside the header icons. */
-@media (max-width: 359px) { .laps-intro { display: none; } }
 .nav-link-back .icon { width: 16px; height: 16px; }
 .footer-links a, .footer-inline-link { text-decoration: underline; text-underline-offset: 2px; }
 .laps-logo ~ .footer-links { margin-left: 14px; }
+/* Laps header menu: Profile and Messages are rows in the menu, not bar icons (partials/laps-header.html). */
+.navlinks .nav-chat { display: flex; width: 100%; box-sizing: border-box; height: auto; padding: 10px 14px; border: 0; border-radius: 4px; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; align-items: center; justify-content: flex-start; gap: 6px; line-height: 1; position: relative; }
+.navlinks .nav-chat svg, .navlinks #nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.navlinks .nav-chat-count { position: static; margin-left: 4px; }
+.navlinks a.nav-link { display: inline-flex; align-items: center; gap: 10px; }
+.navlinks a > svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* Loading placeholder on the Laps pages (js/track-page.js loading(), the leaderboards and the front page): a
    spinner and a line of text, a note after a few seconds when it is slow, and a Refresh button after longer. */

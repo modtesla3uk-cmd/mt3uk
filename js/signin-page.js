@@ -92,10 +92,11 @@
       $('si-passkey').hidden = false;
       if (!PK.hasOnThisDevice()) explainPasskey();
     }
-    $('si-to-join').addEventListener('click', function (e) {
+    // New here? comes first; Already a member? Sign in at the foot of it jumps to the sign-in card.
+    $('si-to-signin').addEventListener('click', function (e) {
       e.preventDefault();
-      $('si-join').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      $('si-join-first').focus({ preventScroll: true });
+      $('si-signin').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('si-signin-email').focus({ preventScroll: true });
     });
     // Offer the passkey when the email box is tapped (keyboard bar or the
     // box's suggestions), for visitors who aren't signed in.

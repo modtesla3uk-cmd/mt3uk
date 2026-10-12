@@ -907,3 +907,46 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const farRes = T.analyse(cut(), libFar, {});
   ok(!farRes.lapsFromTrace && !farRes.layoutId, 'or when the car never passed its line');
 }
+
+// Tesla dashcam telemetry: no time column, only frame numbers at 36 a second. tests/fixtures/tesla-dashcam-castle-combe.csv
+// is three dashcam clips joined in one file (frames 30690 to 32828, 32850 to 35009 and 35046 on, so the car dropped 21 and
+// 36 frames between clips), cut to the rows where the GPS fix moves. Castle Combe, 24 August 2026.
+{
+  const text = fs.readFileSync(ROOT + 'tests/fixtures/tesla-dashcam-castle-combe.csv', 'utf8');
+  const dc = T.read(text, '8c7c31ce-2026-08-24_12-09-35.csv');
+  ok(dc.dashcam === true && dc.format === 'CSV', 'a dashcam file is recognised from its frame numbers');
+  const lastFrame = Number(text.trim().split('\n').pop().split(',')[0]), firstFrame = Number(text.split('\n')[1].split(',')[0]);
+  ok(near(dc.points[dc.points.length - 1].t, (lastFrame - firstFrame) / 36, 0.3), 'time is the frame count over 36, so the frames dropped between clips are counted');
+  ok(dc.points.every((p, i) => i === 0 || p.t > dc.points[i - 1].t), 'time only goes forward');
+  ok(dc.fileDate === '2026-08-24' && dc.fileTime === '12:09' && dc.dateSrc === 'name', 'the date and time come from the file name');
+  const ds = T.analyse(dc, lib);
+  ok(ds.venueId === 'castle-combe' && ds.type === 'track' && ds.dashcam === true, 'Castle Combe found, and the session is marked as dashcam');
+  const lt = ds.laps.filter(l => l.kind === 'timed').map(l => l.time);
+  ok(lt.length === 2 && lt.every(t => t > 82 && t < 83.5), 'two laps of about 1:22.6 to 1:23 (' + lt.join(', ') + ')');
+  // The g figures come from the car's own accelerometer (sideways g in x, lengthways g in y), not from the noisy GPS path,
+  // which gave over 3 g in a corner. Real figures for this file: about 1.3 g across, braking under 1 g.
+  ok(!ds.gDerived && ds.latMax > 0.9 && ds.latMax < 1.6 && ds.brakeMax > 0.6 && ds.brakeMax < 1.1, 'cornering and braking g come from the accelerometer (' + ds.latMax + ' g across, ' + ds.brakeMax + ' g braking)');
+  const fastest = dc.points.reduce((m, p) => p.v > m.v ? p : m, dc.points[0]);
+  ok(dc.points.some(p => p.la > 0.5) && dc.points.some(p => p.la < -0.5) && dc.points.filter(p => p.lo < -0.5).every(p => p.v > 20), 'g has both signs, and hard braking happens at speed');
+  const noImu = T.read(text.split('\n').map(l => l.split(',').slice(0, 4).join(',')).join('\n'), '2026-08-24_12-09-35.csv');
+  ok(noImu.dashcam && noImu.gDerived === true && dc.gDerived !== true, 'with no accelerometer columns the g is worked out from the path as before');
+  const others = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv'), lib);
+  ok(!('dashcam' in others) && !T.read(vbo, 'x.vbo').dashcam, 'no other format is marked as dashcam');
+  // Clips saved as separate files (a minute each, frames carrying on, a few dropped between them) join as one drive.
+  const rows = text.trim().split('\n'), head = rows[0], body = rows.slice(1);
+  const cuts = []; for (let i = 1; i < body.length; i++) if (Number(body[i].split(',')[0]) - Number(body[i - 1].split(',')[0]) > 15) cuts.push(i);
+  const parts = [body.slice(0, cuts[0]), body.slice(cuts[0], cuts[1]), body.slice(cuts[1])].map(b => head + '\n' + b.join('\n') + '\n');
+  const names = ['2026-08-24_12-09-35-front_sei.csv', '2026-08-24_12-10-35-front_sei.csv', '2026-08-24_12-11-35-front_sei.csv'];
+  const clips = parts.map((t, i) => T.read(t, names[i]));
+  ok(cuts.length === 2 && clips.every(c => c.dashcam), 'three clips read on their own');
+  const jd = T.joinDashcam([clips[2], clips[0], clips[1]]);
+  ok(jd.rds[1] && !jd.rds[0] && !jd.rds[2] && jd.rds[1].clips === 3, 'clips given out of order are joined into the earliest one');
+  const joinedS = T.analyse(T.combine([jd.rds[1]]), lib);
+  const whole = T.analyse(T.read(text, names[0]), lib);
+  const jl = joinedS.laps.filter(l => l.kind === 'timed').map(l => l.time), wl = whole.laps.filter(l => l.kind === 'timed').map(l => l.time);
+  ok(jl.length === 2 && jl.every((t, i) => near(t, wl[i], 0.15)), 'the joined clips give the same laps as the one file (' + jl.join(', ') + ' against ' + wl.join(', ') + ')');
+  ok(near(jd.rds[1].points[jd.rds[1].points.length - 1].t, whole.laps ? T.read(text, names[0]).points.slice(-1)[0].t : 0, 0.6), 'the dropped frames between clips are counted when joining');
+  const far = T.read(parts[2].replace(/^(\d+)/gm, (m) => String(Number(m) + 100000)), names[2]);
+  const apart = T.joinDashcam([clips[0], far]);
+  ok(apart.rds[0] === clips[0] && apart.rds[1] === far && !Object.keys(apart.into).length, 'clips from different drives (frames far apart) are not joined');
+}

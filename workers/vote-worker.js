@@ -1088,6 +1088,64 @@ async function handleProfileUpdate(request, env) {
     showName: saved.showName === 'name' ? 'name' : 'nickname', hideRealName: !!saved.hideRealName, emailsOff: !!saved.emailsOff, modQuestionsOff: !!saved.modQuestionsOff });
 }
 
+// A person who leaves or is removed comes off the early access list (approved and waiting) and the New Laps sign-ups
+// list, so neither panel on track-admin.html, nor the bell, keeps counting them.
+async function removeFromLapsLists(env, email) {
+  var em = accessEmail(email), changed = false;
+  var acc = await getTrackAccess(env);
+  var allowed = acc.allowed.filter(function (x) { return x.email !== em; });
+  var pending = acc.pending.filter(function (x) { return x.email !== em; });
+  if (allowed.length !== acc.allowed.length || pending.length !== acc.pending.length) {
+    acc.allowed = allowed; acc.pending = pending;
+    await putTrackAccess(env, acc);
+    changed = true;
+  }
+  var signups = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
+  var kept = signups.filter(function (x) { return x.email !== em; });
+  if (kept.length !== signups.length) { await env.VOTES.put(LAPS_SIGNUPS_KEY, JSON.stringify(kept)); changed = true; }
+  if (changed) await bumpAdminStamp(env);
+}
+
+// Told when a member is unsubscribed (they leave, or MT3UK removes them): what happened, and a link to subscribe
+// again. A Laps-only account (KV laps-account:) gets the Laps by MT3UK version and its own sign-up page; everyone
+// else the MT3UK one, which also names Laps. Whether to send is worked out before anything is deleted (the member
+// must have existed and not have switched emails off), then the email goes once they are gone. Never sent to an
+// address that was not a member.
+async function unsubscribeNoticePlan(env, email) {
+  var isMember = (await env.VOTES.get('subscriber:' + email)) !== null;
+  var lapsOnly = !isMember && (await env.VOTES.get(lapsAccountKey(email))) !== null;
+  if (!isMember && !lapsOnly) return null;
+  if (!(await wantsEmails(env, email))) return null;
+  return { lapsOnly: lapsOnly };
+}
+
+async function sendUnsubscribedEmail(env, email, plan, byAdmin, wiped) {
+  if (!plan) return false;
+  var who = byAdmin ? 'MT3UK has ended your' : 'As you asked, we have ended your';
+  var subject, from, body;
+  if (plan.lapsOnly) {
+    subject = 'You have been unsubscribed from Laps by MT3UK';
+    from = 'Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>';
+    body = 'Hello,\n\n' + who + ' Laps by MT3UK account and signed you out.' + (wiped ? ' Your cars, track sessions and settings have been removed.' : '') +
+      '\n\nChanged your mind? You can subscribe again, it is free:\n\n' + LAPS_SITE_URL + '/laps-signin.html#si-join' +
+      '\n\nIf this was not what you expected, please get in touch: ' + MY_BUILDS_SITE_URL + '/contact.html';
+  } else {
+    subject = 'You have been unsubscribed from MT3UK';
+    from = MY_BUILDS_FROM_EMAIL;
+    body = 'Hello,\n\n' + who + ' MT3UK membership and signed you out.' + (wiped ? ' Your builds, track sessions and settings have been removed.' : '') +
+      '\n\nChanged your mind? You can subscribe again, it is free:\n\n' + MY_BUILDS_SITE_URL + '/signin.html#si-join' +
+      '\n\nYou can join Laps by MT3UK again here:\n\n' + LAPS_SITE_URL + '/laps-signin.html#si-join' +
+      '\n\nIf this was not what you expected, please get in touch: ' + MY_BUILDS_SITE_URL + '/contact.html';
+  }
+  try {
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(from, email, subject, body)));
+    return true;
+  } catch (err) {
+    console.log('Unsubscribed email failed:', err.message);
+    return false;
+  }
+}
+
 // Leave MT3UK: deletes the member's builds and everything kept about them.
 // Comments stay, under the name they were posted with.
 async function deleteMemberAccount(env, email) {
@@ -1098,6 +1156,7 @@ async function deleteMemberAccount(env, email) {
   for (var c = 0; c < noPhotoCars.length; c++) await deleteCarRecord(env, noPhotoCars[c]);
   await env.VOTES.delete(memberCarsKey(email));
   await env.VOTES.delete(lapsAccountKey(email));
+  await removeFromLapsLists(env, email);
 
   var fr = await getFriends(env, email);
   var others = fr.friends.concat(fr.incoming.map(function (r) { return r.email; }), fr.outgoing.map(function (r) { return r.email; }));
@@ -1149,7 +1208,9 @@ async function handleProfileLeave(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { body = {}; }
   if (!body || body.confirm !== 'LEAVE') return json({ success: false, message: 'Type LEAVE to confirm' }, 400);
+  var plan = await unsubscribeNoticePlan(env, email);
   await deleteMemberAccount(env, email);
+  await sendUnsubscribedEmail(env, email, plan, false, true);
   return json({ success: true });
 }
 
@@ -4223,12 +4284,18 @@ async function handleGalleryAdminSubscriberDelete(request, env) {
       if (sidecar.carId) await clearSidecarCarId(env, file);
     }
   }
+  var plan = await unsubscribeNoticePlan(env, email);
   await env.VOTES.delete('subscriber:' + email);
   await env.VOTES.delete('profile:' + email);
   await env.VOTES.delete('subscriber-since:' + email);
+  await env.VOTES.delete(lapsAccountKey(email));
+  // End every sign-in on every device: a removed member is signed out at their next request, not left signed in.
+  await env.VOTES.put(sessionVersionKey(email), String((await getSessionVersion(env, email)) + 1), { expirationTtl: 181 * 24 * 60 * 60 });
   if (files.length) await triggerManifestRebuild(env);
+  var emailed = url.searchParams.get('notify') === '0' ? false : await sendUnsubscribedEmail(env, email, plan, true, false);
+  await removeFromLapsLists(env, email);
 
-  return json({ success: true });
+  return json({ success: true, emailed: emailed });
 }
 
 async function handleCommentLike(request, env, ctx) {
@@ -6308,6 +6375,44 @@ async function handleLapsSigninPublic(request, env) {
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
 }
+// The Laps members list on the Sign-in and sign-up panel of track-admin.html: the Laps-only accounts (KV
+// laps-account:, joined on Laps while MT3UK membership was switched off), with Remove. list() is fine, this is an
+// admin route. Remove does what leaving does (their cars, sessions, sign-ins, early access and New Laps sign-ups
+// entry), and emails them that they are unsubscribed, with a link to subscribe again, unless notify is false. A full
+// MT3UK member is refused: they are removed on the Subscribers panel of admin.html.
+async function lapsMembersList(env) {
+  var out = [], cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'laps-account:', cursor: cursor, limit: 1000 });
+    for (var i = 0; i < page.keys.length && out.length < 2000; i++) {
+      var email = page.keys[i].name.slice('laps-account:'.length);
+      var rec = await getJsonKey(env, page.keys[i].name, {});
+      var profile = await getProfileRecord(env, email);
+      out.push({ email: email, name: [profile.firstName, profile.lastName].filter(Boolean).join(' '), since: rec.since || '' });
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && out.length < 2000);
+  out.sort(function (a, b) { return String(b.since).localeCompare(String(a.since)); });
+  return out;
+}
+async function handleLapsMembersAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    var email = accessEmail(body && body.remove);
+    if (!email) return json({ success: false, message: 'Say which account to remove.' }, 400);
+    if ((await env.VOTES.get('subscriber:' + email)) !== null) return json({ success: false, message: 'That person is an MT3UK member. Remove them on the Subscribers panel of admin.html.' }, 400);
+    if ((await env.VOTES.get(lapsAccountKey(email))) === null) return json({ success: false, message: 'That is not a Laps-only account.' }, 404);
+    var plan = await unsubscribeNoticePlan(env, email);
+    await deleteMemberAccount(env, email);
+    var emailed = body.notify === false ? false : await sendUnsubscribedEmail(env, email, plan, true, true);
+    await bumpAdminStamp(env);
+    return json({ success: true, emailed: emailed, members: await lapsMembersList(env) });
+  }
+  return json({ success: true, members: await lapsMembersList(env) });
+}
+
 async function handleLapsSigninAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   if (request.method === 'POST') {
@@ -7092,6 +7197,9 @@ function cleanTrackVenue(v) {
   if (!id || !name || lat === null || lng === null) return null;
   var out = { id: id, name: name, type: ['drag', 'sprint'].indexOf(v.type) !== -1 ? v.type : 'circuit', lat: lat, lng: lng, radius: trackNum(v.radius, 200, 10000) || 2000 };
   if (v.check) out.check = true;
+  // The label the admin types for this entry on the Tracks list (blank keeps the built-in words).
+  var kindLabel = trackText(v.kindLabel, 40);
+  if (kindLabel) out.kindLabel = kindLabel;
   // Added by a member from the Add a session page, live straight away and waiting for the admin's review.
   if (v.review) out.review = true;
   // A sprint-type venue that is a hill climb: the leaderboards list those on their own.
@@ -7288,6 +7396,8 @@ function cleanTrackSession(s, library) {
     }
   }
   out.startLineFromMember = !!s.startLineFromMember;
+  // Tesla dashcam telemetry: timed from frame numbers, and on the leaderboards like any other session.
+  if (s.dashcam) out.dashcam = true;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
   if (s.linesAccepted) out.linesAccepted = true;
   // On its layout by the path of the drive: the file has no lap from the start line back to itself, so the laps were timed from a point on the trace.
@@ -7340,6 +7450,7 @@ function trackSummary(rec) {
   if (rec.street) o.street = true;
   if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
+  if (rec.dashcam) o.dashcam = true;
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
@@ -7664,6 +7775,122 @@ async function handleTrackAccessAdmin(request, env) {
   }
   await putTrackAccess(env, a);
   return json({ success: true, open: a.open, imported: a.imported, allowed: a.allowed, pending: a.pending });
+}
+
+// ---- Laps offline mode: who is offered it ----------------------------------
+// Offline mode is being tried out, so the header icon, the one-time offer, the footer link and the Profile switch only
+// show for members the admin has approved, until Open to all members is switched on (Access group of track-admin.html,
+// js/laps-offline-admin.js). One KV key (laps-offline-access), read with get(): the page asks once per load.
+var LAPS_OFFLINE_KEY = 'laps-offline-access';
+async function getLapsOfflineAccess(env) {
+  var a = await getJsonKey(env, LAPS_OFFLINE_KEY, {});
+  return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
+}
+async function handleLapsOfflineAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsOfflineAccess(env), e = accessEmail(email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
+}
+// Everyone who can sign in to Laps, for the Offline mode panel's lookup: the MT3UK members (subscriber:) and the Laps-only
+// accounts (laps-account:), with whether each is offered Offline mode now. Names come from the Laps sign-ups list and the
+// approved lists where known. Admin only and asked for on demand, so list() is fine.
+async function lapsOfflineMembers(env, a) {
+  var names = {}, out = {}, i;
+  (await getJsonKey(env, LAPS_SIGNUPS_KEY, [])).forEach(function (x) { if (x && x.email && x.name) names[x.email] = x.name; });
+  var ta = await getTrackAccess(env);
+  ta.allowed.concat(ta.pending).forEach(function (x) { if (x && x.email && x.name && !names[x.email]) names[x.email] = x.name; });
+  a.allowed.forEach(function (x) { if (x && x.email && x.name && !names[x.email]) names[x.email] = x.name; });
+  async function scan(prefix, kind) {
+    var cursor, pages = 0;
+    do {
+      var page = await env.VOTES.list({ prefix: prefix, limit: 1000, cursor: cursor });
+      for (i = 0; i < page.keys.length; i++) {
+        var em = accessEmail(page.keys[i].name.slice(prefix.length));
+        if (em && !out[em]) out[em] = { email: em, name: names[em] || '', account: kind };
+      }
+      cursor = page.list_complete ? undefined : page.cursor; pages++;
+    } while (cursor && pages < 20);
+  }
+  await scan('subscriber:', 'mt3uk');
+  await scan('laps-account:', 'laps');
+  var list = Object.keys(out).map(function (k) {
+    var m = out[k];
+    m.access = a.open || a.allowed.some(function (x) { return x.email === m.email; });
+    return m;
+  });
+  list.sort(function (x, y) { return (x.name || x.email).toLowerCase() < (y.name || y.email).toLowerCase() ? -1 : 1; });
+  return list.slice(0, 3000);
+}
+async function handleLapsOfflineAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var a = await getLapsOfflineAccess(env);
+  if (request.method === 'GET') {
+    var reply = { success: true, open: a.open, allowed: a.allowed };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, a);
+    return json(reply);
+  }
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'add' || action === 'revoke') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        a.allowed.push({ email: e, name: nm, at: new Date().toISOString() });
+        a.allowed = a.allowed.slice(-500);
+      }
+    } else a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(LAPS_OFFLINE_KEY, JSON.stringify(a));
+  return json({ success: true, open: a.open, allowed: a.allowed });
+}
+
+// ---- Sessions tree: who sees the admin's kind-by-kind Sessions list ---------------------------
+// A separate invite list from Offline mode, so the two can be changed on their own. One KV key (sessions-tree-access),
+// read with get(). Approved members (and everyone once Open to all members is on) see the tree that splits each place
+// by kind. Managed on the Sessions tree panel of track-admin.html (js/sessions-tree-admin.js, /sessions-tree/admin).
+var SESSIONS_TREE_KEY = 'sessions-tree-access';
+async function getSessionsTreeAccess(env) {
+  var a = await getJsonKey(env, SESSIONS_TREE_KEY, {});
+  return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
+}
+async function handleSessionsTreeAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getSessionsTreeAccess(env), e = accessEmail(email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
+}
+async function handleSessionsTreeAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var a = await getSessionsTreeAccess(env);
+  if (request.method === 'GET') {
+    var reply = { success: true, open: a.open, allowed: a.allowed };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, a);
+    return json(reply);
+  }
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'add' || action === 'revoke') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        a.allowed.push({ email: e, name: nm, at: new Date().toISOString() });
+        a.allowed = a.allowed.slice(-500);
+      }
+    } else a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(SESSIONS_TREE_KEY, JSON.stringify(a));
+  return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
 async function handleTrackSessionsList(request, env) {
@@ -8097,7 +8324,7 @@ async function handleTrackLinesPropose(request, env) {
   entry.proposal = { at: new Date().toISOString(), from: from, to: to, images: { before: pics.some(function (x) { return x.which === 'before'; }), after: pics.some(function (x) { return x.which === 'after'; }) } };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), who = subscriberLabel(entry.name, email);
   var requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id, sessionUrl = LAPS_SITE_URL + '/track.html?s=' + rec.id;
-  var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
+  var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or deny it.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
     (pics.length ? 'The old and new lines are pictured in the HTML version of this email, and on the panel.\n\n' : '') +
@@ -8126,8 +8353,10 @@ async function handleTrackLinesPropose(request, env) {
 }
 // ---- Renaming the track on a saved session ----
 // A session at a track we do not list carries the name its member typed. The member cannot change it themselves:
-// they ask (Request rename), the admin allows it for that one session on the Line editing panel, the member sends
-// the new name, and nothing changes until the admin accepts it. The same steps as editing the map lines. One KV key,
+// suggest a new name straight from their session (Send for approval, no permission step: the entry is made then, with
+// status 'granted'), the admin is told (bell and email) and accepts or denies it on the Line editing panel, and either way
+// the member is emailed and the entry is removed. (Older entries still waiting at 'pending' are allowed by sending a
+// name, and the admin's Allow still works.) The request route below is no longer used by the page. One KV key,
 // read with get(): track-rename-access = [{ id (session), email, name, note, at, status 'pending' | 'granted',
 // grantedAt, proposal: { at, from, to } }]. A session at a listed track takes its name from the track list, so there
 // the member asks to rename its layout (entry.target 'layout', with venueId and layoutId): accepting it renames the
@@ -8184,8 +8413,23 @@ async function handleTrackRenamePropose(request, env) {
   var got = await getOwnTrackSession(request, env, String(body.id || ''));
   if (got.error) return got.error;
   var rec = got.rec, list = await getRenameAccess(env);
-  var entry = list.filter(function (x) { return x.id === rec.id && x.status === 'granted'; })[0];
-  if (!entry) return json({ success: false, message: 'Ask MT3UK to let you rename this track first.' }, 403);
+  var entry = list.filter(function (x) { return x.id === rec.id; })[0];
+  if (!entry) {
+    // A new suggestion needs no permission: the entry is made now, for the layout when the session is at a listed track.
+    if (rec.street) return json({ success: false, message: 'Street runs cannot be renamed.' }, 400);
+    var listedNow = null;
+    if (rec.venueId) {
+      listedNow = findListedLayout(await getTrackLibrary(env), rec.venueId, rec.layoutId);
+      if (!listedNow) return json({ success: false, message: 'This session is at a listed track but not on a listed layout, so there is no layout name to change.' }, 400);
+    }
+    if (list.filter(function (x) { return x.email === accessEmail(email) && x.proposal; }).length >= 5) return json({ success: false, message: 'You already have names waiting for approval. We\'ll get to them soon.' }, 429);
+    var nowIso = new Date().toISOString();
+    entry = { id: rec.id, email: accessEmail(email), name: (publicName(await getProfileRecord(env, email)) || '').slice(0, 60), note: '', at: nowIso, status: 'granted', grantedAt: nowIso };
+    if (listedNow) { entry.target = 'layout'; entry.venueId = rec.venueId; entry.layoutId = rec.layoutId; }
+    list.unshift(entry);
+  } else if (entry.status !== 'granted') {
+    entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
+  }
   var to = trackText(body.name, 60);
   if (entry.target === 'layout') {
     var cur = findListedLayout(await getTrackLibrary(env), entry.venueId, entry.layoutId);
@@ -8196,8 +8440,8 @@ async function handleTrackRenamePropose(request, env) {
     entry.proposal = { at: new Date().toISOString(), from: cur.layout.name, to: to, target: 'layout' };
     var llabel = trackSessionLabel(rec) + ', ' + (rec.date || ''), lurl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
     await emailAdminAboutLines(env, 'Layout rename awaiting your approval: ' + cur.venue.name, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename a layout at ' + cur.venue.name + ' (from the session ' + llabel + '). Nothing has changed yet. If you accept it, the layout is renamed in the track list and on every saved session at it, for everyone.\n\n' +
-      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
-    await env.VOTES.put('track-rename-access', JSON.stringify(list));
+      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or deny it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
+    await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
     return json({ success: true, state: 'granted', proposal: entry.proposal });
   }
   if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
@@ -8206,8 +8450,8 @@ async function handleTrackRenamePropose(request, env) {
   entry.proposal = { at: new Date().toISOString(), from: rec.venue || '', to: to };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
   await emailAdminAboutLines(env, 'Track rename awaiting your approval: ' + label, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename the track on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
-    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
-  await env.VOTES.put('track-rename-access', JSON.stringify(list));
+    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or deny it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
+  await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
 }
 // A layout renamed: the name on a session's summary in its owner's list and in its car's shared list. Board entries do
@@ -8235,8 +8479,10 @@ async function handleTrackRenameAdmin(request, env, body) {
     }
   } else if (action === 'undo') {
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your track name was not used', 'Hello,\n\nMT3UK did not use the track name you sent, so the session is as it was. You can send another if you like:\n\n' + url);
+    // Denied: the member is told and the entry goes, so they can suggest another name.
+    var thing = entry.target === 'layout' ? 'layout' : 'track';
+    await emailMemberAboutLines(env, entry, 'Your ' + thing + ' name was not used', 'Hello,\n\nMT3UK did not use the ' + thing + ' name you suggested, so ' + (thing === 'layout' ? 'the layout is' : 'your session is') + ' as it was. You can suggest another name if you like:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
   } else if (action === 'accepted' && entry.target === 'layout') {
     // Step one: the layout is renamed in the track list. The saved sessions follow in pages ('apply').
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
@@ -8267,8 +8513,8 @@ async function handleTrackRenameAdmin(request, env, body) {
       changedNow++;
     }
     if (!page.list_complete) return json({ success: true, done: false, cursor: page.cursor, changed: changedNow });
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your layout name was accepted', 'Hello,\n\nMT3UK accepted the layout name you sent. It is changed in the track list and on every session at that layout:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
+    await emailMemberAboutLines(env, entry, 'Your layout name was accepted', 'Hello,\n\nMT3UK accepted the layout name you suggested. It is changed in the track list and on every session at that layout:\n\n' + url);
     await env.VOTES.put('track-rename-access', JSON.stringify(list));
     return json({ success: true, done: true, changed: changedNow });
   } else if (action === 'accepted') {
@@ -8279,8 +8525,8 @@ async function handleTrackRenameAdmin(request, env, body) {
     rec.venue = entry.proposal.to;
     if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'Could not save the session.' }, 413);
     await putTrackIndexesFor(env, rec.owner, rec);
-    entry.proposal = null;
-    await emailMemberAboutLines(env, entry, 'Your track name was accepted', 'Hello,\n\nMT3UK accepted the track name you sent. It is on your session now:\n\n' + url);
+    list = list.filter(function (x) { return x !== entry; });
+    await emailMemberAboutLines(env, entry, 'Your track name was accepted', 'Hello,\n\nMT3UK accepted the track name you suggested. It is on your session now:\n\n' + url);
   } else if (action === 'revoke' || action === 'dismiss') {
     list = list.filter(function (x) { return x !== entry; });
   } else {
@@ -9993,6 +10239,87 @@ async function handleTrackBoardsRebuild(request, env) {
   return json({ success: true, cars: done, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
 }
 
+// The dashcam logger's name changed from "Tesla Dashcam (Beta)" to "Tesla Dashcam". Sessions saved under the old name keep
+// it in three places: the session record, the member's index and the car's shared list. This renames it in all three,
+// a few members at a time (the index keys are listed, fine for an admin route). Dry run only counts.
+var DASHCAM_OLD_LOGGER = 'Tesla Dashcam (Beta)', DASHCAM_NEW_LOGGER = 'Tesla Dashcam';
+async function handleTrackAdminLoggerRename(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var dry = params.get('dry') === '1';
+  var cursor = params.get('cursor') || undefined;
+  var page = await env.VOTES.list({ prefix: 'track-index:', limit: 50, cursor: cursor });
+  var sessions = 0, cars = {};
+  for (var i = 0; i < page.keys.length; i++) {
+    var idx = await getJsonKey(env, page.keys[i].name, []);
+    var changed = false;
+    for (var j = 0; j < idx.length; j++) {
+      if (idx[j].logger !== DASHCAM_OLD_LOGGER) continue;
+      sessions++;
+      cars[idx[j].carId] = true;
+      if (dry) continue;
+      idx[j].logger = DASHCAM_NEW_LOGGER;
+      changed = true;
+      var rec = await getTrackSession(env, idx[j].id);
+      if (rec && rec.logger === DASHCAM_OLD_LOGGER) { rec.logger = DASHCAM_NEW_LOGGER; await putTrackSession(env, rec); }
+    }
+    if (changed) await env.VOTES.put(page.keys[i].name, JSON.stringify(idx));
+  }
+  // The car's shared lists carry the same summaries (only the cars this page touched).
+  if (!dry) {
+    var carIds = Object.keys(cars);
+    for (var c = 0; c < carIds.length; c++) {
+      var pKey = 'track-public:' + carIds[c], shared = await getJsonKey(env, pKey, []), touched = false;
+      shared.forEach(function (s) { if (s.logger === DASHCAM_OLD_LOGGER) { s.logger = DASHCAM_NEW_LOGGER; touched = true; } });
+      if (touched) await env.VOTES.put(pKey, JSON.stringify(shared));
+    }
+  }
+  return json({ success: true, sessions: sessions, dry: dry, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
+}
+
+// Whether the member search matches: the start of the email, or of the first name, last name, nickname or any word of the
+// full name. The owner's profile is read once per member.
+function memberStartsWith(c, q) {
+  if (String(c.email || '').toLowerCase().indexOf(q) === 0) return true;
+  var words = [c.first, c.last, c.nick].concat(String(c.full || '').split(' '));
+  return words.some(function (w) { return String(w || '').toLowerCase().indexOf(q) === 0; });
+}
+// Every Track session from every member, read-only, for the All sessions panel on track-admin.html. Owners are read a page
+// at a time (the index keys are listed, so this is admin only), and each page's sessions are filtered by the member, track,
+// logger and type given. The page says whether there are more to read (cursor).
+async function handleTrackAdminAllSessions(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var cursor = params.get('cursor') || undefined;
+  var member = String(params.get('member') || '').trim().toLowerCase();
+  var track = String(params.get('track') || '').trim().toLowerCase();
+  var logger = String(params.get('logger') || '').trim().toLowerCase();
+  var type = String(params.get('type') || '').trim().toLowerCase();
+  var page = await env.VOTES.list({ prefix: 'track-index:', limit: 20, cursor: cursor });
+  var cars = {}, rows = [];
+  for (var i = 0; i < page.keys.length; i++) {
+    var idx = await getJsonKey(env, page.keys[i].name, []);
+    for (var j = 0; j < idx.length; j++) {
+      var s = idx[j];
+      if (type && String(s.type || '').toLowerCase() !== type) continue;
+      if (logger && String(s.logger || '').toLowerCase().indexOf(logger) === -1) continue;
+      if (track && String(s.venue || '').toLowerCase().indexOf(track) === -1 && String(s.layout || '').toLowerCase().indexOf(track) === -1) continue;
+      if (!cars[s.carId]) {
+        var rec = await getCarRecord(env, s.carId);
+        var email = rec ? await carOwnerEmail(env, rec) : null;
+        var prof = email ? await getProfileRecord(env, email) : {};
+        var full = prof && prof.firstName && prof.lastName ? prof.firstName + ' ' + prof.lastName : '';
+        cars[s.carId] = { car: (rec && rec.name) || '', email: email || '', first: (prof && prof.firstName) || '', last: (prof && prof.lastName) || '', nick: (prof && prof.nickname) || '', full: full };
+      }
+      var c = cars[s.carId];
+      if (member && !memberStartsWith(c, member)) continue;
+      rows.push({ id: s.id, carId: s.carId, car: c.car, email: c.email, type: s.type || '', venue: s.venue || '', layout: s.layout || '', date: s.date || '', time: s.time || '', logger: s.logger || '', privacy: s.privacy || '', conditions: s.conditions || '', tyres: s.tyres || '', bestTime: s.bestTime || null, dashcam: !!s.dashcam, unlisted: !!s.unlisted });
+    }
+  }
+  rows.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+  return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
+}
+
 // A member leaving: their sessions, index, shared lists and board places.
 async function deleteMemberTrackData(env, email) {
   // Off the early preview lists too.
@@ -11380,6 +11707,9 @@ export default {
     if (url.pathname === '/laps/signups/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSignupsAdmin(request, env);
     }
+    if (url.pathname === '/laps/members/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsMembersAdmin(request, env);
+    }
     if (url.pathname === '/laps/signin/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSigninAdmin(request, env);
     }
@@ -11433,6 +11763,18 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/laps/offline/access' && request.method === 'GET') {
+      return handleLapsOfflineAccess(request, env);
+    }
+    if (url.pathname === '/laps/offline/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsOfflineAdmin(request, env);
+    }
+    if (url.pathname === '/sessions-tree/access' && request.method === 'GET') {
+      return handleSessionsTreeAccess(request, env);
+    }
+    if (url.pathname === '/sessions-tree/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSessionsTreeAdmin(request, env);
     }
     if (url.pathname === '/track/access' && request.method === 'GET') {
       return handleTrackAccess(request, env);
@@ -11564,6 +11906,12 @@ export default {
     }
     if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
       return handleTrackBoardsRebuild(request, env);
+    }
+    if (url.pathname === '/track/admin/all-sessions' && request.method === 'GET') {
+      return handleTrackAdminAllSessions(request, env);
+    }
+    if (url.pathname === '/track/admin/logger-rename' && request.method === 'POST') {
+      return handleTrackAdminLoggerRename(request, env);
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);

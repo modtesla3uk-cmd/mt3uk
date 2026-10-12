@@ -51,8 +51,9 @@ def test_a_session_opened_from_a_tracks_list_goes_back_to_that_list(page):
     expect(page.locator(".tp-head h2")).to_have_text("Thruxton")
     expect(page).to_have_url(re.compile(r"track\.html\?mycar=.*&at="))
     page.locator(".tp-back").click()
-    expect(page).to_have_url(re.compile(r"track\.html$"))
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(2)
+    # (into_track opens the track page by address, so the list it came from is the one the page was opened on.)
+    expect(page).to_have_url(re.compile(r"track\.html(\?mycar=[^&]*)?$"))
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(2)
 
 
 def test_a_session_opened_directly_goes_back_to_your_sessions(page):
@@ -62,7 +63,7 @@ def test_a_session_opened_directly_goes_back_to_your_sessions(page):
     expect(back).to_have_attribute("aria-label", "Back to your sessions")
     back.click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(2)
 
 
 def test_a_board_opened_directly_goes_back_to_the_list(page):
@@ -87,6 +88,6 @@ def test_a_saved_session_goes_back_past_the_add_page(page, tmp_path):
     # Back skips the Add page and lands on the list of sessions, as the browser's back button does.
     page.locator(".tp-back").click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(2)
     page.go_forward()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new\d$"))

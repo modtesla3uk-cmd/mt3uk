@@ -25,8 +25,8 @@ GROUPS = [
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
-    ("grp-access", "Access", ["access-wrap", "signin-wrap", "usage-wrap"]),
-    ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
+    ("grp-access", "Access", ["access-wrap", "offline-wrap", "tree-wrap", "signin-wrap", "usage-wrap"]),
+    ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap", "all-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
     ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
@@ -150,7 +150,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     sub = page.locator("#admin-subnav")
     # Access has one panel, so no sub menu; the second category lists its two.
     page.locator('.admin-nav a[href="track-admin.html#grp-sessions"]').click()
-    expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
+    expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
     expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
@@ -160,6 +160,68 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     a = page.locator(".admin-nav").bounding_box()
     b = sub.bounding_box()
     assert b["y"] >= a["y"] + a["height"] - 1
+
+
+def test_the_tracks_category_lists_its_headings_in_the_sub_menu(page):
+    """Tracks is one panel with two blocks inside it, so the sub menu lists those headings and jumps to them."""
+    open_admin(page, "track-admin.html")
+    sub = page.locator("#admin-subnav")
+    page.locator('.admin-nav a[href="track-admin.html#grp-tracks"]').click()
+    expect(sub).to_be_visible()
+    expect(sub.locator("a")).to_have_text(["New track requests", "Tracks"])
+    # A fold that was closed opens, and the heading comes to the top under the menus.
+    page.evaluate("document.getElementById('tracks-wrap').open = false; document.getElementById('tk-list-wrap').open = false")
+    sub.locator("a", has_text="Tracks").click()
+    expect(page.locator("#tracks-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tk-list-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tk-list-wrap > summary")).to_be_in_viewport()
+    a = page.locator(".admin-nav").bounding_box()
+    t = page.locator("#tk-list-wrap > summary").bounding_box()
+    assert t["y"] >= a["y"] + a["height"] - 1, (a, t)
+
+
+@pytest.mark.parametrize("name", ["track-admin.html", "admin.html"])
+def test_every_section_has_a_refresh_button_that_keeps_its_place(page, name):
+    """A refresh icon at the end of each panel's title bar and on each category heading: it loads the panels again without
+    opening or closing the panel, and the section stays where it was on the screen while the lists above change."""
+    open_admin(page, name)
+    panels = page.locator("details.collapsible")
+    count = panels.count()
+    assert count > 5
+    assert page.locator("details.collapsible > summary .sec-refresh").count() == count
+    assert page.locator(".admin-group > .group-head .sec-refresh").count() == page.locator(".admin-group").count()
+    # Count the refreshes, and make everything above the section grow when one happens (as the lists do when they load).
+    page.evaluate("""() => {
+      window.__refreshes = 0;
+      document.addEventListener('mt3uk-admin-refresh', () => { window.__refreshes++; });
+    }""")
+    target = page.locator("details.collapsible").nth(count // 2)
+    target.scroll_into_view_if_needed()
+    was_open = target.evaluate("e => e.open")
+    summary = target.locator("> summary")
+    top = summary.bounding_box()["y"]
+    page.evaluate("""() => {
+      document.addEventListener('mt3uk-admin-refresh', () => {
+        setTimeout(() => {
+          const pad = document.createElement('div'); pad.id = 'test-pad'; pad.style.height = '400px';
+          document.querySelector('.admin-group').prepend(pad);
+        }, 120);
+      }, { once: true });
+    }""")
+    before = page.evaluate("window.__refreshes")
+    target.locator("> summary .sec-refresh").click()
+    # It opened the panel it was pressed in (so it can load), and refreshed once.
+    expect(target).to_have_attribute("open", "")
+    assert page.evaluate("window.__refreshes") == before + 1
+    page.wait_for_timeout(900)
+    assert page.locator("#test-pad").count() == 1
+    now = summary.bounding_box()["y"]
+    assert abs(now - top) <= 3, (top, now)
+    # A category heading has one too, and it does not toggle anything.
+    page.locator(".admin-group > .group-head .sec-refresh").first.click()
+    assert page.evaluate("window.__refreshes") == before + 2
+    if was_open is False:
+        pass
 
 
 def test_the_old_admin_addresses_for_the_track_panels_lead_to_the_new_page(page):
@@ -327,6 +389,11 @@ def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
     page.locator("#tk-cancel").click()
     page.locator("#tk-list [data-edit='curborough']").click()
     expect(page.locator("#tk-type")).to_have_value("sprint")
+    page.locator("#tk-cancel").click()
+    page.locator("#tk-list [data-edit='thruxton']").click()
+    expect(page.locator("#tk-type")).to_have_value("circuit")
+    expect(page.locator("#tk-label")).to_have_attribute("placeholder", "Circuit (track day)")
+    expect(page.locator("#tk-label")).to_have_value("")
 
 
 def test_admin_early_access_panel_approves_declines_revokes_and_opens(page):
@@ -381,6 +448,132 @@ def test_admin_early_access_panel_approves_declines_revokes_and_opens(page):
     expect(page.locator("#ac-open")).to_have_attribute("aria-checked", "true")
     expect(page.locator("#access-count")).to_have_text("open to all")
     assert [c["action"] for c in calls] == ["approve", "deny", "revoke", "add", "open"]
+
+
+def test_admin_offline_mode_panel_gives_access_to_members_and_opens_to_all(page):
+    state = {"open": False, "allowed": [{"email": "old@example.com", "name": "Old", "at": "2026-09-01T10:00:00Z"}]}
+    calls = []
+
+    def offline(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            e = body.get("email")
+            if body["action"] == "open":
+                state["open"] = body["open"]
+            elif body["action"] == "add":
+                state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/offline/admin**", offline)
+    page.reload()
+    # The count shows without opening the panel.
+    expect(page.locator("#offline-count")).to_have_text("1 approved")
+    page.locator("#offline-wrap summary").click()
+    expect(page.locator("#of-allowed")).to_contain_text("old@example.com")
+    page.fill("#of-add-email", "new@example.com")
+    page.get_by_role("button", name="Give access").click()
+    expect(page.locator("#of-allowed")).to_contain_text("new@example.com")
+    expect(page.locator("#offline-count")).to_have_text("2 approved")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#of-allowed [data-revoke='old@example.com']").click()
+    expect(page.locator("#of-allowed")).not_to_contain_text("old@example.com")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#of-open").click()
+    expect(page.locator("#of-open")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#offline-count")).to_have_text("open to all")
+    assert [c["action"] for c in calls] == ["add", "revoke", "open"]
+
+
+def test_admin_sessions_split_by_kind_panel_invites_members_and_opens_to_all(page):
+    """The invite list for the Sessions split by kind, kept apart from Offline mode: giving and taking away touch only this list."""
+    state = {"open": False, "allowed": [{"email": "old@example.com", "name": "Old", "at": "2026-09-01T10:00:00Z"}]}
+    calls = []
+
+    def tree(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            e = body.get("email")
+            if body["action"] == "open":
+                state["open"] = body["open"]
+            elif body["action"] == "add":
+                state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/sessions-tree/admin**", tree)
+    page.reload()
+    expect(page.locator("#tree-count")).to_have_text("1 approved")
+    page.locator("#tree-wrap summary").click()
+    expect(page.locator("#st-allowed")).to_contain_text("old@example.com")
+    page.fill("#st-add-email", "new@example.com")
+    page.get_by_role("button", name="Give access").click()
+    expect(page.locator("#st-allowed")).to_contain_text("new@example.com")
+    expect(page.locator("#tree-count")).to_have_text("2 approved")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#st-allowed [data-revoke='old@example.com']").click()
+    expect(page.locator("#st-allowed")).not_to_contain_text("old@example.com")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#st-open").click()
+    expect(page.locator("#tree-count")).to_have_text("open to all")
+    assert [c["action"] for c in calls] == ["add", "revoke", "open"]
+    # The Offline mode panel is untouched by this list.
+    expect(page.locator("#offline-count")).to_have_text("")
+
+
+def test_admin_offline_mode_panel_finds_laps_members_and_can_add_the_admins_own_account(page):
+    state = {"open": False, "allowed": []}
+    members = [{"email": "admin@example.com", "name": "", "account": "mt3uk"},
+               {"email": "ann@example.com", "name": "Ann B", "account": "mt3uk"},
+               {"email": "lap@example.com", "name": "", "account": "laps"}]
+    calls = []
+
+    def offline(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            if body["action"] == "add":
+                state["allowed"].append({"email": body["email"], "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != body["email"]]
+        data = dict(state, success=True)
+        if "members=1" in req.url:
+            data["members"] = [dict(m, access=any(a["email"] == m["email"] for a in state["allowed"])) for m in members]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsEmail', 'admin@example.com')")
+    page.route("**/laps/offline/admin**", offline)
+    page.reload()
+    page.locator("#offline-wrap summary").click()
+    # The admin's own account has a button of its own.
+    expect(page.locator("#of-me")).to_have_text("Add me (admin@example.com)")
+    page.get_by_role("button", name="Show Laps members").click()
+    rows = page.locator("#of-members tbody tr")
+    expect(rows).to_have_count(3)
+    expect(page.locator("#of-members")).to_contain_text("(you)")
+    expect(page.locator("#of-members")).to_contain_text("Laps only")
+    # Type to narrow it down, then give access.
+    page.fill("#of-find", "ann")
+    expect(rows).to_have_count(1)
+    rows.first.get_by_role("button", name="Give access").click()
+    expect(page.locator("#of-allowed")).to_contain_text("ann@example.com")
+    expect(rows.first).to_contain_text("Has access")
+    # Testing on the admin's own account: add, then take away.
+    page.fill("#of-find", "")
+    page.locator("#of-me").click()
+    expect(page.locator("#of-allowed")).to_contain_text("admin@example.com")
+    expect(page.locator("#of-me")).to_have_text("Take me away (admin@example.com)")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#of-me").click()
+    expect(page.locator("#of-allowed")).not_to_contain_text("admin@example.com")
+    assert [(c["action"], c["email"]) for c in calls] == [("add", "ann@example.com"), ("add", "admin@example.com"), ("revoke", "admin@example.com")]
 
 
 def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
@@ -575,7 +768,7 @@ def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_every
     expect(modal).to_have_count(0)
     # Refresh asks for everything again, including the early access list.
     before = hits["access"]
-    page.get_by_role("button", name="Refresh").click()
+    page.locator("#refresh-btn").click()
     page.wait_for_timeout(500)
     assert hits["access"] > before
 
@@ -948,14 +1141,18 @@ def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
 LINES_API = "**/track/lines/admin**"
 
 
-def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
-    """A rename request sits on the same panel: the admin allows it, sees the name from and to, and accepts it."""
+def test_admin_line_editing_panel_handles_a_suggested_track_name_accept_or_deny(page):
+    """A member suggests a new track name (no permission step). It sits on the panel with the name from and to, and the admin
+    accepts or denies it; the worker emails the member either way and clears the row. An older request still waiting for
+    permission can be allowed."""
     state = {"requests": [
         {"kind": "rename", "id": "r1", "name": "Dee", "email": "d***@example.com", "note": "Spelt wrong", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Aerodrome, 2026-09-30", "type": "track", "current": "Aerodrome"},
         {"kind": "rename", "id": "r2", "name": "Eve", "email": "e***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Aerodrome, 2026-09-29", "type": "track", "current": "Aerodrome",
          "proposal": {"at": "2026-10-02T09:30:00Z", "from": "Aerodrome", "to": "Newtown Aerodrome"}},
+        {"kind": "rename", "id": "r3", "name": "Fay", "email": "f***@example.com", "note": "", "at": "2026-10-01T10:30:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Aerodrome, 2026-09-28", "type": "track", "current": "Aerodrome",
+         "proposal": {"at": "2026-10-02T10:30:00Z", "from": "Aerodrome", "to": "Aerodrome Field"}},
     ]}
-    calls = []
+    calls, dialogs = [], []
 
     def lines(route):
         req = route.request
@@ -965,27 +1162,38 @@ def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
             row = next(r for r in state["requests"] if r["id"] == body["id"])
             if body["action"] == "grant":
                 row["status"], row["grantedAt"] = "granted", "2026-10-03T08:00:00Z"
-            elif body["action"] == "accepted":
-                row["proposal"] = None
+            elif body["action"] in ("accepted", "undo"):
+                state["requests"].remove(row)
         route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
     open_admin(page, "track-admin.html")
     page.route(LINES_API, lines)
     page.reload()
-    expect(page.locator("#lines-count")).to_have_text("1 to review")
+    expect(page.locator("#lines-count")).to_have_text("2 to review")
     page.locator("#lines-wrap summary").click()
     rows = page.locator("#ln-list > table > tbody > tr")
-    expect(rows).to_have_count(2)
+    expect(rows).to_have_count(3)
     expect(rows.nth(0)).to_contain_text("Rename the track")
     expect(rows.nth(0)).to_contain_text("Spelt wrong")
+    expect(rows.nth(1)).to_contain_text("Suggested")
     expect(rows.nth(1)).to_contain_text("Track name")
     expect(rows.nth(1)).to_contain_text("Aerodrome")
     expect(rows.nth(1)).to_contain_text("Newtown Aerodrome")
+    expect(rows.nth(1).get_by_role("button", name="Accept")).to_be_visible()
+    expect(rows.nth(1).get_by_role("button", name="Deny")).to_be_visible()
+    expect(rows.nth(1).get_by_role("button", name="Revoke")).to_have_count(0)
     rows.nth(0).get_by_role("button", name="Allow").click()
     expect(rows.nth(0)).to_contain_text("Waiting for them to rename the track")
+    # Deny: the member is emailed by the worker, the row goes and the bell count follows.
+    page.once("dialog", lambda d: (dialogs.append(d.message), d.accept()))
+    rows.nth(2).get_by_role("button", name="Deny").click()
+    expect(page.locator("#ln-note")).to_contain_text("Denied. The member has been emailed")
+    assert "emailed" in dialogs[0], dialogs
+    expect(rows).to_have_count(2)
     page.once("dialog", lambda d: d.accept())
     rows.nth(1).get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("The track name is changed")
-    assert calls == [("rename", "grant", "r1"), ("rename", "accepted", "r2")]
+    expect(rows).to_have_count(1)
+    assert calls == [("rename", "grant", "r1"), ("rename", "undo", "r3"), ("rename", "accepted", "r2")]
 
 
 def test_admin_accepts_a_layout_rename_which_updates_the_saved_sessions_a_page_at_a_time(page):
@@ -1410,6 +1618,28 @@ def test_the_bell_lists_map_edit_requests_and_changes_waiting_for_approval(page)
     # Seen items stop counting until something new arrives.
     page.reload()
     expect(page.locator("#bell-badge")).to_be_hidden()
+
+
+def test_the_bell_lists_a_suggested_track_or_layout_name_waiting_for_approval(page):
+    """A member's suggested new name (no permission step) is counted in the bell, tagged New, says which kind of name it is,
+    and choosing it opens the Line editing panel at that row."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    rows = [{"kind": "rename", "target": "layout", "id": "dddddddd04", "name": "Dee", "email": "d***@example.com", "note": "", "at": "2026-10-01T09:00:00Z", "status": "granted", "grantedAt": "2026-10-01T09:00:00Z", "what": "Brands Hatch, New Layout, 2026-06-01", "type": "track", "current": "New Layout",
+             "proposal": {"at": "2026-10-02T09:30:00Z", "from": "New Layout", "to": "Indy Circuit", "target": "layout"}},
+            {"kind": "rename", "id": "eeeeeeee05", "name": "Eve", "email": "e***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T10:00:00Z", "what": "Aerodrome, 2026-06-02", "type": "track", "current": "Aerodrome",
+             "proposal": {"at": "2026-10-02T10:30:00Z", "from": "Aerodrome", "to": "Newtown Aerodrome"}}]
+    open_admin(page, "track-admin.html")
+    page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
+    page.reload()
+    expect(page.locator("#bell-badge")).to_have_text("2")
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Track renames to approve (2)")
+    expect(panel).to_contain_text("Suggested a new layout name for Brands Hatch, New Layout")
+    expect(panel).to_contain_text("Suggested a new track name for Aerodrome")
+    panel.get_by_text("Suggested a new track name for Aerodrome").click()
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-list tr[data-id='eeeeeeee05']")).to_be_in_viewport()
 
 
 def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):
@@ -2066,3 +2296,132 @@ def test_admin_gives_nicknames_to_members_without_one(page):
     page.locator("#nick-fill-btn").click()
     expect(page.locator("#nick-fill-status")).to_have_text("Done: 3 members given a nickname (RHughes, ABrown, CDavies), 40 already had one, 2 with no name to make one from, 1 cleared theirs, 46 in all.")
     assert calls == ["POST"]
+
+
+def test_removing_a_subscriber_can_email_them_or_not(page):
+    """The Subscribers panel's Email them when removed switch (on by default) decides whether the delete asks the
+    worker to email the member (notify=0 when off), and the confirm says which."""
+    calls, messages = [], []
+    members = [{"email": "gone@example.com", "firstName": "Gone", "lastName": "Member", "nickname": "", "files": []}]
+
+    def api(route):
+        req = route.request
+        parsed = urlparse(req.url)
+        if parsed.path == "/gallery/admin/subscribers" and req.method == "DELETE":
+            calls.append(parse_qs(parsed.query))
+            body = {"success": True}
+        elif parsed.path == "/gallery/admin/subscribers":
+            body = {"success": True, "subscribers": ["gone@example.com"], "details": members}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#subscribers-wrap > summary").click()
+    switch = page.locator("#sub-remove-email")
+    expect(switch).to_have_attribute("aria-checked", "true")
+
+    def accept(dialog):
+        messages.append(dialog.message)
+        dialog.accept()
+    page.on("dialog", accept)
+    page.locator(".delete-subscriber-btn").first.click()
+    for _ in range(50):
+        if calls:
+            break
+        page.wait_for_timeout(100)
+    assert "notify" not in calls[0] and "emailed" in messages[0]
+
+    switch.click()
+    expect(switch).to_have_attribute("aria-checked", "false")
+    page.locator(".delete-subscriber-btn").first.click()
+    for _ in range(50):
+        if len(calls) > 1:
+            break
+        page.wait_for_timeout(100)
+    assert calls[1].get("notify") == ["0"] and "will not be emailed" in messages[1]
+
+
+def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email(page):
+    """The Laps members list on the Sign-in and sign-up panel of track-admin.html shows the Laps-only accounts; Remove
+    asks the worker to remove one (notify false when the Email them switch is off) and the list redraws."""
+    members = [{"email": "pat@example.com", "name": "Pat Lee", "since": "2026-10-01T10:00:00Z"}, {"email": "rae@example.com", "name": "", "since": "2026-10-05T10:00:00Z"}]
+    posts, messages = [], []
+
+    def api(route):
+        req = route.request
+        path = urlparse(req.url).path
+        if path == "/laps/members/admin" and req.method == "POST":
+            sent = json.loads(req.post_data)
+            posts.append(sent)
+            members[:] = [m for m in members if m["email"] != sent["remove"]]
+            body = {"success": True, "emailed": sent["notify"], "members": members}
+        elif path == "/laps/members/admin":
+            body = {"success": True, "members": members}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#signin-wrap > summary").click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(2)
+    expect(page.locator("#lm-list")).to_contain_text("Pat Lee")
+    expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "true")
+    page.on("dialog", lambda d: (messages.append(d.message), d.accept()))
+    page.locator('.lm-remove[data-email="pat@example.com"]').click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
+    assert posts[0] == {"remove": "pat@example.com", "notify": True} and "emailed to say they are unsubscribed" in messages[0]
+    page.locator("#lm-email").click()
+    expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "false")
+    page.locator('.lm-remove[data-email="rae@example.com"]').click()
+    expect(page.locator("#lm-list")).to_contain_text("No Laps-only accounts")
+    assert posts[1] == {"remove": "rae@example.com", "notify": False} and "without an email" in messages[1]
+
+
+def test_admin_can_rename_the_old_dashcam_logger_in_steps(page):
+    calls = []
+
+    def rename(route):
+        url = route.request.url
+        calls.append(url)
+        data = {"success": True, "sessions": 2, "done": False, "cursor": "50"} if "cursor=" not in url else {"success": True, "sessions": 1, "done": True, "cursor": ""}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/logger-rename**", rename)
+    page.locator("#boards-wrap > summary").click()
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#tk-logger-rename").click()
+    expect(page.locator("#tk-logger-rename-note")).to_have_text('Done: 3 sessions renamed to "Tesla Dashcam".')
+    assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=50" in calls[1]
+    expect(page.locator("#tk-logger-rename")).to_be_enabled()
+
+
+def test_admin_can_see_every_members_sessions_and_load_more(page):
+    calls = []
+
+    def sessions(route):
+        url = route.request.url
+        calls.append(url)
+        if "cursor=" in url:
+            data = {"success": True, "done": True, "cursor": "", "sessions": [
+                {"id": "b2", "email": "ann@example.com", "car": "Blue Y", "carId": "c2", "type": "sprint", "venue": "Lydden Hill", "layout": "", "date": "2026-09-01", "time": "10:00", "logger": "RaceBox", "privacy": "private", "bestTime": 61.2}]}
+        else:
+            data = {"success": True, "done": False, "cursor": "20", "sessions": [
+                {"id": "a1", "email": "bob@example.com", "car": "PROJECT 3", "carId": "c1", "type": "track", "venue": "Castle Combe", "layout": "Castle Combe", "date": "2026-10-01", "time": "12:09", "logger": "Tesla Dashcam", "privacy": "build", "bestTime": 82.8, "dashcam": True}]}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/all-sessions**", sessions)
+    page.locator("#all-sessions-wrap > summary").click()
+    page.locator("#as-find").click()
+    expect(page.locator("#as-list tbody tr")).to_have_count(1)
+    expect(page.locator("#as-list")).to_contain_text("bob@example.com")
+    expect(page.locator("#as-list")).to_contain_text("Tesla Dashcam")
+    expect(page.locator("#as-more")).to_be_visible()
+    page.locator("#as-more").click()
+    expect(page.locator("#as-list tbody tr")).to_have_count(2)
+    expect(page.locator("#as-list")).to_contain_text("ann@example.com")
+    expect(page.locator("#as-more")).to_be_hidden()
+    assert "key=test-key" in calls[0] and "cursor=20" in calls[1]
+

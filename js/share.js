@@ -22,6 +22,10 @@
 // button with WhatsApp, Facebook, X, Email and Copy link.
 (function () {
   var SITE = 'https://mt3uk.com';
+  // The Laps pages (and anything shared from laps.mt3uk.com) are Laps by MT3UK: their share links go to laps.mt3uk.com and
+  // the words say Laps by MT3UK, not MT3UK, the UK's modified Tesla community.
+  var LAPS_SITE = 'https://laps.mt3uk.com', LAPS_STEMS = /^(laps|track|leaderboards|laps-signin)$/;
+  function onLaps(stem) { return /^laps\./.test(location.hostname) || LAPS_STEMS.test(stem || ''); }
   var panel = null;
   var current = null;
 
@@ -70,16 +74,18 @@
   }
 
   function pageItem(opts, anchor) {
+    var laps = onLaps(opts.stem), brand = laps ? 'Laps by MT3UK' : 'MT3UK', bare = String(opts.title).replace(/[.!?]+$/, '');
     return {
       key: 'page:' + opts.path + '#' + (opts.hash || ''),
+      stem: opts.stem,
       anchor: anchor,
       heading: opts.heading || 'Share this page',
-      subject: opts.title + ' | MT3UK',
+      subject: opts.title + ' | ' + brand,
       text: opts.text || (opts.intro
-        ? opts.title + (/MT3UK/.test(opts.title) ? ': ' : ' on MT3UK: ') + opts.intro
-        : opts.title + ' on MT3UK, the UK’s modified Tesla community'),
+        ? (laps ? bare + ' on Laps by MT3UK: ' : opts.title + (/MT3UK/.test(opts.title) ? ': ' : ' on MT3UK: ')) + opts.intro
+        : opts.title + (laps ? ' on Laps by MT3UK' : ' on MT3UK, the UK’s modified Tesla community')),
       link: function (channel) {
-        return SITE + '/share/section/' + opts.stem + (opts.hash ? '--' + opts.hash : '') + '.html?' + utm(channel, opts.campaign, opts.stem);
+        return (laps ? LAPS_SITE : SITE) + '/share/section/' + opts.stem + (opts.hash ? '--' + opts.hash : '') + '.html?' + utm(channel, opts.campaign, opts.stem);
       }
     };
   }
@@ -156,7 +162,7 @@
   }
 
   function nativeShare(item) {
-    return navigator.share({ title: 'MT3UK', text: item.text, url: item.link('share_sheet') });
+    return navigator.share({ title: onLaps(item.stem) ? 'Laps by MT3UK' : 'MT3UK', text: item.text, url: item.link('share_sheet') });
   }
 
   function buildPanel() {
@@ -260,8 +266,8 @@
       key: 'url:' + opts.url,
       anchor: anchor,
       heading: opts.heading || 'Share this page',
-      subject: opts.subject || 'MT3UK',
-      text: opts.text || 'Check this out on MT3UK, the UK’s modified Tesla community',
+      subject: opts.subject || (onLaps() ? 'Laps by MT3UK' : 'MT3UK'),
+      text: opts.text || (onLaps() ? 'Check this out on Laps by MT3UK' : 'Check this out on MT3UK, the UK’s modified Tesla community'),
       link: function (channel) {
         return opts.url + (opts.url.indexOf('?') === -1 ? '?' : '&') + utm(channel, opts.campaign || 'page_share');
       }

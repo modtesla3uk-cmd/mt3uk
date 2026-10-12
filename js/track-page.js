@@ -38,6 +38,7 @@
     }).join('');
   }
   var ICON = {
+    cloud: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5 4.8 4.8 0 0 1 17 18Z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
     prev: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
@@ -94,9 +95,40 @@
           .then(function (gz) { opts.body = gz; }, function () {});
       }
     }
+    var off = window.MT3UKOffline;
+    // A weak signal: a read that has not answered in `readTimeout` while this device holds a copy of its answer is
+    // given up on and the copy is used (and the page says it is offline). With no copy it waits as long as it ever
+    // did, and a write is never cut short, so a slow save is not lost.
+    var timedOut = false, timer = null;
+    if (off && method === 'GET' && window.AbortController && cacheableRead(path)) {
+      var ctl = new AbortController();
+      opts.signal = ctl.signal;
+      timer = setTimeout(function () {
+        off.recall(path).then(function (c) { if (c) { timedOut = true; ctl.abort(); } });
+      }, off.readTimeout());
+    }
     return ready.then(function () { return fetch(API + path, opts); }).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (d) { d.status = r.status; return d; });
+      clearTimeout(timer);
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        d.status = r.status;
+        // What the worker says about the member's cars and sessions is kept on the device, to show with no signal.
+        if (off && method === 'GET') off.remember(path, d);
+        return d;
+      });
+    }, function (err) {
+      clearTimeout(timer);
+      if (timedOut) { err = new TypeError('The signal is too weak: no answer in time'); err.offline = true; }
+      if (!off || !off.isNetworkError(err)) throw err;
+      off.noteNetworkError();
+      if (method === 'GET') return off.recall(path).then(function (c) { if (c) return c; throw err; });
+      var e = new Error('You are offline, and this needs a connection.');
+      e.offline = true;
+      throw e;
     });
+  }
+  // The reads the device keeps an answer for (js/laps-offline.js, cacheable): the only ones a weak signal gives up on.
+  function cacheableRead(path) {
+    return /^\/(my-builds|track\/sessions|track\/tracks|track\/copy|track\/access|tyres|pads|vehicles)(\?|$)/.test(path) || path.indexOf('/track/session?id=') === 0;
   }
   function adminViewerToken() {
     try {
@@ -105,6 +137,14 @@
     } catch (e) { return ''; }
   }
   var adminCheck = null;
+  // The Sessions tree split by kind is for the members the admin invites (Sessions tree panel of track-admin.html).
+  var treeKindsOn = false;
+  function checkTreeAccess() {
+    if (!token()) return;
+    api('GET', '/sessions-tree/access').then(function (d) {
+      if (d && d.success && d.access && !treeKindsOn) { treeKindsOn = true; if (mine) route(); }
+    }).catch(function () { /* not invited, or no signal: the list stays as it is */ });
+  }
   function isAdmin() {
     if (adminCheck) return adminCheck;
     var t = adminViewerToken();
@@ -159,6 +199,12 @@
     });
   }
   var mine = null;
+  // Offline mode: shown above anything drawn from what this device kept the last time it was online.
+  function oldNote(at) {
+    var when = new Date(at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return '<div class="tp-notice is-warn" id="tp-old-note" role="status">' + icon('info') + '<div>You are offline, so this is what was on this device on ' + esc(when) + '. Anything new appears when you are online again.</div></div>';
+  }
+  function isOffline() { return !!(window.MT3UKOffline && window.MT3UKOffline.isOffline()); }
   // 'car' or 'bike': the vehicle of the session or Add page on show, for the words on it.
   var VW = 'car';
   function vwOf(c) { return c && c.vehicleType === 'bike' ? 'bike' : 'car'; }
@@ -177,7 +223,11 @@
       if (r[0].status === 401) return null;
       // Early preview: not on the approved list yet. Not kept, so approval shows on the next visit.
       if (r[1].status === 403 && r[1].needsAccess) return { gate: true, cars: r[0].cars || [], sessions: [] };
-      mine = { cars: (r[0].cars || []), sessions: r[1].sessions || [] };
+      var got = { cars: (r[0].cars || []), sessions: r[1].sessions || [] };
+      // The answer kept on this device from the last time there was a connection: shown, but not remembered, so the
+      // real list is fetched as soon as the page is online again.
+      if (r[0].cachedAt || r[1].cachedAt) { got.cachedAt = Math.min(r[0].cachedAt || Infinity, r[1].cachedAt || Infinity); return got; }
+      mine = got;
       return mine;
     });
   }
@@ -304,6 +354,10 @@
   // Back to the view before, or to q when there is none to go back to.
   function goBack(q) { if (backDepth() > 0) history.back(); else go(q); }
   window.addEventListener('popstate', route);
+  // Offline mode: back online, or the sessions kept on the device have been sent: the list is fetched afresh.
+  function listAgain() { mine = null; counts = null; if (!location.search) showHome(); }
+  document.addEventListener('mt3uk-offline-end', function () { library = null; listAgain(); });
+  document.addEventListener('mt3uk-offline-synced', listAgain);
   app.addEventListener('click', function (e) {
     var a = e.target.closest('a[data-go]');
     if (a && !e.metaKey && !e.ctrlKey) {
@@ -354,8 +408,11 @@
   function heroAdd() {
     var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
     if (!box || !a) return;
-    box.hidden = !heroAddCar;
+    // While the list is still loading (track.html shows the box as a placeholder, .is-waiting), it stays.
+    box.hidden = !heroAddCar && !box.classList.contains('is-waiting');
     if (!heroAddCar) return;
+    box.classList.remove('is-waiting');
+    a.classList.remove('is-wait');
     var q = 'add=1&car=' + encodeURIComponent(heroAddCar);
     a.href = 'track.html?' + q;
     a.setAttribute('data-go', q);
@@ -372,7 +429,18 @@
   // loaded, say) must not draw over the view that replaced it.
   var routeSeq = 0;
   function stale(my) { return my !== routeSeq; }
+  // The heading's Add a session is a placeholder until the first view has drawn (heroAdd), then the real button or gone.
+  function heroSettle() {
+    var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
+    if (box) box.classList.remove('is-waiting');
+    if (a) a.classList.remove('is-wait');
+    heroAdd();
+  }
   function route() {
+    var done = routeView();
+    Promise.resolve(done).then(heroSettle, heroSettle);
+  }
+  function routeView() {
     routeSeq++;
     stopPlay();
     syncPageBack();
@@ -605,18 +673,22 @@
     p.same = p.rm === p.fm && p.rc === p.fc;
     return p;
   }
+  // A make or compound that is not on the list can be typed: each drop-down ends with an Other choice that opens a text box.
   function padSelects(pre, side, make, compound, off) {
-    var known = !!(make && PD.makes[make]);
+    var known = !!(make && PD.makes[make]), makeOther = !!(make && !known);
     var makeOpts = '<option value="">Not set</option>' + Object.keys(PD.makes).map(function (m) { return '<option value="' + esc(m) + '"' + (m === make ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
-      (make && !known ? '<option value="' + esc(make) + '" selected>' + esc(make) + '</option>' : '');
-    var comps = known ? PD.compounds(make) : (compound ? [compound] : []);
-    if (compound && comps.indexOf(compound) === -1) comps = comps.concat([compound]);
-    var compOpts = '<option value="">' + (make ? 'Choose the compound' : 'Choose the make first') + '</option>' + comps.map(function (c) { return '<option value="' + esc(c) + '"' + (c === compound ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
-    var label = side === 'front' ? 'Front pads' : 'Rear pads';
+      '<option value="__other__"' + (makeOther ? ' selected' : '') + '>Another make, type it in</option>';
+    var comps = known ? PD.compounds(make) : [];
+    var compOther = !!(compound && (makeOther || comps.indexOf(compound) === -1));
+    var compOpts = '<option value="">' + (make ? 'Choose the compound' : 'Choose the make first') + '</option>' + comps.map(function (c) { return '<option value="' + esc(c) + '"' + (c === compound ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') +
+      (known ? '<option value="__other__"' + (compOther ? ' selected' : '') + '>Other compound, type it in</option>' : '');
+    var label = side === 'front' ? 'Front pads' : 'Rear pads', id = pre + '-' + side;
     return '<div class="tp-f2 tp-pad-row" data-pad-side="' + side + '"' + (off ? ' hidden' : '') + '>' +
-      '<div class="tp-field"><label for="' + pre + '-' + side + '-make">' + label + ', make</label><select class="field" id="' + pre + '-' + side + '-make">' + makeOpts + '</select></div>' +
-      '<div class="tp-field"><label for="' + pre + '-' + side + '-comp">' + label + ', compound</label><select class="field" id="' + pre + '-' + side + '-comp"' + (make ? '' : ' disabled') + '>' + compOpts + '</select></div>' +
-      '<p class="tp-small tp-pad-maker" id="' + pre + '-' + side + '-maker"></p></div>';
+      '<div class="tp-field"><label for="' + id + '-make">' + label + ', make</label><select class="field" id="' + id + '-make">' + makeOpts + '</select>' +
+      '<input class="field tp-pad-typed" id="' + id + '-make-text" type="text" maxlength="40" placeholder="Type the make" aria-label="' + label + ', make"' + (makeOther ? ' value="' + esc(make) + '"' : ' hidden') + '></div>' +
+      '<div class="tp-field"><label for="' + id + '-comp">' + label + ', compound</label><select class="field" id="' + id + '-comp"' + (makeOther ? ' hidden' : make ? '' : ' disabled') + '>' + compOpts + '</select>' +
+      '<input class="field tp-pad-typed" id="' + id + '-comp-text" type="text" maxlength="40" placeholder="Type the compound" aria-label="' + label + ', compound"' + (compOther ? ' value="' + esc(compound) + '"' : ' hidden') + '></div>' +
+      '<p class="tp-small tp-pad-maker" id="' + id + '-maker"></p></div>';
   }
   function padFields(pre, p, note) {
     if (!PD) return '';
@@ -625,16 +697,27 @@
       padSelects(pre, 'front', p.fm, p.fc, false) +
       '<button type="button" class="tp-switch tp-pad-same" role="switch" id="' + pre + '-same" aria-checked="' + (p.same !== false) + '"><span>Same pads on the rear</span><span class="tp-track"></span></button>' +
       padSelects(pre, 'rear', p.same !== false ? p.fm : p.rm, p.same !== false ? p.fc : p.rc, p.same !== false) +
-      '<p class="tp-small">Not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p></div>';
+      '<p class="tp-small">Not on the list? Choose &ldquo;type it in&rdquo; for the make or compound, or <a href="contact.html">tell us</a> and we&rsquo;ll add it.</p></div>';
+  }
+  // One side's make and compound: the drop-down's choice, or what was typed when the choice is Other.
+  function padValue(pre, side, part) {
+    var sel = document.getElementById(pre + '-' + side + '-' + part), txt = document.getElementById(pre + '-' + side + '-' + part + '-text');
+    if (!sel) return '';
+    if (sel.value === '__other__') return txt ? txt.value.trim().slice(0, 40) : '';
+    return sel.value;
+  }
+  function padSide(pre, side) {
+    var mk = document.getElementById(pre + '-' + side + '-make'), ct = document.getElementById(pre + '-' + side + '-comp-text');
+    // A make that was typed has no list of compounds, so its compound is typed too.
+    var compound = mk && mk.value === '__other__' ? (ct ? ct.value.trim().slice(0, 40) : '') : padValue(pre, side, 'comp');
+    return { make: padValue(pre, side, 'make'), compound: compound };
   }
   function readPads(pre) {
     var fm = document.getElementById(pre + '-front-make');
     if (!fm || !PD) return null;
-    function v(id) { var el = document.getElementById(pre + '-' + id); return el ? el.value : ''; }
     var same = document.getElementById(pre + '-same').getAttribute('aria-checked') === 'true';
-    var p = { fm: v('front-make'), fc: v('front-comp') };
-    p.rm = same ? p.fm : v('rear-make'); p.rc = same ? p.fc : v('rear-comp'); p.same = same;
-    return p;
+    var f = padSide(pre, 'front'), r = same ? f : padSide(pre, 'rear');
+    return { fm: f.make, fc: f.compound, rm: r.make, rc: r.compound, same: same };
   }
   function padPayload(p) {
     p = p || {};
@@ -643,21 +726,34 @@
   function wirePads(pre) {
     if (!PD || !document.getElementById(pre + '-front-make')) return;
     function maker(side) {
-      var m = document.getElementById(pre + '-' + side + '-make').value, c = document.getElementById(pre + '-' + side + '-comp').value;
-      var line = PD.makerLine(PD.info(m, c)), el = document.getElementById(pre + '-' + side + '-maker');
+      var s = padSide(pre, side);
+      var line = PD.makerLine(PD.info(s.make, s.compound)), el = document.getElementById(pre + '-' + side + '-maker');
       if (el) el.textContent = line ? "Maker's figures: " + line : '';
     }
     ['front', 'rear'].forEach(function (side) {
-      var mk = document.getElementById(pre + '-' + side + '-make'), cp = document.getElementById(pre + '-' + side + '-comp');
+      var id = pre + '-' + side, mk = document.getElementById(id + '-make'), cp = document.getElementById(id + '-comp');
+      var mt = document.getElementById(id + '-make-text'), ct = document.getElementById(id + '-comp-text');
+      // The text boxes show only for an Other choice; a typed make has no compounds, so its compound is typed too.
+      function boxes() {
+        var makeTyped = mk.value === '__other__';
+        mt.hidden = !makeTyped;
+        cp.hidden = makeTyped;
+        cp.disabled = !mk.value;
+        ct.hidden = !(makeTyped || cp.value === '__other__');
+      }
       mk.addEventListener('change', function () {
-        var list = PD.compounds(mk.value);
-        cp.innerHTML = '<option value="">' + (mk.value ? 'Choose the compound' : 'Choose the make first') + '</option>' + list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+        var list = mk.value && mk.value !== '__other__' ? PD.compounds(mk.value) : [];
+        cp.innerHTML = '<option value="">' + (mk.value ? 'Choose the compound' : 'Choose the make first') + '</option>' + list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('') +
+          (list.length ? '<option value="__other__">Other compound, type it in</option>' : '');
         // A make with one compound (the car's original pads) is picked for them.
         if (list.length === 1) cp.value = list[0];
-        cp.disabled = !mk.value;
+        boxes();
+        if (mk.value === '__other__') mt.focus();
         maker(side);
       });
-      cp.addEventListener('change', function () { maker(side); });
+      cp.addEventListener('change', function () { boxes(); if (cp.value === '__other__') ct.focus(); maker(side); });
+      mt.addEventListener('input', function () { maker(side); });
+      ct.addEventListener('input', function () { maker(side); });
       maker(side);
     });
     var same = document.getElementById(pre + '-same');
@@ -673,17 +769,33 @@
   // worker itself, which also carries push notifications), then loads the page again, so what the member sees is what
   // is live now.
   function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version" title="Refresh">' + icon('refresh') + '</button>'; }
+  // Refresh. With no signal it touches nothing and does not reload (a reload could not find the page): it reads the
+  // list again from the copy on the device, so sessions added, changed or removed here show. With Offline mode on and a
+  // signal it sends what is waiting and refreshes the copy kept on the device, then draws again. Otherwise it fetches the
+  // page's own files afresh and reloads. It never deletes the Offline mode copy or its map pictures (the caches that
+  // begin mt3uk-laps-): clearing those is what left a page that could not open with no signal.
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-refresh]');
     if (!b || b.disabled) return;
+    var off = window.MT3UKOffline;
+    if (off && off.isOffline && off.isOffline()) {
+      mine = null;
+      if (off.say) off.say('info', '<b>Offline.</b> Showing the copy kept on this device, with anything you added or changed here.', 6000);
+      route();
+      return;
+    }
     b.disabled = true;
     var label = b.querySelector('span');
     if (label) label.textContent = 'Refreshing...';
+    if (off && off.enabled && off.enabled() && off.refreshCopy) {
+      off.refreshCopy().then(function () { mine = null; library = null; copy = null; route(); });
+      return;
+    }
     var urls = [].slice.call(document.querySelectorAll('script[src], link[rel="stylesheet"]')).map(function (el) { return el.src || el.href; })
       .filter(function (u) { return u && u.indexOf(location.origin) === 0; });
     urls.push(new URL('data/tracks.json', location.href).href);
     var jobs = urls.map(function (u) { return fetch(u, { cache: 'reload' }).catch(function () {}); });
-    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).catch(function () {})); } catch (err) {}
+    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('mt3uk-laps-') !== 0; }).map(function (k) { return caches.delete(k); })); }).catch(function () {})); } catch (err) {}
     try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.update(); })); }).catch(function () {})); } catch (err) {}
     Promise.all(jobs).then(function () { mine = null; library = null; copy = null; location.reload(); });
   });
@@ -710,7 +822,7 @@
   function showHome() {
     loading();
     var my = routeSeq;
-    Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
+    return Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
       if (stale(my)) return;
       var m = r[0], c = r[2] || {};
       if (m && m.gate) return showGate();
@@ -728,9 +840,12 @@
         h += myCarsHtml(m);
       }
       // Sessions just saved from a batch: say so at the top.
-      if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
+      if (justSaved && (justSaved.batch || justSaved.text || justSaved.queued)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
       heroAdd();
+      // Offline mode: an old list is marked, and sessions saved on the device and waiting to be sent are listed.
+      if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
+      if (window.MT3UKOffline && m) window.MT3UKOffline.drawPending(app);
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
@@ -871,6 +986,35 @@
   }
   // After saving several files the list opens to them under the Saved message: their car is the one picked, and their
   // track, layout and day are dropped down, so the sessions added are in view rather than a closed tree.
+  // After the list redraws (a bulk edit), the day that was changed is scrolled to the middle of the screen and flashed.
+  var pendingDay = null, pendingTimer = null;
+  function focusDay(key) {
+    pendingDay = key; clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(function () { pendingDay = null; }, 15000);
+  }
+  // Leaving a session (Exit session, Back) lands on the list at the row it came from, not at the top: the last session shown is
+  // looked for once the list is drawn.
+  var lastSession = null;
+  function showLastSession() {
+    if (!lastSession || document.getElementById('tp-session-bar')) return;
+    var row = [].filter.call(app.querySelectorAll('.tp-row[data-sid]'), function (x) { return x.getAttribute('data-sid') === lastSession && x.offsetParent !== null; })[0];
+    if (!row) return;
+    lastSession = null;
+    row.scrollIntoView({ block: 'center' });
+    row.classList.add('is-flash');
+    setTimeout(function () { row.classList.remove('is-flash'); }, 1600);
+  }
+  function showPendingDay() {
+    showLastSession();
+    if (!pendingDay) return;
+    var el = [].filter.call(app.querySelectorAll('.tp-daygroup[data-day]'), function (x) { return x.getAttribute('data-day') === pendingDay; })[0];
+    if (!el) return;
+    pendingDay = null; clearTimeout(pendingTimer);
+    el.scrollIntoView({ block: 'center' });
+    el.classList.add('is-flash');
+    setTimeout(function () { el.classList.remove('is-flash'); }, 2200);
+  }
+  if (window.MutationObserver) new MutationObserver(showPendingDay).observe(app, { childList: true, subtree: true });
   function openToSaved(m) {
     var ids = justSaved && justSaved.ids;
     if (!ids || !ids.length) return;
@@ -880,7 +1024,7 @@
       var tk = trackKeyOf(x);
       openTracks[tk] = true;
       openLayouts[tk + '|' + layoutKeyOf(x)] = true;
-      if (dayKey(x)) openDays[dayKey(x)] = true;
+      if (dayKey(x)) { openDays[dayKey(x)] = true; }
     });
     if (saved.length) storeListOpen();
   }
@@ -893,14 +1037,15 @@
     // Your vehicles: a list that folds away to the one picked. Its sessions are listed below.
     var h = '<div class="card tp-news" id="tp-news" role="status" hidden></div><div class="card tp-since" id="tp-since" role="status" hidden></div>' + '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
-    h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
-    // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.
+    // One tight row: the title and the car at the left, search, refresh, units and What others see (an eye) at the right.
+    var othersChip = car.virtual ? '' : '<a class="chip tp-others" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '" aria-label="What others see" title="What others see">' + icon('eye') + '</a>';
+    h += '<div class="tp-section"><div class="tp-head tp-list-head"><div class="tp-head-title"><h2>Sessions</h2></div><div class="tp-head-side">' + findToggleHtml(m) + refreshChip() + unitsChip() + othersChip + '</div></div>';
+    // Add a session is in the page heading, under Leaderboards (heroAdd).
     heroAddCar = car.id;
-    if (!car.virtual) h += '<div class="tp-actions"><a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a></div>';
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+    else h += trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second, or use its cloud button, to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
     h += '</div><div id="tp-find-results"></div>';
     return h + '</div>';
   }
@@ -1009,8 +1154,10 @@
   var KIND_WORD = { drag: 'Drag runs', sprint: 'Sprint', other: 'Drives', track: 'Track days' };
   function layoutTitleOf(s) {
     if (s.layout && s.layout !== s.venue) return s.layout;
-    if (s.organizer) return s.organizer;
-    return s.type === 'sprint' && s.hill ? 'Hill climb' : KIND_WORD[s.type] || KIND_WORD.track;
+    // An organiser that is just the venue's own name (Shelsley Walsh at Shelsley Walsh) says nothing about the course.
+    var org = String(s.organizer || '').toLowerCase() !== String(s.venue || '').toLowerCase() ? s.organizer : '';
+    if (org) return org;
+    return s.type === 'sprint' && (s.hill || isHillSession(s, library)) ? 'Hill climb' : KIND_WORD[s.type] || KIND_WORD.track;
   }
   function layoutKeyOf(s) { return s.layoutId ? 'l:' + s.layoutId : 'n:' + layoutTitleOf(s).toLowerCase(); }
   function layoutEntries(list) {
@@ -1023,6 +1170,42 @@
     });
     return out.sort(function (a, b) { return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1; });
   }
+  // The admin's Sessions tree (treeKindsOn): under each place, one row per kind (Track day, Sprint, Hill climb, Drag strip,
+  // Drives), then the layouts in that kind. A kind with a single layout shows its days straight away, with no layout row.
+  var KIND_TREE_NAMES = { track: 'Track day', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip', other: 'Drives' };
+  var openKinds = {};
+  // A sprint at a track the list marks as a hill climb is a hill climb too (the track decides, as on the leaderboard).
+  function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (isHillSession(s, library) ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
+  function byWhenDesc(rows) { return rows.slice().sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; }); }
+  function kindTreeHtml(here, tkey, list) {
+    // Drives are not a kind. Each one goes into the day it was recorded on, inside the kind or layout that has
+    // sessions on that date; a drive with no session on its date sits under the place, as its own day.
+    var drives = byWhenDesc(here.filter(function (x) { return sessionKindOf(x) === 'other'; })), placed = {};
+    function dayDrives(rows) {
+      return drives.filter(function (d) { return !placed[d.id] && rows.some(function (x) { return x.date === d.date; }); })
+        .map(function (d) { placed[d.id] = true; return d; });
+    }
+    var kinds = ['track', 'sprint', 'hill', 'drag'].filter(function (kd) {
+      return here.some(function (x) { return sessionKindOf(x) === kd; });
+    }).map(function (kd) {
+      var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;
+      var kopen = filterOpenAll || !!openKinds[kk], lays = layoutEntries(mineK), body;
+      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK.concat(dayDrives(mineK))), true, list, true);
+      else body = lays.map(function (l, n) {
+        var lk = kk + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
+        var rowsL = mineK.filter(function (x) { return layoutKeyOf(x) === l.key; });
+        var fit = dayDrives(rowsL).concat(n === 0 ? dayDrives(mineK).filter(function (d) { return !placed[d.id]; }) : []);
+        var rows = byWhenDesc(rowsL.concat(fit));
+        return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
+          '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list, true) + '</div></div>';
+      }).join('');
+      var count = mineK.length + ' session' + (mineK.length === 1 ? '' : 's') + (lays.length === 1 ? ', ' + esc(lays[0].name) : '');
+      return '<div class="tp-kindwrap"><button type="button" class="tp-row tp-kindrow" data-kind-toggle="' + esc(kk) + '" aria-expanded="' + kopen + '"><span class="tp-row-main"><b>' + KIND_TREE_NAMES[kd] + '</b><span>' + count + '</span></span>' + icon('chev') + '</button>' +
+        '<div class="tp-kind-body"' + (kopen ? '' : ' hidden') + '>' + body + '</div></div>';
+    }).join('');
+    var loose = drives.filter(function (d) { return !placed[d.id]; });
+    return kinds + (loose.length ? '<div class="tp-drives">' + sessionListHtml(loose, true, list, true) + '</div>' : '');
+  }
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for
   // the browser session (sessionStorage mt3ukLapsListOpen), so coming back from a session finds the list as it was.
@@ -1030,22 +1213,49 @@
   // was left; a full refresh of the page starts it folded. The sessions just saved are opened (openToSaved).
   var openTracks = {}, openLayouts = {};
   function storeListOpen() {}
-  function trackListHtml(list, carId) {
+  // publicView: the read-only list others see (no Shared switches, nothing to edit).
+  // A layout row reads its type first, then the layout: Track day · MSE 'NEW hairpin' layout. A layout already named for its
+  // type (Track days) is not repeated.
+  function layoutHeadHtml(name, rows, publicView) {
+    var kn = rows.length && !publicView ? KIND_TREE_NAMES[sessionKindOf(rows[0])] || '' : '';
+    if (!kn || String(name).toLowerCase().indexOf(kn.toLowerCase()) === 0) return esc(name);
+    return esc(kn + ' · ' + name);
+  }
+  // The event types a place has, for its row: Track day · Sprint (drives are not a type).
+  function placeKindsText(here) {
+    var names = [];
+    ['track', 'sprint', 'hill', 'drag'].forEach(function (kd) {
+      if (here.some(function (x) { return sessionKindOf(x) === kd; })) names.push(KIND_TREE_NAMES[kd]);
+    });
+    return names.join(' · ');
+  }
+  function trackListHtml(list, carId, publicView) {
     filterOpenAll = filtersOn();
     list = filteredList(list);
     if (!list.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match those filters.</p></div>';
     return trackEntries(list).map(function (t) {
-      var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
-      var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
-      var here = list.filter(function (x) { return trackKeyOf(x) === t.key; }), lays = layoutEntries(here);
-      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span></a>' +
-        '<button type="button" class="tp-track-toggle" data-track-toggle="' + esc(t.key) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '">' + icon('chev') + '</button>' +
-        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
+            var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
+      var here = list.filter(function (x) { return trackKeyOf(x) === t.key; });
+      // Drives are not a layout: they sit under the date they were recorded on, inside the layout with sessions that day.
+      var plainHere = here.filter(function (x) { return sessionKindOf(x) !== 'other'; }), looseDrives = here.filter(function (x) { return sessionKindOf(x) === 'other'; }), placedDrive = {};
+      var lays = layoutEntries(plainHere);
+      function driveTail() {
+        if (treeKindsOn && !publicView) return '';
+        var left = byWhenDesc(looseDrives.filter(function (d) { return !placedDrive[d.id]; }));
+        return left.length ? '<div class="tp-drives">' + sessionListHtml(left, !publicView, list, true) + '</div>' : '';
+      }
+      var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
+      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + (placeKindsText(here) ? esc(placeKindsText(here)) + ' · ' : '') + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
+        (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
+        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
-          var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
-          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + ', last ' + esc(niceDate(l.last.slice(0, 10))) + '</span></span>' + icon('chev') + '</button>' +
-            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list) + '</div></div>';
-        }).join('') + '</div></div>';
+          var rowsL = plainHere.filter(function (x) { return layoutKeyOf(x) === l.key; });
+          var fitD = looseDrives.filter(function (d) { return !placedDrive[d.id] && rowsL.some(function (x) { return x.date === d.date; }); });
+          fitD.forEach(function (d) { placedDrive[d.id] = true; });
+          var rows = byWhenDesc(rowsL.concat(fitD));
+          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + layoutHeadHtml(l.name, rowsL, publicView) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
+            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
+        }).join('')) + driveTail() + '</div></div>';
     }).join('');
   }
   function wireTrackToggles() {
@@ -1053,8 +1263,13 @@
     if (!box || box.getAttribute('data-toggles')) return;
     box.setAttribute('data-toggles', '1');
     box.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-track-toggle]'), lb = e.target.closest('[data-layout-toggle]');
-      if (b) {
+      var b = e.target.closest('[data-track-toggle]'), lb = e.target.closest('[data-layout-toggle]'), kb = e.target.closest('[data-kind-toggle]');
+      if (kb) {
+        var kk = kb.getAttribute('data-kind-toggle'), kbody = kb.parentNode.querySelector('.tp-kind-body');
+        openKinds[kk] = !openKinds[kk];
+        kb.setAttribute('aria-expanded', openKinds[kk] ? 'true' : 'false');
+        if (kbody) kbody.hidden = !openKinds[kk];
+      } else if (b) {
         var k = b.getAttribute('data-track-toggle'), wrap = b.closest('.tp-trackwrap'), lays = wrap && wrap.querySelector('.tp-layouts');
         openTracks[k] = !openTracks[k];
         b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
@@ -1116,7 +1331,7 @@
     m.cars.forEach(function (c) { carNames[c.id] = c.name; });
     function redrawList() {
       var tracks = document.getElementById('tp-tracks');
-      if (tracks) tracks.innerHTML = trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+      if (tracks) tracks.innerHTML = trackToolsHtml(list) + '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a track for half a second, or use its cloud button, to keep it for offline use: its leaderboards and your sessions there.</p><div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
       applyRanks(list);
       wireTrackToggles();
       wireTools();
@@ -1206,14 +1421,14 @@
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s, carName) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
+    return '<a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
   // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.
   function dayKey(s) {
     if (s.type === 'other' || s.street || !s.date) return '';
-    return [s.type === 'sprint' ? 'sprint' : s.type === 'drag' ? 'drag' : 'circuit', s.venueId || s.venue || '', s.layoutId || '', s.organizer || '', s.date].join('|');
+    return [s.type === 'sprint' ? 'sprint' : s.type === 'drag' ? 'drag' : 'circuit', s.venueId || s.venue || '', s.layoutId || '', s.layoutId ? '' : s.organizer || '', s.date].join('|');
   }
   function byTime(a, b) { return (a.time || '').localeCompare(b.time || '') || (a.id < b.id ? -1 : 1); }
   // Where a session falls in its day at its track, from the sessions we know of: { n: 2, of: 5 }, or null on its own.
@@ -1226,14 +1441,16 @@
   }
   // A session's row in its day: the time, what it was, the result and whether it is shared, on one line. The fastest
   // row of a closed day (expand) is a link plus a chevron button that opens the whole day.
-  function dayRow(s, n, fastest, expand) {
+  function dayRow(s, n, fastest, expand, tile) {
     var inner = '<span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
-      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
+      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.tyres, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
-    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
+    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
       '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
+    return '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
   }
+  // Sessions picked by holding on them (or Ctrl/Cmd/Shift-click): the day's bulk edit then changes only those.
+  var pickedIds = {};
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
   var openDays = {};
   // The battery used in one session, in points of charge (Track Mode files carry it).
@@ -1252,14 +1469,24 @@
     return txt + (on.length < g.length ? ' (from ' + on.length + ' of ' + g.length + ' sessions)' : '');
   }
   // The heading and the count of a group. With more than one session they open and close it; a group of one is just shown.
-  function groupTitleHtml(text, label, open, many) {
-    return many ? '<button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(label) + '"><h3>' + esc(text) + '</h3></button>'
+  function groupTitleHtml(text, label, open, many, sub) {
+    // In the Sessions tree a closed day is one compact row: the date, how many sessions and the fastest, and a chevron to step down.
+    return many ? '<button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(label) + '"><span class="tp-day-titles"><h3>' + esc(text) + '</h3>' + (sub ? '<span class="tp-day-sub">' + esc(sub) + '</span>' : '') + '</span>'+ '</button>'
       : '<div class="tp-daygroup-title"><h3>' + esc(text) + '</h3></div>';
   }
   function groupCountHtml(count, n, open, many) {
     return many ? '' : '<span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span>';
   }
-  function sessionListHtml(list, owner, all) {
+  // Whether a day is shared, as a small eye or lock on its collapsed tile: all shared, none, or a mix.
+  function dayPrivacyHtml(g) {
+    var n = g.filter(function (x) { return x.privacy && x.privacy !== 'private'; }).length;
+    var word = n === g.length ? 'Shared' : n ? 'Some sessions shared' : 'Only me';
+    // A mix says how many are on each side, so a session left private is easy to spot.
+    var mixed = n && n < g.length, counts = mixed ? 'Shared (' + n + '), Private (' + (g.length - n) + ')' : '';
+    return '<span class="tp-day-priv' + (mixed ? ' is-mixed' : '') + '" role="img" title="' + (counts || word) + '" aria-label="' + (counts || word) + '">' + icon(n ? 'eye' : 'lock') + (mixed ? '<span class="tp-day-priv-n">Shared (' + n + ') Private (' + (g.length - n) + ')</span>' : '') + '</span>';
+  }
+  // tile: the Sessions tree, where every date is one compact tile (the date, how many sessions and the fastest, an arrow) until its arrow is pressed.
+  function sessionListHtml(list, owner, all, tile) {
     var groups = {}, order = [];
     list.forEach(function (s) {
       var k = dayKey(s) || 'one:' + s.id;
@@ -1279,16 +1506,18 @@
       // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
       function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
-      var key = k, open = openDays[key] || !fast || g.length === 1, many = g.length > 1, count = g.length + ' session' + (many ? 's' : '');
+      var key = k, many = g.length > 1, open = tile ? !!openDays[key] : (openDays[key] || !fast || g.length === 1), count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
-      return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many) +
+      return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '"' + ' data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
+        '<div class="tp-daygroup-head">' + groupTitleHtml(tile ? niceDate(g[0].date) : niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many || tile, count + (best ? (many ? ', fastest ' : ', ') + best : '')) +
         (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
-        groupCountHtml(count, g.length, open, many) + '</div>' +
+        groupCountHtml(count, g.length, open, many) +
+        (tile && owner ? dayPrivacyHtml(g) : '') +
+        (tile ? '<button type="button" class="tp-day-arrow" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the ' + count + ' on ' + esc(niceDate(g[0].date)) + '">' + icon('chev') + '</button>' : '') + '</div>' +
         (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
-        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length) + '</div>' : '') +
+        (fast && many && !tile ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length) + '</div>' : '') +
         '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
-        (fast && many ? '<button type="button" class="tp-daygroup-less" data-day-toggle aria-expanded="true">' + icon('chev') + 'Show only the fastest of the ' + count + '</button>' : '') +
+        (fast && many && !tile ? '<button type="button" class="tp-daygroup-less" data-day-toggle aria-expanded="true">Show only the fastest of the ' + count + icon('chev') + '</button>' : '') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
         (owner ? addToDayButton(g[0], many) : '') +
         (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div>' + (owner ? dayEditButton(g) : '') + '</div>';
@@ -1308,8 +1537,19 @@
   // Edit all the sessions of a day at once (the owner): conditions, air temperature, tyres, brake pads and the logger,
   // for when they were left off or set wrong on every file of the day. Anything left blank stays as it is on each session.
   function dayEditButton(g) {
-    var many = g.length > 1;
-    return '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + (many ? 'Edit all ' + g.length + ' sessions' : 'Edit the session') + '</button>';
+    var many = g.length > 1, picked = many ? g.filter(function (x) { return pickedIds[x.id]; }) : [], use = picked.length ? picked : g;
+    return '<p class="tp-small tp-pick-hint" data-pick-hint>' + icon('info') + '<span>' + editHint(many, picked.length, g.length) + '</span></p>' +
+      (many ? '<div class="tp-pickbar" data-pickbar' + (picked.length ? '' : ' hidden') + '><span data-pick-count>' + picked.length + ' selected</span><button type="button" class="btn btn-ghost btn-sm" data-pick-clear>Clear selection</button></div>' : '') +
+      '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit title="' + esc(editHint(many, picked.length, g.length)) + '" data-all-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-ids="' + esc(use.map(function (x) { return x.id; }).join(',')) + '"' + (picked.length ? ' data-picked' : '') + ' data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + editLabel(many, picked.length, g.length) + '</button>';
+  }
+  function editLabel(many, picked) {
+    return picked ? 'Quick edit ' + picked + ' selected' : 'Quick edit';
+  }
+  // What the Quick edit button does, shown beside it and as its tooltip.
+  function editHint(many, picked, total) {
+    return !many ? 'Quick edit changes this session\'s conditions, air temperature, tyres, brake pads or logger without opening it.'
+      : picked ? 'Quick edit will change only the ' + (picked === 1 ? '1 selected session' : picked + ' selected sessions') + '. Tap a session to add or remove it.'
+      : 'Quick edit changes the conditions, air temperature, tyres, brake pads or logger on all ' + total + ' sessions at once. Hold a session to pick just some of them.';
   }
   // The tyres and brake pads from the car's last session before the earliest of these sessions, if it had any.
   function previousKit(m, ids) {
@@ -1323,18 +1563,22 @@
     if (padSess && PD) out.pads = { fields: padInit(padSess), text: padSess.pads || '' };
     return out;
   }
-  function dayEditHtml(n, what) {
-    return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>' + (n > 1 ? 'Edit all ' + n + ' sessions' : 'Edit the session') + ' on ' + esc(what) + '</h3>' +
+  function dayEditHtml(n, what, picked) {
+    var sel = picked ? (n === 1 ? 'the selected session' : 'the ' + n + ' selected sessions') : n > 1 ? 'all ' + n + ' sessions' : 'the session';
+    return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>Edit ' + sel + ' on ' + esc(what) + '</h3>' +
       '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
+      '<div class="tp-de-grid">' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip" data-v="' + c + '" aria-pressed="false">' + c + '</button>'; }).join('') + '</div></div>' +
+      '<div class="tp-field"><span class="tp-lbl">Sharing</span><div class="tp-chips" data-share>' + [['board', 'Shared'], ['private', 'Only me']].map(function (c) { return '<button type="button" class="chip" data-v="' + c[0] + '" aria-pressed="false">' + c[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-field"><label for="tp-de-temp">Air temperature (°C)</label><input class="field" id="tp-de-temp" inputmode="numeric" placeholder="Leave as it is"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-de-weather">Fill in from weather</button><p class="tp-src" id="tp-de-src"></p></div>' +
-      '<button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
-      '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div>' +
-      '<button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
-      '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div>' +
+      '<div class="tp-de-kit"><button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div></div>' +
+      '<div class="tp-de-kit"><button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div></div>' +
       loggerFields('tp-de-logger', '', false).replace('Choose the logger', 'Leave as it is') +
-      '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + (n > 1 ? 'all ' + n + ' sessions' : 'the session') + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
+      '</div>' +
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + sel + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-day-edit]');
@@ -1345,7 +1589,8 @@
     // The tyre and pad lists are loaded on demand (the list page does not need them until now).
     Promise.all([loadTyres(), loadPads(), getMine()]).catch(function () {}).then(function (res) {
     if (!document.body.contains(b)) return;
-    b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what));
+    var picked = b.hasAttribute('data-picked');
+    b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what, picked));
     var form = document.getElementById('tp-dayedit');
     form.setAttribute('data-ids', ids.join(',')); form.setAttribute('data-what', what);
     wireTyres('tp-de-tyre'); wirePads('tp-de-pad'); wireLogger('tp-de-logger');
@@ -1361,12 +1606,14 @@
         sw.setAttribute('aria-checked', 'true'); fields.hidden = false;
       });
     });
-    form.querySelector('[data-cond]').addEventListener('click', function (ev) {
-      var c = ev.target.closest('button[data-v]');
-      if (!c) return;
-      var on = c.getAttribute('aria-pressed') !== 'true';
-      form.querySelectorAll('[data-cond] button').forEach(function (x) { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
-      if (on) { c.classList.add('is-on'); c.setAttribute('aria-pressed', 'true'); }
+    ['data-cond', 'data-share'].forEach(function (attr) {
+      form.querySelector('[' + attr + ']').addEventListener('click', function (ev) {
+        var c = ev.target.closest('button[data-v]');
+        if (!c) return;
+        var on = c.getAttribute('aria-pressed') !== 'true';
+        form.querySelectorAll('[' + attr + '] button').forEach(function (x) { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
+        if (on) { c.classList.add('is-on'); c.setAttribute('aria-pressed', 'true'); }
+      });
     });
     ['tyres', 'pads'].forEach(function (k) {
       var sw = document.getElementById('tp-de-' + k + '-on'), fields = document.getElementById('tp-de-' + k);
@@ -1395,12 +1642,15 @@
     form.querySelector('[data-day-edit-apply]').addEventListener('click', function () {
       var body = {}, cond = form.querySelector('[data-cond] button.is-on'), t = document.getElementById('tp-de-temp').value.trim(), lg = loggerValue('tp-de-logger');
       if (cond) body.conditions = cond.getAttribute('data-v');
+      var shareChip = form.querySelector('[data-share] button.is-on');
+      if (shareChip) body.privacy = shareChip.getAttribute('data-v');
       if (t !== '' && isFinite(parseFloat(t))) { body.temp = parseFloat(t); body.tempSource = dayWeather && parseFloat(t) === dayWeather.temp ? 'weather' : 'member'; if (body.tempSource === 'weather') body.weather = dayWeather; }
       if (document.getElementById('tp-de-tyres-on').getAttribute('aria-checked') === 'true') Object.assign(body, tyrePayload(readTyre('tp-de-tyre')));
       if (document.getElementById('tp-de-pads-on').getAttribute('aria-checked') === 'true') Object.assign(body, padPayload(readPads('tp-de-pad')));
       if (lg) body.logger = lg;
       var st = document.getElementById('tp-de-status');
       if (!Object.keys(body).length) { st.textContent = 'Set at least one thing to change first.'; st.className = 'tp-status is-error'; return; }
+      if (body.privacy === 'board' && !window.confirm((ids.length === 1 ? 'Share this session' : 'Share these ' + ids.length + ' sessions') + ' at ' + what + '? Members will see ' + (ids.length === 1 ? 'it' : 'them') + ' on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
       var btn = form.querySelector('[data-day-edit-apply]');
       btn.disabled = true; st.textContent = 'Saving...'; st.className = 'tp-status';
       var chain = Promise.resolve(), failed = 0;
@@ -1409,13 +1659,89 @@
       });
       chain.then(function () {
         mine = null; counts = null;
-        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
+        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : (picked ? 'The ' : 'All ') + ids.length + (picked ? ' selected sessions at ' : ' sessions at ') + what + ' are updated.') };
+        ids.forEach(function (id) { delete pickedIds[id]; });
+        // The list redraws; stay on the day that was changed, open, rather than going back to the top.
+        var dkey = box && box.getAttribute('data-day');
+        if (dkey) { openDays[dkey] = true; storeListOpen(); focusDay(dkey); }
         route();
       });
     });
     form.scrollIntoView({ block: 'nearest' });
     });
   });
+  // Picking sessions of a day: hold on a session (about half a second), or Ctrl/Cmd/Shift-click, to pick it. While any are picked in a
+  // day a plain tap picks or unpicks too (so it does not open the session), and the day's Edit button changes only the picked ones.
+  function pickableRow(t) {
+    var row = t && t.closest && t.closest('a.tp-pickable');
+    var box = row && row.closest('.tp-daygroup[data-many="true"]');
+    return row && box && box.querySelector('[data-day-edit]') ? { row: row, box: box } : null;
+  }
+  function refreshPick(box) {
+    var rows = box.querySelectorAll('a.tp-pickable'), picked = [];
+    Array.prototype.forEach.call(rows, function (r) { if (r.classList.contains('is-picked')) picked.push(r.getAttribute('data-sid')); });
+    var btn = box.querySelector('[data-day-edit]'), bar = box.querySelector('[data-pickbar]');
+    btn.setAttribute('data-ids', (picked.length ? picked : btn.getAttribute('data-all-ids').split(',')).join(','));
+    if (picked.length) btn.setAttribute('data-picked', ''); else btn.removeAttribute('data-picked');
+    btn.innerHTML = icon('sliders') + editLabel(true, picked.length);
+    var hint = editHint(true, picked.length, rows.length);
+    btn.setAttribute('title', hint);
+    var hs = box.querySelector('[data-pick-hint] span');
+    if (hs) hs.textContent = hint;
+    if (bar) { bar.hidden = !picked.length; bar.querySelector('[data-pick-count]').textContent = picked.length + ' selected'; }
+    // Delete follows the picks: one picked is Delete this session, several are Delete N selected sessions, and only
+    // those go (the day's drives stay); with none picked it is the whole day again.
+    var del = box.querySelector('[data-day-delete]');
+    if (del) {
+      if (!del.hasAttribute('data-all-ids')) del.setAttribute('data-all-ids', del.getAttribute('data-ids'));
+      del.setAttribute('data-ids', (picked.length ? picked : del.getAttribute('data-all-ids').split(',')).join(','));
+      if (picked.length) del.setAttribute('data-picked', ''); else del.removeAttribute('data-picked');
+      del.innerHTML = icon('trash') + (picked.length === 1 ? 'Delete this session' : picked.length ? 'Delete ' + picked.length + ' selected sessions' : 'Delete this day');
+    }
+    var form = document.getElementById('tp-dayedit');
+    if (form && box.contains(form)) form.remove();
+  }
+  function togglePick(hit) {
+    var on = !hit.row.classList.contains('is-picked');
+    hit.row.classList.toggle('is-picked', on);
+    var id = hit.row.getAttribute('data-sid');
+    if (on) pickedIds[id] = true; else delete pickedIds[id];
+    refreshPick(hit.box);
+  }
+  (function () {
+    var timer = null, sx = 0, sy = 0, justHeld = false;
+    function stop() { if (timer) { clearTimeout(timer); timer = null; } }
+    document.addEventListener('pointerdown', function (e) {
+      if (e.button) return;
+      var hit = pickableRow(e.target);
+      stop(); justHeld = false;
+      if (!hit) return;
+      sx = e.clientX; sy = e.clientY;
+      timer = setTimeout(function () { timer = null; justHeld = true; togglePick(hit); }, 450);
+    });
+    document.addEventListener('pointermove', function (e) { if (timer && (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8)) stop(); });
+    ['pointerup', 'pointerleave', 'scroll'].forEach(function (n) { document.addEventListener(n, stop, true); });
+    // A long press on a phone also asks for the link's menu (and may cancel the pointer): never show it, and pick the row if the timer had not yet.
+    document.addEventListener('contextmenu', function (e) {
+      var hit = pickableRow(e.target);
+      if (!hit) return;
+      e.preventDefault();
+      if (timer) { stop(); justHeld = true; togglePick(hit); }
+    });
+    document.addEventListener('click', function (e) {
+      var hit = pickableRow(e.target);
+      if (!hit) return;
+      if (justHeld) { justHeld = false; e.preventDefault(); e.stopPropagation(); return; }
+      if (e.ctrlKey || e.metaKey || e.shiftKey || hit.box.querySelector('a.tp-pickable.is-picked')) { e.preventDefault(); e.stopPropagation(); togglePick(hit); }
+    }, true);
+    document.addEventListener('click', function (e) {
+      var c = e.target.closest && e.target.closest('[data-pick-clear]');
+      if (!c) return;
+      var box = c.closest('.tp-daygroup');
+      Array.prototype.forEach.call(box.querySelectorAll('a.tp-pickable.is-picked'), function (r) { r.classList.remove('is-picked'); delete pickedIds[r.getAttribute('data-sid')]; });
+      refreshPick(box);
+    });
+  })();
   // ---------- Add a car (no photo needed) ----------
   // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
@@ -1519,16 +1845,29 @@
     var b = e.target.closest && e.target.closest('[data-day-delete]');
     if (!b || b.disabled) return;
     var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
-    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
     b.disabled = true;
-    var chain = Promise.resolve(), failed = 0;
-    ids.forEach(function (id) {
-      chain = chain.then(function () { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
-    });
-    chain.then(function () {
-      mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
-      route();
+    // The confirm names each session (date, time and the file it came from), so it is clear what goes.
+    var known = {};
+    ((mine && mine.sessions) || []).forEach(function (x) { known[x.id] = x; });
+    Promise.all(ids.map(function (id) {
+      return api('GET', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { return d && d.session ? d.session : null; }).catch(function () { return null; });
+    })).then(function (recs) {
+      var lines = ids.map(function (id, n) {
+        var x = recs[n] || known[id] || {}, k = known[id] || {};
+        return [niceDate(x.date || k.date || ''), x.time || k.time || '', x.fileName ? 'file ' + x.fileName : ''].filter(Boolean).join(', ');
+      });
+      var shown = lines.slice(0, 10).map(function (l) { return '- ' + l; }).join('\n') + (lines.length > 10 ? '\n- and ' + (lines.length - 10) + ' more' : '');
+      var intro = ids.length === 1 ? 'This will delete this session (' + what + '):' : b.hasAttribute('data-picked') ? 'This will delete the ' + ids.length + ' selected sessions (' + what + '):' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + '):';
+      if (!window.confirm('Confirm delete?\n\n' + intro + '\n' + shown + '\n\nThis can\'t be undone.')) { b.disabled = false; return; }
+      var chain = Promise.resolve(), failed = 0;
+      ids.forEach(function (id) {
+        chain = chain.then(function () { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
+      });
+      chain.then(function () {
+        mine = null; counts = null;
+        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
+        route();
+      });
     });
   });
   // The switch on a day's group: share every session that day at that track, or make them all Only me.
@@ -1690,7 +2029,7 @@
     var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
     var items = list.map(function (x) {
       var w = x.rd ? fileWhen(x.rd) : '';
-      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.mergedInto ? '<span class="tp-file-when">Car data added to the session from ' + esc(x.mergedInto) + '.</span>' : '') + (x.merged ? '<span class="tp-file-when">With the car data from ' + esc(x.merged.name) + ' (lined up, match ' + x.merged.match.toFixed(2) + ').</span>' : '') + (x.noMerge && x.rd ? '<span class="tp-file-when">Saved on its own: ' + esc(x.noMerge) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.clipOf ? '<span class="tp-file-when">Joined to ' + esc(x.clipOf) + ' as one drive (the clips follow on).</span>' : x.mergedInto ? '<span class="tp-file-when">Car data added to the session from ' + esc(x.mergedInto) + '.</span>' : '') + (x.clips > 1 ? '<span class="tp-file-when">' + x.clips + ' dashcam clips joined as one drive.</span>' : '') + (x.merged ? '<span class="tp-file-when">With the car data from ' + esc(x.merged.name) + ' (lined up, match ' + x.merged.match.toFixed(2) + ').</span>' : '') + (x.noMerge && x.rd ? '<span class="tp-file-when">Saved on its own: ' + esc(x.noMerge) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
     }).join('');
     var meta = a.rd ? fileMeta() : '';
     // Several files are saved as one session each, not merged.
@@ -1732,7 +2071,7 @@
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.orgNew = false; add.orgFrom = null; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
-      add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
+      add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false; add.courseMade = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -1813,7 +2152,14 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
-      var jr = joinCarFiles(good, a.mergeOff), joined = jr.joined;
+      // Dashcam clips of one drive (a minute each, the frame numbers carrying on) are one session, not one each.
+      var dj = T.joinDashcam(good.map(function (x) { return x.rd; })), clipsJoined = [];
+      good = good.filter(function (x, i) {
+        if (dj.rds[i] === null) { var head = good[dj.into[i]]; x.mergedInto = head.f.name; x.clipOf = head.f.name; head.clips = (head.clips || 1) + 1; clipsJoined.push(x); return false; }
+        x.rd = dj.rds[i];
+        return true;
+      });
+      var jr = joinCarFiles(good, a.mergeOff), joined = jr.joined.concat(clipsJoined);
       good = jr.good;
       a.canMerge = jr.canMerge;
       var rds = good.map(function (x) { return x.rd; });
@@ -1867,6 +2213,17 @@
     if (a.layoutPick && a.layoutPick === a.layoutHint && !(a.session.venueId && venueLayouts(a, a.session).some(function (l) { return l.id === a.layoutPick; }))) {
       a.layoutPick = '';
       a.session = T.analyse(a.rd, a.lib, analysisOpts(a));
+    }
+    // A sprint or hill climb venue with several courses: never assume one. The member picks the organiser (or adds a new
+    // one) before anything is timed or saved.
+    a.session.needsLayoutPick = false;
+    if (mustPickLayout(a, a.session)) {
+      var ps = a.session;
+      ps.needsLayoutPick = true;
+      ps.laps = []; ps.bestTime = null; ps.best = null;
+      delete ps.layoutId; delete ps.layout; delete ps.layoutPicked; delete ps.officialLines; delete ps.lapsFromTrace; delete ps.layoutLineGap;
+      delete ps.startLine; delete ps.finishLine; delete ps.organizer;
+      ps.problem = 'Pick which organiser ran ' + (ps.venue || 'this event') + '.';
     }
     // A hill climb, as picked or as the track list has it.
     if (a.session.type === 'sprint' && (a.hill || isHillSession(a.session, a.lib))) a.session.hill = true; else a.hill = false;
@@ -1946,10 +2303,13 @@
   // Every session says which logger or app recorded it (required on the Add page, shown to everyone on the session).
   // The popular ones are listed; Other takes a typed name. The pick is guessed from the file, else it is the member's
   // last one.
-  var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
+  var DASHCAM_LOGGER = 'Tesla Dashcam';
+  var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', DASHCAM_LOGGER, "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
   var LOGGER_MAX = 40;
   function loggerGuess(files) {
     var names = (files || []).map(function (f) { return String((f.f || f).name || ''); }).join(' ').toLowerCase();
+    // Tesla dashcam telemetry has frame numbers in place of a time column.
+    if ((files || []).some(function (f) { return /frame_seq_no/.test(String(f.text || '').slice(0, 600)); })) return DASHCAM_LOGGER;
     if (/racebox/.test(names)) return 'RaceBox';
     if (/telemetry-v1-|track.?mode/.test(names)) return 'Tesla Track Mode';
     if (/harry|\bhlt\b/.test(names)) return "Harry's LapTimer";
@@ -2096,7 +2456,8 @@
       ((a.lib && a.lib.venues) || []).forEach(function (vv) {
         if (vv.type !== 'sprint' || (s.venueId ? vv.id !== s.venueId : true)) return;
         (vv.layouts || []).forEach(function (l) {
-          var o = String(l.organizer || '').trim();
+          // A course with no organiser is listed by its name (the timing matches a course by organiser or name), so it can be picked.
+          var o = String(l.organizer || (l.startLine && l.finishLine ? l.name : '') || '').trim();
           if (o && orgs.indexOf(o) === -1) orgs.push(o);
           if (l.startLine && l.finishLine) courses.push({ id: l.id, name: o || l.name || 'the listed course', start: l.startLine, finish: l.finishLine });
         });
@@ -2137,6 +2498,8 @@
           (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
           (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-secondary tp-confirm" data-tap="done" role="switch" aria-checked="false">' + icon('check') + 'Correct lines?</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>';
+      } else if (s.needsLayoutPick) {
+        h += '<div class="tp-notice is-warn" id="tp-pick-layout">' + icon('warn') + '<div><b>Which organiser was it?</b><br>' + esc(s.venue || 'This track') + ' has a listed course, so ' + (a.orgNew ? 'type the new organiser\'s name below before your runs are timed.' : 'choose the organiser above before your runs are timed. If the organiser is not listed, choose Add a new organiser.') + '</div></div>';
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
@@ -2349,7 +2712,7 @@
       api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', hill: s2.type === 'sprint' && isHillSession(s2, a.lib), name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', layoutId: s2.type === 'sprint' ? '' : s2.layoutId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
         if (!d.success) { offBtn.disabled = false; status(d.message || 'Could not make that official.', 'error'); return; }
         // The course now exists: this file (and every other) is timed on its lines.
-        a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false;
+        a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.courseMade = true;
         analyse();
         status('Official lines saved. ' + d.relinked + ' of your saved sessions were linked to them.', 'ok');
       }).catch(function () { offBtn.disabled = false; status('Could not reach the server.', 'error'); });
@@ -2608,6 +2971,19 @@
     var v = s.venueId && ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
     return v && v.type === 'circuit' ? (v.layouts || []) : [];
   }
+  // Adding a sprint or hill climb at a venue with any listed course, and no organiser picked yet: the member must choose one
+  // of the listed organisers or add a new one, so a run from another year is never timed on the one listed course.
+  // Track days are not held to this: their layout is found from the GPS.
+  function mustPickLayout(a, s) {
+    if (a.lineEdit || (a.replaceId && !a.relayout) || !s.venueId) return false;
+    if (s.type === 'sprint') {
+      // Sprints and hill climbs: the organiser says which course. Their own lines, or a new organiser, are a choice too.
+      if (a.organizer || a.orgNew || a.courseMade || (a.startLine && a.finishLine)) return false;
+      var v = ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
+      return !!v && v.type === 'sprint' && (v.layouts || []).filter(function (l) { return l.startLine && l.finishLine; }).length > 0;
+    }
+    return false;
+  }
   function layoutFieldHtml(a, s) {
     if (a.lineEdit || (a.replaceId && !a.relayout) || s.type !== 'track' || !s.venueId) return '';
     var ls = venueLayouts(a, s);
@@ -2691,7 +3067,7 @@
       // Timed again against the new course: its official lines are the ones just sent, so the laps are the same.
       // The layout now exists: from here every file is timed on it (not as a different layout again), and the admin is not
       // sent a second request for it.
-      if (d.layoutId) { a.layoutPick = d.layoutId; a.addNow = false; a.addedLayout = true; }
+      if (d.layoutId) { a.layoutPick = d.layoutId; a.addNow = false; a.addedLayout = true; a.courseMade = true; }
       var again = analysisOpts(a);
       var next = T.analyse(a.rd, a.lib, again);
       if (a.date) { next.date = a.date; next.dateFrom = 'member'; }
@@ -2709,18 +3085,37 @@
   // Tell MT3UK about a course it cannot place on a leaderboard: a venue we do not list, a listed venue whose layout
   // was not recognised, or a layout with no official start line yet (the member's line is offered for it). Track days
   // find their own lap line, so this cannot wait for the member to tap one.
+  // A request to MT3UK for a track: best effort, and kept on the device to send later when there is no connection.
+  function sendRequest(body) {
+    var off = window.MT3UKOffline;
+    var keep = function () { if (off) off.queueCall('POST', '/track/requests', body, 'Track request: ' + (body.name || 'new track')); };
+    if (off && off.isOffline()) { keep(); return Promise.resolve(); }
+    return api('POST', '/track/requests', body).catch(function (e) { if (off && off.isNetworkError(e)) keep(); });
+  }
+  // With no connection (or a request that never reaches the worker) a session and its readings are kept on this
+  // device and sent later (js/laps-offline.js). carPut: the car with no photo yet, made when it is sent.
+  function queuedLabel(a, sess) { return (sess.venue || a.venueName || 'Session') + (sess.date ? ', ' + sess.date : '') + (a.car && a.car.name ? ' (' + a.car.name + ')' : ''); }
+  function savePost(a, body, rd, sess, carPut) {
+    var off = window.MT3UKOffline;
+    var keep = function () { return off.queueSession({ label: queuedLabel(a, sess), carName: (a.car && a.car.name) || '', post: body, source: sourceOf(rd), carPut: carPut || null }).then(function () { return { success: true, queued: true }; }); };
+    if (off && (off.isOffline() || carPut)) return keep();
+    return api('POST', '/track/sessions', body, true).catch(function (e) {
+      if (off && off.isNetworkError(e)) return keep();
+      throw e;
+    });
+  }
   function requestCourse(a, s) {
     if (s.type !== 'track' && s.type !== 'sprint') return;
     if (a.addedLayout) return;
     var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
     if (!(a.requestStart || ownLine || !s.layoutId)) return;
     var tr = traceOutline(s), out = tr.out, lap = tr.lap;
-    return api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
+    return sendRequest({ kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' });
   }
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
-  function saveBatch(a, carId) {
-    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null, noReadings = [];
+  function saveBatch(a, carId, carPut) {
+    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null, noReadings = [], queued = 0;
     // Files with real time stamps first: a file the car wrote with no time stamps may have no start line of its own,
     // so it borrows the one found on the files from the same upload.
     var ordered = items.filter(function (x) { return !x.rd.timeRebuilt; }).concat(items.filter(function (x) { return x.rd.timeRebuilt; }));
@@ -2742,16 +3137,17 @@
         if (!drive && !(a.session && a.session.addedCourse && s1.layoutId)) requestCourse(a, s1);
         var body = postBody(a, carId, s1);
         if (drive) { body.privacy = 'private'; body.venueName = ''; }
-        return api('POST', '/track/sessions', body, true).then(function (d) {
+        return savePost(a, body, x.rd, s1, carPut).then(function (d) {
           if (!d.success) { skipped.push({ name: x.f.name, reason: d.message || 'Could not save it.' }); return; }
+          if (d.queued) { queued++; return; }
           made.push(d.session.id);
           return keepReadings(d.session.id, x.rd).then(function (r) { if (r && r.kept === false) noReadings.push(x.f.name); });
         });
       });
     });
     return chain.then(function () {
-      if (!made.length) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
-      return { success: true, batch: made.length, ids: made, skipped: skipped, noReadings: noReadings };
+      if (!made.length && !queued) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
+      return { success: true, batch: made.length + queued, queued: queued, ids: made, skipped: skipped, noReadings: noReadings };
     });
   }
   function saveSession(btn) {
@@ -2762,26 +3158,43 @@
     // A drag run at a strip we do not list: save it, and tell MT3UK about the strip.
     if (s.type === 'drag' && !s.atVenue && !a.street && s.runs && s.runs[0]) {
       var stripEl = document.getElementById('tp-req-name');
-      api('POST', '/track/requests', { kind: 'drag', name: (stripEl && stripEl.value.trim()) || a.venueName || '', lat: s.runs[0].lat, lng: s.runs[0].lng, note: 'Drag run saved at a strip we do not list' }).catch(function () {});
+      sendRequest({ kind: 'drag', name: (stripEl && stripEl.value.trim()) || a.venueName || '', lat: s.runs[0].lat, lng: s.runs[0].lng, note: 'Drag run saved at a strip we do not list' });
     }
     s.fileName = (a.files || []).map(function (f) { return f.name; }).join(', ').slice(0, 200);
+    // No connection: the session is kept on this device (js/laps-offline.js). Changing a saved session and adding a new
+    // track to the list need the worker, so they wait.
+    if (isOffline() && a.replaceId) { status('Adding the file to a saved session needs a connection. Try again when you are online.', 'error'); return; }
+    if (isOffline() && a.addNow && canAddNow(a, s)) { status('Adding a new track to the list needs a connection. Switch off "Add this track now" and the session is kept on this device, and MT3UK is told about the track when it is sent.', 'error'); return; }
     btn.disabled = true;
     status('Saving...');
+    var carPut = null, offNow = isOffline();
     var carReady = a.car.virtual && !a.replaceId
-      ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
+      ? (offNow ? Promise.resolve(null) : api('PUT', '/my-builds/car', { carId: a.car.id }).catch(function (e) { if (window.MT3UKOffline && window.MT3UKOffline.isNetworkError(e)) return null; throw e; }))
+        .then(function (d) {
+          // Offline: the car is made when the session is sent.
+          if (!d) { carPut = a.drive && a.drive !== a.car.drive ? { carId: a.car.id, drive: a.drive } : { carId: a.car.id }; return a.car.id; }
+          if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id;
+        })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
       // A choice of driven wheels that differs from the car's is kept on the car for next time.
-      if (a.drive && a.car && a.drive !== a.car.drive) { a.car.drive = a.drive; mine = null; api('PUT', '/my-builds/car', { carId: carId, drive: a.drive }).catch(function () {}); }
+      if (a.drive && a.car && a.drive !== a.car.drive && !carPut) {
+        a.car.drive = a.drive; mine = null;
+        var driveBody = { carId: carId, drive: a.drive };
+        if (offNow) { if (window.MT3UKOffline) window.MT3UKOffline.queueCall('PUT', '/my-builds/car', driveBody, 'Driven wheels for your car'); }
+        else api('PUT', '/my-builds/car', driveBody).catch(function (e) { if (window.MT3UKOffline && window.MT3UKOffline.isNetworkError(e)) window.MT3UKOffline.queueCall('PUT', '/my-builds/car', driveBody, 'Driven wheels for your car'); });
+      }
       return (a.addNow && !a.replaceId && canAddNow(a, s) ? addCourseNow(a) : Promise.resolve(false)).then(function (added) {
         if (added) { s = a.session; status('Saving...'); } else requestCourse(a, s);
         if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
-        if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId);
-        return api('POST', '/track/sessions', postBody(a, carId, s), true);
+        if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId, carPut);
+        return savePost(a, postBody(a, carId, s), a.rd, s, carPut);
       });
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
+      // Kept on this device: the list says so, and shows what is waiting.
+      if (d.queued) { justSaved = { batch: d.batch || 1, queued: d.queued === true ? 1 : d.queued, ids: d.ids || [], skipped: d.skipped || [] }; go('', false, true); return; }
       if (d.batch) { justSaved = { batch: d.batch, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
       justSaved = { files: (a.files || []).length || 1 };
       // A changed session was edited in place of its own page, so that page is redrawn in the same history entry.
@@ -3011,7 +3424,8 @@
     }
     return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + '<h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
-  // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
+  // The track name on a session at a track we do not list: the member suggests a new name and sends it for approval (no
+  // permission step); the admin accepts or denies it and the member is emailed either way.
   // At a track we do list, what can be wrong is the name of its layout ("Brands Hatch, New Layout"), which every session on
   // that layout shares: a rename is asked for here and, once MT3UK approves it, changes for everyone.
   function layoutRename(s) { return !!(s.venueId && s.layoutId && s.layout && s.type !== 'drag' && s.type !== 'other'); }
@@ -3023,33 +3437,19 @@
   function drawRename(s, st) {
     var box = document.getElementById('tp-rename');
     if (!box) return;
-    var h = '', p = st && st.proposal, lay = layoutRename(s), thing = lay ? 'layout' : 'track', cur = lay ? s.layout : s.venue;
-    if (!st || st.state === 'none') {
-      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, ask MT3UK to let you suggest a new one. MT3UK checks it before it changes for everyone.</p>'
-        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>') +
-        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="' + (lay ? 'For example, Indy circuit' : 'For example, it is spelt Abingdon') + '"></div>' +
-        '<button type="button" class="btn btn-secondary" id="tp-rename-request">' + icon('pin') + 'Request rename</button>';
-    } else if (st.state === 'pending') {
-      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this ' + thing + '.</span></p>';
-    } else if (p) {
-      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
-        '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Change it again</button>';
+    var h = '', p = st && st.proposal, lay = layoutRename(s), cur = lay ? s.layout : s.venue;
+    if (p) {
+      h = '<p class="tp-src">' + icon('info') + '<span>Your suggested name has gone to MT3UK. We will email you when it has been approved or turned down. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
+        '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Suggest a different name</button>';
     } else {
-      h = '<p class="tp-sub">MT3UK has said you can rename this ' + thing + '. Enter the name and send it. The name only changes once MT3UK has approved it' + (lay ? ', and then it changes for everyone with a session on this layout' : '') + '.</p>' +
+      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, suggest a new one. MT3UK checks it before it changes for everyone with a session on this layout.</p>'
+        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, suggest a new name. MT3UK checks it before it changes.</p>') +
         '<div class="tp-field"><label for="tp-rename-name">' + (lay ? 'Layout name' : 'Track name') + '</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(cur) + '"></div>' +
         '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
     }
     h += '<p class="tp-small tp-err" id="tp-rename-note" role="status"></p>';
     box.innerHTML = h;
-    var note = document.getElementById('tp-rename-note'), req = document.getElementById('tp-rename-request'), send = document.getElementById('tp-rename-send'), again = document.getElementById('tp-rename-edit');
-    if (req) req.addEventListener('click', function () {
-      req.disabled = true;
-      var why = document.getElementById('tp-rename-why');
-      api('POST', '/track/rename/request', { id: s.id, note: why ? why.value.trim() : '' }).then(function (d) {
-        if (!d.success) { req.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
-        drawRename(s, { state: d.state || 'pending', proposal: null });
-      }).catch(function () { req.disabled = false; note.textContent = 'Could not reach the server.'; });
-    });
+    var note = document.getElementById('tp-rename-note'), send = document.getElementById('tp-rename-send'), again = document.getElementById('tp-rename-edit');
     if (again) again.addEventListener('click', function () { drawRename(s, { state: 'granted', proposal: null }); });
     if (send) send.addEventListener('click', function () {
       var name = document.getElementById('tp-rename-name').value.trim();
@@ -3169,13 +3569,22 @@
 
   // ---------- One session ----------
   var view = null;
+  // A session saved on this device and not sent yet: drawn from the queue (js/laps-offline.js localSession), as the owner's
+  // read only copy of it.
+  function localGet(id) {
+    var off = window.MT3UKOffline;
+    return (off && off.localSession ? off.localSession(id) : Promise.resolve(null)).then(function (s) {
+      return s ? { success: true, session: s, local: true } : { success: false };
+    });
+  }
   function showSession(id) {
     loading();
     var my = routeSeq;
-    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
+    var isLocal = /^local-\d+$/.test(id);
+    Promise.all([isLocal ? localGet(id) : api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
       if (stale(my)) return;
       var d = r[0];
-      if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
+      if (!d.success) return failed(isLocal ? 'This session is not on this device any more. It has been sent or removed: open it from your list.' : 'This session isn\'t available. It may be private or removed.');
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
       VW = d.session.vehicleType === 'bike' ? 'bike' : 'car';
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
@@ -3184,7 +3593,7 @@
       // Other members' best laps at this track, from its leaderboard.
       var bp = d.session.venueId && d.session.layoutId && (d.session.type === 'track' || d.session.type === 'sprint')
         ? (d.session.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(d.session.venueId) + '&layout=' + encodeURIComponent(d.session.layoutId) : '';
-      var board = bp ? api('GET', bp).catch(function () { return null; }) : Promise.resolve(null);
+      var board = bp && !isLocal ? api('GET', bp).catch(function () { return null; }) : Promise.resolve(null);
       return board.then(function (b) {
         if (stale(my)) return;
         var mineIds = {};
@@ -3192,8 +3601,13 @@
         view.members = ((b && b.entries) || []).filter(function (e) { return e.sessionId && e.sessionId !== d.session.id && e.carId !== d.session.carId && !mineIds[e.sessionId] && e.time; }).slice(0, 50);
         view.members.forEach(function (e) { view.memberById[e.sessionId] = e; });
         drawSession();
+        if (d.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(d.cachedAt));
+        if (d.local) app.insertAdjacentHTML('afterbegin', '<div class="tp-notice is-ok" id="tp-local-note" role="status">' + icon('check') + '<div><b>On this device, not sent yet.</b><br>Saved ' + esc(new Date(d.session.savedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' at ' + new Date(d.session.savedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })) + '. You can look at it here with its map and playback. It is sent when you are next online with Laps open, and then you can share it and change its settings.</div></div>');
       });
-    }).catch(function (err) { if (window.console) console.error(err); failed('This session could not be loaded. Check your connection and try again.'); });
+    }).catch(function (err) {
+      if (window.console) console.error(err);
+      failed(isOffline() ? 'This session is not on this device. Open it once while you are online and it will be here next time you are offline.' : 'This session could not be loaded. Check your connection and try again.');
+    });
   }
   // Skip to section: lists the sections this session page has and scrolls to the one chosen.
   var SKIP_TO = [['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'], ['#tp-mapcard', 'Map'], ['#tp-gbox', 'G-force and speed'], ['[data-tile="corners"]', 'Corner by corner'],
@@ -3220,39 +3634,9 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
-  // After Session settings is saved: when the conditions, tyres, brake pads, logger or weather changed and there are other sessions
-  // at the same track that day, offer the same change for each of them (only what changed is sent).
-  function offerDay(m, s, was, saved, ty, pd, edit) {
-    var key = dayKey(s), others = key ? ((m && m.sessions) || []).filter(function (x) { return x.id !== s.id && dayKey(x) === key; }) : [];
-    if (!others.length) return;
-    var send = {}, names = [];
-    if ((saved.conditions || '') !== was.conditions && saved.conditions) { send.conditions = saved.conditions; names.push('conditions'); }
-    if ((saved.tyres || '') !== was.tyres && saved.tyres) { Object.assign(send, ty); names.push('tyres'); }
-    if ((saved.pads || '') !== was.pads && saved.pads) { Object.assign(send, pd); names.push('brake pads'); }
-    if ((saved.logger || view.s.logger || '') !== was.logger && view.s.logger) { send.logger = view.s.logger; names.push('logger'); }
-    if (saved.temp != null && String(saved.temp) !== was.temp) {
-      send.temp = saved.temp; send.tempSource = saved.tempSource || 'member';
-      if (send.tempSource === 'weather' && saved.weather) send.weather = saved.weather;
-      names.push(saved.tempSource === 'weather' ? 'weather' : 'air temperature');
-    }
-    if (!names.length) return;
-    var list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
-    var many = others.length > 1 ? 'the other ' + others.length + ' sessions' : 'the other session';
-    if (!window.confirm('You changed the ' + list + '. Apply the same to ' + many + ' at ' + trackName(s) + ' on ' + niceDate(s.date) + ' too?')) return;
-    status('Applying to ' + many + '...', '');
-    var chain = Promise.resolve(), failed = 0;
-    others.forEach(function (x) {
-      chain = chain.then(function () { return api('PUT', '/track/session', Object.assign({ id: x.id }, send)).then(function (r) { if (!r.success) failed++; }).catch(function () { failed++; }); });
-    });
-    chain.then(function () {
-      mine = null; counts = null;
-      return getMine().then(function (mm) { view.mine = mm; });
-    }).then(function () {
-      status(failed ? failed + ' of ' + others.length + ' sessions could not be changed. Try again.' : 'Saved, and applied to ' + many + ' that day.', failed ? 'error' : 'ok');
-    });
-  }
   function drawSession() {
     var s = view.s;
+    lastSession = s.id;
     // Add a session stays in the page heading on the owner's own session, for the same car.
     heroAddCar = s.mine && s.carId ? s.carId : null;
     heroAdd();
@@ -3261,9 +3645,9 @@
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
-    h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><span>Skip to</span><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Choose a section</option></select></label>' +
-      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
+      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3293,8 +3677,8 @@
     if (s.mine && !s.hasSource) wireReadingsAgain();
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? (isHillSession(s, library) ? 'Hill climb run' : 'Sprint run') : 'Track session', res = sessionResult(s);
-      wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
-        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK' });
+      wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | Laps by MT3UK', campaign: 'track_session',
+        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on Laps by MT3UK' });
     }
     if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
       var slot = document.getElementById('tp-rank-slot');
@@ -3305,6 +3689,13 @@
   // Set when a session has just been saved, so the page it opens on says so once.
   var justSaved = null;
   function savedHtml(j) {
+    if (j.queued) {
+      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved on this device</b><br>' + (j.queued === 1 ? 'Your session is' : j.queued + ' sessions are') +
+        ' kept here because there is no connection. ' + (j.queued === 1 ? 'It is' : 'They are') + ' sent when you are next online with Laps open, and your changes are synced then.' +
+        (j.batch > j.queued ? '<br><span class="tp-small">' + (j.batch - j.queued) + ' more saved now.</span>' : '') +
+        (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') +
+        '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
+    }
     if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     if (j.batch) {
       return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' +
@@ -3551,7 +3942,7 @@
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '</div><div class="tp-board" id="tp-board"><div class="card tp-o-speed" data-tile="speed"><div class="tp-chart-head">' + '<h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + '</div>' +
-        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><select class="field tp-layoutsel" id="tp-layout" aria-label="Screen layout" title="Screen layout"><option value="auto">Layout: Auto</option><option value="upright">Layout: Upright</option><option value="wide">Layout: Wide</option></select><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
@@ -3562,11 +3953,12 @@
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
-        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
+        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button><select class="field tp-layoutsel" id="tp-layout2" aria-label="Screen layout" title="Screen layout"><option value="auto">Layout: Auto</option><option value="upright">Layout: Upright</option><option value="wide">Layout: Wide</option></select></div></div></div>' +
         '<div class="tp-fs-laps" id="tp-fs-laps"></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
+'<div class="tp-splith" id="tp-splith" role="separator" aria-orientation="horizontal" aria-label="Drag to make the map taller or shorter" title="Drag to make the map taller or shorter (double tap to reset)"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
-        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>G-Force</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
@@ -3775,10 +4167,35 @@
   }
   // A phone on its side in full screen: the map and the charts share the screen, split where the member drags the
   // divider (remembered in this browser), the map having at least a third and at most most of it.
-  function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560; }
+  // The full screen layouts: Upright (taller than wide), Wide (wider than tall, up to 760px high: a phone on its side, a
+  // Tesla, a small laptop) and Large (wider than tall and over 760px high). Auto picks by the window; the member can
+  // force Upright or Wide with the Layout choice, remembered in this browser.
+  function layoutPref() { try { var v = localStorage.getItem('mt3ukTrackLayout'); return v === 'upright' || v === 'wide' ? v : 'auto'; } catch (e) { return 'auto'; } }
+  function layoutMode() {
+    var p = layoutPref();
+    if (p !== 'auto') return p;
+    var w = window.innerWidth, h = window.innerHeight;
+    return w > h ? (h <= 760 ? 'wide' : 'large') : 'upright';
+  }
+  function applyFullLayout() {
+    var card = document.getElementById('tp-mapcard'), sels = document.querySelectorAll('.tp-layoutsel');
+    if (card) { if (cmpFull) card.setAttribute('data-layout', layoutMode()); else card.removeAttribute('data-layout'); }
+    for (var i = 0; i < sels.length; i++) sels[i].value = layoutPref();
+  }
+  function landFull() { return cmpFull && layoutMode() === 'wide'; }
   var mapSplit = 60;
   try { var ms = parseFloat(localStorage.getItem('mt3ukTrackSplit')); if (ms >= 30 && ms <= 85) mapSplit = ms; } catch (e) { /* storage blocked */ }
-  function applySplit() { var card = document.getElementById('tp-mapcard'); if (card) card.style.setProperty('--tp-map', mapSplit + '%'); }
+  // Portrait full screen: the map's height as a share of the screen, set by dragging the bar under it (none until it has
+  // been dragged, when the map takes what the controls and charts leave).
+  var mapH = null;
+  try { var mh = parseFloat(localStorage.getItem('mt3ukTrackSplitH')); if (mh >= 20 && mh <= 75) mapH = mh; } catch (e) { /* storage blocked */ }
+  function applySplit() {
+    var card = document.getElementById('tp-mapcard');
+    if (!card) return;
+    card.style.setProperty('--tp-map', mapSplit + '%');
+    if (mapH) card.style.setProperty('--tp-maph', mapH + '%'); else card.style.removeProperty('--tp-maph');
+    card.classList.toggle('has-maph', !!mapH);
+  }
   // With the charts beside the map, the colour switch and Exit join the panel's top row, so they wrap with the chips
   // however narrow the panel is dragged; otherwise the heading is back at the top of the card.
   function placeHead() {
@@ -3818,7 +4235,13 @@
     e.preventDefault();
     try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
     h.classList.add('is-dragging');
-    function mv(ev) { mapSplit = Math.max(30, Math.min(85, Math.round(ev.clientX / window.innerWidth * 1000) / 10)); applySplit(); }
+    var raf = 0;
+    // The charts are drawn to their own width, so they are redrawn as the divider moves (once a frame): left alone they
+    // would be stretched with the panel, and their labels with them, until the drag ended.
+    function mv(ev) {
+      mapSplit = Math.max(30, Math.min(85, Math.round(ev.clientX / window.innerWidth * 1000) / 10)); applySplit();
+      if (!raf && cmpDrawG) raf = requestAnimationFrame(function () { raf = 0; if (cmpDrawG) cmpDrawG(); });
+    }
     function up() {
       h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
       h.classList.remove('is-dragging');
@@ -3826,6 +4249,41 @@
       if (view && view.s) drawCompare(view.s, true);
     }
     h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  // The bar under the map in portrait full screen: drag to make the map taller or shorter, double tap to put it back.
+  document.addEventListener('pointerdown', function (e) {
+    var h = e.target.closest && e.target.closest('#tp-splith');
+    var card = document.getElementById('tp-mapcard'), wrap = document.getElementById('tp-mapwrap');
+    if (!h || !cmpFull || landFull() || !card || !wrap) return;
+    e.preventDefault();
+    try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+    h.classList.add('is-dragging');
+    var top = wrap.getBoundingClientRect().top, high = card.getBoundingClientRect().height, raf = 0;
+    // Start from the height the map has now, so the first drag moves it from where it is.
+    if (!mapH) { mapH = Math.max(20, Math.min(75, Math.round(wrap.getBoundingClientRect().height / high * 1000) / 10)); applySplit(); }
+    function mv(ev) {
+      var before = mapH;
+      mapH = Math.max(20, Math.min(75, Math.round((ev.clientY - top) / high * 1000) / 10)); applySplit();
+      // Never so tall that the charts are squeezed out: step back to where they last had room.
+      var gf = document.getElementById('tp-gforce');
+      if (gf && !gf.closest('.is-off') && gf.clientHeight < 110 && before && mapH > before) { mapH = before; applySplit(); }
+      // The charts take the room the map leaves, so they are drawn again (once a frame) as it moves.
+      if (!raf && cmpDrawG) raf = requestAnimationFrame(function () { raf = 0; if (cmpDrawG) cmpDrawG(); });
+    }
+    function up() {
+      h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      h.classList.remove('is-dragging');
+      try { localStorage.setItem('mt3ukTrackSplitH', String(mapH)); } catch (err) { /* storage blocked */ }
+      if (view && view.s) drawCompare(view.s, true);
+    }
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  document.addEventListener('dblclick', function (e) {
+    if (!(e.target.closest && e.target.closest('#tp-splith')) || !cmpFull) return;
+    mapH = null;
+    try { localStorage.removeItem('mt3ukTrackSplitH'); } catch (err) { /* storage blocked */ }
+    applySplit();
+    if (view && view.s) drawCompare(view.s, true);
   });
   var cmpFull = false, cmpDrawG = null, cmpAlign = null;
   // The map's lap A in speed colours (remembered in this browser).
@@ -3975,6 +4433,7 @@
   function fullUi() {
     var b = document.getElementById('tp-full'), card = document.getElementById('tp-mapcard');
     if (card) card.classList.toggle('is-full', cmpFull);
+    applyFullLayout();
     document.body.classList.toggle('tp-noscroll', cmpFull);
     if (b) {
       b.innerHTML = icon(cmpFull ? 'x' : 'expand') + (cmpFull ? 'Exit full screen' : 'Full screen');
@@ -4026,7 +4485,7 @@
   window.addEventListener('resize', function () {
     if (!cmpFull) return;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { panelClamp(); placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
+    resizeTimer = setTimeout(function () { applyFullLayout(); panelClamp(); placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
   });
   // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
   var cmpMap = null;
@@ -4076,6 +4535,13 @@
     panelApply();
     function showCarSpeed() { var mc = document.getElementById('tp-mapcard'); if (mc) mc.setAttribute('data-carspeed', carSpeed ? 'on' : 'off'); if (cs) cs.setAttribute('aria-checked', String(carSpeed)); }
     showCarSpeed();
+    Array.prototype.forEach.call(document.querySelectorAll('.tp-layoutsel'), function (lsel) {
+      lsel.addEventListener('change', function () {
+        try { localStorage.setItem('mt3ukTrackLayout', lsel.value); } catch (e) { /* storage blocked */ }
+        applyFullLayout(); placeHead();
+        if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
+      });
+    });
     if (cs) cs.addEventListener('click', function () {
       carSpeed = !carSpeed;
       showCarSpeed();
@@ -4274,11 +4740,11 @@
         if (!defs.length) { alignScrub(); return; }
         // One chart has the full height (in full screen a share of a tall screen); stacked ones are shorter each. In
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
-        var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
+        var base = cmpFull ? Math.max(110, Math.min(layoutMode() === 'large' ? 260 : 200, Math.round(window.innerHeight * 0.22))) : 150;
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
-        if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) {
+        if (cmpFull && (layoutMode() === 'wide' || (mapH && !landFull()))) {
           // The room left in the panel once the chips, switches, figures, slider and clock have theirs (they wrap on a
           // narrow screen, so they are measured rather than guessed).
           var pbox = document.getElementById('tp-gbox'), used = 0;
@@ -4408,12 +4874,13 @@
         tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       var dp = [];
-      for (var x = 0; x <= dmax; x += 10) dp.push([x, at(B.trace, x)[1] - at(A.trace, x)[1]]);
+      // Lap A against lap B as the reference, as racing apps show a delta: below the line A is quicker (negative), above it slower.
+      for (var x = 0; x <= dmax; x += 10) dp.push([x, at(A.trace, x)[1] - at(B.trace, x)[1]]);
       var gmin = Math.min.apply(null, dp.map(function (p) { return p[1]; })), gmax = Math.max.apply(null, dp.map(function (p) { return p[1]; }));
-      var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
+      var gyt = V.nice(Math.min(-0.5, gmin), Math.max(0, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(A.trace, x)[1] - at(B.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       // Hovering a chart takes over from playback.
       function userHover() { stopPlay(); pb.active = false; }
@@ -4432,7 +4899,7 @@
         if (resume.playing) startPlay(resume.dir);
       }
       var total = B.time - A.time;
-      document.getElementById('tp-gap-cap').textContent = 'Above the line, A is ahead. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'ahead' : 'behind') + '.';
+      document.getElementById('tp-gap-cap').textContent = 'Below the line, A is faster. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'faster' : 'slower') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];
       document.getElementById('tp-corners').innerHTML = gains.length ? '<thead><tr><th>Corner</th><th>Slowest, A</th><th>Slowest, B</th><th>A gains</th></tr></thead><tbody>' + gains.map(function (g) { return '<tr><td>' + g.n + (g.name ? ' ' + esc(g.name) : '') + '</td><td>' + Math.round(V.spd(g.va)) + '</td><td>' + Math.round(V.spd(g.vb)) + '</td><td>' + (g.gain >= 0 ? '+' : '') + g.gain.toFixed(2) + ' s</td></tr>'; }).join('') + '</tbody>' : '<tbody><tr><td>No corners found on this lap.</td></tr></tbody>';
       V.gg(document.getElementById('tp-gg'), A.trace, c1);
@@ -4559,6 +5026,11 @@
     var l = s.launch;
     if (s.type !== 'sprint' || !l || !l.from) return '';
     return '<p class="tp-small tp-launch" id="tp-launch">' + icon('info') + (l.from === 'g' ? 'Clock started from the accelerometer, ' + Number(l.lead).toFixed(2) + ' s before the speed rose.' : 'Clock started from the speed (the accelerometer did not move first).') + '</p>';
+  }
+  // A session from Tesla dashcam telemetry: timed from frame numbers, and on the leaderboards.
+  function dashcamLine(s) {
+    if (!s.dashcam && s.logger !== DASHCAM_LOGGER) return '';
+    return '<p class="tp-small tp-dashcam" id="tp-dashcam">' + icon('info') + 'Tesla dashcam: timed from the video frame numbers at 36 a second.</p>';
   }
   function ownerHtml(s) {
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));
@@ -4749,8 +5221,6 @@
     function closeSession() { goBack(''); }
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
-      // What each setting was, so we can tell what changed and offer the same change to the rest of the day.
-      var was = { conditions: view.s.conditions || '', tyres: view.s.tyres || '', pads: view.s.pads || '', logger: view.s.logger || '', temp: view.s.temp == null ? '' : String(view.s.temp) };
       var ty = tyrePayload(readTyre('tp-e-tyre')), pd = padPayload(readPads('tp-e-pad'));
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value, publicNote: document.getElementById('tp-e-public-note').value.trim(), logger: loggerValue('tp-e-logger') })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
@@ -4765,10 +5235,7 @@
         if (pl) pl.remove();
         document.querySelector('.tp-session-head .tp-sub').insertAdjacentHTML('afterend', publicNoteHtml(view.s.publicNote));
         dirty = false;
-        getMine().then(function (m) {
-          view.mine = m; drawSession(); status('Saved.', 'ok');
-          offerDay(m, s, was, d.session, ty, pd, edit);
-        });
+        getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
     }
     document.getElementById('tp-e-save').addEventListener('click', saveSettings);
@@ -4875,15 +5342,17 @@
       var d = r[0];
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
-      if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
-      h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + (d.mine ? '<a class="chip tp-others" href="track.html" data-go="" aria-label="What I see" title="What I see: back to my sessions">' + icon('eye') + '</a>' : shareDot('Share this build')) + '</div></div>';
+      if (d.mine) { currentCar = carId; h += '<div class="tp-publicbar" role="note">' + icon('eye') + '<span><b>Public view.</b> This is what other members see. Only the sessions you share are listed, and nothing here can be edited.</span></div>'; }
+      h += d.sessions.length ? '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId, true) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
-      wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'MT3UK build') + ' | MT3UK', campaign: 'track_build',
-        text: (c.name || 'This MT3UK build') + '’s track sessions on MT3UK' });
+      wireTrackToggles();
+      wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'Laps build') + ' | Laps by MT3UK', campaign: 'track_build',
+        text: (c.name || 'This build') + '’s track sessions on Laps by MT3UK' });
     }).catch(function () { failed('That build could not be loaded.'); });
   }
 
+  checkTreeAccess();
   route();
 })();

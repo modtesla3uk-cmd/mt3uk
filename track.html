@@ -30,8 +30,9 @@
 <meta name="twitter:description" content="Laps by MT3UK: upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your car, and join the leaderboards.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
-<link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/site-header.css?v=20271014">
 <link rel="stylesheet" href="css/laps-panels.css?v=1">
+<link rel="stylesheet" href="css/laps-offline.css?v=12">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -183,8 +184,9 @@
   .tp-day-expand { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin: -6px -4px -6px 0; padding: 0; border: 0; border-radius: 50%; background: var(--paper-2); color: var(--ink); cursor: pointer; }
   .tp-day-expand .icon { transform: rotate(90deg); }
   .tp-day-expand:hover, .tp-day-expand:focus-visible { background: var(--hairline-strong); }
-  .tp-daygroup-less { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 2px 0 0; padding: 0 10px 0 4px; border: 0; border-radius: var(--radius-pill); background: none; color: var(--steel); font: inherit; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
+  .tp-daygroup-less { justify-self: end; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 2px 0 0; padding: 0 10px 0 4px; border: 0; border-radius: var(--radius-pill); background: none; color: var(--steel); font: inherit; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
   .tp-daygroup-less .icon { transform: rotate(-90deg); }
+  .tp-daygroup-less { margin-left: auto; justify-self: end; }
   .tp-daygroup-less:hover, .tp-daygroup-less:focus-visible { color: var(--ink); background: var(--paper-2); }
   /* A day's rows keep the result and the Shared pill on the time's line (never wrapped under it), so a day is short. */
   .tp-daygroup .tp-row { flex-wrap: nowrap; min-height: 52px; padding: 8px 12px; }
@@ -202,6 +204,14 @@
   .tp-dayedit h3 { margin: 0 0 4px; font-size: 1rem; }
   .tp-dayedit .tp-switch { margin: 6px 0; }
   .tp-dayedit .tp-actions { margin-top: 10px; }
+  /* The bulk edit is a compact two-column form, no wider than it needs to be: Conditions and Sharing, the temperature and weather, the tyres and the pads side by side, then the logger. */
+  .tp-dayedit { max-width: 680px; }
+  .tp-dayedit .tp-de-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; align-items: start; }
+  .tp-dayedit .tp-de-grid > .tp-field, .tp-dayedit .tp-de-grid > .tp-weather-row { margin: 0; }
+  .tp-dayedit .tp-weather-row { align-self: end; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .tp-dayedit .tp-de-kit .tp-switch { min-height: 40px; margin: 2px 0; }
+  .tp-dayedit .tp-tyre-note { margin: 0 0 6px; }
+  @media (max-width: 640px) { .tp-dayedit .tp-de-grid { grid-template-columns: 1fr; } }
   .tp-daygroup-all { margin-top: 8px; gap: 8px; }
   .tp-daygroup[data-open="false"] .tp-daygroup-all { display: none; }
   .tp-daygroup[data-open="true"] .tp-daygroup-best { display: none; }
@@ -246,6 +256,33 @@
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
   .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
+  /* The vehicle box is one slim row at every width: the name and its session count together. */
+  .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
+  .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  /* The Sessions list, tightened for a phone: small headings, one row for the title and its buttons, and the sort and filter drop-downs two to a row. */
+  .tp-publicbar { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: #fff; color: var(--steel); font-size: 0.88rem; line-height: 1.4; }
+  .tp-publicbar .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--ink); }
+  .tp-publicbar b { color: var(--ink); }
+  .tp-others { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
+  .tp-others .icon { width: 20px; height: 20px; }
+  .tp-list-head { align-items: center; flex-wrap: nowrap; gap: 8px; }
+  .tp-list-head .tp-head-title { flex: 1 1 auto; min-width: 0; }
+  .tp-list-head .tp-sub { margin: 2px 0 0; }
+  .tp-list-head .tp-head-side { flex: none; gap: 6px; flex-wrap: nowrap; }
+  @media (max-width: 780px) {
+    .tp-vhead h2 { font-size: 0.95rem; }
+    .tp-list-head h2 { font-size: 1.15rem; }
+    .tp-list-head .tp-sub { font-size: 0.8rem; }
+    .tp-list-head .chip { min-height: 40px; }
+    .tp-list-head .tp-refresh, .tp-list-head .tp-find-toggle, .tp-list-head .tp-others { width: 40px; }
+    .tp-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 0; }
+    .tp-tools .tp-sort { width: auto; }
+    .tp-tools .tp-filters { display: contents; }
+    .tp-tools .tp-field, .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
+    .tp-tools { align-items: start; }
+    .tp-tools .tp-field label { font-size: 0.72rem; margin-bottom: 2px; }
+    .tp-tools .field { min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 0.9rem; }
+  }
   .tp-filter-note { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; color: var(--steel); }
   .tp-filter-note .chip { min-height: 32px; }
   @media (max-width: 560px) { .tp-filters { width: 100%; } .tp-filters .tp-field { flex: 1 1 45%; min-width: 0; max-width: none; } }
@@ -268,22 +305,27 @@
   .tp-find-range[hidden], .tp-tools[hidden], .tp-find [hidden] { display: none; }
   .tp-find-count { margin: 0 0 6px; color: var(--steel); }
   @media (max-width: 780px) { .tp-find-range .tp-field { flex: 1; width: auto; min-width: 140px; } }
-  .tp-trackrow { min-height: 52px; padding: 8px 56px 8px 14px; }
+  /* A track's whole row is the toggle: it steps down to the layouts and never opens a page of its own. */
+  .tp-trackrow { width: 100%; min-height: 52px; padding: 8px 14px; font: inherit; text-align: left; cursor: pointer; }
   .tp-trackwrap { position: relative; }
-  .tp-track-toggle { position: absolute; top: 4px; right: 6px; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--steel); cursor: pointer; }
-  .tp-track-toggle:hover { background: var(--paper-2); color: var(--ink); }
-  .tp-track-toggle .icon { transition: transform 0.15s; }
-  .tp-track-toggle[aria-expanded="true"] .icon { transform: rotate(90deg); }
+  .tp-trackrow > .icon { transition: transform 0.15s; }
+  .tp-trackrow[aria-expanded="true"] > .icon { transform: rotate(90deg); }
   .tp-layouts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 6px 0 2px 18px; padding-left: 12px; border-left: 2px solid var(--hairline-strong); }
   .tp-layoutwrap, .tp-trackwrap { min-width: 0; }
   .tp-layouts[hidden] { display: none; }
+  .tp-kindwrap { display: grid; gap: 6px; }
+  .tp-kind-body { display: grid; gap: 6px; margin: 0 0 2px 0; }
+  .tp-kind-body[hidden] { display: none; }
+  .tp-kindrow { font-weight: 600; }
   .tp-layoutrow { width: 100%; min-height: 46px; padding: 6px 12px; background: var(--paper-2); font: inherit; text-align: left; cursor: pointer; }
   .tp-layoutrow .tp-row-main b { font-size: 0.9rem; }
   .tp-layoutrow > .icon { transition: transform 0.15s; }
   .tp-layoutrow[aria-expanded="true"] > .icon { transform: rotate(90deg); }
-  .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px; padding-left: 10px; border-left: 2px solid var(--hairline); }
+  /* One rule for the whole tree (the layouts'): the dates under a layout step in once, no rule of their own, so every date
+     tile under every layout starts in the same column. */
+  .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px 14px; padding-left: 0; border-left: 0; }
   .tp-layout-sessions[hidden] { display: none; }
-  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { padding-left: 6px; } }
+  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { margin-left: 10px; } }
   .tp-tracklist { gap: 8px; }
   .tp-sort { width: 180px; }
   @media (max-width: 780px) { .tp-sort { width: 100%; } }
@@ -332,6 +374,7 @@
   .tp-dark-hero .tp-what-list { color: #d3d8e2; }
   .tp-dark-hero .tp-what-list b { color: #fff; }
   /* Add a session sits under Leaderboards on the list of sessions, the same size and orange, as on the Leaderboard. */
+  .page-hero h1 .tp-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; stroke-width: 2.2; }
   .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; position: relative; }
   /* The tip: a light bulb beside Add a session that opens the tip in a box under it, over the page, as on the Leaderboard. */
   .tp-hero-actions [data-laps-tip], .tp-hero-actions .laps-tip-bulbmode { display: contents; }
@@ -342,15 +385,22 @@
   .tp-dark-hero .laps-tip-pop[hidden] { display: none; }
   .tp-dark-hero .laps-tip-pop b { color: #fff; }
   .tp-dark-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
-  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: column; align-items: flex-end; } }
+  /* Desktop: Add a session and the bulb sit on the What are Sessions? row at the right, so the banner is no taller than it needs to be. */
+  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: row; align-items: center; } }
   .tp-hero-actions[hidden] { display: none; }
+  /* While the member's list loads, Add a session and the bulb are a soft placeholder so the heading does not jump when they arrive (js/track-page.js heroSettle). */
+  .page-hero .tp-lb-pill.tp-add-pill.is-wait { background: rgba(255,255,255,.16); color: transparent; pointer-events: none; animation: tp-wait 1.2s ease-in-out infinite; }
+  .page-hero .tp-lb-pill.tp-add-pill.is-wait .icon { color: transparent; }
+  @keyframes tp-wait { 50% { opacity: .45; } }
+  @media (prefers-reduced-motion: reduce) { .page-hero .tp-lb-pill.tp-add-pill.is-wait { animation: none; } }
   .page-hero .tp-hero-row .tp-lb-pill { min-width: 176px; justify-content: center; }
   .page-hero .tp-lb-pill.tp-add-pill { background: var(--orange); color: #fff; }
   .page-hero .tp-lb-pill.tp-add-pill .icon { color: #fff; }
   .page-hero .tp-lb-pill.tp-add-pill:hover { background: #d24a23; color: #fff; }
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-width: 214px; }
-    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 12px; }
+    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; margin-top: 4px; }
+    .page-hero .tp-hero-row .tp-hero-actions .tp-lb-pill { min-width: 0; min-height: 44px; padding: 0 20px; }
     .page-hero .tp-what { grid-row: 3; }
   }
   @media (max-width: 900px) {
@@ -358,29 +408,61 @@
     .page-hero .tp-hero-row h1 { grid-row: 3; }
     .page-hero .tp-what { grid-row: 4; }
   }
-  /* Phones: one row of round buttons above the title (Back, then My Sessions or Leaderboards as an icon, then Add a
-     session, and the tip's bulb on the Leaderboard), so the title and the board come further up. Same on track.html. */
+  /* Phones: the title first, at the left, with its icon straight after the word and the share button at the far right.
+     Under it one row: Back, the other page as a labelled button (Leaderboards or My Sessions), and Add a session as a
+     round orange plus at the right. The tip's bulb sits at the right of the What is...? line. Same on track.html. */
   @media (max-width: 780px) {
-    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; }
-    .page-hero .tp-hero-top { grid-column: 1; grid-row: 1; align-self: center; }
-    .page-hero .tp-hero-top .back-link { width: 44px; height: 44px; min-height: 44px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; font-size: 0; }
+    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 0; position: relative; }
+    .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; gap: 0; justify-self: stretch; text-align: left; }
+    .page-hero .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
+    .page-hero .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 14px; }
+    .page-hero .tp-hero-top .back-link { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; font-size: 0; }
     .page-hero .tp-hero-top .back-link .icon { width: 20px; height: 20px; }
-    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; width: 44px; min-width: 0; height: 44px; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
-    .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
-    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 1; margin-top: 0; gap: 8px; }
-    /* Add a session is a round orange plus on a phone. */
-    .page-hero .tp-hero-actions .tp-lb-pill { width: 44px; min-width: 0; height: 44px; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
-    .page-hero .tp-hero-actions .tp-lb-pill .icon { width: 24px; height: 24px; }
-    .page-hero .tp-hero-actions .tp-lb-pill span { display: none; }
-    .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 2; margin: 12px 0 0; }
-    .page-hero .tp-what { grid-column: 1 / -1; grid-row: 3; }
-    .tp-hero-actions .laps-tip-bulbbtn { width: 44px; height: 44px; }
+    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 14px; width: 132px; min-width: 0; height: 44px; min-height: 44px; padding: 0 8px; justify-content: center; white-space: nowrap; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 16px; height: 16px; }
+    /* On a session or the Add page My Sessions (beside Back) keeps its words, with more room after Back. */
+    .page-hero .tp-hero-top { gap: 12px; flex-wrap: nowrap; }
+    .page-hero .tp-hero-top .back-link.tp-home { width: auto; height: 44px; min-height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-top .back-link.tp-home .icon { width: 16px; height: 16px; }
+    /* On a session or the Add page the row holds four buttons (Back, My Sessions, Leaderboards, Add a session): Leaderboards and
+       Add a session give way to their round icons up to 560px wide, so nothing overlaps. */
+    @media (max-width: 560px) {
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round { width: 44px; min-width: 0; padding: 0; gap: 0; font-size: 0; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 24px; height: 24px; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: none; }
+    }
+    .page-hero .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .tp-hero-actions .tp-lb-pill { grid-column: 3; grid-row: 2; align-self: center; margin-top: 14px; min-width: 0; min-height: 44px; }
+    /* Add a session keeps its words where the row has room, and is a round orange plus on the narrowest phones (and, once the early preview gate has reworded it, takes its own row). */
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: auto; height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 16px; height: 16px; }
+    .page-hero .tp-hero-actions .tp-lb-pill.is-preview { width: auto; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-what { grid-column: 1 / -1; grid-row: 4; margin-top: 10px; justify-self: stretch; text-align: left; padding-right: 54px; }
+    .page-hero .tp-what summary { min-height: 44px; display: flex; align-items: center; }
+    .tp-hero-actions .laps-tip-bulbbtn { grid-column: 1 / -1; grid-row: 4; justify-self: end; align-self: start; margin-top: 10px; width: 44px; height: 44px; z-index: 1; }
   }
-  /* On a phone the list's title (with its share button just after it) and the What are...? link are centred, as on the Leaderboard. */
-  @media (max-width: 780px) {
-    body[data-tp-view=""] .page-hero .tp-hero-row h1 { justify-self: center; }
-    body[data-tp-view=""] .page-hero .tp-what { justify-self: center; text-align: center; }
-    body[data-tp-view=""] .page-hero h1 .mt3uk-share-dot { float: none; margin: 0 0 0 12px; align-self: center; }
+  @media (max-width: 351px) {
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 24px; height: 24px; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: none; }
+  }
+  /* Desktop (781px and up): the same layout as a phone. The title first, at the left, with its icon after the word and the
+     share button at the far right; under it one row of Back (with its word), the other page as a labelled button and
+     Add a session at the right; the tip's bulb at the right end of the What is...? line. */
+  @media (min-width: 781px) {
+    .page-hero .wrap { grid-template-columns: auto auto minmax(0, 1fr) auto auto; column-gap: 14px; row-gap: 0; position: relative; }
+    .page-hero .wrap .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; justify-self: stretch; text-align: left; }
+    .page-hero .wrap .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
+    .page-hero .wrap .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 16px; gap: 14px; flex-wrap: nowrap; }
+    .page-hero .wrap .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 16px; min-width: 190px; }
+    .page-hero .wrap .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .wrap .tp-hero-row .tp-hero-actions .tp-lb-pill { grid-column: 5; grid-row: 2; align-self: center; justify-self: end; margin-top: 16px; min-width: 190px; min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
+    .page-hero .wrap .tp-what { grid-column: 3; grid-row: 2; align-self: center; justify-self: start; text-align: left; margin: 16px 0 0 10px; }
+    .page-hero .wrap .tp-what[open] { grid-column: 1 / -1; grid-row: 3; justify-self: stretch; margin: 12px 0 0; padding-right: 60px; }
+    .page-hero .wrap .tp-what p, .page-hero .wrap .tp-what .tp-what-body { margin-left: 0; margin-right: 0; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 4; grid-row: 2; justify-self: end; align-self: center; margin-top: 16px; width: 44px; height: 44px; z-index: 1; }
   }
   .tp-play { margin: 8px 0 12px; display: grid; gap: 10px; }
   .tp-play-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -503,76 +585,96 @@
   }
   .tp-mapcard.is-full .tp-gbox { order: 5; margin-top: 4px; }
   .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin-bottom: 2px; }
-  @media (max-height: 560px) and (orientation: portrait) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
+  @media (max-height: 560px) and (orientation: portrait) { .tp-mapcard.is-full:not([data-layout="wide"]) .tp-gbox, .tp-mapcard.is-full:not([data-layout="wide"]) .tp-scrub-row { display: none; } }
+  /* Portrait full screen: a bar under the map to drag, so the map can be taller or shorter. Until it has been dragged the map
+     takes what the controls and charts leave; after, it keeps its height and the charts fill the rest. */
+  .tp-layoutsel { display: none; }
+  .tp-mapcard.is-full .tp-layoutsel { display: inline-block; width: auto; max-width: 130px; min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 0.82rem; }
+  .tp-mapcard.is-full[data-layout="wide"] #tp-layout, .tp-mapcard.is-full:not([data-layout="wide"]) #tp-layout2 { display: none; }
+  .tp-mopts-body .tp-layoutsel { grid-column: 1 / -1; max-width: none; }
+  .tp-splith { display: none; }
+  .tp-mapcard.is-full .tp-splith { display: block; order: 2; flex: none; height: 22px; margin: -10px 0; position: relative; z-index: 4; cursor: row-resize; touch-action: none; }
+  .tp-mapcard.is-full .tp-splith::before { content: ""; position: absolute; top: 9px; left: 50%; width: 56px; height: 4px; margin-left: -28px; border-radius: 2px; background: var(--steel, #6b7480); opacity: 0.7; }
+  .tp-mapcard.is-full .tp-splith.is-dragging::before { background: var(--orange); opacity: 1; }
+  .tp-mapcard.is-full.has-maph .tp-mapwrap { flex: 0 0 var(--tp-maph); }
+  .tp-mapcard.is-full.has-maph .tp-gbox { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .tp-mapcard.is-full.has-maph #tp-gforce { flex: 1 1 0; min-height: 0; }
   /* A phone on its side: the map fills the screen with the controls, the key and the numbers on top of it, and the
      charts in a panel on the right (the map has the whole screen when they are switched off). */
-  @media (max-height: 560px) and (orientation: landscape) {
-    .tp-mapcard.is-full { padding: 0; }
+  /* Wide layout (data-layout="wide", set by layoutMode() in js/track-page.js): the Auto choice picks it for a window wider than tall and up to 760px high. */
+    .tp-mapcard.is-full[data-layout="wide"] { padding: 0; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-splith { display: none; }
     /* By id: a later rule gives the map box position: relative in full screen, and this one must win. */
-    #tp-mapcard.is-full .tp-mapwrap { position: absolute; inset: 0; }
-    #tp-mapcard.is-full.has-charts .tp-mapwrap { right: calc(100% - var(--tp-map, 60%)); }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-mapwrap { position: absolute; inset: 0; }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts .tp-mapwrap { right: calc(100% - var(--tp-map, 60%)); }
     /* The divider between the map and the charts: drag it to give the map more or less of the screen. */
-    .tp-mapcard.is-full.has-charts .tp-split { display: block; position: absolute; top: 0; bottom: 0; left: calc(var(--tp-map, 60%) - 9px); width: 18px; z-index: 4; cursor: col-resize; touch-action: none; }
-    .tp-mapcard.is-full.has-charts .tp-split::before { content: ""; position: absolute; left: 7px; top: 50%; width: 4px; height: 44px; margin-top: -22px; border-radius: 2px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
-    .tp-mapcard.is-full.has-charts .tp-split.is-dragging::before { background: var(--orange); }
-    .tp-mapcard.is-full .tp-map-head, .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-metrics { position: absolute; z-index: 2; margin: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
-    .tp-mapcard.is-full .tp-map-head { top: 6px; right: 58px; width: auto; gap: 14px; padding: 0 4px 0 10px; }
+    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split { display: block; position: absolute; top: 0; bottom: 0; left: calc(var(--tp-map, 60%) - 9px); width: 18px; z-index: 4; cursor: col-resize; touch-action: none; }
+    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split::before { content: ""; position: absolute; left: 7px; top: 50%; width: 4px; height: 44px; margin-top: -22px; border-radius: 2px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
+    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split.is-dragging::before { background: var(--orange); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-map-head, .tp-mapcard.is-full[data-layout="wide"] .tp-play, .tp-mapcard.is-full[data-layout="wide"] .tp-metrics { position: absolute; z-index: 2; margin: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-map-head { top: 6px; right: 58px; width: auto; gap: 14px; padding: 0 4px 0 10px; }
     /* With the charts on, the colour switch and Exit sit in the panel's second row, beside the Show switch, so the
        map's top is left to the key, the numbers and the zoom buttons. */
-    .tp-gbox .tp-chart-head .tp-map-head { display: contents; }
-    .tp-gbox .tp-chart-head .tp-speedsw { order: 4; margin-left: 10px; }
-    .tp-mapcard.is-full .tp-gbox .tp-chart-head .tp-map-head .tp-speedsw > span:first-child { display: inline; }
-    .tp-gbox .tp-chart-head #tp-full { order: 5; margin-left: 10px; font-size: 0; gap: 0; padding: 0 12px; }
-    .tp-gbox .tp-chart-head #tp-full .icon { width: 18px; height: 18px; }
-    .tp-mapcard.is-full.has-charts .tp-play { max-width: none; }
-    .tp-mapcard.is-full .tp-mrow b { max-width: 180px; }
-    .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: calc(100% - var(--tp-map, 60%)); margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
-    .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
-    .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { display: none; }
-    .tp-mapcard.is-full .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
-    .tp-mapcard.is-full #tp-gtoggles { flex-basis: auto; order: 1; }
-    .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 30px; padding: 0 8px; font-size: 0.76rem; }
-    .tp-mapcard.is-full #tp-gnote, .tp-mapcard.is-full #tp-gpeaks { display: none; }
-    .tp-mapcard.is-full .tp-gbox.is-off { top: 52px; bottom: auto; right: 58px; width: auto; padding: 2px 6px; border: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
-    .tp-mapcard.is-full .tp-gbox.is-off .tp-scrub-row, .tp-mapcard.is-full .tp-gbox.is-off .tp-clock { display: none; }
-    .tp-mapcard.is-full .tp-map-head .tp-speedsw, .tp-mapcard.is-full .tp-map-head #tp-full { min-height: 40px; padding-top: 0; padding-bottom: 0; }
-    .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head .tp-map-head { display: contents; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head .tp-speedsw { order: 4; margin-left: 10px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head .tp-map-head .tp-speedsw > span:first-child { display: inline; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head #tp-full { order: 5; margin-left: 10px; font-size: 0; gap: 0; padding: 0 12px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head #tp-full .icon { width: 18px; height: 18px; }
+    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-play { max-width: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-mrow b { max-width: 180px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: calc(100% - var(--tp-map, 60%)); margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head h3 { display: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
+    /* The chips wrap in their own column and the Show switch stays at the top right whatever the panel's width, instead of
+       dropping to a second row when the chips fill the first. */
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 8px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox #tp-gtoggles { grid-column: 1; grid-row: 1; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-gswitch { grid-column: 2; grid-row: 1; justify-self: end; margin: 0; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head .tp-speedsw, .tp-mapcard.is-full[data-layout="wide"] .tp-gbox .tp-chart-head #tp-full { grid-column: 1 / -1; justify-self: start; margin-left: 0; }
+    .tp-mapcard.is-full[data-layout="wide"] #tp-gtoggles { flex-basis: auto; order: 1; }
+    .tp-mapcard.is-full[data-layout="wide"] #tp-gtoggles .chip { min-height: 30px; padding: 0 8px; font-size: 0.76rem; }
+    .tp-mapcard.is-full[data-layout="wide"] #tp-gnote, .tp-mapcard.is-full[data-layout="wide"] #tp-gpeaks { display: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox.is-off { top: 52px; bottom: auto; right: 58px; width: auto; padding: 2px 6px; border: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-gbox.is-off .tp-scrub-row, .tp-mapcard.is-full[data-layout="wide"] .tp-gbox.is-off .tp-clock { display: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-map-head .tp-speedsw, .tp-mapcard.is-full[data-layout="wide"] .tp-map-head #tp-full { min-height: 40px; padding-top: 0; padding-bottom: 0; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-map-head .tp-speedsw > span:first-child { display: none; }
     /* Until it is moved, the controls span the full width of the screen, with the charts' time bar just above them. */
-    .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: 6px; padding: 4px 6px; box-sizing: border-box; }
-    #tp-mapcard.is-full.has-charts:not([data-pn="on"]) .tp-gbox { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-    .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: 6px; padding: 4px 6px; box-sizing: border-box; }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-gbox { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn { min-height: 40px; }
     /* The map's own full screen button (top right) is the one way out of full screen here, and the Exit button is left out: the
        Show G-Forces switch shows and hides the charts. Map options is a small button on the left of the map that opens a card with the
        colour switch and the speed-on-cars switch (the labels beside the dots). */
-    #tp-mapcard.is-full #tp-full { display: none; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-full { display: none; }
     /* Who is who, with the date and time of day, sits in the same row as the main buttons (and drops under them when the panel is narrow). */
-    .tp-mapcard.is-full .tp-when { display: grid; gap: 2px; flex: 1 1 170px; min-width: 0; padding: 0 0 0 4px; font-size: 0.76rem; color: var(--ink); align-content: center; }
-    .tp-mapcard.is-full .tp-wrow { display: flex; align-items: center; gap: 8px; }
-    .tp-mapcard.is-full .tp-wrow .tp-mkey { flex: none; }
-    .tp-mapcard.is-full .tp-wrow b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tp-mapcard.is-full .tp-wrow span[data-w] { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-when { display: grid; gap: 2px; flex: 1 1 170px; min-width: 0; padding: 0 0 0 4px; font-size: 0.76rem; color: var(--ink); align-content: center; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-wrow { display: flex; align-items: center; gap: 8px; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-wrow .tp-mkey { flex: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-wrow b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-wrow span[data-w] { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
     /* The legend and the controls' empty gaps let a touch through, so the map can be panned from under them. */
-    .tp-mapcard.is-full .tp-speedkey { pointer-events: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-speedkey { pointer-events: none; }
     /* The playback speeds and Follow cars are smaller; Start, Rewind and Play keep their size, side by side. */
-    .tp-mapcard.is-full #tp-speeds .chip, .tp-mapcard.is-full #tp-follow { min-height: 30px; min-width: 0; padding: 0 9px; font-size: 0.75rem; }
+    .tp-mapcard.is-full[data-layout="wide"] #tp-speeds .chip, .tp-mapcard.is-full[data-layout="wide"] #tp-follow { min-height: 30px; min-width: 0; padding: 0 9px; font-size: 0.75rem; }
     /* The whole panel takes a touch (hold anywhere that is not a button to move it). */
-    .tp-mapcard.is-full .tp-play { pointer-events: auto; touch-action: none; cursor: grab; }
-    .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { cursor: pointer; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play { pointer-events: auto; touch-action: none; cursor: grab; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn, .tp-mapcard.is-full[data-layout="wide"] .tp-play .chip { cursor: pointer; }
     /* The controls float: a grip along the top moves them, a handle in the corner resizes them, and the Map options card
        can put them back. Once moved they use the saved place and width instead of the bottom left corner. */
-    .tp-mapcard.is-full .tp-play { z-index: 4; }
-    .tp-mapcard.is-full .tp-pn-grip { display: flex; align-items: center; justify-content: center; gap: 5px; height: 18px; order: -2; margin: -2px 0 -2px; cursor: grab; touch-action: none; pointer-events: auto; }
-    .tp-mapcard.is-full .tp-pn-grip i { width: 22px; height: 4px; border-radius: 2px; background: var(--hairline-strong); }
-    .tp-mapcard.is-full .tp-pn-size { display: block; position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: nwse-resize; touch-action: none; pointer-events: auto; background: linear-gradient(135deg, transparent 55%, var(--hairline-strong) 55%, var(--hairline-strong) 63%, transparent 63%, transparent 75%, var(--hairline-strong) 75%, var(--hairline-strong) 83%, transparent 83%); border-bottom-right-radius: var(--radius-sm); }
-    #tp-mapcard.is-full[data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; right: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
-    .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { pointer-events: auto; }
-    .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 5; }
-    #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play { z-index: 4; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-pn-grip { display: flex; align-items: center; justify-content: center; gap: 5px; height: 18px; order: -2; margin: -2px 0 -2px; cursor: grab; touch-action: none; pointer-events: auto; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-pn-grip i { width: 22px; height: 4px; border-radius: 2px; background: var(--hairline-strong); }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-pn-size { display: block; position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: nwse-resize; touch-action: none; pointer-events: auto; background: linear-gradient(135deg, transparent 55%, var(--hairline-strong) 55%, var(--hairline-strong) 63%, transparent 63%, transparent 75%, var(--hairline-strong) 75%, var(--hairline-strong) 83%, transparent 83%); border-bottom-right-radius: var(--radius-sm); }
+    #tp-mapcard.is-full[data-layout="wide"][data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; right: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn, .tp-mapcard.is-full[data-layout="wide"] .tp-play .chip { pointer-events: auto; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 5; }
+    #tp-mapcard.is-full[data-layout="wide"][data-carspeed="off"] .tv-dotlabel { display: none; }
     /* The speed shows beside each car's dot on the map (.tv-dotlabel), so the figures block is left out. */
-    .tp-mapcard.is-full .tp-metrics { display: none; }
-    #tp-mapcard.is-full .tv-dotlabel { display: inline; }
-    .tp-mapcard.is-full .tp-speedkey { top: 6px; left: 6px; }
-  }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-metrics { display: none; }
+    #tp-mapcard.is-full[data-layout="wide"] .tv-dotlabel { display: inline; }
+    .tp-mapcard.is-full[data-layout="wide"] .tp-speedkey { top: 6px; left: 6px; }
+
   .tv-dotlabel { display: none; }
   .tp-mopts { display: none; }
   .tp-when { display: none; }
@@ -682,6 +784,8 @@
   .tp-pads .tp-src { margin: 0; }
   .tp-pad-row[hidden] { display: none; }
   .tp-pad-row .tp-pad-maker { grid-column: 1 / -1; margin: -2px 0 0; }
+  .tp-pad-typed { margin-top: 6px; }
+  .tp-pad-typed[hidden], .tp-pad-row select[hidden] { display: none; }
   .tp-pad-maker:empty { display: none; }
   .tp-pads .tp-pad-same { margin: 0; min-height: 44px; }
   .tp-track { width: 46px; height: 28px; border-radius: 14px; background: var(--hairline-strong); position: relative; flex: none; transition: background .15s; }
@@ -850,13 +954,48 @@
   .tv-chart text.tp-gtitle { font-size: 12px; font-weight: 600; fill: var(--ink); stroke: var(--paper); stroke-width: 3px; paint-order: stroke; pointer-events: none; }
   .tp-gg { max-width: 420px; margin: 0 auto; }
   /* The bar at the top of a session: Skip to section on the left, Exit session on the right. */
-  .tp-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px 14px; flex-wrap: wrap; margin: 0 0 12px; }
-  .tp-skip { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 0.92rem; color: var(--steel); }
-  .tp-skip .field { min-height: 44px; padding-top: 8px; padding-bottom: 8px; width: auto; max-width: 70vw; }
-  .tp-exit { margin-left: auto; min-height: 44px; }
+  .tp-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; margin: 0 0 12px; }
+  .tp-skip { display: block; flex: 1 1 auto; min-width: 0; max-width: 340px; margin: 0; }
+  .tp-skip .field { min-height: 44px; padding-top: 8px; padding-bottom: 8px; width: 100%; min-width: 0; }
+  .tp-exit { flex: none; margin-left: auto; min-height: 44px; white-space: nowrap; }
   /* Sessions under the best lap chart: only the latest few until opened. */
   [data-tile="overtime-table"].is-short tbody tr:nth-last-child(n+5) { display: none; }
+  /* In the Sessions tree every date is one compact tile, the same look as a layout row (date, how many sessions and the fastest, an
+     arrow), and only its own arrow opens it into the full day card. */
+  .tp-day-sub { display: none; }
+  .tp-day-titles { display: grid; gap: 2px; min-width: 0; }
+  .tp-day-tile .tp-day-sub { display: block; font-size: 0.88rem; font-weight: 400; color: var(--steel); }
+  /* The arrow that opens or closes a date is always at the far right of its row: down when closed, up when open. */
+  .tp-day-arrow { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin: 0 -8px 0 auto; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--steel); cursor: pointer; }
+  .tp-day-arrow .icon { width: 20px; height: 20px; transform: rotate(90deg); transition: transform .15s ease; }
+  .tp-day-arrow[aria-expanded="true"] .icon { transform: rotate(-90deg); }
+  .tp-day-arrow:hover, .tp-day-arrow:focus-visible { background: var(--hairline-strong); color: var(--ink); }
+  .tp-day-tile[data-open="false"] { padding: 4px 12px; background: var(--paper-2); box-shadow: none; }
+  .tp-day-tile[data-open="false"] > :not(.tp-daygroup-head) { display: none; }
+  .tp-day-tile[data-open="false"] .tp-daygroup-share { display: none; }
+  .tp-day-tile .tp-daygroup-title { min-height: 46px; }
+  /* Whether the day is shared, as a small eye or lock beside the arrow while it is folded (open, the Shared switch says it). */
+  .tp-day-priv { display: inline-flex; align-items: center; flex: none; margin-left: auto; color: var(--steel); }
+  .tp-day-priv .icon { width: 18px; height: 18px; }
+  .tp-day-priv.is-mixed { gap: 8px; }
+  .tp-day-priv-n { font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 480px) { .tp-day-priv-n { font-size: 0.72rem; } }
+  .tp-day-priv + .tp-day-arrow { margin-left: 0; }
+  .tp-day-tile[data-open="true"] .tp-day-priv { display: none; }
+  .tp-day-tile[data-open="true"] .tp-day-priv + .tp-day-arrow { margin-left: auto; }
+  .tp-day-tile[data-open="false"] .tp-daygroup-count { display: none; }
+  .tp-day-tile .tp-day-titles h3 { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
+  /* Picking some of a day's sessions (hold on a row): the picked rows are tinted and outlined, and the bulk edit changes only them. */
+  .tp-daygroup .tp-pickable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+  .tp-daygroup .tp-pickable.is-picked { background: color-mix(in srgb, var(--orange) 14%, var(--paper)); box-shadow: inset 4px 0 0 var(--orange), 0 0 0 2px var(--orange); }
+  .tp-pick-hint { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--steel); }
+  .tp-pick-hint .icon { width: 16px; height: 16px; flex: none; }
+  .tp-pickbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; padding: 4px 4px 4px 12px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--orange) 14%, var(--paper)); font-weight: 600; }
+  .tp-pickbar[hidden] { display: none; }
   .tp-sess-more { margin-top: 10px; }
+  /* The day that a bulk edit just changed flashes once it is scrolled into view. */
+  .tp-row.is-flash { outline: 3px solid var(--orange); outline-offset: -1px; }
+  .tp-daygroup.is-flash { outline: 3px solid var(--orange); outline-offset: 2px; transition: outline-color 1.5s ease; }
   .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px rgba(22,35,61,.16); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }
   .tv-tip b { display: block; margin-bottom: 2px; }
   .tv-r { display: flex; justify-content: space-between; gap: 12px; }
@@ -958,6 +1097,55 @@
   .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
   @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
   @media (max-width: 780px) { .page-hero { padding: 14px 0 6px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } .tp-section { margin-top: 14px; } .tp-head { margin-bottom: 6px; } .tp-actions { margin: 8px 0; } .tp-tools { margin: 8px 0 0; } .tp-vbox .tp-vcurrent { min-height: 44px; padding: 4px 12px; } }
+  /* Desktop hero: the title with its share button (next to the trophy or clock) on the top row; Back and the What is...? fold
+     on the second row at the left; the page's own button sits above Add a session at the right, with the bulb beside Add. */
+  @media (min-width: 901px) {
+    .page-hero .wrap { grid-template-columns: auto auto 1fr auto; column-gap: 16px; row-gap: 18px; align-items: center; }
+    .page-hero .wrap .tp-hero-row > h1.mt3uk-share-heading { grid-column: 1 / -1; grid-row: 1; justify-self: stretch; margin: 0; display: flex; align-items: center; }
+    .page-hero .wrap h1.mt3uk-share-heading > .mt3uk-share-dot { float: none; margin: 0 0 0 auto; top: 0; }
+    .page-hero .wrap > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: center; }
+    .page-hero .wrap > .tp-what { grid-column: 2; grid-row: 2; justify-self: start; text-align: left; width: max-content; max-width: 42ch; }
+    .page-hero .wrap > .tp-what p { margin: 0; max-width: 42ch; }
+    .page-hero .wrap .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 4; grid-row: 2; justify-self: end; margin-top: 0; }
+    .page-hero .wrap .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .wrap .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 4; grid-row: 3; justify-self: end; margin-top: 0; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; margin: 0 12px 0 0; }
+  }
+  /* Phone and tablet: the title with its share button; Back, the bulb and Leaderboards / My Sessions on the second row;
+     Add a session, the same width, under them on the third; What is...? last. Kept last so it wins over the older rules. */
+  @media (max-width: 900px) {
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { grid-template-columns: auto minmax(0, 1fr) 190px; column-gap: 10px; row-gap: 12px; align-items: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > h1.mt3uk-share-heading { grid-column: 1 / -1; grid-row: 1; justify-self: stretch; margin: 0; display: flex; align-items: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) h1.mt3uk-share-heading > .mt3uk-share-dot { float: none; margin: 0 0 0 auto; top: 0; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 0; width: 190px; min-width: 0; height: auto; min-height: 44px; padding: 0 16px; justify-content: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 3; grid-row: 3; justify-self: end; width: 190px; min-width: 0; height: auto; min-height: 44px; margin-top: 0; padding: 0 16px; justify-content: center; font-size: 0.92rem; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 3; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn .laps-tip-bulb { width: 18px; height: 18px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: start; text-align: left; width: auto; max-width: none; margin-top: -4px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what p { margin: 0; max-width: none; }
+    .page-hero .wrap .tp-hero-row > h1.mt3uk-share-heading { display: flex; align-items: center; }
+  }
+  /* The tip's bulb sits beside the title icon (js/laps-tip.js, data-laps-tip-title); the box stays under the buttons. */
+  .page-hero .laps-tip-titlebulb { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; margin: 0 0 0 12px; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: transparent; color: #ffd27a; vertical-align: middle; flex: none; }
+  .page-hero .laps-tip-titlebulb .laps-tip-bulb { width: 18px; height: 18px; color: inherit; }
+  .page-hero .laps-tip-titlebulb:hover, .page-hero .laps-tip-titlebulb[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
+  /* Phone: What is...? opens from a ? button beside the share button, as a light box; Back shows its word again. */
+  @media (min-width: 901px) { .tp-what-q { display: none; } }
+  @media (max-width: 900px) {
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { position: relative; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 0 auto; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .mt3uk-share-dot { margin: 0 0 0 8px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what > summary { display: none; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what:not([open]) { display: none; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] { grid-row: auto; position: absolute; top: 58px; left: 16px; right: 16px; z-index: 30; margin: 0; background: #f7f5ef; color: #14213d; border: 1px solid #d9d5ca; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.28); padding: 14px 16px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] li, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] b { color: #14213d; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p { margin: 0; max-width: none; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { width: auto; height: 44px; min-height: 44px; padding: 0 16px; gap: 6px; border-radius: 999px; font-size: 1rem; justify-content: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link .icon { width: 18px; height: 18px; }
+  }
 </style>
 
 </head>
@@ -967,16 +1155,25 @@
   <nav>
     <div class="nav-center">
       <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
-      <a href="laps.html" class="laps-intro" id="tp-play-intro" aria-label="Play intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg><span>Play intro</span></a>
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
-      <a href="track.html" class="nav-link nav-link-track active">Sessions <span class="early-badge">Early preview</span></a>
-      <a href="leaderboards.html" class="nav-link">Leaderboards</a>
-      <a href="track.html?add=1" class="nav-link">Add a session</a>
-      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <a href="track.html" class="nav-link nav-link-track active"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>Sessions <span class="early-badge">Early preview</span></a>
+      <a href="leaderboards.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
+      <a href="track.html?add=1" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add a session</a>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M4 17v-4l2-5h12l2 5v4"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>My Garage</a>
+      <a href="signin.html?next=%2Fprofile.html" class="nav-link nav-link-profile" id="nav-profile" title="Sign in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Profile</a>
+      <button type="button" class="nav-link nav-link-chat nav-chat" id="nav-chat" aria-label="Messages" aria-controls="mt3uk-chat" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>Messages<span class="nav-chat-count" id="nav-chat-count" hidden></span></button>
       <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
       </div>
     </div>
+    <div class="nav-bell" id="nav-bell">
+      <button type="button" class="nav-bell-btn" id="nav-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="nav-bell-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="nav-bell-count" id="nav-bell-count" hidden></span></button>
+      <div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>
+    </div>
+    <a href="track.html" class="nav-profile nav-sessions active" id="nav-sessions" aria-label="Sessions" title="Sessions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg></a>
+    <a href="leaderboards.html" class="nav-profile nav-leaders" id="nav-leaders" aria-label="Leaderboard" title="Leaderboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg></a>
+    <a class="nav-profile nav-home" id="nav-home" href="laps.html" aria-label="Laps home" title="Laps home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 11.5L12 3.5l9.5 8"/><path d="M5 9.5V20.5h14V9.5"/><rect x="10" y="14" width="4" height="6.5"/></svg></a>
+    <script>(function(){try{if(!localStorage.getItem('mt3ukMyBuildsSession'))return;var p=document.getElementById('nav-profile');p.href='profile.html';p.setAttribute('aria-label','My Profile');p.title='My Profile';}catch(e){}})();</script>
     <div class="nav-search" id="nav-search" data-scope="laps">
       <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -995,7 +1192,8 @@
 <section class="page-hero tp-dark-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1" aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb-fast"></div></div></div>
+    <div class="tp-hero-row"><h1>My Sessions<svg class="icon tp-title-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg><button type="button" class="tp-what-q" aria-expanded="false" aria-label="What is this page?" onclick="var w=this.closest('.page-hero').querySelector('.tp-what');w.open=!w.open;this.setAttribute('aria-expanded',String(w.open))"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/></svg></button></h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill is-wait" id="tp-hero-add" href="track.html?add=1" aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb-fast" data-laps-tip-title=".tp-hero-row h1"><span class="laps-tip-bulbbtn laps-tip-wait" aria-hidden="true"><svg class="icon laps-tip-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg></span></div></div></div>
+    <script>(function(){try{var b=document.getElementById('tp-hero-actions');if(b&&localStorage.getItem('mt3ukMyBuildsSession')&&!location.search){b.classList.add('is-waiting');b.hidden=false;}}catch(e){}})();</script>
     <details class="tp-what"><summary>What are Sessions?</summary><div class="tp-what-body"><p>Your track days, sprints, hill climbs and drag runs from your lap timer file (RaceBox, VBOX, AiM, Harry&rsquo;s LapTimer, TrackAddict and most phone apps). Upload it and Laps does the rest.</p><ul class="tp-what-list"><li><b>Every lap mapped.</b> Compare any two laps on the satellite map, with speed, acceleration, braking and cornering g, and see where you gained or lost time, corner by corner.</li><li><b>Tyres and brake pads.</b> Record the tyres and pads you ran on each session, from their make and model lists. Laps keeps them with your times, beside the makers&rsquo; own figures: wet grip, noise and EV rating for tyres, and the working temperature range for pads.</li><li><b>Compare tyres and pads.</b> On the Leaderboard, see which tyres and pads are quickest at each track, with the best and typical times, peak braking g and brake temperatures, and a warning when pads ran hotter than their range.</li><li><b>Your car and its mods.</b> Sessions are linked to your car in My Garage, so its mods, kerb weight and driven wheels sit beside your times, and you can see what each change did.</li><li><b>The Leaderboard.</b> Share a session to put your car on the board for that track, or keep it to yourself. Filter by model, conditions, driven wheels, air temperature and weight.</li></ul></div></details>
   </div>
 </section>
@@ -1011,7 +1209,7 @@
   <div class="wrap footer-row">
     <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
     <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
-    <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
+    <span class="footer-links"><a href="laps.html" id="tp-play-intro">Play intro</a> <a href="#" id="tp-offline" data-offline-toggle role="button" hidden>Offline mode: off</a> <a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
 </footer>
 
@@ -1149,21 +1347,22 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20270129" defer></script>
+<script src="js/track-parse.js?v=20271036" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270238" defer></script>
+<script src="js/laps-offline.js?v=23" defer></script>
+<script src="js/track-page.js?v=20271055" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
-<script src="js/laps-tip.js?v=20270104" defer></script>
-<script src="js/share.js" defer></script>
+<script src="js/laps-tip.js?v=20271012" defer></script>
+<script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
 <script src="js/signin-prompt.js" defer></script>
-<script src="js/notify-bell.js?v=2" defer></script>
-<script src="js/messenger.js" defer></script>
+<script src="js/notify-bell.js?v=5" defer></script>
+<script src="js/messenger.js?v=3" defer></script>
 <script src="js/search.js?v=20261219" defer></script>
 
 </body>

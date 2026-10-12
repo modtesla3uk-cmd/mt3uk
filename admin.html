@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20270131">
+<link rel="stylesheet" href="css/admin-page.css?v=20271042">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -140,6 +140,10 @@
       <div class="digest-row">
         <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
         <span class="card-meta" id="send-digest-status">Emails the list of members to modtesla3uk@gmail.com. It also goes out every day at 8pm.</span>
+      </div>
+      <div class="digest-row">
+        <button type="button" class="tk-switch" id="sub-remove-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email them when removed</span></button>
+        <span class="card-meta">On: a removed member is emailed to say they are unsubscribed, with a link to subscribe again. Off: they are signed out without an email.</span>
       </div>
       <div class="add-subscriber-row">
         <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
@@ -703,6 +707,8 @@
       });
   });
 
+  var removeEmailSw = document.getElementById('sub-remove-email');
+  if (removeEmailSw) removeEmailSw.addEventListener('click', function () { removeEmailSw.setAttribute('aria-checked', String(removeEmailSw.getAttribute('aria-checked') !== 'true')); });
   subscribersEl.addEventListener('click', function (e) {
     var key = keyInput.value.trim();
     var card = e.target.closest('.subscriber-card');
@@ -784,9 +790,11 @@
 
     var deleteBtn = e.target.closest('.delete-subscriber-btn');
     if (deleteBtn) {
-      if (!confirm('Delete subscriber "' + email + '"? Their photos will go back to unclaimed.')) return;
+      var removeSw = document.getElementById('sub-remove-email');
+      var tellThem = !removeSw || removeSw.getAttribute('aria-checked') === 'true';
+      if (!confirm('Delete subscriber "' + email + '"? Their photos will go back to unclaimed, they will be signed out, and ' + (tellThem ? 'they will be emailed to say they are unsubscribed, with a link to subscribe again.' : 'they will not be emailed.'))) return;
       deleteBtn.disabled = true;
-      fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email), {
+      fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email) + (tellThem ? '' : '&notify=0'), {
         method: 'DELETE'
       })
         .then(function (res) { return res.json(); })
@@ -1443,7 +1451,7 @@
         if (state === 'allowed') return;
         var rn = x.kind === 'rename';
         items.push({ id: 'lines:' + (rn ? 'rename:' : '') + x.id + ':' + state + ':' + (x.proposal ? x.proposal.at : x.at), group: rn ? (state === 'changed' ? 'Track renames to approve' : 'Track rename requests') : state === 'changed' ? 'Map changes to approve' : 'Map edit requests', href: 'track-admin.html#lines-' + x.id, img: '',
-          title: x.name || x.email || 'A member', sub: rn ? (state === 'changed' ? 'Sent a new track name for ' : 'Wants to rename the track on ') + (x.what || 'a session') : state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
+          title: x.name || x.email || 'A member', sub: rn ? (state === 'changed' ? 'Suggested a new ' + (x.target === 'layout' ? 'layout' : 'track') + ' name for ' : 'Wants to rename the track on ') + (x.what || 'a session') : state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
       });
       trackBell = items;
       renderBell();
@@ -2469,13 +2477,14 @@
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();
 </script>
-<script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270213" defer></script>
+<script src="js/admin-subnav.js?v=20271040" defer></script>
+<script src="js/admin-help.js?v=20271042" defer></script>
+<script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/nickname-fill-admin.js?v=20270212" defer></script>
 <script src="js/passkey-nudge-admin.js?v=20261007" defer></script>
-<script src="js/track-parse.js?v=20270129" defer></script>
+<script src="js/track-parse.js?v=20271036" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/laps-logo.js?v=1"></script>
 <script src="js/track-share-card.js?v=20261185"></script>

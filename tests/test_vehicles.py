@@ -335,6 +335,37 @@ def test_edit_sets_a_models_version_rule(page):
     expect(page.locator('#vh-list .vh-model[data-model="Model S"] .vh-rule-row[data-rule="free"]')).to_have_attribute("aria-checked", "true")
 
 
+def test_the_save_button_stays_in_view_in_the_members_cars_table(page):
+    """The Members' cars table is wider than the window and scrolls sideways: Save is pinned to the right edge of that box, so
+    it is in view whichever way the table is scrolled."""
+    cars = [{"carId": "c%d" % i, "car": "Car %d" % i, "owner": "Owner %d" % i, "email": "o%d@example.com" % i, "sessions": 1, "photos": 1, "garageOnly": False,
+             "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False} for i in range(3)]
+
+    def handler(route):
+        body = {"success": True, "cars": cars} if "/track/admin/cars" in route.request.url else {"success": True, "extra": {}}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+
+    page.set_viewport_size({"width": 1000, "height": 800})
+    page.route("**/%s/**" % API_HOST, handler)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#cars-wrap summary").click()
+    expect(page.locator("#mc-list tr.mc-row")).to_have_count(3)
+    box = page.locator("#mc-list")
+    assert box.evaluate("e => e.scrollWidth > e.clientWidth"), "the table is wider than its box at this width"
+    save = page.locator("#mc-list tr.mc-row").first.locator(".mc-save")
+    for left in (0, 400, 100000):
+        box.evaluate("(e, x) => { e.scrollLeft = x; }", left)
+        page.wait_for_timeout(100)
+        sb, bb = save.bounding_box(), box.bounding_box()
+        assert sb["x"] >= bb["x"] - 1 and sb["x"] + sb["width"] <= bb["x"] + bb["width"] + 1, (left, sb, bb)
+    # On a phone the rows stack and Save sits under each car's fields.
+    page.set_viewport_size({"width": 390, "height": 800})
+    page.wait_for_timeout(200)
+    assert box.evaluate("e => e.scrollWidth <= e.clientWidth + 1"), "no sideways scroll on a phone"
+    expect(save).to_be_visible()
+
+
 def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     """The Members' cars panel lists every car in the garages with its settings, cars with no model first, and
     Save sends the row's settings; the worker's answer redraws the row."""

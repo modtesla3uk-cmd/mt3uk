@@ -252,7 +252,7 @@
   function entryHtml(v, g, changed) {
     var layouts = v.layouts || [], kind = kindOf(v);
     var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
-    return '<div class="tk-kind" data-kind="' + kind + '"><div class="tk-kind-head"><b class="tk-kindname">' + KIND_LONG[kind] + '</b>' +
+    return '<div class="tk-kind" data-kind="' + kind + '"><div class="tk-kind-head"><b class="tk-kindname">' + esc(v.kindLabel || KIND_LONG[kind]) + '</b>' +
       (v.name !== g.name ? ' <span class="iv-sub">listed as ' + esc(v.name) + '</span>' : '') +
       (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') +
       (v.type === 'drag' ? '' : ' <span class="iv-sub">' + layouts.length + (layouts.length === 1 ? (v.type === 'sprint' ? ' course' : ' layout') : (v.type === 'sprint' ? ' courses' : ' layouts')) + '</span>') + '</div>' +
@@ -318,7 +318,7 @@
     var sprint = editing && editing.type === 'sprint';
     return '<fieldset class="tk-layout" data-i="' + i + '"><legend>' + (sprint ? 'Course ' : 'Layout ') + (i + 1) + '</legend>' +
       '<div class="tk-row"><label>Name<input type="text" data-l="name" value="' + esc(l.name) + '"></label><label>' + (sprint ? 'Course length (m)' : 'Lap length (m)') + '<input type="text" inputmode="numeric" data-l="length" value="' + esc(l.length || '') + '"></label></div>' +
-      (sprint ? '<label>Organiser (for example B19): courses at one venue can differ<input type="text" data-l="organizer" value="' + esc(l.organizer || '') + '"></label>' : '') +
+      (sprint ? '<label>Organiser (for example B19): courses at one venue can differ<input type="text" data-l="organizer" value="' + esc(l.organizer || l.name || '') + '"></label>' : '') +
       '<label>Start line: two points, as lat, lng, lat, lng<input type="text" data-l="startLine" placeholder="51.2077017, -1.6088667, 51.2076237, -1.6091363" value="' + esc(lineText(l.startLine)) + '"></label>' +
       '<div class="iv-toolbar"><button type="button" class="secondary" data-pick="startLine">Set the start line on the map</button></div>' +
       (sprint ? '<label>Finish line: two points, as lat, lng, lat, lng<input type="text" data-l="finishLine" value="' + esc(lineText(l.finishLine)) + '"></label>' +
@@ -333,6 +333,7 @@
     formEl.hidden = false;
     formEl.innerHTML = '<h3>' + (v.id ? 'Edit ' + esc(v.name) : v.name ? 'Add a ' + (v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill climb' : 'sprint') : v.type) + ' to ' + esc(v.name) : 'Add a track') + '</h3>' +
       '<div class="tk-row"><label>Name<input type="text" id="tk-name" value="' + esc(v.name) + '"></label><label>Type<select id="tk-type"><option value="circuit"' + (v.type === 'circuit' || !v.type ? ' selected' : '') + '>Circuit</option><option value="drag"' + (v.type === 'drag' ? ' selected' : '') + '>Drag strip</option><option value="sprint"' + (v.type === 'sprint' && !window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Sprint</option><option value="hill"' + (window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Hill climb</option></select></label></div>' +
+      '<div class="tk-row"><label>Label on the list<input type="text" id="tk-label" maxlength="40" value="' + esc(v.kindLabel || '') + '" placeholder="' + esc(KIND_LONG[v.type === 'drag' ? 'drag' : v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill' : 'sprint') : 'circuit']) + '"></label></div>' +
       '<div class="tk-row"><label>Centre latitude<input type="text" inputmode="decimal" id="tk-lat" value="' + esc(v.lat) + '"></label><label>Centre longitude<input type="text" inputmode="decimal" id="tk-lng" value="' + esc(v.lng) + '"></label><label>Radius (m)<input type="text" inputmode="numeric" id="tk-radius" value="' + esc(v.radius || 2000) + '"></label></div>' +
       '<p class="iv-note">A file is matched to this track when most of it is inside the radius. Layouts are told apart by lap length. A place used for more than one kind of event (a circuit, a sprint and a hill climb, say) is listed once, with an entry for each kind: use the Add circuit, Add sprint or Add hill climb button on the place.</p>' +
       '<div id="tk-layouts">' + (v.type === 'drag' ? '' : (v.layouts || []).map(layoutHtml).join('')) + '</div>' +
@@ -344,7 +345,7 @@
   }
 
   function readForm() {
-    var v = { id: editing.id || '', name: document.getElementById('tk-name').value.trim(), type: document.getElementById('tk-type').value === 'hill' ? 'sprint' : document.getElementById('tk-type').value, hill: document.getElementById('tk-type').value === 'hill', lat: parseFloat(document.getElementById('tk-lat').value), lng: parseFloat(document.getElementById('tk-lng').value), radius: parseInt(document.getElementById('tk-radius').value, 10) || 2000, check: document.getElementById('tk-check').getAttribute('aria-checked') === 'true' };
+    var v = { id: editing.id || '', name: document.getElementById('tk-name').value.trim(), type: document.getElementById('tk-type').value === 'hill' ? 'sprint' : document.getElementById('tk-type').value, hill: document.getElementById('tk-type').value === 'hill', lat: parseFloat(document.getElementById('tk-lat').value), lng: parseFloat(document.getElementById('tk-lng').value), radius: parseInt(document.getElementById('tk-radius').value, 10) || 2000, check: document.getElementById('tk-check').getAttribute('aria-checked') === 'true', kindLabel: document.getElementById('tk-label').value.trim() };
     if (v.type !== 'drag') {
       v.layouts = [].slice.call(formEl.querySelectorAll('.tk-layout')).map(function (fs) {
         function f(k) { var el = fs.querySelector('[data-l="' + k + '"]'); return el ? el.value : ''; }
@@ -479,7 +480,7 @@
       delete v.review;
       if (!r.added) {
         if (v.type === 'circuit') v.layouts.push({ name: known ? 'New layout' : 'Full circuit', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine });
-        if (v.type === 'sprint') v.layouts.push({ name: known ? 'New course' : 'Course', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
+        if (v.type === 'sprint') v.layouts.push({ name: r.organizer || (known ? 'New course' : 'Course'), organizer: r.organizer || '', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
       }
       openForm(v);
       call('POST', '/track/admin/requests', { id: id, action: 'approve' });
@@ -521,6 +522,24 @@
     });
   });
 
+  // Renames the dashcam logger on sessions saved under its old name, a few members at a time (Richard, October 2026).
+  var loggerBtn = document.getElementById('tk-logger-rename'), loggerNote = document.getElementById('tk-logger-rename-note');
+  if (loggerBtn) loggerBtn.addEventListener('click', function () {
+    if (!window.confirm('Rename the logger on every session saved as "Tesla Dashcam (Beta)" to "Tesla Dashcam"? Nothing else on those sessions changes.')) return;
+    var n = 0;
+    loggerBtn.disabled = true;
+    function step(cursor) {
+      call('POST', '/track/admin/logger-rename' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+        if (!d.ok || !d.success) { loggerNote.textContent = d.message || 'Could not rename the logger.'; loggerBtn.disabled = false; return; }
+        n += d.sessions || 0;
+        if (d.done) { loggerNote.textContent = 'Done: ' + n + ' session' + (n === 1 ? '' : 's') + ' renamed to "Tesla Dashcam".'; loggerBtn.disabled = false; return; }
+        loggerNote.textContent = 'Working... ' + n + ' sessions so far.';
+        step(d.cursor);
+      }).catch(function () { loggerNote.textContent = 'Could not reach the server.'; loggerBtn.disabled = false; });
+    }
+    loggerNote.textContent = 'Working...';
+    step('');
+  });
   // Brings every leaderboard place up to date, a few cars at a time.
   var rebuildBtn = document.getElementById('tk-rebuild'), rebuildNote = document.getElementById('tk-rebuild-note');
   if (rebuildBtn) rebuildBtn.addEventListener('click', function () {

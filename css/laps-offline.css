@@ -1,0 +1,80 @@
+/* Offline mode on the Laps pages (js/laps-offline.js): the bar that says so, the offer, and the queue card. */
+.lo-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2500; display: flex; align-items: flex-start; gap: 10px; max-width: 760px; margin: 0 auto; padding: 12px 14px; border-radius: var(--radius); background: #16233d; color: #fff; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; box-shadow: 0 6px 24px rgba(22, 35, 61, 0.35); }
+.lo-bar[hidden], .lo-offer[hidden], .lo-pending[hidden] { display: none; }
+.lo-bar.is-ok { background: #17663f; }
+.lo-bar.is-warn { background: #8a3a12; }
+.lo-bar .lo-ico { flex: none; display: inline-flex; margin-top: 2px; }
+.lo-bar .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lo-text { flex: 1; min-width: 0; }
+.lo-x { flex: none; width: 44px; height: 44px; margin: -10px -10px -10px 0; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: inherit; cursor: pointer; border-radius: var(--radius-sm); }
+.lo-x:focus-visible, .lo-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lo-link { background: none; border: 0; padding: 0; font: inherit; color: #ffc9b3; text-decoration: underline; cursor: pointer; min-height: 24px; }
+
+.lo-offer { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2400; max-width: 460px; margin: 0 auto; padding: 16px; font-family: var(--font-body); box-shadow: 0 6px 24px rgba(22, 35, 61, 0.28); }
+.lo-offer h3 { margin: 0 0 6px; font-size: 1rem; }
+.lo-offer p { margin: 0 0 12px; font-size: 0.9rem; line-height: 1.5; }
+.lo-offer .lo-small { margin: 10px 0 0; }
+.lo-ticks { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.4; }
+.lo-ticks li { display: flex; gap: 8px; align-items: flex-start; }
+.lo-ticks .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: #17663f; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lo-confirm { z-index: 2600; max-width: 520px; }
+.lo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lo-small { font-size: 0.82rem; color: #5b6577; }
+
+.lo-pending { margin-bottom: 16px; padding: 16px; font-family: var(--font-body); border-color: #e8542a; }
+.lo-pending h3 { margin: 0 0 4px; font-size: 1rem; }
+.lo-pending .lo-small { margin: 0 0 10px; }
+.lo-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.lo-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.lo-list li > div { display: grid; gap: 2px; min-width: 0; }
+.lo-list b { overflow-wrap: anywhere; }
+.lo-when { font-size: 0.82rem; color: #5b6577; }
+.lo-err { font-size: 0.85rem; color: #b3261e; }
+.lo-list li.is-bad { border-color: #b3261e; }
+
+/* The switch row on Profile */
+.lo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lo-row p { margin: 0; }
+.lo-switch { flex: none; position: relative; width: 52px; height: 32px; border: 0; border-radius: var(--radius-pill); background: #c4cad4; cursor: pointer; padding: 0; min-width: 52px; }
+.lo-switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
+.lo-switch[aria-checked="true"] { background: #17663f; }
+.lo-switch[aria-checked="true"]::after { transform: translateX(20px); }
+.lo-switch:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@media (max-width: 780px) { .lo-bar, .lo-offer { left: 8px; right: 8px; bottom: 8px; } }
+
+/* The Offline mode button in the Laps header (js/laps-offline.js, drawHeaderIcon): a circle with two arrows, like the
+   Windows "always available offline" badge. Green means Offline mode is on; grey means it is off (normal, online);
+   orange means there is no signal and nothing is kept. Same size and spacing as the Messages icon beside it. */
+.nav-offline { color: #8a93a3; }
+.nav-offline svg { width: 34px; height: 28px; fill: none; stroke: none; }
+.nav-offline:hover { opacity: 0.8; }
+.nav-offline[hidden] { display: none; }
+.nav-offline[aria-checked="true"] { color: #2e9d4a; }
+.nav-offline.is-offline[aria-checked="false"] { color: var(--orange, #e8542a); }
+.nav-offline:disabled { cursor: progress; opacity: 0.45; }
+.nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+@media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }
+.lo-bar.is-info { background: #16233d; }
+/* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
+[data-offline-toggle][hidden] { display: none !important; }
+.lo-field { display: grid; gap: 4px; margin: 10px 0; font-size: 0.9rem; }
+.lo-field select { width: 100%; }
+.lb-old { margin: 8px 0; }
+/* Circuits kept offline: the badge on a Sessions track row, the hint, the hold, and the list in Profile. */
+.lo-hint { margin: 6px 0 10px; color: var(--steel, #5b6475); }
+.lo-hint[hidden] { display: none; }
+[data-keep-hold] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+[data-keep-hold].is-keeping { background: rgba(46, 157, 74, 0.1); box-shadow: inset 0 0 0 2px rgba(46, 157, 74, 0.55); transition: box-shadow 0.15s ease; }
+.lo-circuits { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 6px; }
+.lo-circuits[hidden] { display: none; }
+.lo-circuits li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.lo-kept-count { display: block; color: var(--muted, #667); font-size: 12px; }
+.lo-count { font-weight: 400; color: var(--steel, #5b6475); margin-left: 6px; }
+/* The cloud button on a Sessions track row: a second way to keep a circuit, for the keyboard and for anyone who has not found the hold. */
+.tp-keep { position: absolute; top: 4px; right: 10px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel, #5b6475); cursor: pointer; }
+.tp-keep[hidden] { display: none; }
+.tp-keep:hover, .tp-keep:focus-visible { background: var(--hairline); color: var(--ink); }
+.tp-keep .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.tp-keep[aria-pressed="true"] { color: #2e9d4a; }
+.tp-keep[aria-pressed="true"] .icon { fill: currentColor; fill-opacity: 0.2; }
+.tp-trackwrap:has(> .tp-keep:not([hidden])) > .tp-trackrow { padding-right: 64px; }

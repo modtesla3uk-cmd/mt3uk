@@ -7598,10 +7598,10 @@ async function refreshTrackBoard(env, boardKey, carId) {
   var total = board.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
-  // The top three on each board, so the track list can show them (one key).
+  // The top ten on each board, so the track list can show them (one key). Places past ten are on the board itself.
   var leaders = await getJsonKey(env, 'track-board-leaders', {});
   if (board.length) {
-    leaders[boardKey] = board.slice(0, 3).map(function (e) {
+    leaders[boardKey] = board.slice(0, 10).map(function (e) {
       var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
       if (e.make) l.make = e.make;
       if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }

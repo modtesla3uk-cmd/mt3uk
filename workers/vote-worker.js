@@ -9077,7 +9077,8 @@ async function handleLapsNewsAdmin(request, env) {
 var LAPS_EXPLAINER_KEY = 'laps-explainer';
 var LAPS_EXPLAINER_MAPS = ['club', 'sweeper', 'hairpin'];
 var LAPS_EXPLAINER_SCENES = ['upload', 'map', 'delta', 'compare', 'car', 'end'];
-var LAPS_EXPLAINER_SOUNDS = ['pad', 'pulse', 'engine', 'chime', 'stopwatch', 'whoosh', 'silent'];
+var LAPS_EXPLAINER_SOUNDS = ['pad', 'pulse', 'engine', 'chime', 'stopwatch', 'whoosh', 'silent', 'custom'];
+var LAPS_EXPLAINER_AUDIO_MAX = 5 * 1024 * 1024;
 var LAPS_EXPLAINER_PACES = ['slowest', 'slow', 'normal', 'quick'];
 function cleanLapsExplainer(body) {
   var out = {}, src = body || {};
@@ -9110,13 +9111,50 @@ async function handleLapsExplainerPublic(request, env) {
 }
 async function handleLapsExplainerAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {} });
+  var old = (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {};
+  if (request.method === 'GET') return json({ success: true, settings: old });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
-  if (body && body.reset) { await env.VOTES.delete(LAPS_EXPLAINER_KEY); return json({ success: true, settings: {} }); }
+  if (body && body.reset) {
+    if (old.audio && old.audio.key) await env.GALLERY_BUCKET.delete(old.audio.key);
+    await env.VOTES.delete(LAPS_EXPLAINER_KEY);
+    return json({ success: true, settings: {} });
+  }
+  // The uploaded file is changed only by the audio route, so a save keeps it.
   var settings = cleanLapsExplainer(body);
+  if (old.audio) settings.audio = old.audio;
+  if (settings.soundStyle === 'custom' && !settings.audio) delete settings.soundStyle;
   await env.VOTES.put(LAPS_EXPLAINER_KEY, JSON.stringify(settings));
   return json({ success: true, settings: settings });
+}
+
+// The sound the admin uploads for the Laps video: an MP3 or OGG up to 5 MB, kept in the bucket under laps/explainer/
+// and named in the settings (audio: { url, key, name, size, at }). POST uploads (the body is the file, ?name= its name),
+// DELETE removes it and goes back to a built-in sound.
+async function handleLapsExplainerAudio(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var old = (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {};
+  if (request.method === 'DELETE') {
+    if (old.audio && old.audio.key) await env.GALLERY_BUCKET.delete(old.audio.key);
+    delete old.audio;
+    if (old.soundStyle === 'custom') old.soundStyle = 'pad';
+    await env.VOTES.put(LAPS_EXPLAINER_KEY, JSON.stringify(old));
+    return json({ success: true, settings: old });
+  }
+  var bytes = new Uint8Array(await request.arrayBuffer());
+  if (!bytes.length) return json({ success: false, message: 'No file received' }, 400);
+  if (bytes.length > LAPS_EXPLAINER_AUDIO_MAX) return json({ success: false, message: 'That file is over 5 MB, please use a shorter or smaller one' }, 400);
+  var type = '', ext = '';
+  if ((bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) || (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0)) { type = 'audio/mpeg'; ext = 'mp3'; }
+  else if (bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53) { type = 'audio/ogg'; ext = 'ogg'; }
+  if (!type) return json({ success: false, message: 'The sound needs to be an MP3 or OGG file' }, 400);
+  var name = trackText(new URL(request.url).searchParams.get('name') || 'sound', 60) || 'sound';
+  var key = 'laps/explainer/sound-' + randomToken().slice(0, 16) + '.' + ext;
+  if (old.audio && old.audio.key) await env.GALLERY_BUCKET.delete(old.audio.key);
+  await env.GALLERY_BUCKET.put(key, bytes, { httpMetadata: { contentType: type, cacheControl: 'public, max-age=86400' } });
+  old.audio = { url: GALLERY_PUBLIC_BASE_URL + '/' + key, key: key, name: name, size: bytes.length, at: Date.now() };
+  await env.VOTES.put(LAPS_EXPLAINER_KEY, JSON.stringify(old));
+  return json({ success: true, settings: old });
 }
 
 // ---------- Laps logo ----------
@@ -11980,6 +12018,9 @@ export default {
     }
     if (url.pathname === '/laps/explainer/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsExplainerAdmin(request, env);
+    }
+    if (url.pathname === '/laps/explainer/admin/audio' && (request.method === 'POST' || request.method === 'DELETE')) {
+      return handleLapsExplainerAudio(request, env);
     }
     if (url.pathname === '/laps/logo' && request.method === 'GET') {
       return handleLapsLogoPublic(request, env);

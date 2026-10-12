@@ -271,6 +271,14 @@
       ['Save', 'Keeps your changes. The pages show them on their next load, within two minutes.'],
       ['Use the front page\'s own words', 'Clears every change, and every section goes back to the front page only.']
     ] },
+    'explainer-wrap': { t: 'Laps video', p: 'The animation at the top of the Laps front page: its circuit, speed, sound, words and the sign-in line.', i: [
+      ['Circuit, mph or km/h, speed', 'The made-up circuit shown, the units for the speeds in it, and how fast the picture runs (Slow is the default).'],
+      ['Sound', 'The sound played under it. The built-in sounds are made in the browser; Your own file uses an MP3 or OGG you upload below, up to 5 MB.'],
+      ['Loop and Early preview label', 'Loop replays the animation; off, it plays once and stops on the end card. The label switch shows or hides Early preview on that card.'],
+      ['Words', 'The title and caption of each scene. Anything left blank keeps the built-in words.'],
+      ['Save and preview', 'Save puts the changes on laps.mt3uk.com within two minutes. The preview here shows them straight away.'],
+      ['Use the built-in words and settings', 'Clears every change and removes an uploaded file.']
+    ] },
     'tyres-wrap': { t: 'Tyres', p: 'The tyre makes, their models and the Width, Profile and Diameter choices offered in Track sessions.', i: [
       ['Starting list', 'data/tyres.json. Changes made here are stored on top of it and are live straight away.'],
       ['Model box', 'It suggests a make\'s models, but members can still type anything.'],

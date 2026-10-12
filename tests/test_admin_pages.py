@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap", "all-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "explainer-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -2535,3 +2535,57 @@ def test_admin_laps_video_loop_and_early_preview_label_switches_are_saved(page):
     page.locator("#lxa-save").click()
     expect(page.locator("#lxa-note")).to_contain_text("Saved")
     assert posted[-1]["loop"] is False and posted[-1]["previewLabel"] is False
+
+
+def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(page, tmp_path):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    uploads, saves = [], []
+    state = {"settings": {}}
+
+    def explainer_admin(route):
+        req = route.request
+        url = req.url
+        if "/laps/explainer/admin/audio" in url and req.method == "POST":
+            uploads.append({"type": req.headers.get("content-type"), "size": len(req.post_data_buffer or b""), "name": url})
+            state["settings"] = {"audio": {"url": "https://files.example/laps/explainer/sound-1.mp3", "key": "laps/explainer/sound-1.mp3", "name": "my-sound.mp3", "size": 210}}
+        elif "/laps/explainer/admin/audio" in url and req.method == "DELETE":
+            state["settings"] = {}
+        elif req.method == "POST":
+            body = json.loads(req.post_data)
+            saves.append(body)
+            if not body.get("reset"):
+                state["settings"] = dict(state["settings"], **{k: v for k, v in body.items() if k != "audio"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": state["settings"]}), headers=cors)
+
+    sound = tmp_path / "my-sound.mp3"
+    sound.write_bytes(b"ID3" + b"\x00" * 200)
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-audio-now")).to_contain_text("No file yet")
+    page.locator("#lxa-audio-file").set_input_files(str(sound))
+    page.locator("#lxa-audio-upload").click()
+    expect(page.locator("#lxa-audio-now")).to_contain_text("my-sound.mp3")
+    expect(page.locator("#lxa-sound-style")).to_have_value("custom")
+    assert uploads and uploads[-1]["type"] == "audio/mpeg" and uploads[-1]["size"] == sound.stat().st_size
+    assert saves[-1]["soundStyle"] == "custom"
+    expect(page.locator("#lxa-note")).to_contain_text("Uploaded and saved")
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#lxa-audio-remove").click()
+    expect(page.locator("#lxa-audio-now")).to_contain_text("No file yet")
+    expect(page.locator("#lxa-sound-style")).to_have_value("pad")
+
+
+def test_the_laps_video_sound_is_on_by_default_and_starts_on_the_first_press(page):
+    from tests.test_laps_home import open_home
+    open_home(page)
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator(".lxe-sound")).to_contain_text("Sound on")
+    page.mouse.click(5, 5)
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
+
+
+def test_the_laps_video_plays_an_uploaded_file_when_it_is_chosen(page):
+    from tests.test_laps_home import open_home
+    open_home(page, explainer={"soundStyle": "custom", "audio": {"url": "https://files.example/sound.mp3", "name": "sound.mp3"}})
+    expect(page.locator(".lxe")).to_have_attribute("data-sound", "custom")

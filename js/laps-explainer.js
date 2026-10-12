@@ -54,8 +54,9 @@
   // Settings as the page uses them: defaults, then the saved choices, then the words (blank keeps the built-in ones).
   function merge(s) {
     s = s || {};
+    var audio = s.audio && s.audio.url ? { url: String(s.audio.url), name: String(s.audio.name || '') } : null;
     var out = { map: MAPS[s.map] ? s.map : DEFAULTS.map, units: s.units === 'kph' ? 'kph' : 'mph',
-      loop: s.loop !== false, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', soundStyle: SOUNDS[s.soundStyle] ? s.soundStyle : 'pad', sound: s.sound !== false && s.soundStyle !== 'silent',
+      loop: s.loop !== false, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
       volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
     SCENES.forEach(function (sc) {
       var mine = (s.texts && s.texts[sc.id]) || {};
@@ -395,7 +396,7 @@
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, soundOn: false, scene: -1, raf: 0, scale: 1 };
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: !!(opts.autoSound && S.sound), scene: -1, raf: 0, scale: 1 };
 
     function sizeCanvas() {
       var w = wrap.clientWidth || W, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -415,10 +416,28 @@
         soundBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (st.soundOn ? ICON_SOUND_ON : ICON_SOUND_OFF) + '</svg>' + (st.soundOn ? 'Sound on' : 'Sound off');
       }
     }
+    // The sound engine for the chosen sound: an uploaded file plays through an audio element, the others are made here.
+    function ensureSound() {
+      if (S.soundStyle === 'custom' && S.audio) {
+        if (!st.custom) { st.custom = new Audio(S.audio.url); st.custom.preload = 'auto'; }
+      } else if (!st.audio) {
+        st.audio = makeAudio(S.soundStyle);
+      }
+    }
     function fadeMaster() {
       if (!st.audio) return;
       var target = st.playing && st.soundOn ? (S.volume / 100) * 0.5 : 0;
       st.audio.master.gain.setTargetAtTime(target, st.audio.ac.currentTime, 0.05);
+    }
+    // Starts, pauses and sets the level of whichever sound is in use. Nothing plays before the first press on the page.
+    function syncSound() {
+      fadeMaster();
+      if (!st.custom) return;
+      st.custom.volume = S.volume / 100;
+      st.custom.loop = S.loop;
+      var want = st.playing && st.soundOn && st.gestured;
+      if (want && st.custom.paused) { var p = st.custom.play(); if (p && p.catch) p.catch(function () {}); }
+      else if (!want && !st.custom.paused) st.custom.pause();
     }
     function frame(now) {
       st.raf = requestAnimationFrame(frame);
@@ -426,7 +445,7 @@
       st.last = now;
       if (st.playing) {
         var nt = st.t + dt * PACES[S.pace].rate;
-        if (!S.loop && nt >= TOTAL) { st.t = TOTAL - 0.001; st.playing = false; showControls(); fadeMaster(); }
+        if (!S.loop && nt >= TOTAL) { st.t = TOTAL - 0.001; st.playing = false; showControls(); syncSound(); }
         else st.t = nt % TOTAL;
       }
       var k = sceneIndex(st.t), changed = k !== st.scene && st.scene !== -1;
@@ -439,17 +458,27 @@
       if (!st.playing && st.t >= TOTAL - 0.01) st.t = 0;
       st.playing = !st.playing;
       if (st.playing && st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
-      fadeMaster(); showControls();
+      syncSound(); showControls();
     });
     soundBtn.addEventListener('click', function () {
-      if (!st.audio) {
-        st.audio = makeAudio(S.soundStyle);
-        if (!st.audio) { soundBtn.disabled = true; return; }
-      }
-      if (st.audio.ac.state === 'suspended') st.audio.ac.resume();
+      st.gestured = true;
+      ensureSound();
+      if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
       st.soundOn = !st.soundOn;
-      fadeMaster(); showControls();
+      syncSound(); showControls();
     });
+    // On by default: the first press anywhere on the page starts the sound (browsers allow sound only after a press).
+    if (opts.autoSound && S.sound) {
+      var firstPress = function () {
+        document.removeEventListener('pointerdown', firstPress, true);
+        document.removeEventListener('keydown', firstPress, true);
+        st.gestured = true;
+        // The labels already say Sound on, so the buttons are not redrawn here (a redraw under a press loses its click).
+        if (st.soundOn) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); syncSound(); }
+      };
+      document.addEventListener('pointerdown', firstPress, true);
+      document.addEventListener('keydown', firstPress, true);
+    }
 
     // On the Laps front page the 'Sign in to start' line of the end card is a link to sign in.
     function onCta(e) {
@@ -469,12 +498,13 @@
 
     return {
       set: function (next) {
-        var before = S.soundStyle;
+        var before = S.soundStyle + '|' + (S.audio ? S.audio.url : '');
         S = merge(next);
         wrap.setAttribute('data-map', S.map); wrap.setAttribute('data-units', S.units); wrap.setAttribute('data-sound', S.soundStyle); wrap.setAttribute('data-pace', S.pace); wrap.setAttribute('data-loop', S.loop ? 'loop' : 'once');
-        if (S.soundStyle !== before && st.audio) {
-          st.audio.ac.close(); st.audio = null;
-          if (st.soundOn) { st.audio = makeAudio(S.soundStyle); fadeMaster(); }
+        if (S.soundStyle + '|' + (S.audio ? S.audio.url : '') !== before) {
+          if (st.audio) { st.audio.ac.close(); st.audio = null; }
+          if (st.custom) { st.custom.pause(); st.custom = null; }
+          if (st.soundOn && st.gestured) { ensureSound(); syncSound(); }
         }
         if (!S.sound && soundBtn.parentNode) soundBtn.parentNode.removeChild(soundBtn);
         if (S.sound && !soundBtn.parentNode) bar.appendChild(soundBtn);
@@ -487,6 +517,7 @@
         cancelAnimationFrame(st.raf);
         if (st.ro) st.ro.disconnect();
         if (st.audio) st.audio.ac.close();
+        if (st.custom) st.custom.pause();
         el.innerHTML = '';
       }
     };
@@ -498,8 +529,8 @@
     if (!el) return;
     fetch(API + '/laps/explainer', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true }); })
-      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true }); });
+      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true, autoSound: true }); })
+      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true, autoSound: true }); });
   }
   window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES, CTA: CTA };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

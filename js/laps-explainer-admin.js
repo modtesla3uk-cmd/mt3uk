@@ -12,6 +12,9 @@
   var unitBtns = document.querySelectorAll('#lxa-units [data-units]'), sound = document.getElementById('lxa-sound');
   var soundStyle = document.getElementById('lxa-sound-style'), pace = document.getElementById('lxa-pace');
   var loop = document.getElementById('lxa-loop'), previewLabel = document.getElementById('lxa-preview-label');
+  var audioNow = document.getElementById('lxa-audio-now'), audioFile = document.getElementById('lxa-audio-file');
+  var audioUpload = document.getElementById('lxa-audio-upload'), audioRemove = document.getElementById('lxa-audio-remove');
+  var MAX_AUDIO = 5 * 1024 * 1024;
   var volume = document.getElementById('lxa-volume'), note = document.getElementById('lxa-note');
   var saveBtn = document.getElementById('lxa-save'), resetBtn = document.getElementById('lxa-reset');
   var previewBox = document.getElementById('lxa-preview');
@@ -69,10 +72,27 @@
       if (mine.title || mine.caption) texts[id] = mine;
     });
     var style = soundStyle.value;
-    return { map: mapSel.value, units: units, pace: pace.value, loop: loop.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
+    return { map: mapSel.value, units: units, pace: pace.value, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
+  }
+  // Shows the uploaded file, and offers it in the Sound menu only while there is one.
+  var currentAudio = null;
+  function showAudio(audio) {
+    currentAudio = audio || null;
+    var old = soundStyle.querySelector('option[value="custom"]');
+    if (old) old.parentNode.removeChild(old);
+    if (audio && audio.url) {
+      var o = document.createElement('option');
+      o.value = 'custom'; o.textContent = 'Your own file' + (audio.name ? ': ' + audio.name : '');
+      soundStyle.appendChild(o);
+      audioNow.textContent = 'Your file: ' + (audio.name || 'sound') + (audio.size ? ' (' + Math.round(audio.size / 1024) + ' KB)' : '') + '. Choose Your own file in the Sound menu to use it.';
+    } else {
+      audioNow.textContent = 'No file yet. Upload an MP3 or OGG to use your own sound.';
+    }
+    audioRemove.disabled = !(audio && audio.url);
   }
   function fill(s) {
     s = E.merge(s || {});
+    showAudio(s.audio);
     mapSel.value = s.map;
     setUnits(s.units);
     soundStyle.value = s.soundStyle;
@@ -127,6 +147,42 @@
   if (!preview) preview = E.mount(previewBox, read(), { autoplay: true });
   root.addEventListener('toggle', function () { if (root.open && !loaded) load(); });
   document.addEventListener('mt3uk-admin-refresh', function () { if (root.open) load(); });
+
+  // Upload: the file goes to the worker, then the settings are saved so the sound is used on laps.mt3uk.com.
+  audioUpload.addEventListener('click', function () {
+    var file = audioFile.files && audioFile.files[0];
+    if (!file) { say('Choose an MP3 or OGG file first.', true); return; }
+    if (file.size > MAX_AUDIO) { say('That file is over 5 MB. Please choose a shorter or smaller one.', true); return; }
+    if (!key()) { say('Enter the admin key at the top of the page first.', true); return; }
+    audioUpload.disabled = true;
+    say('Uploading ' + file.name + '…');
+    fetch(API + '/laps/explainer/admin/audio?name=' + encodeURIComponent(file.name) + '&key=' + encodeURIComponent(key()), {
+      method: 'POST', headers: { 'Content-Type': file.type || 'audio/mpeg' }, cache: 'no-store', body: file
+    }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
+      if (!d.success) { audioUpload.disabled = false; say(d.message || 'Could not upload the file.', true); return; }
+      fill(d.settings);
+      soundStyle.value = 'custom';
+      return call('POST', '/laps/explainer/admin', read()).then(function (saved) {
+        audioUpload.disabled = false;
+        audioFile.value = '';
+        if (saved.success) { fill(saved.settings); soundStyle.value = 'custom'; refreshPreview(); say('Uploaded and saved. laps.mt3uk.com uses it within two minutes.'); }
+        else say(saved.message || 'Uploaded, but it could not be saved.', true);
+      });
+    }).catch(function () { audioUpload.disabled = false; say('Could not reach the server.', true); });
+  });
+  audioRemove.addEventListener('click', function () {
+    if (!window.confirm('Remove your sound file? The Sound menu goes back to Soft pad.')) return;
+    audioRemove.disabled = true;
+    fetch(API + '/laps/explainer/admin/audio?key=' + encodeURIComponent(key()), { method: 'DELETE', cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
+        audioRemove.disabled = false;
+        if (!d.success) { say(d.message || 'Could not remove the file.', true); return; }
+        fill(d.settings);
+        if (soundStyle.value === 'custom') soundStyle.value = 'pad';
+        refreshPreview();
+        say('Removed. The Sound menu is back to the built-in sounds.');
+      }).catch(function () { audioRemove.disabled = false; say('Could not reach the server.', true); });
+  });
 
   saveBtn.addEventListener('click', function () {
     saveBtn.disabled = true;

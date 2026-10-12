@@ -393,6 +393,17 @@ def test_the_end_card_sign_in_line_is_a_link_to_sign_in_on_the_front_page(page):
     page.wait_for_url("**/*signin*", timeout=5000)
 
 
+def test_a_press_anywhere_on_the_end_card_goes_to_sign_in_on_the_front_page(page):
+    """The whole end card is the link: a press at its top corner, away from the words, still goes to sign in."""
+    open_home(page)
+    page.evaluate("window.MT3UKExplainerHome.seek(15.6)")
+    page.locator(".lxe canvas").scroll_into_view_if_needed()
+    page.wait_for_timeout(200)
+    box = page.locator(".lxe canvas").bounding_box()
+    page.mouse.click(box["x"] + box["width"] * (60 / 960), box["y"] + box["height"] * (60 / 540))
+    page.wait_for_url("**/*signin*", timeout=5000)
+
+
 def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     open_home(page, explainer={"previewLabel": False})
     expect(page.locator(".lxe")).to_have_attribute("data-loop", "loop")

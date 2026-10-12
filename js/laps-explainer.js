@@ -42,8 +42,7 @@
   // The sounds the admin can choose. Each is made here in the browser (no audio file). Silent offers no Sound button.
   var SOUNDS = { pad: 'Soft pad', pulse: 'Pulse', engine: 'Engine hum', chime: 'Chime', stopwatch: 'Stopwatch', whoosh: 'Whoosh', silent: 'Silent (no Sound button)' };
   var DEFAULTS = { map: 'club', units: 'mph', sound: true, soundStyle: 'pad', pace: 'slow', volume: 60, loop: true, previewLabel: true, texts: {} };
-  // Where the 'Sign in to start' line on the end card goes, and the area of the picture that counts as a press on it.
-  var CTA = { x0: 330, x1: 630, y0: 376, y1: 426 };
+  // Where the end card's picture goes when pressed on the Laps front page.
   function signInTarget() {
     return typeof window.mt3ukSignInUrl === 'function' ? window.mt3ukSignInUrl('track.html') : 'laps-signin.html?next=track.html';
   }
@@ -480,15 +479,11 @@
       document.addEventListener('keydown', firstPress, true);
     }
 
-    // On the Laps front page the 'Sign in to start' line of the end card is a link to sign in.
-    function onCta(e) {
-      var r = canvas.getBoundingClientRect();
-      var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
-      return sceneIndex(st.t) === SCENES.length - 1 && x >= CTA.x0 && x <= CTA.x1 && y >= CTA.y0 && y <= CTA.y1;
-    }
+    // On the Laps front page the whole picture is a link to sign in while the end card is showing (the 'Sign in to start' line says so).
+    function onEnd() { return sceneIndex(st.t) === SCENES.length - 1; }
     if (opts.link) {
-      canvas.addEventListener('mousemove', function (e) { canvas.style.cursor = onCta(e) ? 'pointer' : ''; });
-      canvas.addEventListener('click', function (e) { if (onCta(e)) window.location.href = signInTarget(); });
+      canvas.addEventListener('mousemove', function () { canvas.style.cursor = onEnd() ? 'pointer' : ''; });
+      canvas.addEventListener('click', function () { if (onEnd()) window.location.href = signInTarget(); });
     }
     sizeCanvas(); showControls(); paint();
     var resize = function () { sizeCanvas(); paint(); };
@@ -532,7 +527,7 @@
       .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true, autoSound: true }); })
       .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true, autoSound: true }); });
   }
-  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES, CTA: CTA };
+  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

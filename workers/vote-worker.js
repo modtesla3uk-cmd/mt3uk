@@ -6501,7 +6501,9 @@ async function issueSignInLink(env, email, page, joining, from) {
     else await sendMyBuildsLinkEmail(env, email, link, null, code);
   } catch (err) {
     console.log('Sign-in link email failed:', err.message);
+    return String(err && err.message || err);
   }
+  return '';
 }
 
 // The Laps sign-in and welcome emails, from "Laps by MT3UK". The admin can change the opening line of each.
@@ -6559,7 +6561,9 @@ async function handleMyBuildsJoin(request, env) {
   }
   var lapsOnly = from.site === 'laps' && !(await getLapsSignin(env)).mt3ukToo;
   await env.VOTES.put('pending-join:' + email, JSON.stringify({ firstName: firstName, lastName: lastName, site: from.site, lapsOnly: lapsOnly }), { expirationTtl: PENDING_JOIN_TTL_SECONDS });
-  await issueSignInLink(env, email, 'signin.html', true, from);
+  var mailError = await issueSignInLink(env, email, 'signin.html', true, from);
+  // Test copy only: say why the email was not sent, so it can be seen without the dashboard logs.
+  if (env.TEST_EMAIL_TO && mailError) return json({ success: true, message: 'Test copy: the email was not sent.', testMailError: mailError });
   return reply;
 }
 

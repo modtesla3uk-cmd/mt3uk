@@ -1050,8 +1050,10 @@
     "caption": "NIGHT TIME SLEEK",
     "name": "Sleek",
     "mods": [
-      "Performance: Acceleration Boost"
+      "Performance: Acceleration Boost",
+      "Audio and tech: Chargers"
     ],
+    "votable": false,
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
@@ -1060,8 +1062,10 @@
     "caption": "RED DUAL MOTOR",
     "name": "Sleek",
     "mods": [
-      "Performance: Acceleration Boost"
+      "Performance: Acceleration Boost",
+      "Audio and tech: Chargers"
     ],
+    "votable": false,
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
@@ -1322,7 +1326,8 @@
     "caption": "MODEL Y LR SLEEK EDITION",
     "name": "Sleek",
     "mods": [
-      "Performance: Acceleration Boost"
+      "Performance: Acceleration Boost",
+      "Audio and tech: Chargers"
     ],
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"

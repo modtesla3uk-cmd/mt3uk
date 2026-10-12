@@ -16,6 +16,10 @@ html_handling = "none"
 binding = "VOTES"
 id = "REPLACE_BY_DEPLOY"
 
+# Mail goes out through the same email routing as live; the worker sends every message to TEST_EMAIL_TO (a secret).
+[[send_email]]
+name = "SEND_EMAIL"
+
 [[r2_buckets]]
 binding = "GALLERY_BUCKET"
 bucket_name = "mt3uk-test"

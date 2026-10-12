@@ -2665,6 +2665,7 @@ def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(p
     assert uploads and uploads[-1]["type"] == "audio/mpeg" and uploads[-1]["size"] == sound.stat().st_size
     assert saves[-1]["soundStyle"] == "custom"
     expect(page.locator("#lxa-note")).to_contain_text("Uploaded and saved")
+    expect(page.locator("#lxa-audio-note")).to_contain_text("Uploaded and saved")
     page.on("dialog", lambda d: d.accept())
     page.locator("#lxa-audio-remove").click()
     expect(page.locator("#lxa-audio-now")).to_contain_text("No file yet")

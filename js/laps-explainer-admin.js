@@ -31,6 +31,9 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
   function say(t, bad) { if (note) { note.textContent = t || ''; note.classList.toggle('is-bad', !!bad); } }
+  // The upload and remove messages sit under their buttons, where the reader is looking.
+  var audioNote = document.getElementById('lxa-audio-note');
+  function sayAudio(t, bad) { if (audioNote) { audioNote.textContent = t || ''; audioNote.classList.toggle('is-bad', !!bad); } say(t, bad); }
 
   // Options and the scene boxes (one title and one caption per scene, with the built-in words as the placeholder).
   Object.keys(E.MAPS).forEach(function (id) {
@@ -151,24 +154,24 @@
   // Upload: the file goes to the worker, then the settings are saved so the sound is used on laps.mt3uk.com.
   audioUpload.addEventListener('click', function () {
     var file = audioFile.files && audioFile.files[0];
-    if (!file) { say('Choose an MP3 or OGG file first.', true); return; }
-    if (file.size > MAX_AUDIO) { say('That file is over 5 MB. Please choose a shorter or smaller one.', true); return; }
-    if (!key()) { say('Enter the admin key at the top of the page first.', true); return; }
+    if (!file) { sayAudio('Choose an MP3 or OGG file first.', true); return; }
+    if (file.size > MAX_AUDIO) { sayAudio('That file is over 5 MB. Please choose a shorter or smaller one.', true); return; }
+    if (!key()) { sayAudio('Enter the admin key at the top of the page first.', true); return; }
     audioUpload.disabled = true;
-    say('Uploading ' + file.name + '…');
+    sayAudio('Uploading ' + file.name + '…');
     fetch(API + '/laps/explainer/admin/audio?name=' + encodeURIComponent(file.name) + '&key=' + encodeURIComponent(key()), {
       method: 'POST', headers: { 'Content-Type': file.type || 'audio/mpeg' }, cache: 'no-store', body: file
     }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-      if (!d.success) { audioUpload.disabled = false; say(d.message || 'Could not upload the file.', true); return; }
+      if (!d.success) { audioUpload.disabled = false; sayAudio(d.message || 'Could not upload the file.', true); return; }
       fill(d.settings);
       soundStyle.value = 'custom';
       return call('POST', '/laps/explainer/admin', read()).then(function (saved) {
         audioUpload.disabled = false;
         audioFile.value = '';
-        if (saved.success) { fill(saved.settings); soundStyle.value = 'custom'; refreshPreview(); say('Uploaded and saved. laps.mt3uk.com uses it within two minutes.'); }
-        else say(saved.message || 'Uploaded, but it could not be saved.', true);
+        if (saved.success) { fill(saved.settings); soundStyle.value = 'custom'; refreshPreview(); sayAudio('Uploaded and saved. laps.mt3uk.com uses it within two minutes.'); }
+        else sayAudio(saved.message || 'Uploaded, but it could not be saved.', true);
       });
-    }).catch(function () { audioUpload.disabled = false; say('Could not reach the server.', true); });
+    }).catch(function () { audioUpload.disabled = false; sayAudio('Could not reach the server.', true); });
   });
   audioRemove.addEventListener('click', function () {
     if (!window.confirm('Remove your sound file? The Sound menu goes back to Soft pad.')) return;
@@ -176,12 +179,12 @@
     fetch(API + '/laps/explainer/admin/audio?key=' + encodeURIComponent(key()), { method: 'DELETE', cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
         audioRemove.disabled = false;
-        if (!d.success) { say(d.message || 'Could not remove the file.', true); return; }
+        if (!d.success) { sayAudio(d.message || 'Could not remove the file.', true); return; }
         fill(d.settings);
         if (soundStyle.value === 'custom') soundStyle.value = 'pad';
         refreshPreview();
-        say('Removed. The Sound menu is back to the built-in sounds.');
-      }).catch(function () { audioRemove.disabled = false; say('Could not reach the server.', true); });
+        sayAudio('Removed. The Sound menu is back to the built-in sounds.');
+      }).catch(function () { audioRemove.disabled = false; sayAudio('Could not reach the server.', true); });
   });
 
   saveBtn.addEventListener('click', function () {

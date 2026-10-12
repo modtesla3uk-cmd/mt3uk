@@ -1624,7 +1624,8 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
     expect(mine).to_be_visible()
     b, k, h, a = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
-    assert k["width"] <= 46 and abs(k["width"] - k["height"]) < 1, k
+    # On a phone Back is a pill with its word, as on desktop, 44px tall.
+    assert 80 <= k["width"] <= 120 and abs(k["height"] - 44) < 1, k
     assert b["width"] > 90 and a["width"] > 90, (b, a)
     expect(mine).to_have_attribute("aria-label", "My Sessions")
     centre = lambda r: r["y"] + r["height"] / 2
@@ -1643,7 +1644,9 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     what = page.locator(".lb-hero .tp-what summary").bounding_box()
     # On a phone the smaller bulb sits at the right end of the What is...? line, under the buttons.
     assert abs(centre(bulb) - centre(h)) < 12 and bulb["x"] > h["x"] + 100, (bulb, h)
-    assert what["y"] >= a["y"] + a["height"] - 2 and what["y"] - (a["y"] + a["height"]) < 30, (what, a)
+    # On a phone What is...? opens from the ? button in the title row, beside the share button.
+    q = page.locator(".lb-hero .tp-what-q").bounding_box()
+    assert q is not None and abs(centre(q) - centre(h)) < 12 and q["x"] > b["x"], (q, h)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

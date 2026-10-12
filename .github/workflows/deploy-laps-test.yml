@@ -32,6 +32,13 @@ jobs:
           grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
           echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
 
+      - name: Treat the test address as the Laps address in the test copy
+        run: |
+          # The site checks for the live Laps address (laps.mt3uk.com) to decide where sign-in and Laps links go. In the
+          # test copy only, the check and the links use the test Laps address, so Sign in to Start opens laps-signin.html.
+          grep -rl 'laps\.mt3uk\.com' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#laps\.mt3uk\.com#test.laps.mt3uk.com#g'
+          echo "Live Laps address left in the test copy: $(grep -rl 'laps\.mt3uk\.com' workers/test/site --include='*.html' --include='*.js' | grep -v 'test\.laps\.mt3uk\.com' | wc -l) files"
+
       - name: Make the test address's index page the Laps front page
         run: |
           # index.html is the MT3UK homepage. Its script sends visitors to Laps only on the live Laps address, so on the

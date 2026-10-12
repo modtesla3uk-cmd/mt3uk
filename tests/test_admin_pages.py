@@ -1017,6 +1017,42 @@ def test_admin_announcement_for_sessions(page):
     assert posted[-1] == {"clear": True}
 
 
+def test_admin_laps_video_panel_edits_the_circuit_units_words_and_volume(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    stored, posted = {}, []
+
+    def explainer_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("reset"):
+                stored.update(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": dict(stored)}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-map", "club")
+    page.locator("#lxa-map").select_option("hairpin")
+    page.locator("#lxa-units [data-units='kph']").click()
+    page.locator("#lxa-scenes input").nth(0).fill("Upload your timer file")
+    page.locator("#lxa-volume").evaluate("v => { v.value = '30'; v.dispatchEvent(new Event('input')); }")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-map", "hairpin")
+    expect(page.locator("#lxa-preview .lxe")).to_have_attribute("data-units", "kph")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    body = posted[-1]
+    assert body["map"] == "hairpin" and body["units"] == "kph" and body["volume"] == 30 and body["sound"] is True
+    # Only the words that differ from the built-in ones are sent.
+    assert body["texts"] == {"upload": {"title": "Upload your timer file"}}, body
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#lxa-reset").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Reset")
+    assert posted[-1] == {"reset": True}
+
+
 def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page):
     cors = {"Access-Control-Allow-Origin": "*"}
     stored, posted = {"fastest": {"show": {"sessions": True}}}, []

@@ -392,7 +392,8 @@
     .lh-hero .wrap > div:first-child > .lh-evs { order: 5; }
     .lh-hero .wrap > div:first-child > #lh-note { order: 6; }
   }
-  .lh-hero .lh-video { max-width: none; margin: 0; background: #f4f1ea; border: 0; padding: 5px; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  /* No frame: the animation fades into the page at its edges. */
+  .lh-hero .lh-video { max-width: none; margin: 0; background: none; border: 0; padding: 0; box-shadow: none; -webkit-mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); }
   .lh-hero .lh-video [data-laps-explainer], .lh-hero .lh-video canvas { border-radius: 8px; }
   .lh-hero .lh-video-cap { max-width: none; margin: 10px 0 0; text-align: left; color: #b9c0cf; }
   .lh-video { max-width: 760px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline-strong, rgba(20,33,61,.2)); box-shadow: 0 18px 40px rgba(0,0,0,.25); }

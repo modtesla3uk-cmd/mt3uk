@@ -2261,7 +2261,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(page.locator("#lb-models .chip.is-empty")).to_have_count(6)
     expect(page.locator('#lb-models .chip[data-m="Model 3"]')).not_to_have_class(re.compile("is-empty"))
     expect(page.locator('#lb-models .chip[data-m="All"]')).not_to_have_class(re.compile("is-empty"))
-    expect(page.locator(".tp-head .tp-sub")).to_contain_text("Each car's fastest lap.")
+    expect(page.locator(".tp-head .tp-sub")).to_contain_text("Each lap that places.")
     # Drag and sprint have their own tabs.
     page.locator(".tp-back").click()
     page.locator(".lb-types a", has_text="Drag").click()
@@ -3060,10 +3060,13 @@ def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
     expect(badge("b1")).to_have_count(0)
     # And on the session page.
     fake.sessions["a1"] = dict(fake.index[0], laps=[], trace={"laps": {}}, mine=True)
+    fake.ranks = {"a1": {"onBoard": True, "place": 1, "of": 2, "board": "Thruxton, Main", "tab": "Track days"}}
     page.locator(".tp-back").click()
     into_track(page, "Thruxton")
     page.locator('#tp-sess-list .tp-row[data-sid="a1"]').click()
-    expect(page.locator("#tp-rank-slot .tp-rank")).to_have_text("Platinum 1st")
+    # The rank line under the session heading carries the medal and the place (the trophy slot went with the old layout).
+    expect(page.locator(".tp-rank-line")).to_contain_text("1st of 2")
+    expect(page.locator(".tp-rank-line .tp-medal")).to_contain_text("Platinum")
 
 
 def test_a_car_not_on_the_board_gets_no_trophy(page):
@@ -4407,27 +4410,33 @@ def test_admin_tyres_panel_edits_makes_models_and_sizes(page):
     assert overflow_width(page) <= 0
 
 
-def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
+def test_leaderboard_filters_show_each_session_that_matches(page):
     fake = FakeWorker(earlier=False)
 
     def best(sid, t, cond, make, model):
         return {"sessionId": sid, "date": "2026-04-02", "conditions": cond, "tyres": make + " " + model + ", 245/35 R19", "tyreMake": make, "tyreModel": model, "time": t}
+    # Every session that places is a row, so Ann has two: her dry run and her wet run.
     a = board_row("a", "a-dry", 90.0)
-    a.update(owner="Ann", car="Ann's 3", mods=["Coilovers: KW V3", "Wheels: 19in forged"], tyres="Michelin Pilot Sport 4S, 245/35 R19", tyreMake="Michelin", tyreModel="Pilot Sport 4S", sessions=3,
+    a.update(owner="Ann", car="Ann's 3", mods=["Coilovers: KW V3", "Wheels: 19in forged"], tyres="Michelin Pilot Sport 4S, 245/35 R19", tyreMake="Michelin", tyreModel="Pilot Sport 4S", sessions=2,
              bests=[best("a-dry", 90.0, "Dry", "Michelin", "Pilot Sport 4S"), best("a-wet", 99.0, "Wet", "Kumho", "Ecsta PS71")])
+    aw = board_row("a", "a-wet", 99.0)
+    aw.update(owner="Ann", car="Ann's 3", mods=[], conditions="Wet", tyres="Kumho Ecsta PS71, 245/35 R19", tyreMake="Kumho", tyreModel="Ecsta PS71", sessions=2,
+              bests=a["bests"])
     b = board_row("b", "b-dry", 91.5)
     b.update(owner="Ben", car="Ben's Y", model="Model Y", mods=[], tyres="Kumho Ecsta PS71, 245/35 R19", tyreMake="Kumho", tyreModel="Ecsta PS71", sessions=1,
              bests=[best("b-dry", 91.5, "Dry", "Kumho", "Ecsta PS71")])
     # An older entry: only its fastest, with the tyres as free text.
     c = board_row("c", "c-old", 95.0)
-    c.update(owner="Cat", car="Cat's S", model="Model S", tyres="Michelin Pilot Sport 4S 245/35R19", sessions=2)
-    fake.boards = {"/track/board:thruxton:main": [a, b, c]}
+    c.update(owner="Cat", car="Cat's S", model="Model S", tyres="Michelin Pilot Sport 4S 245/35R19", sessions=1)
+    fake.boards = {"/track/board:thruxton:main": [a, b, c, aw]}
     open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
     rows = page.locator(".lb-row")
-    expect(rows).to_have_count(3)
+    expect(rows).to_have_count(4)
     expect(rows.first).to_contain_text("Ann's 3")
     expect(rows.first).to_contain_text("Fastest")
+    expect(rows.nth(1)).to_contain_text("Ben's Y")
     expect(rows.nth(1)).to_contain_text("+1.50 s")
+    expect(rows.nth(3)).to_contain_text("1:39.00")
     # The tyres are on the row, without opening anything; the car's other mods are kept for its session page, not shown here.
     expect(rows.first).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
     expect(rows.first.locator(".tp-modchip")).to_have_count(0)
@@ -4436,14 +4445,14 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     # The whole row opens the session, except the name, which opens the member's car.
     expect(rows.first.locator("a.lb-open")).to_have_attribute("href", "track.html?s=a-dry")
     expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "member.html?car=a")
-    # Conditions: Ann's best wet is her Kumho run; the others have no wet result.
+    # Conditions: only Ann's wet run is wet.
     page.locator("#lb-cond").select_option("Wet")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("Ann's 3")
     expect(rows.first).to_contain_text("1:39.00")
     expect(page.locator("#lb-cond")).to_be_focused()
     page.locator("#lb-cond").select_option("All")
-    # Tyre make: each car's best on that make (Ann's only Kumho run was wet).
+    # Tyre make: the Kumho sessions, Ben's and Ann's wet run.
     page.locator("#lb-make").select_option("Kumho")
     expect(rows).to_have_count(2)
     expect(rows.first).to_contain_text("Ben's Y")
@@ -4461,7 +4470,7 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(page.locator(".tp-empty")).to_contain_text("Nobody matches these filters")
     page.get_by_role("button", name="Clear filters").click()
     page.locator("#lb-models [data-m='All']").click()
-    expect(rows).to_have_count(3)
+    expect(rows).to_have_count(4)
     assert overflow_width(page) <= 0
 
 
@@ -6497,14 +6506,16 @@ def _compare_board():
             b["brakeTemp"] = brake_temp
         return b
     def entry(cid, owner, bests):
-        return dict(board_row(cid, bests[0]["sessionId"], min(b["time"] for b in bests)), owner=owner, make="Tesla", drive="AWD", bests=bests)
-    return [
+        # One row for each session that places, each with its own result (and the car's bests for the compare views).
+        return [dict(board_row(cid, b["sessionId"], b["time"]), owner=owner, make="Tesla", drive="AWD", bests=bests, date=b["date"],
+                     conditions=b["conditions"], tyres=b["tyres"], tyreMake=b["tyreMake"], tyreModel=b["tyreModel"]) for b in bests]
+    return sum([
         entry("c1", "Ann", [best("s1", 95.9, "Michelin", "Pilot Sport Cup 2 R", "Pagid RSL29", "Pagid", "RSL29", 18, 1.21, 690, "2026-07-01"),
                             best("s2", 98.0, "Michelin", "Pilot Sport 4S", "Original equipment pads", "Original equipment", "Standard pads", 16, 1.05, None, "2026-05-01")]),
         entry("c2", "Bob", [best("s3", 96.6, "Michelin", "Pilot Sport Cup 2 R", "Pagid RSL29", "Pagid", "RSL29", 22, 1.18)]),
         entry("c3", "Cat", [best("s4", 98.4, "Michelin", "Pilot Sport 4S", "Original equipment pads", "Original equipment", "Standard pads", 8, 1.02)]),
         entry("c4", "Dan", [best("s5", 99.7, "Goodyear", "Eagle F1 SuperSport", "Original equipment pads", "Original equipment", "Standard pads", 12, 1.0, None, "2026-06-01", "Wet")]),
-    ]
+    ], [])
 
 
 def test_compare_tyres_and_pads_on_a_board(page):

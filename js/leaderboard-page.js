@@ -252,13 +252,13 @@
   function boardPath(type, venueId, layoutId) {
     return type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
   }
-  function placeOn(entries, type, carIds) {
+  function placeOn(entries, type, sessionIds) {
     var cars = entries.map(function (e) {
       var best = null;
       resultsOf(e, type).forEach(function (b) { if (best === null || scoreOf(b, type) < best) best = scoreOf(b, type); });
       return { e: e, s: best };
     }).filter(function (x) { return x.s !== null && isFinite(x.s); }).sort(function (a, b) { return a.s - b.s; });
-    for (var i = 0; i < cars.length; i++) if (carIds.indexOf(cars[i].e.carId) !== -1) return { pos: i + 1, of: cars.length, e: cars[i].e, s: cars[i].s };
+    for (var i = 0; i < cars.length; i++) if (sessionIds.indexOf(cars[i].e.sessionId) !== -1) return { pos: i + 1, of: cars.length, e: cars[i].e, s: cars[i].s };
     return { pos: 0, of: cars.length };
   }
   // The place is shown as the board shows a row: the medal circle, the member's name, car and date, and the time,
@@ -282,9 +282,9 @@
     var key = boardKey(type, venueId, layoutId);
     if (rankPending[key] || !mineList) return;
     rankPending[key] = true;
-    var carIds = mineRows(mineList, type, venueId, layoutId).map(function (x) { return x.s.carId; });
+    var sessionIds = mineRows(mineList, type, venueId, layoutId).map(function (x) { return x.s.id; });
     Promise.resolve(rd(boardPath(type, venueId, layoutId))).then(function (d) {
-      myRanks[key] = placeOn((d && d.entries) || [], type, carIds);
+      myRanks[key] = placeOn((d && d.entries) || [], type, sessionIds);
     }, function () {
       myRanks[key] = { error: true };
     }).then(function () { rankPending[key] = false; scheduleRankRedraw(); });
@@ -380,7 +380,7 @@
     h += '<p class="tp-small lb-arrange" id="lb-arrange">Hold a track and drag it to move it, or use the eye to hide it. This is kept on this device.' +
       (hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-showhidden>' + (showHidden ? 'Hide the ' + hiddenCount + ' hidden again' : 'Show ' + hiddenCount + ' hidden track' + (hiddenCount === 1 ? '' : 's')) + '</button>' : '') +
       (mine || hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-resetlayout>Reset layout</button>' : '') + '</p>';
-    h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
+    h += '<p class="tp-small lb-note">Every session that places is a row, so a car can be on a board more than once. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = keptNote() + h;
     placeTip();
@@ -537,9 +537,11 @@
   }
   // Each car's results to choose from: its best for every mix of conditions
   // and tyres, or just its fastest for boards made before those were kept.
+  // Each board row is one session that places, so its result is its own: the time, tyres, brakes and conditions it was
+  // saved with. The pads, temperature and braking come from the session's own best on the entry.
   function resultsOf(e, type) {
-    if (e.bests && e.bests.length) return e.bests;
-    var b = { sessionId: e.sessionId, date: e.date, conditions: e.conditions, tyres: e.tyres, tyreMake: e.tyreMake, tyreModel: e.tyreModel };
+    var m = (e.bests || []).find(function (x) { return x.sessionId === e.sessionId; }) || {};
+    var b = { sessionId: e.sessionId, carId: e.carId, date: e.date, conditions: e.conditions, tyres: e.tyres, tyreMake: e.tyreMake, tyreModel: e.tyreModel, drive: e.drive, pads: m.pads, padMake: m.padMake, padCompound: m.padCompound, temp: m.temp, brakeG: m.brakeG, brakeTemp: m.brakeTemp };
     if (type === 'drag') { b.quarter = e.quarter; b.quarterSpeed = e.quarterSpeed; } else b.time = e.time;
     return [b];
   }
@@ -575,8 +577,10 @@
     var tyres = b.tyres || e.tyres;
     var who = [e.owner ? e.car : '', [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
     var drive = b.drive || e.drive;
-    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
-      (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + (e.sessions > 1 ? ' · ' + e.sessions + ' sessions' : '') + '</span>';
+    // One line on a desktop: tyres, brakes and date each in their own column (see the board's styles).
+    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : 'Tyres not given') + '</span>' +
+      '<span class="lb-brakes' + (b.pads ? '' : ' is-none') + '">' + (b.pads ? esc(b.pads) : 'Brakes not given') + '</span>' +
+      '<span class="lb-date">' + esc(T.niceDate(b.date)) + (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + '</span>';
     // A signed-in member gets a star on the row, outside the name's link (it is shown once the list has loaded).
     var fav = signedInToken() ? ' lb-can-fav' : '';
     var star = signedInToken() ? '<button type="button" class="lb-fav" data-lb-fav data-id="' + esc(b.sessionId) + '" hidden aria-pressed="false" title="Add to favourites" aria-label="Add to favourites">' + FAV_STAR + '</button>' : '';
@@ -585,7 +589,6 @@
       '<div class="lb-car"><a class="lb-name" href="member.html?car=' + esc(b.carId || e.carId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
       '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' + star +
       '<div class="lb-info">' + info + '</div>' +
-      // The car's mods are kept on the entry (and shown on its session page), but a board row lists only the tyres for now.
       icon('chev') + '</li>';
   }
 
@@ -614,7 +617,7 @@
   function tyreKeyOf(b) { var tp = tyreParts(b); return tp.make && tp.model ? tp.make + '|' + tp.model : ''; }
   function padKeyOf(b) { return b.pads || ''; }
   function groupResults(entries, type, keyOf) {
-    var groups = {}, perCar = [];
+    var groups = {}, perByCar = {};
     entries.forEach(function (e) {
       if (boardModel !== 'All' && modelKey(e) !== boardModel) return;
       var mine = {};
@@ -624,9 +627,23 @@
         if (k && (!mine[k] || scoreOf(b, type) < scoreOf(mine[k], type))) mine[k] = b;
       });
       var keys = Object.keys(mine);
-      keys.forEach(function (k) { (groups[k] = groups[k] || { key: k, cars: [] }).cars.push({ e: e, b: mine[k], s: scoreOf(mine[k], type) }); });
-      if (keys.length > 1) perCar.push({ e: e, list: keys.map(function (k) { return { key: k, b: mine[k], s: scoreOf(mine[k], type) }; }).sort(function (x, y) { return x.s - y.s; }) });
+      // A car counts once in each group, with its quickest row there.
+      keys.forEach(function (k) {
+        var g = groups[k] = groups[k] || { key: k, cars: [] };
+        var c = g.cars.find(function (x) { return x.e.carId === e.carId; });
+        if (!c) g.cars.push({ e: e, b: mine[k], s: scoreOf(mine[k], type) });
+        else if (scoreOf(mine[k], type) < c.s) { c.e = e; c.b = mine[k]; c.s = scoreOf(mine[k], type); }
+      });
+      // A car's results on each tyre (or pads), across all its rows: the same car on two tyres.
+      if (keys.length) {
+        var pc = perByCar[e.carId] = perByCar[e.carId] || { e: e, best: {} };
+        keys.forEach(function (k) { if (!pc.best[k] || scoreOf(mine[k], type) < scoreOf(pc.best[k], type)) pc.best[k] = mine[k]; });
+      }
     });
+    var perCar = Object.keys(perByCar).map(function (id) {
+      var pc = perByCar[id];
+      return { e: pc.e, list: Object.keys(pc.best).map(function (k) { return { key: k, b: pc.best[k], s: scoreOf(pc.best[k], type) }; }).sort(function (x, y) { return x.s - y.s; }) };
+    }).filter(function (pc) { return pc.list.length > 1; });
     var list = Object.keys(groups).map(function (k) {
       var g = groups[k], times = g.cars.map(function (c) { return c.s; }).sort(function (x, y) { return x - y; });
       g.best = times[0];
@@ -724,7 +741,7 @@
           '<div class="lb-info"><span class="lb-tyre' + (s.tyres ? '' : ' is-none') + '">' + (s.tyres ? esc(s.tyres) : 'Tyres not given') + '</span></div>' +
           icon('chev') + '</li>';
       }).join('') + '</ol></div>' +
-      '<p class="tp-small lb-note">Only your own sessions are listed here. Each board shows every car\'s fastest, so a car\'s other sessions are not on it.</p>';
+      '<p class="tp-small lb-note">Only your own sessions are listed here. Each board shows every session that places.</p>';
   }
 
   function showBoard(type, q) {
@@ -758,7 +775,7 @@
       makes.sort();
       function draw(focus) {
         var shown = rank(entries, type);
-        var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
+        var what = type === 'drag' ? 'Each quarter mile that places.' : type === 'sprint' ? 'Each run that places.' : 'Each lap that places.';
         var filtered = fCond !== 'All' || fMake !== 'All' || fDrive !== 'All' || fTemp !== 'All' || fWeight !== 'All';
         var cmp = viewMode !== 'board', anyWeight = entries.some(function (e) { return weightOf(e); });
         var views = [['board', 'Leaderboard'], ['tyres', 'Compare tyres']].concat(type === 'drag' ? [] : [['pads', 'Compare pads']]);

@@ -132,9 +132,9 @@ const slow = JSON.parse(JSON.stringify(session)); slow.bestTime = 101.5;
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: slow, privacy: 'board' }, 'tok-a');
 const id2 = r.body.session.id;
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
-ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[0].sessions === 2, 'one place per car, its fastest, with how many sessions it has here');
+ok(r.body.entries.length === 2 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && Math.abs(r.body.entries[1].time - 101.5) < 0.01 && r.body.entries.every(e => e.carId === 'cara1' && e.sessions === 2), 'one row for each session that places: the fastest first, then the slower one, each with how many sessions the car has here');
 r = await call('GET', '/track/counts');
-ok(r.body.counts['track-board:thruxton:main'] === 1, 'the track list counts the board\'s sessions: one for each car, its fastest (the car has two shared)');
+ok(r.body.counts['track-board:thruxton:main'] === 2, 'the track list counts the board\'s rows: one for each session that places (the car has two)');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');
@@ -656,7 +656,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok([s1, s2, s3, s4].every(x => x.status === 200), 'four sessions with tyres saved');
   let b = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries;
   const e = b.find(x => x.carId === 'cara1');
-  ok(b.filter(x => x.carId === 'cara1').length === 1 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
+  ok(b.filter(x => x.carId === 'cara1').length === 4 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
   ok(e.bests.length === 3 && e.bests[0].time === 99 && e.bests.map(x => x.conditions + ':' + x.tyreMake).join() === 'Dry:Michelin,Dry:Kumho,Wet:Kumho', 'a best for each mix of conditions and tyres: ' + JSON.stringify(e.bests.map(x => [x.conditions, x.tyreMake, x.time])));
   ok(e.bests.every(x => x.sessionId && x.date), 'each best opens its session');
   {
@@ -670,7 +670,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(JSON.stringify(e.mods) === JSON.stringify(['KW V3 coilovers', 'Carbon seats, saves 12 kg', 'Front splitter']), 'only track parts, weight savings kept: ' + JSON.stringify(e.mods));
   r = await call('GET', '/track/counts');
   const lead = r.body.leaders['track-board:thruxton:main'];
-  ok(lead && lead.length === 1 && lead[0].owner === 'Rich' && lead[0].car === 'Arctic Three' && Math.abs(lead[0].time - 99) < 0.01 && !('mods' in lead[0]), 'the track list gets the top of each board: ' + JSON.stringify(lead));
+  ok(lead && lead.length >= 1 && lead[0].owner === 'Rich' && lead[0].car === 'Arctic Three' && Math.abs(lead[0].time - 99) < 0.01 && !('mods' in lead[0]), 'the track list gets the top of each board: ' + JSON.stringify(lead));
   r = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(r.body.sessions.find(x => x.id === s2.body.session.id).tyreMake === 'Kumho', 'the summary has the tyre make and model');
   // A session taken off the board drops out of the bests.
@@ -755,7 +755,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   // A slower one from the same car shares the board entry with the faster one.
   let id2 = await mk({ bestTime: 120.5 }, 'board');
   r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id2);
-  ok(r.body.onBoard === false && r.body.reasons.some(x => /only its fastest/.test(x)), 'a slower session of a car already on the board says each car shows its fastest: ' + JSON.stringify(r.body.reasons));
+  ok(r.body.onBoard === true && r.body.reasons.length === 0, 'a slower session of a car already on the board is a row of its own: ' + JSON.stringify(r.body.reasons));
   // Not matched to a track.
   let id3 = await mk({ venueId: '', layoutId: '', venueName: 'Somewhere new', venue: 'Somewhere new' }, 'board');
   r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id3);
@@ -773,6 +773,8 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     ok(r.body.onBoard === true && r.body.repairable === false, 'and it is on the board again: ' + JSON.stringify(r.body.reasons));
     r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: 'ffffffffffffffffffff' });
     ok(r.status === 404, 'an unknown session cannot be repaired');
+    // Put back what the other sessions were on the car's list and the board, as the repair only rebuilds this one.
+    kv.set('track-public:cara1', savedPublic); kv.set(bk, savedBoard);
   }
   // A session at a track that has since gone from the list (renamed or re-added) is found, and Repair links it, and the
   // member's other sessions there, to the track it looks like.
@@ -830,7 +832,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('GET', '/track/admin/boardproblems?key=secret');
   const pr = r.body.problems || [];
   ok(r.status === 200 && pr.some(x => x.id === id3 && x.reasons.some(t => /No track was matched/.test(t))), 'a shared session at an unlisted track is listed with its reason: ' + JSON.stringify(pr.map(x => x.id)).slice(0, 120));
-  ok(!pr.some(x => x.id === id1 || x.id === id2 || x.id === id4), 'sessions on a board, behind a faster one of the car, or private are not listed as problems');
+  ok(!pr.some(x => x.id === id1 || x.id === id2 || x.id === id4), 'sessions on a board, behind a faster one of the car, or private are not listed as problems: ' + JSON.stringify(pr.filter(x => x.id === id1 || x.id === id2 || x.id === id4)));
   ok(typeof r.body.sessions === 'number' && r.body.sessions >= 4 && r.body.privateOrStreet >= 1 && Array.isArray(r.body.hiddenBoards), 'with the totals: ' + JSON.stringify([r.body.sessions, r.body.privateOrStreet, r.body.onBoard]));
   // A board whose count is missing from the track list is found and repaired.
   const boardKey = (await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1)).body.board;

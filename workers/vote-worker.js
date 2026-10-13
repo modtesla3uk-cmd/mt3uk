@@ -7178,7 +7178,7 @@ async function putTrackSession(env, rec) {
 }
 var TRACK_PRIVACY = ['private', 'build', 'board'];
 var TRACK_CONDITIONS = ['Dry', 'Damp', 'Wet'];
-var TRACK_BOARD_MAX = 300;
+var TRACK_BOARD_MAX = 1000;
 
 function trackText(v, max) {
   return String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 80);
@@ -7593,18 +7593,20 @@ async function isAdminViewerToken(env, token) {
 // Rebuilds this car's place on one board from its shared sessions.
 async function refreshTrackBoard(env, boardKey, carId) {
   if (!boardKey) return;
-  // Each car's fastest shared session here ("Shared" covers both older
-  // "On my build" and "Leaderboard"), unless the admin took it off. The
-  // entry also counts the car's shared sessions here, for the track list.
+  // Every shared session here that places ("Shared" covers both older "On my build" and "Leaderboard"), unless the
+  // admin took it off: one row per session, so a car can have more than one place on the board. Each row also
+  // counts the car's shared sessions here, for the track list.
   var shared = await getJsonKey(env, 'track-public:' + carId, []);
   var here = shared.filter(function (s) { return (s.privacy === 'board' || s.privacy === 'build') && !s.street && trackBoardKey(s) === boardKey && trackScore(s); });
-  var mine = here.filter(function (s) { return !s.offBoard; }).sort(function (a, b) { return trackScore(a) - trackScore(b); })[0];
+  var shown = here.filter(function (s) { return !s.offBoard; });
   var board = await getJsonKey(env, boardKey, []);
   board = board.filter(function (e) { return e.carId !== carId; });
-  if (mine) {
+  if (shown.length) {
     var record = await getCarRecord(env, carId);
     var details = await getCarDetails(env, carId);
     var ownerEmail = record ? await carOwnerEmail(env, record) : null;
+    for (var mi = 0; mi < shown.length; mi++) {
+    var mine = shown[mi];
     var entry = {
       carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '', sessions: here.length,
       car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || (details && details.make ? '' : modelInName(record && record.name)), version: (details && details.version) || '', year: (details && details.year) || '',
@@ -7621,11 +7623,12 @@ async function refreshTrackBoard(env, boardKey, carId) {
     if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }
     else entry.time = mine.bestTime;
     board.push(entry);
+    }
   }
   board.sort(function (a, b) { return (a.time || a.quarter) - (b.time || b.quarter); });
   board = board.slice(0, TRACK_BOARD_MAX);
   await env.VOTES.put(boardKey, JSON.stringify(board));
-  // The sessions on each board, for the list of tracks (one key): one for each car, its fastest, which is what the board shows.
+  // The sessions on each board, for the list of tracks (one key): one for each row, which is one session that places.
   var counts = await getJsonKey(env, 'track-board-counts', {});
   var total = board.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
@@ -8266,8 +8269,6 @@ function memberBoardReason(rec, why, entries) {
   if (rec.offBoard) return 'MT3UK took it off the leaderboard.';
   if (!why.key) return rec.type === 'drag' ? 'Its drag strip is not on the list yet. A request is waiting for MT3UK to add it.' : 'Its track or layout is not on the list yet. A request is waiting for MT3UK to add it.';
   if (!(rec.type === 'drag' ? rec.quarter : rec.bestTime)) return 'It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.';
-  var mine = entries.find(function (e) { return e.carId === rec.carId; });
-  if (mine) return 'Your car is on this board with its fastest session (' + (mine.date || 'another day') + '). Each car shows only its fastest.';
   return 'It is not on this board yet. Save the session again, or ask MT3UK to refresh the leaderboards.';
 }
 // The place of each of the member's sessions on its board, for the Sessions list: one read of each board, and the
@@ -10017,12 +10018,11 @@ function trackBoardWhy(rec, lib, entries) {
   if (rec.offBoard) reasons.push('It was taken off the leaderboard by the admin.');
   var score = rec.type === 'drag' ? rec.quarter : rec.bestTime;
   if (!score && rec.type !== 'other') bad('It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.');
-  var mine = entries ? entries.find(function (e) { return e.carId === rec.carId; }) : null;
+  var mine = entries ? entries.find(function (e) { return e.sessionId === rec.id; }) : null;
   var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? (venue ? (venue.hill || /hill\s*-?\s*climb|hillclimb/i.test(venue.name || '')) : (rec.hill || /hill\s*-?\s*climb|hillclimb/i.test(rec.venue || ''))) ? 'Hill climb' : 'Sprint' : 'Track days';
-  var onBoard = !!(mine && mine.sessionId === rec.id);
-  if (key && mine && !onBoard) reasons.push('Its car is on the board, but with another session (' + (mine.date || '') + ', ' + (mine.time || mine.quarter || '') + '): each car shows only its fastest. This session still counts in the car\'s number of sessions and its bests by conditions and tyres.');
+  var onBoard = !!mine;
   var shared = rec.privacy !== 'private' && !rec.street && !rec.offBoard;
-  if (key && shared && !mine && !fixable && score) { bad('Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it.'); }
+  if (key && shared && !onBoard && !fixable && score) { bad('Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it.'); }
   return { key: key, tab: tab, reasons: reasons, onBoard: onBoard, fixable: fixable && shared, venue: venue, layout: layout, mine: mine || null };
 }
 

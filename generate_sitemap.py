@@ -31,7 +31,7 @@ PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html
 # address is, so they get their own sitemap there (robots.txt names both). Both addresses serve the same files.
 LAPS_DOMAIN = "https://laps.mt3uk.com"
 LAPS_OUTPUT_FILE = "sitemap-laps.xml"
-LAPS_PAGES = ["laps.html", "track.html", "leaderboards.html"]
+LAPS_PAGES = ["laps.html", "track.html", "leaderboards.html", "track-mode.html"]
 
 
 def generate_laps_sitemap():

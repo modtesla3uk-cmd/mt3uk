@@ -43,6 +43,7 @@ const env = {
 };
 globalThis.fetch = async url => String(url).endsWith('/data/tracks.json') ? new Response(tracksJson, { status: 200 }) : new Response('{}', { status: 200 });
 // A stored session, unzipped.
+const after_shared_check = r => { const x = r && r.body && r.body.session; return !!x && (x.privacy === 'board' || x.privacy === 'build'); };
 const stored = k => { const v = kv.get(k); return JSON.parse(typeof v === 'string' ? v : zlib.gunzipSync(Buffer.from(v)).toString()); };
 const ok = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
 const A = 'a@example.com', B = 'b@example.com';
@@ -471,6 +472,13 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     const after = (await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')).body.session;
     ok(res.status === 200 && after.carData.brakePressure.max === 8.4 && after.carData.power.regen === 79 && !('evil' in after.carData) && after.carSource.name === 'telemetry.csv', 'the figures are replaced, and only known ones kept');
     ok(after.laps[0].carData && after.laps[0].carData.soc.end === 61 && after.bestTime === before.bestTime && after.notes === before.notes && after.laps.length === before.laps.length, 'the lap\'s own figures are replaced and nothing else on the session changes');
+  }
+  // The Track Mode page's list: a shared session with the car's figures is on it, a private one is not.
+  {
+    const list = (await call('GET', '/track/mode-runs')).body.runs || [];
+    const mine = list.find(r => r.id === sid);
+    const shared = after_shared_check(await call('GET', '/track/session?id=' + sid, undefined, 'tok-a'));
+    ok(shared ? (mine && mine.mode && mine.mode.soc && mine.mode.soc[0] === 62.72 && mine.mode.brakeTemp === undefined) : !mine, 'the Track Mode list has a shared session with its figures, and not a private one');
   }
   // The admin's copy comes as a plain gzip file, not Content-Encoding, so nothing en route can re-encode it.
   res = await send('/track/admin/retime/source?key=secret&id=' + sid, undefined, undefined, 'GET');

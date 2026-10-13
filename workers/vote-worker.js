@@ -7485,6 +7485,8 @@ function trackSummary(rec) {
   if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
   if (rec.dashcam) o.dashcam = true;
+  var mode = trackModeFigures(rec.carData);
+  if (mode) o.mode = mode;
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
@@ -7663,6 +7665,47 @@ async function carOwnerEmail(env, record) {
   }
 }
 
+// The car's own figures for the Track Mode page: charge used, power, regen, the hottest brake and battery, tyre pressure and
+// slip. Null when the session has none of them.
+function trackModeFigures(cd) {
+  if (!cd || typeof cd !== 'object') return null;
+  var m = {};
+  if (cd.soc && isFinite(cd.soc.start) && isFinite(cd.soc.end)) m.soc = [cd.soc.start, cd.soc.end];
+  if (cd.power && isFinite(cd.power.max)) m.power = cd.power.max;
+  if (cd.power && isFinite(cd.power.regen)) m.regen = cd.power.regen;
+  if (cd.brakeTemp && isFinite(cd.brakeTemp.max)) m.brakeTemp = cd.brakeTemp.max;
+  if (cd.batteryTemp && isFinite(cd.batteryTemp.max)) m.batteryTemp = cd.batteryTemp.max;
+  if (cd.tyrePressure && isFinite(cd.tyrePressure.max)) m.tyrePressure = cd.tyrePressure.max;
+  if (cd.slip && isFinite(cd.slip.max)) m.slip = cd.slip.max;
+  if (cd.throttle && isFinite(cd.throttle.full)) m.throttle = cd.throttle.full;
+  return Object.keys(m).length ? m : null;
+}
+// Every shared session with Track Mode figures, in one key (track-mode-runs, get() only), for the Track Mode page. Each car's
+// part is replaced whenever its shared list changes, so a session made private or removed drops off.
+var TRACK_MODE_RUNS_KEY = 'track-mode-runs', TRACK_MODE_RUNS_MAX = 1000;
+async function refreshTrackModeRuns(env, carId, shared) {
+  var all = await getJsonKey(env, TRACK_MODE_RUNS_KEY, []);
+  var mine = (shared || []).filter(function (s) { return s.mode; });
+  var car = '', owner = '';
+  if (mine.length) {
+    var record = await getCarRecord(env, carId);
+    var ownerEmail = record ? await carOwnerEmail(env, record) : null;
+    owner = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';
+    car = (record && record.name) || 'MT3UK member build';
+  }
+  var kept = all.filter(function (r) { return r.carId !== carId; });
+  mine.forEach(function (s) {
+    kept.push({ id: s.id, carId: carId, car: car, owner: owner, date: s.date || '', time: s.time || '', venue: s.venue || '', layout: s.layout || '', type: s.type || '', bestTime: s.bestTime || null, conditions: s.conditions || '', tyres: s.tyres || '', logger: s.logger || '', mode: s.mode });
+  });
+  kept.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+  await env.VOTES.put(TRACK_MODE_RUNS_KEY, JSON.stringify(kept.slice(0, TRACK_MODE_RUNS_MAX)));
+}
+async function handleTrackModeRuns(request, env) {
+  var res = json({ runs: await getJsonKey(env, TRACK_MODE_RUNS_KEY, []) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+
 async function putTrackIndexes(env, email, rec, removed) {
   return putTrackIndexesFor(env, await ownerKey(email), rec, removed);
 }
@@ -7682,6 +7725,7 @@ async function putTrackIndexesFor(env, owner, rec, removed) {
     shared.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
     await env.VOTES.put(pKey, JSON.stringify(shared));
   }
+  await refreshTrackModeRuns(env, rec.carId, shared);
   await refreshTrackBoard(env, trackBoardKey(rec), rec.carId);
 }
 
@@ -8829,6 +8873,8 @@ async function handleTrackCarUpdate(request, env) {
     if (lc) l.carData = lc; else delete l.carData;
   });
   if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'This session is too big to save.' }, 413);
+  // The shared lists carry the Track Mode figures for the boards and the Track Mode page, so they are written again.
+  await putTrackIndexesFor(env, rec.owner, rec);
   return json({ success: true });
 }
 
@@ -10586,6 +10632,7 @@ async function handleTrackBoardsRebuild(request, env) {
     // The car's driven wheels go on any of its sessions that have none, so the rows below carry them.
     await stampCarDrive(env, carId, false);
     var shared = await getJsonKey(env, page.keys[i].name, []);
+    await refreshTrackModeRuns(env, carId, shared);
     var boards = {};
     shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
     var keys = Object.keys(boards);
@@ -12290,6 +12337,9 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/track/mode-runs' && request.method === 'GET') {
+      return handleTrackModeRuns(request, env);
     }
     if (url.pathname === '/admin/daily-summary' && request.method === 'POST') {
       return handleAdminDailySummary(request, env);

@@ -1634,6 +1634,18 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok((await call('POST', '/track/admin/new-sessions?key=secret', { clear: 'nonsense' })).status === 400, 'clearing needs a session id or all');
   r = await call('POST', '/track/admin/new-sessions?key=secret', { clear: 'all' });
   ok(r.body.sessions.length === 0, 'Clear all empties it');
+  // A failure to note a session is not silent: the session is saved, and the panel is told why until a later note works.
+  const realPut = env.VOTES.put;
+  env.VOTES.put = async (k, v) => { if (k === 'track-new-sessions') throw new Error('KV write refused in test'); return realPut(k, v); };
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: Object.assign({}, session, { date: '2025-04-04' }) }, 'tok-a');
+  env.VOTES.put = realPut;
+  ok(r.status === 200 && r.body.session && (await call('GET', '/track/sessions', undefined, 'tok-a')).body.sessions.some(s => s.id === r.body.session.id), 'a session is still saved when its note fails');
+  r = await call('GET', '/track/admin/new-sessions?key=secret');
+  ok(r.body.failure && r.body.failure.id === (await call('GET', '/track/sessions', undefined, 'tok-a')).body.sessions.find(s => s.date === '2025-04-04').id && /KV write refused in test/.test(r.body.failure.message), 'the admin list reports the failure: ' + JSON.stringify(r.body.failure));
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: Object.assign({}, session, { date: '2025-04-05' }) }, 'tok-a');
+  r = await call('GET', '/track/admin/new-sessions?key=secret');
+  ok(r.body.failure === null && r.body.sessions.length === 1, 'a later note that goes through clears the report');
+  await call('POST', '/track/admin/new-sessions?key=secret', { clear: 'all' });
   // The switch: off, nothing is listed or emailed; the other switches are untouched.
   r = await call('POST', '/admin/alerts?key=secret', { sessions: false });
   ok(r.body.alerts.sessions === false && r.body.alerts.email === true && r.body.alerts.bell === true, 'the New sessions switch is its own');

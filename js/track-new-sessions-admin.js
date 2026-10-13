@@ -49,6 +49,8 @@
       if (!d.ok || !d.success) { note(d.message || 'Could not load the new sessions.', 'is-error'); return; }
       note('');
       draw(d.sessions || []);
+      // The last save could not be noted (its session is saved): say why, until a later note goes through.
+      if (d.failure) note('A new session could not be added to this list: ' + (d.failure.message || 'unknown error') + ' (session ' + (d.failure.id || '') + ', ' + nice(d.failure.at) + '). The session itself is saved.', 'is-error');
     }).catch(function () { note('Could not reach the server.', 'is-error'); });
   }
   function clear(id, btn) {

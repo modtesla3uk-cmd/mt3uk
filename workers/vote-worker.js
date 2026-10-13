@@ -8044,14 +8044,27 @@ async function noteNewTrackSession(env, email, rec, car) {
       'The session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id + '\n\n' +
       'New sessions on Track admin:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#new-sessions-wrap';
     await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#new-sessions-wrap');
-  } catch (e) { /* the session is saved either way */ }
+    // A later note that goes through clears the report of an earlier failure.
+    await env.VOTES.delete(TRACK_NEW_SESSIONS_ERROR_KEY);
+  } catch (e) {
+    // The session is saved either way. The admin panel shows why it could not be noted, so a failure is not silent.
+    await noteNewSessionFailure(env, rec, e);
+  }
+}
+// The last failure to note a new session (one key, replaced each time), shown on the New sessions panel.
+var TRACK_NEW_SESSIONS_ERROR_KEY = 'track-new-sessions-error';
+async function noteNewSessionFailure(env, rec, e) {
+  try {
+    var message = String((e && e.message) || e || 'Unknown error').slice(0, 300);
+    await env.VOTES.put(TRACK_NEW_SESSIONS_ERROR_KEY, JSON.stringify({ at: new Date().toISOString(), id: rec.id, message: message }));
+  } catch (x) { /* nothing more can be done: the session itself is saved */ }
 }
 // Admin: the list of new sessions, and clearing one (or all) once seen. Clearing bumps the stamp so the bell on an
 // open admin page catches up.
 async function handleTrackAdminNewSessions(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var list = await getJsonKey(env, TRACK_NEW_SESSIONS_KEY, []);
-  if (request.method === 'GET') return json({ success: true, sessions: list });
+  if (request.method === 'GET') return json({ success: true, sessions: list, failure: await getJsonKey(env, TRACK_NEW_SESSIONS_ERROR_KEY, null) });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   if (body && body.clear === 'all') list = [];

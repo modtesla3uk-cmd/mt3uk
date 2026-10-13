@@ -125,10 +125,10 @@
   // The Lap analysis: one graph with a chip for each measure, a dot a lap (or a run for tyre warm-up) against its lap time,
   // and the sentence for that measure under it. Brakes against pads stay a table.
   var LAP_METRICS = [
-    ['charge', 'Charge per lap', '%', 1],
-    ['battery', 'Battery temperature', '%', 0],
-    ['throttle', 'Full throttle', '%', 0],
-    ['tyres', 'Tyre warm-up', ' bar', 2]
+    ['charge', 'Charge per lap', '%', 1, 'Battery used per lap (%)'],
+    ['battery', 'Battery temperature', '%', 0, 'Highest battery temperature in the lap (%)'],
+    ['throttle', 'Full throttle', '%', 0, 'Share of the lap at full throttle (%)'],
+    ['tyres', 'Tyre warm-up', ' bar', 2, 'Tyre pressure rise, start to end (bar)']
   ];
   function lapPoints(runs, k) {
     var laps = allLaps(runs), pts = [];
@@ -180,8 +180,8 @@
     return 'The quicker half of the runs gained ' + avg(byBest.slice(0, h3).map(rise)).toFixed(2) + ' bar of tyre pressure from start to end, the slower half ' + avg(byBest.slice(byBest.length - h3).map(rise)).toFixed(2) + ' bar.';
   }
   // Dots against the lap time: the quicker laps sit higher.
-  function dotGraph(pts, unit, dp) {
-    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 240, L = 58, R = 12, T = 14, B = 36;
+  function dotGraph(pts, unit, dp, xTitle) {
+    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 262, L = 58, R = 12, T = 14, B = 54;
     var xs = pts.map(function (p) { return p.x; }), ys = pts.map(function (p) { return p.y; });
     var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
     if (x1 - x0 < 0.5) { x0 -= 0.5; x1 += 0.5; }
@@ -189,15 +189,16 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="' + (p.best ? '#16233d' : '#e8590c') + '"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#16233d' : '#e8590c') + '"' + (p.best ? '' : ' fill-opacity="0.45"') + '><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + lapTime(y0) + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + lapTime(y1) + '</text>' +
-      '<text x="' + L + '" y="' + (H - 10) + '">' + x0.toFixed(dp) + unit + '</text>' +
-      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + x1.toFixed(dp) + unit + '</text>' +
+      '<text x="' + L + '" y="' + (H - 30) + '">' + x0.toFixed(dp) + unit + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + x1.toFixed(dp) + unit + '</text>' +
+      '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">' + esc(xTitle) + '</text>' +
       dots + '</svg>';
   }
   function lapAnalysis(runs) {
@@ -207,7 +208,7 @@
     }).join('') + '</div>';
     var m = LAP_METRICS.filter(function (x) { return x[0] === state.lapMetric; })[0] || LAP_METRICS[0];
     var pts = lapPoints(runs, m[0]);
-    var graph = pts.length >= 2 ? dotGraph(pts, m[2], m[3]) : '<p class="tm-note">Not enough laps or runs with this figure yet.</p>';
+    var graph = pts.length >= 2 ? dotGraph(pts, m[2], m[3], m[4]) : '<p class="tm-note">Not enough laps or runs with this figure yet.</p>';
     runs.forEach(function (r) {
       if (!r.pads || !r.mode) return;
       var k = r.pads;
@@ -225,7 +226,7 @@
         '<div class="tm-num"><span class="tm-lab tm-sub">Brake pressure</span> ' + (p.bp.length ? '<b>' + avg(p.bp).toFixed(1) + '</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
         '<div class="tm-num"><span class="tm-lab tm-sub">Best lap</span> <b>' + lapTime(p.best) + '</b></div></div>';
     }).join('') + '</div>' : '';
-    var legend = m[0] === 'tyres' ? '' : '<p class="tm-legend"><span class="tm-key tm-key-best" aria-hidden="true"></span>Each session\u2019s fastest lap <span class="tm-key tm-key-lap" aria-hidden="true"></span>Other laps</p>';
+    var legend = m[0] === 'tyres' ? '' : '<p class="tm-legend"><span class="tm-leg"><span class="tm-key tm-key-best" aria-hidden="true"></span><b>Navy</b> = each session\u2019s fastest lap</span> <span class="tm-leg"><span class="tm-key tm-key-lap" aria-hidden="true"></span><b>Faded orange</b> = its other laps</span></p>';
     return '<div class="tm-card tm-lapgraph"><h2>Lap analysis</h2><p class="tm-note">Each dot is a lap, or a run for tyre warm-up, against its lap time. Quicker laps sit higher. Pick a measure.</p>' + chips + graph + legend +
       '<p class="tm-note">' + esc(lapCaption(runs, m[0])) + '</p>' + padHtml + '</div>';
   }
@@ -248,6 +249,7 @@
   }
 
   function draw() {
+    drawnWidth = app.clientWidth;
     var runs = scopeRuns();
     if (!runs.length) {
       app.innerHTML = '<div class="tm-card"><h2>No Track Mode sessions yet</h2><p>When a member shares a track session that has its Track Mode figures, it appears here with its analysis. A session kept only for the owner is not shown.</p></div>';
@@ -309,6 +311,14 @@
 
   // The page opens on the signed-in member's own sessions when they have any here, and on all members otherwise (a visitor,
   // or a member with no Track Mode sessions). Their cars are read from their garage with their sign-in.
+  // The graphs are drawn as wide as the screen, so they are drawn again when the width changes (a rotation, or a window resized).
+  var drawnWidth = 0, resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (Math.abs(app.clientWidth - drawnWidth) > 40 && state.runs.length) draw();
+    }, 200);
+  });
   app.innerHTML = '<p class="tm-empty">Loading the Track Mode sessions…</p>';
   var token = '';
   try { token = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) { token = ''; }

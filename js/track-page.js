@@ -1950,11 +1950,11 @@
   // Where a file comes from, for the Add a session screen.
   var FILE_SOURCES = [
     ['Tesla Track Mode', 'Save the session\'s telemetry to a USB drive from Track Mode. The file is named like telemetry-v1-2025-04-25-11_35_49.csv. Copy it to your phone or computer and add it here. Besides laps, speed and G-force it holds the car\'s own data: charge, power, throttle, brake pressure, temperatures, tyre pressures and slip.'],
-    ['RaceBox', 'Open the session in the app, share or export it and choose VBO (CSV works too).'],
+    ['RaceBox', 'Open the session in the app, share or export it and choose VBO or CSV. A GPX works too, but its times are less accurate.'],
     ['VBOX', 'Copy the .vbo file from the SD card.'],
-    ['Harry\'s LapTimer or TrackAddict', 'Export the session as CSV (or GPX) and save it to your phone.'],
+    ['Harry\'s LapTimer or TrackAddict', 'Export the session as CSV and save it to your phone. A GPX works too, but its times are less accurate.'],
     ['AiM', 'Export from Race Studio as CSV with GPS latitude, longitude and speed.'],
-    ['Something else', 'Any CSV or GPX with a time, latitude, longitude and ideally speed. If the columns are not recognised you can pick them yourself.']
+    ['Something else', 'Best with a CSV or VBO that has a time, latitude, longitude and speed. A GPX works too, but its times are less accurate. If the columns are not recognised you can pick them yourself.']
   ];
   function showAdd(carId) {
     if (!token()) { location.href = signInUrl('/track.html?add=1'); return; }
@@ -1998,7 +1998,7 @@
       '<div class="tp-add-grid"><div class="card">' +
       (a.dayHint ? '<p class="tp-sub" id="tp-day-intro">Adding another session to ' + esc(niceDate(a.dayHint)) + '. Pick its files below.</p>' : '') +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
-      '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
+      '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). Best with a VBO or CSV from your logger. A GPX works too, but its times are less accurate, as it has no speed readings of its own. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
       (a.files && a.files.length ? fileBox() : '') +
       '<details class="tp-help"' + (a.files && a.files.length ? '' : ' open') + '><summary>' + icon('info') + 'Where do I get my file?</summary>' +
       '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +

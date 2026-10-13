@@ -200,6 +200,7 @@ await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-b
 const tok = (await call('POST', '/admin/viewer-token?key=secret', {})).body.token;
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: street, street: true, adminViewer: tok, privacy: 'board' }, 'tok-b');
 ok(r.status === 200 && r.body.session.street === true && r.body.session.privacy === 'private', 'admin street run saved, forced private');
+ok(r.body.session.venue === 'Street run' && !r.body.session.venueId, 'a street run is listed under "Street run", not the name in the file');
 const streetId = r.body.session.id;
 r = await call('PUT', '/track/session', { id: streetId, privacy: 'build' }, 'tok-b');
 ok(r.body.session.privacy === 'private', 'a street run cannot be shared');

@@ -7987,6 +7987,8 @@ async function handleTrackSessionSave(request, env) {
   rec.createdAt = new Date().toISOString();
   applyTrackEdits(rec, body);
   if (rec.street || rec.unlisted) rec.privacy = 'private';
+  // A street run is listed under one place, "Street run", not the name the file header gives (that was the member's name).
+  if (rec.street) { rec.venue = 'Street run'; delete rec.venueId; }
   // The same file saved twice (an upload repeated) makes a duplicate: same car, day, start time and result. The
   // member's own list is one key, read with get(). Only a page upload carries a file name, so other saves are not
   // held up by this.

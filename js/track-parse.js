@@ -35,7 +35,8 @@
   // 12: only a glitch (over 0.25 g from its neighbours) is smoothed out of those peaks; real readings are kept as recorded.
   // 13: a lap's trace starts and ends exactly on the start line (the interpolated crossing), not on the first reading after it.
   // 14: a standing start in a sprint or hill climb starts the clock from the accelerometer or the speed, whichever moves first.
-  var ANALYSIS_VERSION = 14;
+  // 15: the 1 ft rollout is a true foot (0.3048 m) on files with real speed readings, not the 0.16 m fit.
+  var ANALYSIS_VERSION = 15;
   // A standing start (sprints and hill climbs): the clock starts when the car moves off. The speed column of some
   // loggers (Tesla Track Mode) lags the car, so the recorded lengthways g is read too, and the clock starts from
   // whichever moved first. The g launch is LAUNCH_G above the standing level (a hill start sits on a slope), held for
@@ -960,11 +961,9 @@
 
   // rollout: metres the car moves before the clock starts (0.3048 for the 1 ft rollout of strip timing
   // lights and RaceBox's option); 0 times from the first movement.
-  // RaceBox's 1 ft rollout, found by fitting its own times: on files with real speed readings its clock
-  // starts once the car has travelled about 0.16 m from the first movement (three runs across two
-  // sessions agreed to within 1 cm). Where the speed is only worked out from positions, which smooths
-  // the launch, it matches a start at about 6 km/h instead.
-  var ROLLOUT_METRES = 0.16;
+  // The 1 ft rollout is a true foot (0.3048 m) from the first movement, the same as the strip's lights. Where the
+  // speed is only worked out from positions, which smooths the launch, the clock starts at about 6 km/h instead.
+  var ROLLOUT_METRES = 0.3048;
   var ROLLOUT_START_KMH = 6;
   function dragRuns(points, rollout, speedDerived) {
     var runs = [];

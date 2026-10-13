@@ -4551,7 +4551,8 @@ def test_where_do_i_get_my_file_has_a_source_picker(page):
     expect(steps).to_contain_text("SD card")
     expect(page.locator("#tp-src-chips .is-on")).to_have_text("VBOX")
     page.locator("#tp-src-chips [data-src]", has_text="Something else").click()
-    expect(steps).to_contain_text("CSV or GPX")
+    expect(steps).to_contain_text("Best with a CSV or VBO")
+    expect(steps).to_contain_text("GPX works too, but its times are less accurate")
 
 
 def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):

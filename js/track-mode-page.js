@@ -89,7 +89,8 @@
     var pts = runs.map(function (r) { return { r: r, v: m[2](r) }; }).filter(function (x) { return x.v != null && isFinite(x.v); })
       .sort(function (a, b) { return (a.r.date + a.r.time) < (b.r.date + b.r.time) ? -1 : 1; });
     if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough runs with this figure yet.</p></div>';
-    var W = 340, H = 240, L = 58, R = 12, T = 14, B = 36;
+    // The drawing is as wide as the card, so the dots keep their size from a phone to a desktop.
+    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 240, L = 58, R = 12, T = 14, B = 36;
     var vs = pts.map(function (x) { return x.v; });
     var y0 = Math.min.apply(null, vs), y1 = Math.max.apply(null, vs);
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }

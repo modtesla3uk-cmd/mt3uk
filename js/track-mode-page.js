@@ -81,7 +81,7 @@
     ['pressure', 'Tyre pressure', function (r) { return r.mode && r.mode.tyrePressure; }, ' bar', 1]
   ];
   // The Over time dots: one orange scale for every figure. Lower values are faded, higher values darker.
-  var SHADE_LOW = [246, 196, 168], SHADE_HIGH = [168, 58, 6];
+  var SHADE_LOW = [246, 196, 168], SHADE_HIGH = [232, 89, 12];
   function shadeAt(t) {
     t = Math.max(0, Math.min(1, t));
     var c = SHADE_LOW.map(function (v, i) { return Math.round(v + (SHADE_HIGH[i] - v) * t); });

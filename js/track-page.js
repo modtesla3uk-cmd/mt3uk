@@ -1256,7 +1256,7 @@
   // Your analysis at a layout, for the car picked (My Sessions only): the best lap of each session in date order, as a line
   // graph (a dot opens its session), and what the graph shows in words. Nothing is drawn with fewer than two timed sessions.
   // The dots on one orange scale, as the Over time graph: the quicker the lap, the darker the dot.
-  var SHADE_SLOW = [246, 196, 168], SHADE_QUICK = [168, 58, 6];
+  var SHADE_SLOW = [246, 196, 168], SHADE_QUICK = [232, 89, 12];
   function shadeAt(t) {
     t = Math.max(0, Math.min(1, t));
     return 'rgb(' + SHADE_SLOW.map(function (v, k) { return Math.round(v + (SHADE_QUICK[k] - v) * t); }).join(',') + ')';

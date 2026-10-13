@@ -61,5 +61,8 @@ def test_the_session_name_and_trophy_are_in_the_heading_and_the_owner_opens_thei
     expect(page.locator(".page-hero .tp-hero-row h1")).to_contain_text("Thruxton")
     expect(page.locator(".page-hero .tp-hero-row h1 .tp-title-trophy")).to_have_count(1)
     expect(page.locator("#tp-by a.tp-member")).to_have_attribute("href", re.compile(r"^member\.html\?car="))
+    # The track's name opens its leaderboard, where every session at the track is.
+    expect(page.locator(".page-hero .tp-hero-row h1 a.tp-title-link")).to_have_attribute("href", "leaderboards.html?board=thruxton%3Amain")
+    expect(page.locator(".tp-session-head h2 a.tp-title-link")).to_have_attribute("href", "leaderboards.html?board=thruxton%3Amain")
     open_into_the_day(page)
     expect(page.locator(".page-hero .tp-hero-row h1")).to_contain_text("My Sessions")

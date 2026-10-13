@@ -1830,7 +1830,7 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))
     expect(page.locator("#tp-hero-actions")).to_be_hidden()
     # On the owner's own session it is there too, for that car. The row there also holds Back, My Sessions and Leaderboards, so
-    # up to 560px wide it is a round plus (see test_the_heading_buttons_on_a_session_never_overlap_on_a_phone); wider it has its words.
+    # on a phone it keeps its words too, in the second row (see test_the_heading_buttons_on_a_session_never_overlap_on_a_phone).
     own = day_session("own1", "10:00", 95.0, 4)
     fake.sessions["own1"] = dict(own, carId="car1")
     page.goto("/track.html?s=own1")
@@ -1838,17 +1838,17 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
     page.set_viewport_size({"width": 390, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert abs(b["height"] - 44) < 2 and abs(b["width"] - 44) < 2, b
-    expect(page.locator("#tp-hero-add span")).to_be_hidden()
+    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    expect(page.locator("#tp-hero-add span")).to_be_visible()
     page.set_viewport_size({"width": 700, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
-    # On the narrowest phones it is a round plus again.
+    # The narrowest phone keeps its words too, as the other heading buttons do.
     page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
-    expect(page.locator("#tp-hero-add span")).to_be_hidden()
+    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    expect(page.locator("#tp-hero-add span")).to_be_visible()
 
 
 def test_the_battery_start_and_end_are_rounded_once(page):
@@ -2045,7 +2045,7 @@ def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     form.locator("#tk-check").click()
     assert form.locator("#tk-check").get_attribute("aria-checked") == "true"
     form.get_by_role("button", name="Save track").click()
-    page.get_by_text("Saved. New uploads use it straight away.").wait_for(timeout=5000)
+    page.locator("#tk-note", has_text="Saved. New uploads use it straight away.").wait_for(timeout=5000)
     put = page.mock_state["track_admin_puts"][-1]["venue"]
     assert put["name"] == "Old Airfield" and put["layouts"][0]["length"] == 2100 and put["check"] is True
     assert put["layouts"][0]["corners"] == [{"name": "Hangar", "lat": 53.105, "lng": -1.105}]
@@ -2140,8 +2140,13 @@ def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
     fake = FakeWorker()
     _two_busy_tracks(fake)
     open_page(page, fake, "/leaderboards.html", signed_in=False)
-    expect(page.locator(".lb-cardwrap[data-venue]")).to_have_count(2)
-    start = _venues(page)
+    # The track list can redraw once it has drawn, so read it again until both cards are in place.
+    start = []
+    for _ in range(50):
+        start = _venues(page)
+        if sorted(start) == ["castle-combe", "thruxton"]:
+            break
+        page.wait_for_timeout(100)
     assert sorted(start) == ["castle-combe", "thruxton"], start
     # Hold a track and drag it above the other: the order is kept, as "My layout".
     first = page.locator(".lb-cardwrap").nth(0).bounding_box()
@@ -5733,8 +5738,9 @@ def save_fixture_session(page, fake):
 
 
 def test_the_heading_buttons_on_a_session_never_overlap_on_a_phone(page):
-    """On a session the heading row holds Back, My Sessions, Leaderboards and Add a session. At phone widths none may overlap
-    another or run off the screen (Leaderboards and Add a session give way to their round icons)."""
+    """On a session the heading holds Back, My Sessions, Leaderboards and Add a session, each with its words: Back and My
+    Sessions on one row, Leaderboards and Add a session on the next. At phone widths none may overlap another or run off
+    the screen."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
     for width in (560, 412, 390, 360, 340, 320):
@@ -6794,8 +6800,16 @@ def test_a_folded_day_shows_an_eye_when_shared_a_lock_when_private_and_a_track_r
     expect(mixed.locator(".tp-day-priv-n")).to_have_text(re.compile(r"^Shared \(\d+\) Private \(\d+\)$"))
     expect(shared.locator(".tp-day-priv-n")).to_have_count(0)
     # The icon sits just left of the arrow, on the same row.
+    # The list can redraw once more after the layout opens, so wait for the two to settle on the one row.
+    def on_one_row():
+        pb, ab = shared.locator(".tp-day-priv").bounding_box(), shared.locator(".tp-day-arrow").bounding_box()
+        return pb["x"] + pb["width"] <= ab["x"] + 2 and abs((pb["y"] + pb["height"] / 2) - (ab["y"] + ab["height"] / 2)) < 6
+    for _ in range(50):
+        if on_one_row():
+            break
+        page.wait_for_timeout(100)
     pb, ab = shared.locator(".tp-day-priv").bounding_box(), shared.locator(".tp-day-arrow").bounding_box()
-    assert pb["x"] + pb["width"] <= ab["x"] + 2 and abs((pb["y"] + pb["height"] / 2) - (ab["y"] + ab["height"] / 2)) < 6, (pb, ab)
+    assert on_one_row(), (pb, ab)
 
 
 def _hold(page, locator, ms=750):

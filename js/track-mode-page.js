@@ -189,9 +189,16 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#16233d' : '#e8590c') + '"' + (p.best ? '' : ' fill-opacity="0.45"') + '><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#e8590c' : '#f4a27a') + '"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' +
+    // Faint grid lines at four even steps on each axis, so a dot can be read against them.
+    var grid = '';
+    for (var g = 0; g <= 3; g++) {
+      var gy = T + g / 3 * (H - T - B), gx = L + g / 3 * (W - L - R);
+      grid += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + gy.toFixed(1) + '" stroke="#eef1f6"/>' +
+        '<line x1="' + gx.toFixed(1) + '" y1="' + T + '" x2="' + gx.toFixed(1) + '" y2="' + (H - B) + '" stroke="#eef1f6"/>';
+    }
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' + grid +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + lapTime(y0) + '</text>' +
@@ -226,7 +233,7 @@
         '<div class="tm-num"><span class="tm-lab tm-sub">Brake pressure</span> ' + (p.bp.length ? '<b>' + avg(p.bp).toFixed(1) + '</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
         '<div class="tm-num"><span class="tm-lab tm-sub">Best lap</span> <b>' + lapTime(p.best) + '</b></div></div>';
     }).join('') + '</div>' : '';
-    var legend = m[0] === 'tyres' ? '' : '<p class="tm-legend"><span class="tm-leg"><span class="tm-key tm-key-best" aria-hidden="true"></span><b>Navy</b> = each session\u2019s fastest lap</span> <span class="tm-leg"><span class="tm-key tm-key-lap" aria-hidden="true"></span><b>Faded orange</b> = its other laps</span></p>';
+    var legend = m[0] === 'tyres' ? '' : '<p class="tm-legend"><span class="tm-leg"><span class="tm-key tm-key-best" aria-hidden="true"></span><b>Orange</b> = each session\u2019s fastest lap</span> <span class="tm-leg"><span class="tm-key tm-key-lap" aria-hidden="true"></span><b>Light orange</b> = its other laps</span></p>';
     return '<div class="tm-card tm-lapgraph"><h2>Lap analysis</h2><p class="tm-note">Each dot is a lap, or a run for tyre warm-up, against its lap time. Quicker laps sit higher. Pick a measure.</p>' + chips + graph + legend +
       '<p class="tm-note">' + esc(lapCaption(runs, m[0])) + '</p>' + padHtml + '</div>';
   }

@@ -1258,6 +1258,11 @@
   function layoutAnalysisHtml(rows) {
     var pts = rows.filter(function (r) { return r.type !== 'drag' && isFinite(r.bestTime) && r.bestTime > 0; })
       .slice().sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? -1 : 1; });
+    // A lap far slower than the rest (a cool-down, say) is left out: 50% or more slower than the middle lap here.
+    var sorted = pts.map(function (r) { return r.bestTime; }).sort(function (a, b) { return a - b; });
+    var mid = sorted[Math.floor(sorted.length / 2)];
+    var kept = pts.filter(function (r) { return r.bestTime < mid * 1.5; }), leftOut = pts.length - kept.length;
+    pts = kept;
     if (pts.length < 2) return '';
     var W = 560, H = 210, L = 58, R = 14, T = 14, B = 34;
     var ys = pts.map(function (r) { return r.bestTime; });
@@ -1288,6 +1293,7 @@
       var mean = function (a) { return a.reduce(function (x, r) { return x + r.bestTime; }, 0) / a.length; };
       said.push('Your last three sessions averaged ' + V.fmtLap(mean(pts.slice(-3))) + ', your first three ' + V.fmtLap(mean(pts.slice(0, 3))) + '.');
     }
+    if (leftOut) said.push('Left out ' + leftOut + ' much slower ' + (leftOut === 1 ? 'lap' : 'laps') + ' (50% or more slower than the middle lap), such as a cool-down.');
     var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
     if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
     return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +

@@ -7475,3 +7475,18 @@ def test_my_sessions_shows_your_analysis_at_the_top_with_a_track_and_layout_choi
     expect(box).to_contain_text("Your best lap is 1:00.50")
     expect(box).to_contain_text("What the graph shows")
     expect(page.locator("#tp-an-pick")).to_have_count(1)
+
+
+def test_analysis_leaves_out_a_lap_far_slower_than_the_rest(page):
+    fake = FakeWorker(earlier=False)
+    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9), ("i4", "2026-05-22", 300.0)):
+        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    page.locator("#tp-an > summary").click()
+    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
+    box = page.locator("#tp-an-box [data-layout-analysis]")
+    expect(box.locator("svg circle")).to_have_count(3)
+    expect(box).to_contain_text("Across 3 sessions")
+    expect(box).to_contain_text("Left out 1 much slower lap")

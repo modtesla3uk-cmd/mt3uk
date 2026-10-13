@@ -8145,6 +8145,49 @@ async function handleTrackSessionGet(request, env) {
   return json({ success: true, session: out });
 }
 
+// Favourites: the Track sessions a member has starred, kept as ids (newest first, at most TRACK_FAVS_MAX) under one
+// KV key per member (track-favs:<owner key>). A session is only listed while the member can still open it (their own,
+// or a shared one), so a session made private or removed drops out the next time the list is read.
+var TRACK_FAVS_MAX = 100;
+function favViewable(rec, ownerValue) {
+  if (!rec) return false;
+  if (rec.owner === ownerValue) return true;
+  return rec.privacy !== 'private' && !rec.street;
+}
+async function handleTrackFavourites(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var who = await ownerKey(email);
+  var key = 'track-favs:' + who;
+  var list = await getJsonKey(env, key, []);
+  if (!Array.isArray(list)) list = [];
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    var id = String((body && body.id) || '');
+    if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
+    var on = !!(body && body.on);
+    if (on && !favViewable(await getTrackSession(env, id), who)) return json({ success: false, message: 'Session not found' }, 404);
+    list = list.filter(function (f) { return f && f.id !== id; });
+    if (on) list.unshift({ id: id, at: Date.now() });
+    list = list.slice(0, TRACK_FAVS_MAX);
+    await env.VOTES.put(key, JSON.stringify(list));
+    return json({ success: true, favourite: on, count: list.length });
+  }
+  // ?ids=1 gives only the ids (a session page asks which of its sessions are starred).
+  if (new URL(request.url).searchParams.get('ids')) return json({ success: true, ids: list.map(function (f) { return f.id; }) });
+  var out = [], kept = [];
+  for (var i = 0; i < list.length; i++) {
+    var rec = await getTrackSession(env, list[i].id);
+    if (!favViewable(rec, who)) continue;
+    kept.push(list[i]);
+    var car = await getCarRecord(env, rec.carId);
+    out.push({ id: list[i].id, venue: rec.venue || '', venueId: rec.venueId || '', layout: rec.layout || '', layoutId: rec.layoutId || '', organizer: rec.organizer || '', type: rec.type || '', hill: !!rec.hill, date: rec.date || '', time: rec.time || '', bestTime: rec.bestTime || 0, laps: rec.laps || 0, runs: rec.runs || 0, quarter: rec.quarter || 0, s60: rec.s60 || 0, vmax: rec.vmax || 0, privacy: rec.privacy || '', street: !!rec.street, car: car ? car.name : '', mine: rec.owner === who, at: list[i].at });
+  }
+  if (kept.length !== list.length) await env.VOTES.put(key, JSON.stringify(kept));
+  return json({ success: true, sessions: out });
+}
+
 // Each time the admin opens a private session: when, which one, whose car.
 // One key, newest first, the last 300.
 var TRACK_ADMIN_VIEWS_KEY = 'track-admin-views';
@@ -11903,10 +11946,13 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/session/car' || url.pathname === '/track/courses' ||
-        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
+        url.pathname === '/track/favourites' || url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
+    }
+    if (url.pathname === '/track/favourites' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackFavourites(request, env);
     }
     if (url.pathname === '/track/sessions' && request.method === 'GET') {
       return handleTrackSessionsList(request, env);

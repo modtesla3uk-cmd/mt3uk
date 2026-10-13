@@ -151,6 +151,13 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Not offline:** leaderboards other than the circuits kept, sharing, sign-in, satellite tiles not kept, weather, editing a saved session and the admin pages.
 - Tests: `tests/test_laps_offline.py` (page tests with a switch for the connection, and one with the real service worker that cuts the network and opens Laps).
 
+## Track sessions: favourites
+
+- A member stars a Track session from its page (the **Favourite** button in the session bar, a star beside Skip to section; on a phone a round star). It works on a session opened from the leaderboard or from My Sessions. The star's state is read with `GET /track/favourites?ids=1` (`markFavs` in `js/track-page.js`), and toggled with `POST /track/favourites` (`{ id, on }`, `toggleFav`).
+- The list is one KV key per member (`track-favs:<owner key>`), ids and the time each was starred, newest first, at most 100 (`TRACK_FAVS_MAX`, `handleTrackFavourites` in `workers/vote-worker.js`). A member can only star a session they can open (their own, or a shared one; a private session of someone else is refused with 404). A starred session drops off the list when it is no longer viewable (made private or removed), and the stored list is cleaned at the same read.
+- The Sessions list has a **Favourites** card at the top (`#favourites`, `favCardHtml`), with each session's track, car and date, a star to take it off, and the count. The Laps header has a star link to it (`#nav-favs` in `partials/laps-header.html`; on Sessions the link is the `#favourites` anchor). On a phone the Laps header's navigation icons are a little narrower, and "by MT3UK" is hidden from 380px down, so the header still fits.
+- Only the routes need a sign-in, and the early preview gate applies to them as to the other member routes (`trackAccessGate`). Tests: `test_a_session_can_be_starred_and_the_favourites_card_lists_it_on_sessions` and `test_the_laps_header_has_a_favourites_star_that_goes_to_the_favourites_card` in `tests/test_track_page.py`, and the favourites block in `tests/track_worker_check.mjs`.
+
 ## Track sessions: notes, logger and resizable panels
 
 - **Two notes on a session:** the private notes (`notes`, owner only, as before) and a **public note** (`publicNote`, one sentence, 140 characters, `PUBLIC_NOTE_MAX` in `js/track-page.js`), shown at the top of the session under the heading (`#tp-public-note-line`, `publicNoteHtml`) to everyone who can open it. Both are on the Add page and in Session settings; the worker keeps `publicNote` through a re-upload. Tests: `test_a_public_note_is_shown_to_everyone_...` and the block in `tests/track_worker_check.mjs`.

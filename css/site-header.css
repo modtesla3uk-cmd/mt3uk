@@ -340,6 +340,9 @@ nav {
   .nav-profile svg { width: 27px; height: 27px; }
   .nav-bell-btn svg, .nav-chat svg { width: 24px; height: 24px; }
   .nav-bell-count, .nav-chat-count { top: 3px; right: 1px; }
+  /* The Laps header has one more icon (Favourites), so its navigation icons are a little narrower on a phone to keep the menu on screen. */
+  .nav-sessions, .nav-leaders, .nav-home, .nav-favs { width: 30px; }
+  nav:has(.laps-logo) { gap: 4px; }
   .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }
   /* The Laps wordmark is a little smaller so the bell never touches "by MT3UK". */
@@ -349,6 +352,8 @@ nav {
   .logo.laps-logo .laps-logo-name { font-size: 1.2rem; }
   .logo.laps-logo .laps-logo-by { font-size: 0.68rem; }
 }
+/* Phones up to 380px wide have no room for "by MT3UK" beside the header icons (the wordmark is still Laps). */
+@media (max-width: 380px) { .logo.laps-logo .laps-logo-by { display: none; } }
 /* The very narrowest phones have no room for "by MT3UK" beside the five header icons. */
 @media (max-width: 340px) {
   .logo.laps-logo .laps-logo-by { display: none; }

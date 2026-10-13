@@ -201,6 +201,12 @@ const tok = (await call('POST', '/admin/viewer-token?key=secret', {})).body.toke
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: street, street: true, adminViewer: tok, privacy: 'board' }, 'tok-b');
 ok(r.status === 200 && r.body.session.street === true && r.body.session.privacy === 'private', 'admin street run saved, forced private');
 ok(r.body.session.venue === 'Street run' && !r.body.session.venueId, 'a street run is listed under "Street run", not the name in the file');
+{
+  // The admin's member list says which sessions are street runs, so the panel can name them.
+  const adm = await call('GET', '/track/admin/sessions?key=secret&email=' + encodeURIComponent(B));
+  const row = (adm.body.sessions || []).find(s => s.id === r.body.session.id);
+  ok(row && row.street === true && (adm.body.sessions || []).some(s => !s.street), 'the admin member list marks a street run, and other sessions are not marked');
+}
 const streetId = r.body.session.id;
 r = await call('PUT', '/track/session', { id: streetId, privacy: 'build' }, 'tok-b');
 ok(r.body.session.privacy === 'private', 'a street run cannot be shared');

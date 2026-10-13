@@ -8293,7 +8293,7 @@ async function handleTrackAdminSessions(request, env) {
   if (!email) return json({ success: true, views: await getJsonKey(env, TRACK_ADMIN_VIEWS_KEY, []) });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
   var list = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
-  return json({ success: true, sessions: list.map(function (s) { return { id: s.id, type: s.type, venue: s.venue, venueId: s.venueId || '', layout: s.layout || '', date: s.date, time: s.time || '', privacy: s.privacy, car: '', bestTime: s.bestTime || null, quarter: s.quarter || null }; }) });
+  return json({ success: true, sessions: list.map(function (s) { return { id: s.id, type: s.type, venue: s.venue, venueId: s.venueId || '', layout: s.layout || '', date: s.date, time: s.time || '', privacy: s.privacy, car: '', bestTime: s.bestTime || null, quarter: s.quarter || null, street: !!s.street }; }) });
 }
 
 // The admin renames a session at a track we do not list (a typo, or a name the member left vague). A session at a

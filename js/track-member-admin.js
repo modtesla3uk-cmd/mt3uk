@@ -49,9 +49,10 @@
       listEl.innerHTML = list.length ? '<table class="iv-table ms-table"><thead><tr><th>Session</th><th>Track name</th><th>Date</th><th>Privacy</th></tr></thead><tbody>' + list.map(function (s) {
         // A session at a track we do not list is named by the member, so the admin can put it right here. One at a
         // listed track takes its name from the track list.
+        // A street run has no track: it is named "Street run" unless the admin types another name.
         var nameCell = s.venueId
           ? esc(s.venue || '') + '<span class="iv-sub">Listed track</span>'
-          : '<div class="ms-rename"><input type="text" class="ms-name" data-id="' + esc(s.id) + '" value="' + esc(s.venue || '') + '" maxlength="60" aria-label="Track name"><button type="button" class="iv-act ms-save" data-id="' + esc(s.id) + '">Save</button></div>';
+          : '<div class="ms-rename"><input type="text" class="ms-name" data-id="' + esc(s.id) + '" value="' + esc(s.street ? 'Street run' : (s.venue || '')) + '" maxlength="60" aria-label="' + (s.street ? 'Name for this street run' : 'Track name') + '"><button type="button" class="iv-act ms-save" data-id="' + esc(s.id) + '">Save</button></div>' + (s.street ? '<span class="iv-sub">Street run, admin only</span>' : '');
         return '<tr data-id="' + esc(s.id) + '"><td><a href="track.html?s=' + esc(s.id) + '" target="_blank" rel="noopener">' + esc((s.venue || 'Session') + (s.layout ? ' ' + s.layout : '')) + '</a></td><td>' + nameCell + '</td><td>' + esc(s.date || '') + '</td><td>' + esc(s.privacy || '') + '</td></tr>';
       }).join('') + '</tbody></table>' : '';
       loadViews();

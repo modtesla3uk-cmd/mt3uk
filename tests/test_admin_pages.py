@@ -2770,3 +2770,34 @@ def test_the_laps_video_plays_an_uploaded_file_when_it_is_chosen(page):
     from tests.test_laps_home import open_home
     open_home(page, explainer={"soundStyle": "custom", "audio": {"url": "https://files.example/sound.mp3", "name": "sound.mp3"}})
     expect(page.locator(".lxe")).to_have_attribute("data-sound", "custom")
+
+
+def test_admin_names_a_street_run_street_run_in_the_member_sessions_panel(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    renamed = []
+    sessions = [
+        {"id": "cccc3333", "type": "drag", "venue": "Richard Hughes-Chen via RaceBox", "venueId": "", "layout": "", "date": "2026-10-13", "privacy": "private", "street": True},
+    ]
+
+    def admin_sessions(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": sessions, "views": []}), headers=cors)
+
+    def rename(route):
+        body = json.loads(route.request.post_data)
+        renamed.append(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "session": {"id": body["id"], "venue": body["venue"], "layout": ""}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/sessions**", admin_sessions)
+    page.route("**/track/admin/session?**", rename)
+    page.locator("#member-sessions-wrap summary").click()
+    page.fill("#ms-email", "richardhc76@googlemail.com")
+    page.locator("#ms-find").click()
+    row = page.locator("#ms-list tbody tr").nth(0)
+    expect(row).to_contain_text("Street run, admin only")
+    box = row.locator(".ms-name")
+    # Named Street run whatever the file header gave, so the admin only has to press Save.
+    expect(box).to_have_value("Street run")
+    row.locator(".ms-save").click()
+    expect(page.locator("#ms-note")).to_contain_text("Renamed to Street run")
+    assert renamed == [{"id": "cccc3333", "venue": "Street run"}]

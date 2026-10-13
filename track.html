@@ -373,7 +373,14 @@
   .tp-analysis .tp-an-svg text { font-family: 'IBM Plex Sans', sans-serif; fill: #5b6475; font-size: 13px; }
   .tp-analysis .tp-what-graph { margin: 8px 0 0; }
   .tp-analysis-top { margin: 6px 0 14px; }
-  .tp-an-head { font-size: 1.1rem; margin: 0 0 4px; }
+  .tp-an-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tp-an-bar .tp-an-head { margin: 0; }
+  .tp-an-min { font: inherit; font-size: 0.85rem; font-weight: 600; min-height: 36px; padding: 0 14px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 999px; background: #fff; color: var(--ink); cursor: pointer; }
+  .tp-an-min:hover { background: #eef1f6; }
+  .tp-an-legend { margin: 6px 0 0; }
+  .tm-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 0; font-size: .85rem; color: var(--ink-2); }
+  .tm-key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
+  .tm-leg { white-space: nowrap; }
   .tp-analysis-top > p { margin: 0 0 8px; }
   .tp-an-pick { display: grid; gap: 4px; margin-bottom: 8px; font-size: 0.82rem; color: var(--steel); max-width: 420px; }
   .tp-an-pick select { font: inherit; font-size: 0.95rem; min-height: 44px; color: var(--ink); }
@@ -1421,7 +1428,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271079" defer></script>
+<script src="js/track-page.js?v=20271080" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

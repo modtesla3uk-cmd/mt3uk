@@ -7487,3 +7487,21 @@ def test_analysis_leaves_out_a_lap_far_slower_than_the_rest(page):
     expect(box.locator("svg circle")).to_have_count(3)
     expect(box).to_contain_text("Across 3 sessions")
     expect(box).to_contain_text("Left out 1 much slower lap")
+
+
+def test_the_analysis_panel_can_be_minimised_and_shown_again(page):
+    fake = FakeWorker(earlier=False)
+    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
+        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
+    expect(page.locator("#tp-an-body")).to_be_visible()
+    page.locator("#tp-an-min").click()
+    expect(page.locator("#tp-an-body")).to_be_hidden()
+    expect(page.locator("#tp-an-min")).to_have_text("Show")
+    page.locator("#tp-an-min").click()
+    expect(page.locator("#tp-an-body")).to_be_visible()
+    # The dots have no line between them and are coloured by conditions.
+    expect(page.locator("#tp-an-box polyline")).to_have_count(0)

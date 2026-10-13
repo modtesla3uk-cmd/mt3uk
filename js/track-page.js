@@ -1314,11 +1314,11 @@
     if (!keys.length) return '';
     keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
     if (analysisKey && keys.indexOf(analysisKey) === -1) analysisKey = '';
-    return '<details class="tp-analysis-top" id="tp-an"><summary><b>Analysis</b></summary>' +
-      '<p class="tp-small">Detailed analysis is available in each session.</p>' +
+    return '<section class="tp-analysis-top" id="tp-an"><h3 class="tp-an-head">Analysis</h3>' +
+      '<p class="tp-small">Shows how your best lap has changed across your sessions at one track layout, for the car picked. Choose a track and layout to see the graph and what it shows. Detailed analysis is in each session, not here.</p>' +
       '<label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field"><option value=""' + (analysisKey ? '' : ' selected') + '>None</option>' + keys.map(function (k) {
       return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
-    }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></details>';
+    }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></section>';
   }
   document.addEventListener('change', function (e) {
     if (!e.target || e.target.id !== 'tp-an-pick') return;

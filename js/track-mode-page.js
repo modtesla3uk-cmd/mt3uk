@@ -80,31 +80,12 @@
     ['power', 'Peak power', function (r) { return r.mode && r.mode.power; }, ' kW', 0],
     ['pressure', 'Tyre pressure', function (r) { return r.mode && r.mode.tyrePressure; }, ' bar', 1]
   ];
-  // The Over time dots by conditions: dry orange, damp blue, wet navy, anything else grey.
-  var COND_COLOURS = [['wet', '#16233d', 'Wet'], ['damp', '#3b7bbf', 'Damp'], ['dry', '#e8590c', 'Dry']];
-  function condColour(c) {
-    var k = /wet/i.test(c || '') ? 0 : /damp/i.test(c || '') ? 1 : /dry/i.test(c || '') ? 2 : -1;
-    return k === -1 ? '#9aa3b2' : COND_COLOURS[k][1];
-  }
-  // Each chip colours its dots by the factor that matters for it, and the legend changes to match.
-  var PALETTE = ['#e8590c', '#3b7bbf', '#16233d', '#2f9e44', '#8e5ea2'];
-  var COLOUR_BY = { used: { field: 'conditions', name: 'Conditions' }, brakes: { field: 'pads', name: 'Brake pads' },
-    power: { field: 'drive', name: 'Driven wheels' }, pressure: { field: 'tyres', name: 'Tyres' } };
-  // The colour of each value of a factor: the most common five get a colour, the rest are grey as Other.
-  function colourKey(runs, metric) {
-    var f = COLOUR_BY[metric];
-    if (f.field === 'conditions') {
-      return { of: function (r) { return condColour(r.conditions); }, legend: COND_COLOURS.map(function (c) { return [c[2], c[1]]; }).concat([['Not given', '#9aa3b2']]) };
-    }
-    var count = {};
-    runs.forEach(function (r) { var v = (r[f.field] || '').trim(); if (v) count[v] = (count[v] || 0) + 1; });
-    var top = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; }).slice(0, PALETTE.length);
-    var colour = {};
-    top.forEach(function (v, i) { colour[v] = PALETTE[i]; });
-    var legend = top.map(function (v) { return [v.length > 34 ? v.slice(0, 33) + '…' : v, colour[v]]; });
-    if (Object.keys(count).length > top.length) legend.push(['Other', '#9aa3b2']);
-    legend.push(['Not given', '#9aa3b2']);
-    return { of: function (r) { var v = (r[f.field] || '').trim(); return colour[v] || (v ? '#9aa3b2' : '#9aa3b2'); }, legend: legend };
+  // The Over time dots: one orange scale for every figure. Lower values are faded, higher values darker.
+  var SHADE_LOW = [246, 196, 168], SHADE_HIGH = [168, 58, 6];
+  function shadeAt(t) {
+    t = Math.max(0, Math.min(1, t));
+    var c = SHADE_LOW.map(function (v, i) { return Math.round(v + (SHADE_HIGH[i] - v) * t); });
+    return 'rgb(' + c.join(',') + ')';
   }
   function lineChart(runs) {
     var m = METRICS.filter(function (x) { return x[0] === state.metric; })[0] || METRICS[0];
@@ -122,9 +103,9 @@
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
     function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
     function Y(v) { return T + (y1 - v) / (y1 - y0) * (H - T - B); }
-    var ck = colourKey(pts.map(function (x) { return x.r; }), m[0]);
+    var span = (y1 - y0) || 1;
     var dots = pts.map(function (x, i) {
-      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="' + ck.of(x.r) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="' + shadeAt((x.v - y0) / span) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -141,7 +122,7 @@
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + niceDate(pts[pts.length - 1].r.date) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in the order driven</text>' +
       dots + '</svg>';
-    var legend = '<p class="tm-legend"><span class="tm-legend-name">' + esc(COLOUR_BY[m[0]].name) + ':</span> ' + ck.legend.map(function (c) { return '<span class="tm-leg"><span class="tm-key" style="background:' + c[1] + '"></span><b>' + esc(c[0]) + '</b></span>'; }).join(' ') + '</p>';
+    var legend = '<p class="tm-legend"><span>Lower ' + y0.toFixed(m[4]) + m[3] + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + y1.toFixed(m[4]) + m[3] + ' higher</span></p>';
     return '<div class="tm-card tm-chart">' + head + chips + svg + legend + '</div>';
   }
 

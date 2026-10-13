@@ -195,24 +195,10 @@ def test_each_finding_has_an_icon(page):
     expect(card.locator("li svg.tm-fi")).to_have_count(4)
 
 
-def test_over_time_dots_are_coloured_by_conditions_with_a_legend(page):
-    runs = [dict(RUNS[0], conditions="Wet"), dict(RUNS[1], conditions="Damp"), dict(RUNS[2], conditions="Dry"), dict(RUNS[3], conditions="Dry")]
-    open_mode_page(page, runs)
+def test_over_time_dots_get_darker_for_higher_values_with_a_gradient_legend(page):
+    open_mode_page(page, RUNS)
     graph = page.locator(".tm-chart")
-    expect(graph.locator("circle[fill='#16233d']")).to_have_count(1)
-    expect(graph.locator("circle[fill='#3b7bbf']")).to_have_count(1)
-    expect(graph.locator("circle[fill='#e8590c']")).to_have_count(2)
-    expect(graph.locator(".tm-legend")).to_contain_text("Wet")
-    expect(graph.locator(".tm-legend")).to_contain_text("Damp")
-    expect(graph.locator(".tm-legend")).to_contain_text("Dry")
-
-
-def test_the_over_time_legend_changes_with_the_figure_picked(page):
-    runs = [dict(RUNS[0], pads="Pagid RSL29"), dict(RUNS[1], pads="Carbotech XP10"), dict(RUNS[2], pads="Pagid RSL29"), dict(RUNS[3], pads="Pagid RSL29")]
-    open_mode_page(page, runs)
-    graph = page.locator(".tm-chart")
-    expect(graph.locator(".tm-legend")).to_contain_text("Conditions:")
-    page.locator("[data-metric='brakes']").click()
-    expect(graph.locator(".tm-legend")).to_contain_text("Brake pads:")
-    expect(graph.locator(".tm-legend")).to_contain_text("Pagid RSL29")
-    expect(graph.locator(".tm-legend")).to_contain_text("Carbotech XP10")
+    expect(graph.locator(".tm-legend")).to_contain_text("Lower")
+    expect(graph.locator(".tm-legend")).to_contain_text("higher")
+    expect(graph.locator(".tm-grad")).to_have_count(1)
+    expect(graph.locator("circle")).to_have_count(4)

@@ -1255,9 +1255,11 @@
   }
   // Your analysis at a layout, for the car picked (My Sessions only): the best lap of each session in date order, as a line
   // graph (a dot opens its session), and what the graph shows in words. Nothing is drawn with fewer than two timed sessions.
-  // The dots by conditions, as on the Over time graph: dry orange, damp blue, wet navy, grey where none was recorded.
-  function analysisCondColour(c) {
-    return /wet/i.test(c || '') ? '#16233d' : /damp/i.test(c || '') ? '#3b7bbf' : /dry/i.test(c || '') ? '#e8590c' : '#9aa3b2';
+  // The dots on one orange scale, as the Over time graph: the quicker the lap, the darker the dot.
+  var SHADE_SLOW = [246, 196, 168], SHADE_QUICK = [168, 58, 6];
+  function shadeAt(t) {
+    t = Math.max(0, Math.min(1, t));
+    return 'rgb(' + SHADE_SLOW.map(function (v, k) { return Math.round(v + (SHADE_QUICK[k] - v) * t); }).join(',') + ')';
   }
   function layoutAnalysisHtml(rows) {
     var pts = rows.filter(function (r) { return r.type !== 'drag' && isFinite(r.bestTime) && r.bestTime > 0; })
@@ -1276,7 +1278,7 @@
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var line = pts.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.bestTime).toFixed(1); }).join(' ');
     var dots = pts.map(function (r, i) {
-      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="' + analysisCondColour(r.conditions) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
+      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="' + shadeAt((y1 - r.bestTime) / ((y1 - y0) || 1)) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -1306,8 +1308,9 @@
     if (leftOut) said.push('Left out ' + leftOut + ' much slower ' + (leftOut === 1 ? 'lap' : 'laps') + ' (50% or more slower than the middle lap), such as a cool-down.');
     var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
     if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
-    return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +
-      '<p class="tm-legend tp-an-legend"><span class="tm-leg"><span class="tm-key" style="background:#16233d"></span><b>Wet</b></span> <span class="tm-leg"><span class="tm-key" style="background:#3b7bbf"></span><b>Damp</b></span> <span class="tm-leg"><span class="tm-key" style="background:#e8590c"></span><b>Dry</b></span> <span class="tm-leg"><span class="tm-key" style="background:#9aa3b2"></span><b>Not given</b></span></p>' +
+    return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' +
+      '<div class="tp-an-gbar"><button type="button" class="tp-an-fold" aria-expanded="true" aria-controls="tp-an-graph" aria-label="Hide the graph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div><div id="tp-an-graph">' + svg +
+      '<p class="tm-legend tp-an-legend"><span>Slower ' + V.fmtLap(y1) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + V.fmtLap(y0) + ' quicker</span></p></div>' +
       '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>';
   }
   // Your analysis at the top of My Sessions, for the car picked: a track and layout drop-down (only layouts with two or more
@@ -1325,20 +1328,21 @@
     if (!keys.length) return '';
     keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
     if (analysisKey && keys.indexOf(analysisKey) === -1) analysisKey = '';
-    return '<section class="tp-analysis-top" id="tp-an"><div class="tp-an-bar"><h3 class="tp-an-head">Analysis</h3><button type="button" class="tp-an-min" id="tp-an-min" aria-expanded="true" aria-controls="tp-an-body">Minimise</button></div><div id="tp-an-body">' +
+    return '<section class="tp-analysis-top" id="tp-an"><div class="tp-an-bar"><h3 class="tp-an-head">Analysis</h3></div><div id="tp-an-body">' +
       '<p class="tp-small">Shows how your best lap has changed across your sessions at one track layout, for the car picked. Choose a track and layout to see the graph and what it shows. Detailed analysis is in each session, not here.</p>' +
       '<label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field"><option value=""' + (analysisKey ? '' : ' selected') + '>None</option>' + keys.map(function (k) {
       return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
     }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></div></section>';
   }
-  // Minimise or show the Analysis panel's contents, keeping its heading.
+  // The arrow above the graph folds it away, and opens it again.
   document.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('#tp-an-min') : null;
+    var b = e.target && e.target.closest ? e.target.closest('.tp-an-fold') : null;
     if (!b) return;
-    var body = document.getElementById('tp-an-body'), open = b.getAttribute('aria-expanded') === 'true';
-    if (body) body.hidden = open;
+    var graph = document.getElementById('tp-an-graph'), open = b.getAttribute('aria-expanded') === 'true';
+    if (graph) graph.hidden = open;
     b.setAttribute('aria-expanded', String(!open));
-    b.textContent = open ? 'Show' : 'Minimise';
+    b.setAttribute('aria-label', open ? 'Show the graph' : 'Hide the graph');
+    b.classList.toggle('is-folded', open);
   });
   document.addEventListener('change', function (e) {
     if (!e.target || e.target.id !== 'tp-an-pick') return;

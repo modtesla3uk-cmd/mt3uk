@@ -109,6 +109,71 @@
     return '<div class="tm-card tm-chart">' + head + chips + svg + '</div>';
   }
 
+  function median(a) {
+    var v = a.slice().sort(function (x, y) { return x - y; });
+    if (!v.length) return null;
+    var h = Math.floor(v.length / 2);
+    return v.length % 2 ? v[h] : (v[h - 1] + v[h]) / 2;
+  }
+  // Each lap of each run that has the figure, with the run's place in the lot.
+  function allLaps(runs) {
+    var out = [];
+    runs.forEach(function (r) { (r.mode && r.mode.laps || []).forEach(function (l) { out.push(l); }); });
+    return out;
+  }
+  // Findings from the laps and the runs: charge per lap, heat soak, flat out, tyre warm-up and brakes against pads.
+  function lapAnalysis(runs) {
+    var laps = allLaps(runs), out = [], pads = {};
+    var used = laps.filter(function (l) { return l.used != null; });
+    if (used.length) {
+      var avgUsed = avg(used.map(function (l) { return l.used; }));
+      if (avgUsed > 0) out.push('Charge per lap: ' + avgUsed.toFixed(1) + '% of the battery on average across ' + used.length + ' laps, so about ' + Math.floor(80 / avgUsed) + ' laps use 80% of it.');
+      else out.push('Charge per lap: on average the battery did not go down across ' + used.length + ' laps (the car charged or regenerated more than it used).');
+    }
+    var timedBt = laps.filter(function (l) { return l.bt != null && l.t != null; });
+    if (timedBt.length >= 4) {
+      var mBt = median(timedBt.map(function (l) { return l.bt; }));
+      var hot = timedBt.filter(function (l) { return l.bt > mBt; }), cool = timedBt.filter(function (l) { return l.bt <= mBt; });
+      if (hot.length && cool.length) {
+        var d = avg(hot.map(function (l) { return l.t; })) - avg(cool.map(function (l) { return l.t; }));
+        out.push('Heat soak: laps with the hotter battery (above ' + mBt.toFixed(0) + '%) were ' + (d >= 0 ? d.toFixed(2) + ' s slower' : (-d).toFixed(2) + ' s quicker') + ' on average than the cooler laps.');
+      }
+    }
+    var timedTh = laps.filter(function (l) { return l.th != null && l.t != null; });
+    if (timedTh.length >= 4) {
+      var byT = timedTh.slice().sort(function (a, b) { return a.t - b.t; });
+      var h2 = Math.floor(byT.length / 2);
+      var quick = byT.slice(0, h2), slow = byT.slice(byT.length - h2);
+      out.push('Flat out: the quicker half of the laps spent ' + (avg(quick.map(function (l) { return l.th; })) * 100).toFixed(0) + '% of the lap at full throttle, the slower half ' + (avg(slow.map(function (l) { return l.th; })) * 100).toFixed(0) + '%.');
+    }
+    var warm = runs.filter(function (r) { return r.mode && r.mode.tyreStart != null && r.mode.tyreEnd != null && r.bestTime != null; });
+    if (warm.length >= 4) {
+      var byBest = warm.slice().sort(function (a, b) { return a.bestTime - b.bestTime; });
+      var h3 = Math.floor(byBest.length / 2);
+      var rise = function (r) { return r.mode.tyreEnd - r.mode.tyreStart; };
+      out.push('Tyre warm-up: the quicker half of the runs gained ' + avg(byBest.slice(0, h3).map(rise)).toFixed(2) + ' bar of tyre pressure from start to end, the slower half ' + avg(byBest.slice(byBest.length - h3).map(rise)).toFixed(2) + ' bar.');
+    }
+    runs.forEach(function (r) {
+      if (!r.pads || !r.mode) return;
+      var k = r.pads;
+      pads[k] = pads[k] || { n: 0, br: [], bp: [], best: null };
+      pads[k].n++;
+      if (r.mode.brakeTemp != null) pads[k].br.push(r.mode.brakeTemp);
+      if (r.mode.brakePressure != null) pads[k].bp.push(r.mode.brakePressure);
+      if (r.bestTime != null && (pads[k].best === null || r.bestTime < pads[k].best)) pads[k].best = r.bestTime;
+    });
+    var padKeys = Object.keys(pads);
+    var padHtml = padKeys.length ? '<h3 class="tm-sub-h">Brakes against pads</h3><div class="tm-list tm-pads">' + padKeys.map(function (k) {
+      var p = pads[k];
+      return '<div class="tm-row"><div><b>' + esc(k) + '</b><div class="tm-sub">' + p.n + ' run' + (p.n === 1 ? '' : 's') + '</div></div>' +
+        '<div class="tm-num"><span class="tm-lab tm-sub">Hottest brakes</span> ' + (p.br.length ? '<b>' + avg(p.br).toFixed(0) + '%</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
+        '<div class="tm-num"><span class="tm-lab tm-sub">Brake pressure</span> ' + (p.bp.length ? '<b>' + avg(p.bp).toFixed(1) + '</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
+        '<div class="tm-num"><span class="tm-lab tm-sub">Best lap</span> <b>' + lapTime(p.best) + '</b></div></div>';
+    }).join('') + '</div>' : '';
+    if (!out.length && !padHtml) return '';
+    return '<div class="tm-card"><h2>Lap analysis</h2>' + (out.length ? '<ul>' + out.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '<p class="tm-note">Not enough laps or runs yet for these.</p>') + padHtml + '</div>';
+  }
+
   function rowHtml(r) {
     var m = r.mode || {};
     var picked = state.picked === r.id;
@@ -160,7 +225,7 @@
       '</div>';
     var head = '<div class="tm-row tm-head"><div>Session</div><div>Car</div><div class="tm-num">Best lap</div><div class="tm-num">Charge used</div><div class="tm-num">Peak power</div><div class="tm-num">Regen</div><div class="tm-num">Hottest brakes</div><div class="tm-num">Battery max</div></div>';
     var rows = list.length ? list.map(rowHtml).join('') : '<div class="tm-empty">No runs on this track yet.</div>';
-    app.innerHTML = controls + tiles + analysis + lineChart(runs) + '<div class="tm-list">' + head + rows + '</div>' +
+    app.innerHTML = controls + tiles + analysis + lineChart(runs) + lapAnalysis(runs) + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
     // A dot on the graph picks its session: the list shows it (all tracks, if a track filter hides it) and it is highlighted.

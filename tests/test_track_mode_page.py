@@ -150,3 +150,26 @@ def test_a_visitor_opens_on_all_members(page):
     open_mode_page(page, RUNS)
     expect(page.locator("#tm-member")).to_have_value("all")
     expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(4)
+
+
+def test_the_lap_analysis_gives_charge_per_lap_heat_soak_flat_out_tyres_and_pads(page):
+    laps = [
+        {"n": 1, "t": 80.0, "used": 1.0, "bt": 50, "br": 60, "th": 0.5, "tp": 2.8},
+        {"n": 2, "t": 81.0, "used": 1.2, "bt": 55, "br": 70, "th": 0.45, "tp": 2.9},
+        {"n": 3, "t": 83.0, "used": 1.4, "bt": 61, "br": 80, "th": 0.4, "tp": 3.0},
+        {"n": 4, "t": 84.0, "used": 1.6, "bt": 66, "br": 90, "th": 0.35, "tp": 3.1},
+    ]
+    runs = [
+        dict(RUNS[0], pads="Pagid RSL29", mode=dict(RUNS[0]["mode"], laps=laps, tyreStart=2.6, tyreEnd=3.0, brakePressure=8.1)),
+        dict(RUNS[1], pads="Carbotech XP10", mode=dict(RUNS[1]["mode"], laps=laps[:2], tyreStart=2.7, tyreEnd=2.9)),
+        dict(RUNS[2], pads="Pagid RSL29", mode=dict(RUNS[2]["mode"], tyreStart=2.7, tyreEnd=2.9)),
+        dict(RUNS[3], pads="Pagid RSL29", mode=dict(RUNS[3]["mode"], tyreStart=2.6, tyreEnd=2.8)),
+    ]
+    open_mode_page(page, runs)
+    card = page.locator(".tm-card", has=page.locator("h2", has_text="Lap analysis"))
+    expect(card).to_contain_text("Charge per lap")
+    expect(card).to_contain_text("Heat soak")
+    expect(card).to_contain_text("Flat out")
+    expect(card).to_contain_text("Tyre warm-up")
+    expect(card).to_contain_text("Brakes against pads")
+    expect(card).to_contain_text("Carbotech XP10")

@@ -68,6 +68,9 @@
   .tm-sub { color:var(--steel); font-size:.78rem; }
   .tm-empty { color:var(--steel); padding:18px 14px; }
   .tm-note { color:var(--steel); font-size:.8rem; margin:10px 2px 0; }
+  .tm-sub-h { font-size:.95rem; margin:14px 0 6px; }
+  .tm-pads .tm-row { grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr)); }
+  @media (max-width:780px) { .tm-pads .tm-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
   .tm-chart svg { width:100%; height:auto; display:block; margin-top:6px; }
   .tm-chart text { font-family:'IBM Plex Sans', sans-serif; fill:#5b6475; font-size:13px; }
   .tm-dot { cursor:pointer; outline:none; }

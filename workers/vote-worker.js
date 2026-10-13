@@ -7485,7 +7485,7 @@ function trackSummary(rec) {
   if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
   if (rec.dashcam) o.dashcam = true;
-  var mode = trackModeFigures(rec.carData);
+  var mode = trackModeFigures(rec.carData, rec.laps);
   if (mode) o.mode = mode;
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
@@ -7667,7 +7667,24 @@ async function carOwnerEmail(env, record) {
 
 // The car's own figures for the Track Mode page: charge used, power, regen, the hottest brake and battery, tyre pressure and
 // slip. Null when the session has none of them.
-function trackModeFigures(cd) {
+// Each lap's own figures (charge, temperatures, throttle, tyre pressure and its time), for the Track Mode analysis.
+function trackModeLaps(laps) {
+  var out = [];
+  (Array.isArray(laps) ? laps : []).forEach(function (l) {
+    var c = l && l.carData && typeof l.carData === 'object' ? l.carData : null;
+    if (!c) return;
+    var o = {};
+    if (c.soc && isFinite(c.soc.start) && isFinite(c.soc.end)) o.used = Math.round((c.soc.start - c.soc.end) * 100) / 100;
+    if (c.batteryTemp && isFinite(c.batteryTemp.max)) o.bt = c.batteryTemp.max;
+    if (c.brakeTemp && isFinite(c.brakeTemp.max)) o.br = c.brakeTemp.max;
+    if (c.throttle && isFinite(c.throttle.full)) o.th = c.throttle.full;
+    if (c.tyrePressure && isFinite(c.tyrePressure.max)) o.tp = c.tyrePressure.max;
+    if (isFinite(l.time)) o.t = l.time;
+    if (Object.keys(o).length > 1) out.push(o);
+  });
+  return out.slice(0, 60);
+}
+function trackModeFigures(cd, laps) {
   if (!cd || typeof cd !== 'object') return null;
   var m = {};
   if (cd.soc && isFinite(cd.soc.start) && isFinite(cd.soc.end)) m.soc = [cd.soc.start, cd.soc.end];
@@ -7676,8 +7693,13 @@ function trackModeFigures(cd) {
   if (cd.brakeTemp && isFinite(cd.brakeTemp.max)) m.brakeTemp = cd.brakeTemp.max;
   if (cd.batteryTemp && isFinite(cd.batteryTemp.max)) m.batteryTemp = cd.batteryTemp.max;
   if (cd.tyrePressure && isFinite(cd.tyrePressure.max)) m.tyrePressure = cd.tyrePressure.max;
+  if (cd.tyrePressure && isFinite(cd.tyrePressure.start) && isFinite(cd.tyrePressure.end)) { m.tyreStart = cd.tyrePressure.start; m.tyreEnd = cd.tyrePressure.end; }
+  if (cd.brakePressure && isFinite(cd.brakePressure.max)) m.brakePressure = cd.brakePressure.max;
+  if (cd.inverterTemp && isFinite(cd.inverterTemp.max)) m.inverterTemp = cd.inverterTemp.max;
   if (cd.slip && isFinite(cd.slip.max)) m.slip = cd.slip.max;
   if (cd.throttle && isFinite(cd.throttle.full)) m.throttle = cd.throttle.full;
+  var lapList = trackModeLaps(laps);
+  if (lapList.length) m.laps = lapList;
   return Object.keys(m).length ? m : null;
 }
 // Every shared session with Track Mode figures, in one key (track-mode-runs, get() only), for the Track Mode page. Each car's
@@ -7695,7 +7717,7 @@ async function refreshTrackModeRuns(env, carId, shared) {
   }
   var kept = all.filter(function (r) { return r.carId !== carId; });
   mine.forEach(function (s) {
-    kept.push({ id: s.id, carId: carId, car: car, owner: owner, date: s.date || '', time: s.time || '', venue: s.venue || '', layout: s.layout || '', type: s.type || '', bestTime: s.bestTime || null, conditions: s.conditions || '', tyres: s.tyres || '', logger: s.logger || '', mode: s.mode });
+    kept.push({ id: s.id, carId: carId, car: car, owner: owner, date: s.date || '', time: s.time || '', venue: s.venue || '', layout: s.layout || '', type: s.type || '', bestTime: s.bestTime || null, conditions: s.conditions || '', tyres: s.tyres || '', pads: s.pads || '', logger: s.logger || '', mode: s.mode });
   });
   kept.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
   await env.VOTES.put(TRACK_MODE_RUNS_KEY, JSON.stringify(kept.slice(0, TRACK_MODE_RUNS_MAX)));

@@ -7438,3 +7438,27 @@ def test_the_laps_header_has_a_favourites_star_that_goes_to_the_favourites_card(
     fake = FakeWorker()
     open_page(page, fake)
     expect(page.locator("#nav-favs")).to_have_attribute("href", "favourites.html")
+
+
+def test_a_board_can_show_only_the_runs_with_track_mode_data(page):
+    fake = FakeWorker(earlier=False)
+    # A run saved with the car's own Track Mode figures is tagged, and the filter keeps only those.
+    a = board_row("a", "a-tm", 90.0)
+    a.update(owner="Ann", car="Ann's 3", trackMode=True)
+    b = board_row("b", "b-plain", 91.5)
+    b.update(owner="Ben", car="Ben's Y", model="Model Y")
+    fake.boards = {"/track/board:thruxton:main": [a, b]}
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    rows = page.locator(".lb-row")
+    expect(rows).to_have_count(2)
+    expect(rows.first.locator(".lb-tm")).to_have_text("Track Mode")
+    expect(rows.nth(1).locator(".lb-tm")).to_have_count(0)
+    chip = page.locator("#lb-trackmode")
+    expect(chip).to_have_attribute("aria-pressed", "false")
+    chip.click()
+    expect(chip).to_have_attribute("aria-pressed", "true")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Ann's 3")
+    # Clear filters puts every run back.
+    page.locator("#lb-clear").click()
+    expect(rows).to_have_count(2)

@@ -7471,6 +7471,8 @@ function trackSummary(rec) {
   if (rec.origin && rec.origin.length === 2 && isFinite(rec.origin[0]) && isFinite(rec.origin[1])) o.origin = [Math.round(rec.origin[0] * 1000) / 1000, Math.round(rec.origin[1] * 1000) / 1000];
   // Battery at the start and end (Track Mode files), so a day's group can add up the charge used.
   if (rec.carData && rec.carData.soc && isFinite(rec.carData.soc.start) && isFinite(rec.carData.soc.end)) o.soc = [rec.carData.soc.start, rec.carData.soc.end];
+  // The car's own Track Mode figures are in the session, so a board can show which runs have them.
+  if (rec.carData && Object.keys(rec.carData).length) o.trackMode = true;
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;
   if (rec.tyreModel) o.tyreModel = rec.tyreModel;
   if (rec.drive) o.drive = rec.drive;
@@ -7618,6 +7620,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
     };
     if (mine.tyreMake) entry.tyreMake = mine.tyreMake;
     if (mine.tyreModel) entry.tyreModel = mine.tyreModel;
+    if (mine.trackMode) entry.trackMode = true;
     // The owner's or the admin's kerb weight; the leaderboard falls back to the vehicle list's.
     if (details && details.weight) entry.weight = details.weight;
     if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }

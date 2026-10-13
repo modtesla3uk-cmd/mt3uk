@@ -7453,3 +7453,22 @@ def test_a_board_tags_the_runs_with_track_mode_data(page):
     expect(rows.first.locator(".lb-tm")).to_have_text("Track Mode Data")
     expect(rows.nth(1).locator(".lb-tm")).to_have_count(0)
     expect(page.locator("#lb-trackmode")).to_have_count(0)
+
+
+def test_my_sessions_shows_your_analysis_at_each_layout(page):
+    fake = FakeWorker(earlier=False)
+    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
+        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    track = page.locator("#tp-sess-list .tp-trackwrap", has_text="Indy")
+    track.locator("[data-track-toggle]").click()
+    track.locator("[data-layout-toggle]").click()
+    box = track.locator("[data-layout-analysis]")
+    expect(box).to_be_visible()
+    # One dot a session, the best lap and the words under the graph.
+    expect(box.locator("svg circle")).to_have_count(3)
+    expect(box).to_contain_text("Across 3 sessions")
+    expect(box).to_contain_text("Your best lap is 1:00.50")
+    expect(box).to_contain_text("What the graph shows")

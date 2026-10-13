@@ -1253,6 +1253,46 @@
     });
     return names.join(' · ');
   }
+  // Your analysis at a layout, for the car picked (My Sessions only): the best lap of each session in date order, as a line
+  // graph (a dot opens its session), and what the graph shows in words. Nothing is drawn with fewer than two timed sessions.
+  function layoutAnalysisHtml(rows) {
+    var pts = rows.filter(function (r) { return r.type !== 'drag' && isFinite(r.bestTime) && r.bestTime > 0; })
+      .slice().sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? -1 : 1; });
+    if (pts.length < 2) return '';
+    var W = 560, H = 210, L = 58, R = 14, T = 14, B = 34;
+    var ys = pts.map(function (r) { return r.bestTime; });
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
+    function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
+    function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
+    var line = pts.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.bestTime).toFixed(1); }).join(' ');
+    var dots = pts.map(function (r, i) {
+      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
+    }).join('');
+    var svg = '<svg class="tp-an-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Best lap of each session here, in date order">' +
+      '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<polyline points="' + line + '" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>' +
+      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + V.fmtLap(y0) + '</text>' +
+      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + V.fmtLap(y1) + '</text>' +
+      '<text x="' + L + '" y="' + (H - 10) + '">' + esc(niceDate(pts[0].date)) + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].date)) + '</text>' +
+      dots + '</svg>';
+    var first = pts[0].bestTime, last = pts[pts.length - 1].bestTime;
+    var bestRow = pts.reduce(function (a, r) { return r.bestTime < a.bestTime ? r : a; });
+    var said = ['Across ' + pts.length + ' sessions here, from ' + niceDate(pts[0].date) + ' to ' + niceDate(pts[pts.length - 1].date) + '.',
+      'Your best lap is ' + V.fmtLap(bestRow.bestTime) + ', on ' + niceDate(bestRow.date) + '.'];
+    var diff = last - first;
+    said.push(Math.abs(diff) < 0.005 ? 'Your latest lap is the same as your first.' : 'Your latest lap is ' + Math.abs(diff).toFixed(2) + ' s ' + (diff < 0 ? 'quicker' : 'slower') + ' than your first.');
+    if (pts.length >= 6) {
+      var mean = function (a) { return a.reduce(function (x, r) { return x + r.bestTime; }, 0) / a.length; };
+      said.push('Your last three sessions averaged ' + V.fmtLap(mean(pts.slice(-3))) + ', your first three ' + V.fmtLap(mean(pts.slice(0, 3))) + '.');
+    }
+    var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
+    if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
+    return '<div class="tp-analysis" data-layout-analysis><h3>Your analysis here</h3><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +
+      '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>';
+  }
   function trackListHtml(list, carId, publicView) {
     filterOpenAll = filtersOn();
     list = filteredList(list);
@@ -1278,7 +1318,7 @@
           fitD.forEach(function (d) { placedDrive[d.id] = true; });
           var rows = byWhenDesc(rowsL.concat(fitD));
           return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + layoutHeadHtml(l.name, rowsL, publicView) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
-            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
+            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + (publicView ? '' : layoutAnalysisHtml(rows)) + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
         }).join('')) + driveTail() + '</div></div>';
     }).join('');
   }

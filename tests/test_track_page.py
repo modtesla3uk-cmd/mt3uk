@@ -5824,7 +5824,7 @@ def test_a_member_suggests_a_new_name_for_an_unlisted_track_and_sends_it_for_app
     expect(box).to_contain_text("Newtown Aerodrome")
     assert fake.rename_requests == []
     assert fake.rename_proposals == [{"id": "new1", "name": "Newtown Aerodrome"}]
-    expect(page.get_by_role("heading", name=re.compile("Aerodrome"))).to_have_count(1)
+    expect(page.locator(".tp-session-head h2", has_text="Aerodrome")).to_have_count(1)
     # They can send a different name while it waits.
     page.get_by_role("button", name="Suggest a different name").click()
     expect(page.locator("#tp-rename-name")).to_be_visible()

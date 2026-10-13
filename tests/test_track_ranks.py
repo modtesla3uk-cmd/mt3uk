@@ -38,7 +38,8 @@ def test_a_session_that_is_not_on_a_board_says_why_in_the_list_and_under_its_tit
     expect(tag).to_have_attribute("title", reason)
     page.locator('.tp-row[data-sid="%s"]' % sid).click()
     expect(page.locator(".tp-rank-line")).to_contain_text("Not on a leaderboard. It is not shared")
-    expect(page.locator(".tp-session-head h2 .tp-title-trophy")).to_have_count(1)
+    expect(page.locator(".page-hero .tp-hero-row h1 .tp-title-trophy")).to_have_count(1)
+    expect(page.locator(".tp-session-head h2 .tp-title-trophy")).to_have_count(0)
 
 
 def test_starring_a_session_says_where_it_is_on_the_leaderboard(page):
@@ -50,3 +51,15 @@ def test_starring_a_session_says_where_it_is_on_the_leaderboard(page):
     star.click()
     expect(page.locator("#tp-fav-note")).to_have_text("Starred. 2nd of 7 on Thruxton, Main.")
     assert [f["id"] for f in fake.favs] == [sid]
+
+
+def test_the_session_name_and_trophy_are_in_the_heading_and_the_owner_opens_their_profile(page):
+    """A session's name goes in the navy heading with the small trophy, as the Leaderboard heading has, and the owner's
+    name under it opens their public profile."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    expect(page.locator(".page-hero .tp-hero-row h1")).to_contain_text("Thruxton")
+    expect(page.locator(".page-hero .tp-hero-row h1 .tp-title-trophy")).to_have_count(1)
+    expect(page.locator("#tp-by a.tp-member")).to_have_attribute("href", re.compile(r"^member\.html\?car="))
+    open_into_the_day(page)
+    expect(page.locator(".page-hero .tp-hero-row h1")).to_contain_text("My Sessions")

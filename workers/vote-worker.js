@@ -8239,7 +8239,7 @@ async function memberBoardPlace(env, rec, lib) {
   var key = trackBoardKey(rec);
   var entries = key ? await getJsonKey(env, key, []) : [];
   var why = trackBoardWhy(rec, lib, key ? entries : null);
-  var board = why.venue ? why.venue.name + (why.layout ? ', ' + why.layout.name : '') : (rec.venue || '');
+  var board = why.venue ? why.venue.name + (why.layout && why.layout.name !== why.venue.name ? ', ' + why.layout.name : '') : (rec.venue || '');
   var idx = entries.findIndex(function (e) { return e.sessionId === rec.id; });
   if (idx !== -1) return { onBoard: true, place: idx + 1, of: entries.length, board: board, tab: why.tab };
   return { onBoard: false, of: entries.length, board: board, tab: why.tab, reason: memberBoardReason(rec, why, entries) };

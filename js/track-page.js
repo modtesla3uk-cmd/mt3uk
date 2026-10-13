@@ -371,6 +371,13 @@
   // The page's own Back (to the page before) is only on the list of sessions; a session or the Add page has its own Back.
   // A view's own Back (to the list it came from) takes the place of the page's Back in the heading, so Back is always
   // the same button in the same place (round on a phone). Moved whenever the view is drawn.
+  var heroTitle = document.querySelector('.page-hero .tp-hero-row h1');
+  var heroTitleDefault = heroTitle ? heroTitle.innerHTML : '';
+  // A session's name and small trophy go in the navy heading, as the Leaderboard heading has its trophy; any other view puts its own title back.
+  function setHeroTitle(name) {
+    if (!heroTitle) return;
+    heroTitle.innerHTML = name ? esc(name) + '<svg class="icon tp-title-trophy" viewBox="0 0 24 24" aria-hidden="true">' + ICON.trophy + '</svg>' : heroTitleDefault;
+  }
   var heroTop = document.querySelector('.page-hero .tp-hero-top');
   var pageBack = heroTop && heroTop.querySelector('.back-link:not(.tp-back)');
   // Each new view starts with the page's Back (hidden off the list of sessions, as before); a view that draws its own
@@ -440,6 +447,7 @@
   function route() {
     // Each view asks again, so a session shared or made private since the last look shows its true place.
     rankInfo = {}; rankAsked = {};
+    setHeroTitle('');
     var done = routeView();
     markFavs();
     Promise.resolve(done).then(heroSettle, heroSettle);
@@ -3652,7 +3660,7 @@
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
       '<span class="tp-bar-right">' + (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
       '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></span></div>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '<svg class="icon tp-title-trophy" viewBox="0 0 24 24" aria-hidden="true">' + ICON.trophy + '</svg></h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by ' + (s.carId ? '<a class="tp-member" href="member.html?car=' + esc(s.carId) + '"><b>' + esc(s.ownerName) + '</b></a>' : '<b>' + esc(s.ownerName) + '</b>') + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3673,6 +3681,7 @@
       var subLine = document.querySelector('.tp-session-head .tp-sub');
       if (subLine) { subLine.insertAdjacentHTML('afterend', '<p class="tp-rank-line" data-sid="' + esc(s.id) + '"></p>'); fetchRanks(); }
     }
+    setHeroTitle(trackName(s));
     if (s.type === 'drag') drawDragCharts(s);
     else if (untimed) drawOtherCharts(s);
     else drawTrackCharts(s);

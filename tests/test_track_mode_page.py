@@ -105,13 +105,9 @@ def test_the_graph_has_no_line_and_a_dot_picks_its_session_in_the_list(page):
     open_mode_page(page, RUNS)
     chart = page.locator(".tm-chart")
     expect(chart.locator("polyline")).to_have_count(0)
-    # Pick a track that does not have the first dot's run: the dot still shows its session, with every track listed.
-    page.locator("#tm-track").select_option(label="Thruxton · Main")
-    expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(2)
     chart.locator("circle[data-run='r1']").click()
     expect(page.locator("#tm-row-r1")).to_have_class(re.compile("is-picked"))
     expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(4)
-    expect(page.locator("#tm-track")).to_have_value("all")
 
 
 def test_a_member_filter_shows_just_that_members_stats(page):
@@ -126,3 +122,15 @@ def test_a_member_filter_shows_just_that_members_stats(page):
     expect(page.locator(".tm-chart")).to_contain_text("Not enough runs")
     page.locator("#tm-member").select_option("all")
     expect(rows).to_have_count(4)
+
+
+def test_the_filters_sit_at_the_top_and_the_tiles_and_graph_follow_the_track(page):
+    open_mode_page(page, RUNS)
+    # The filters come before the summary tiles.
+    expect(page.locator(".tm-controls")).to_be_visible()
+    assert page.evaluate("document.querySelector('.tm-controls').compareDocumentPosition(document.querySelector('.tm-tiles')) === Node.DOCUMENT_POSITION_FOLLOWING")
+    # Thruxton only: two sessions, so the tiles, findings and graph say two, and the graph has two dots.
+    page.locator("#tm-track").select_option(label="Thruxton · Main")
+    expect(page.locator(".tm-tile").nth(0)).to_contain_text("2")
+    expect(page.locator(".tm-chart circle")).to_have_count(2)
+    expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(2)

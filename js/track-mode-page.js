@@ -36,8 +36,12 @@
   function memberRuns() {
     return state.member === 'all' ? state.runs.slice() : state.runs.filter(function (r) { return (r.owner || 'MT3UK member') === state.member; });
   }
+  // The runs the page is about: the member and the track picked. The tiles, findings, graph and list all follow them.
+  function scopeRuns() {
+    return state.track === 'all' ? memberRuns() : memberRuns().filter(function (r) { return trackKey(r) === state.track; });
+  }
   function visible() {
-    var list = state.track === 'all' ? memberRuns() : memberRuns().filter(function (r) { return trackKey(r) === state.track; });
+    var list = scopeRuns();
     var key = {
       best: function (r) { return r.bestTime == null ? Infinity : r.bestTime; },
       charge: function (r) { var u = used(r); return u == null ? -Infinity : -u; },
@@ -123,7 +127,7 @@
   }
 
   function draw() {
-    var runs = memberRuns();
+    var runs = scopeRuns();
     if (!runs.length) {
       app.innerHTML = '<div class="tm-card"><h2>No Track Mode sessions yet</h2><p>When a member shares a track session that has its Track Mode figures, it appears here with its analysis. A session kept only for the owner is not shown.</p></div>';
       return;
@@ -156,7 +160,7 @@
       '</div>';
     var head = '<div class="tm-row tm-head"><div>Session</div><div>Car</div><div class="tm-num">Best lap</div><div class="tm-num">Charge used</div><div class="tm-num">Peak power</div><div class="tm-num">Regen</div><div class="tm-num">Hottest brakes</div><div class="tm-num">Battery max</div></div>';
     var rows = list.length ? list.map(rowHtml).join('') : '<div class="tm-empty">No runs on this track yet.</div>';
-    app.innerHTML = tiles + analysis + lineChart(runs) + controls + '<div class="tm-list">' + head + rows + '</div>' +
+    app.innerHTML = controls + tiles + analysis + lineChart(runs) + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
     // A dot on the graph picks its session: the list shows it (all tracks, if a track filter hides it) and it is highlighted.

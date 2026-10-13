@@ -1264,7 +1264,7 @@
     var kept = pts.filter(function (r) { return r.bestTime < mid * 1.5; }), leftOut = pts.length - kept.length;
     pts = kept;
     if (pts.length < 2) return '';
-    var W = 560, H = 210, L = 58, R = 14, T = 14, B = 34;
+    var W = 560, H = 250, L = 58, R = 14, T = 14, B = 54;
     var ys = pts.map(function (r) { return r.bestTime; });
     var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
@@ -1272,16 +1272,23 @@
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var line = pts.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.bestTime).toFixed(1); }).join(' ');
     var dots = pts.map(function (r, i) {
-      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
+      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="#e8590c" stroke="#16233d" stroke-width="0.8"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
     }).join('');
-    var svg = '<svg class="tp-an-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Best lap of each session here, in date order">' +
+    var grid = '';
+    for (var g = 0; g <= 5; g++) {
+      var gy = T + g / 5 * (H - T - B), gx = L + g / 5 * (W - L - R);
+      grid += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + gy.toFixed(1) + '" stroke="#eef1f6"/>' +
+        '<line x1="' + gx.toFixed(1) + '" y1="' + T + '" x2="' + gx.toFixed(1) + '" y2="' + (H - B) + '" stroke="#eef1f6"/>';
+    }
+    var svg = '<svg class="tp-an-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Best lap of each session here, in date order">' + grid +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<polyline points="' + line + '" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + V.fmtLap(y0) + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + V.fmtLap(y1) + '</text>' +
-      '<text x="' + L + '" y="' + (H - 10) + '">' + esc(niceDate(pts[0].date)) + '</text>' +
-      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].date)) + '</text>' +
+      '<text x="' + L + '" y="' + (H - 30) + '">' + esc(niceDate(pts[0].date)) + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].date)) + '</text>' +
+      '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in date order</text>' +
       dots + '</svg>';
     var first = pts[0].bestTime, last = pts[pts.length - 1].bestTime;
     var bestRow = pts.reduce(function (a, r) { return r.bestTime < a.bestTime ? r : a; });

@@ -90,22 +90,29 @@
       .sort(function (a, b) { return (a.r.date + a.r.time) < (b.r.date + b.r.time) ? -1 : 1; });
     if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough runs with this figure yet.</p></div>';
     // The drawing is as wide as the card, so the dots keep their size from a phone to a desktop.
-    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 240, L = 58, R = 12, T = 14, B = 36;
+    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 262, L = 58, R = 12, T = 14, B = 54;
     var vs = pts.map(function (x) { return x.v; });
     var y0 = Math.min.apply(null, vs), y1 = Math.max.apply(null, vs);
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
     function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
     function Y(v) { return T + (y1 - v) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (x, i) {
-      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="#e8590c" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
     }).join('');
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m[1]) + ' for each run, in the order they were driven">' +
+    var grid = '';
+    for (var g = 0; g <= 5; g++) {
+      var gy = T + g / 5 * (H - T - B), gx = L + g / 5 * (W - L - R);
+      grid += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + gy.toFixed(1) + '" stroke="#eef1f6"/>' +
+        '<line x1="' + gx.toFixed(1) + '" y1="' + T + '" x2="' + gx.toFixed(1) + '" y2="' + (H - B) + '" stroke="#eef1f6"/>';
+    }
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m[1]) + ' for each run, in the order they were driven">' + grid +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + y1.toFixed(m[4]) + m[3] + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + y0.toFixed(m[4]) + m[3] + '</text>' +
-      '<text x="' + L + '" y="' + (H - 10) + '">' + niceDate(pts[0].r.date) + '</text>' +
-      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + niceDate(pts[pts.length - 1].r.date) + '</text>' +
+      '<text x="' + L + '" y="' + (H - 30) + '">' + niceDate(pts[0].r.date) + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + niceDate(pts[pts.length - 1].r.date) + '</text>' +
+      '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in the order driven</text>' +
       dots + '</svg>';
     return '<div class="tm-card tm-chart">' + head + chips + svg + '</div>';
   }
@@ -300,7 +307,7 @@
       '</div>';
     var head = '<div class="tm-row tm-head"><div>Session</div><div>Car</div><div class="tm-num">Best lap</div><div class="tm-num">Charge used</div><div class="tm-num">Peak power</div><div class="tm-num">Regen</div><div class="tm-num">Hottest brakes</div><div class="tm-num">Battery max</div></div>';
     var rows = list.length ? list.map(rowHtml).join('') : '<div class="tm-empty">No runs on this track yet.</div>';
-    app.innerHTML = analysis + controls + tiles + lineChart(runs) + lapAnalysis(runs) + '<div class="tm-list">' + head + rows + '</div>' +
+    app.innerHTML = analysis + controls + tiles + lapAnalysis(runs) + lineChart(runs) + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
     Array.prototype.forEach.call(app.querySelectorAll('[data-lapmetric]'), function (b) { b.addEventListener('click', function () { state.lapMetric = b.getAttribute('data-lapmetric'); draw(); }); });

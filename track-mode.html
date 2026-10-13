@@ -63,10 +63,10 @@
   .tm-pill { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; }
   .tm-pill:hover { background:#eef1f6; }
   .tm-pill-accent { background:var(--orange); border-color:var(--orange); color:#fff; }
-  .tm-hero-top .back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; }
-  .tm-hero-top .back-link:hover { background:#eef1f6; color:var(--ink); }
-  .tm-hero-top .back-link, .tm-hero-top .tm-pill { white-space:nowrap; }
-  @media (max-width:780px) { .tm-hero-top .back-link, .tm-hero-top .tm-pill { padding:0 12px; font-size:.92rem; } }
+  .page-hero .tm-hero-top a.back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; }
+  .page-hero .tm-hero-top a.back-link:hover { background:#eef1f6; color:var(--ink); }
+  .tm-hero-top .tm-pill, .page-hero .tm-hero-top a.back-link { white-space:nowrap; }
+  @media (max-width:780px) { .tm-hero-top .tm-pill, .page-hero .tm-hero-top a.back-link { padding:0 12px; font-size:.92rem; } }
   .tm-pill { gap:8px; }
   .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .tm-pill-accent .icon { stroke:#fff; }
@@ -201,7 +201,7 @@
   </div>
 </footer>
 
-<script src="js/track-mode-page.js?v=18" defer></script>
+<script src="js/track-mode-page.js?v=19" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=16" defer></script>

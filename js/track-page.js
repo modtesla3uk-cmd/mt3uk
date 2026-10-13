@@ -820,17 +820,12 @@
   });
 
   // ---------- Home ----------
-  // The member's starred sessions, for the Sessions list. Nothing when signed out or when the list cannot be read.
-  function getFavourites() {
-    if (!token()) return Promise.resolve(null);
-    return api('GET', '/track/favourites').catch(function () { return null; });
-  }
   function showHome() {
     loading();
     var my = routeSeq;
-    return Promise.all([getMine(), getLibrary(), getCopy(), getFavourites()]).then(function (r) {
+    return Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
       if (stale(my)) return;
-      var m = r[0], c = r[2] || {}, favs = r[3] && r[3].success ? r[3].sessions : [];
+      var m = r[0], c = r[2] || {};
       if (m && m.gate) return showGate();
       var h = '';
       if (!m) {
@@ -843,14 +838,11 @@
       } else {
         // Leaderboards first, above the cars. Faded until the member has a
         // session of their own to put on a board.
-        h += favCardHtml(favs) + myCarsHtml(m);
+        h += myCarsHtml(m);
       }
       // Sessions just saved from a batch: say so at the top.
       if (justSaved && (justSaved.batch || justSaved.text || justSaved.queued)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
-      favIds = favs.map(function (f) { return f.id; });
-      paintFavs();
-      if (location.hash === '#favourites') { var fc = document.getElementById('favourites'); if (fc) fc.scrollIntoView({ block: 'start' }); }
       heroAdd();
       // Offline mode: an old list is marked, and sessions saved on the device and waiting to be sent are listed.
       if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
@@ -3655,8 +3647,8 @@
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
-      (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
-      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
+      '<span class="tp-bar-right">' + (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
+      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></span></div>';
     h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
@@ -3938,7 +3930,7 @@
     }).join('') + '</optgroup>';
   }
   // Favourites: starred Track sessions, one list per member on the worker (GET and POST /track/favourites). A star sits
-  // on a session's page, and the Sessions list has them all in one card at the top, under #favourites.
+  // on a session's page; the list itself is on its own page, favourites.html (js/favourites-page.js).
   var favIds = null;
   var FAV_STAR = 'Favourite';
   function favButton(id, on) {
@@ -3968,29 +3960,7 @@
       favIds = (favIds || []).filter(function (x) { return x !== id; });
       if (on) favIds.push(id);
       paintFavs();
-      // Taken off from the Favourites card: the row goes, and the count with it.
-      var row = b.closest('[data-fav-row]');
-      if (row && !on) {
-        row.parentNode.removeChild(row);
-        var left = app.querySelectorAll('[data-fav-row]').length;
-        var count = app.querySelector('#fav-count');
-        if (count) count.textContent = left;
-        if (!left) { var card = app.querySelector('#favourites'); if (card) card.parentNode.removeChild(card); }
-      }
     }).catch(function () { b.disabled = false; b.title = 'Could not reach Laps. Try again when you are online.'; });
-  }
-  function favRowHtml(f) {
-    var meta = [f.car, f.date, f.mine ? '' : 'Shared by another member'].filter(Boolean).join(' · ');
-    return '<a class="tp-row" href="track.html?s=' + esc(f.id) + '" data-sid="' + esc(f.id) + '" data-go="s=' + esc(f.id) + '" title="Open to view"><span class="tp-row-main"><b>' + esc(trackName(f)) + '</b><span>' + esc(meta) + '</span></span>' +
-      '<span class="tp-row-res">' + esc(sessionResult(f)) + '</span>' + icon('chev') + '</a>';
-  }
-  function favCardHtml(list) {
-    if (!list || !list.length) return '';
-    var rows = list.map(function (f) {
-      return '<div class="tp-favrow" data-fav-row>' + favRowHtml(f) + favButton(f.id, true) + '</div>';
-    }).join('');
-    return '<section class="card tp-favs" id="favourites" aria-labelledby="fav-h"><div class="tp-favs-head"><h2 id="fav-h">Favourites</h2><span class="tp-favs-count" id="fav-count">' + list.length + '</span></div>' +
-      '<p class="tp-favs-note">Sessions you have starred, all in one place. A session drops off this list if it is made private or removed.</p>' + rows + '</section>';
   }
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-fav-toggle]');

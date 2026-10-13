@@ -7318,9 +7318,9 @@ def test_my_sessions_sort_option_is_only_for_signed_in_members(page):
     expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(0)
 
 
-def test_a_session_can_be_starred_and_the_favourites_card_lists_it_on_sessions(page):
-    """A star on a session's page adds it to Favourites. The Sessions list has them in one card at the top (#favourites),
-    and taking one off there removes it from the card and from the worker's list."""
+def test_a_session_can_be_starred_and_the_favourites_page_lists_it_apart_from_the_sessions_list(page):
+    """A star on a session's page adds it to Favourites. Favourites is its own page, not part of the Sessions list:
+    the star in the Laps header goes there, and taking one off there removes it from the page and from the worker."""
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     sid = list(fake.sessions)[0]
@@ -7330,16 +7330,18 @@ def test_a_session_can_be_starred_and_the_favourites_card_lists_it_on_sessions(p
     expect(star).to_have_attribute("aria-pressed", "true")
     assert [f["id"] for f in fake.favs] == [sid]
     page.locator("#tp-exit").click()
-    expect(page.locator("#favourites")).to_be_visible()
-    expect(page.locator("#favourites .tp-favrow")).to_have_count(1)
-    expect(page.locator("#fav-count")).to_have_text("1")
-    page.locator("#favourites [data-fav-toggle]").click()
+    expect(page.locator("#tp-sess-list")).to_be_visible()
     expect(page.locator("#favourites")).to_have_count(0)
+    page.locator("#nav-favs").click()
+    page.wait_for_url("**/favourites.html", timeout=5000)
+    expect(page.locator("#fav-app .fav-row")).to_have_count(1)
+    expect(page.locator("#fav-app .fav-group h2").first).to_contain_text("Track days")
+    page.locator("#fav-app [data-fav-remove]").click()
+    expect(page.locator("#fav-app")).to_contain_text("You have no favourites yet")
     assert fake.favs == []
 
 
 def test_the_laps_header_has_a_favourites_star_that_goes_to_the_favourites_card(page):
     fake = FakeWorker()
     open_page(page, fake)
-    # On the Sessions page itself the link is to its own section (the shared header makes it a # link).
-    expect(page.locator("#nav-favs")).to_have_attribute("href", "#favourites")
+    expect(page.locator("#nav-favs")).to_have_attribute("href", "favourites.html")

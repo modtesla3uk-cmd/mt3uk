@@ -2114,6 +2114,20 @@ def _venues(page):
     return page.eval_on_selector_all(".lb-venues .lb-cardwrap[data-venue]", "els => els.map(e => e.dataset.venue)")
 
 
+def _settle(page):
+    """The track order once it has stopped changing for about half a second. The list can redraw as its counts arrive, so a
+    single read can catch it half way through, or before a redraw that puts the order back."""
+    last, same = None, 0
+    for _ in range(300):
+        now = _venues(page)
+        same = same + 1 if now == last else 0
+        last = now
+        if same >= 6 and now:
+            return now
+        page.wait_for_timeout(100)
+    return last
+
+
 def test_on_a_board_the_details_open_the_session_and_the_name_opens_the_member(page):
     """Clicking the text under a member's name opens the session; clicking the name opens the member's car (its public page)."""
     fake = FakeWorker()
@@ -2137,12 +2151,7 @@ def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
     _two_busy_tracks(fake)
     open_page(page, fake, "/leaderboards.html", signed_in=False)
     # The track list can redraw once it has drawn, so read it again until both cards are in place.
-    start = []
-    for _ in range(50):
-        start = _venues(page)
-        if sorted(start) == ["castle-combe", "thruxton"]:
-            break
-        page.wait_for_timeout(100)
+    start = _settle(page)
     assert sorted(start) == ["castle-combe", "thruxton"], start
     # Hold a track and drag it above the other: the order is kept, as "My layout".
     first = page.locator(".lb-cardwrap").nth(0).bounding_box()
@@ -2154,28 +2163,27 @@ def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
         page.mouse.move(first["x"] + 40, second["y"] + 20 + (first["y"] + 10 - second["y"] - 20) * step / 8)
         page.wait_for_timeout(20)
     page.mouse.up()
-    page.wait_for_timeout(150)
-    moved = _venues(page)
+    moved = _settle(page)
     assert moved == list(reversed(start)), (start, moved)
     expect(page).to_have_url(re.compile(r"/leaderboards\.html$"))
     expect(page.locator("#lb-sort")).to_have_value("mine")
     expect(page.locator("#lb-sort option").first).to_have_text("My layout")
     # It is remembered.
     page.reload()
-    assert _venues(page) == moved
+    assert _settle(page) == moved
     # Hide one: it leaves the list, and can be shown again.
     gone = moved[0]
     page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
-    assert _venues(page) == moved[1:]
+    assert _settle(page) == moved[1:]
     expect(page.locator("[data-showhidden]")).to_have_text("Show 1 hidden track")
     page.locator("[data-showhidden]").click()
     expect(page.locator('.lb-cardwrap.is-hid[data-venue="%s"]' % gone)).to_be_visible()
     page.locator('.lb-cardwrap.is-hid [data-hide]').click()
-    assert _venues(page)[0] == gone
+    assert _settle(page)[0] == gone
     # Reset puts the list back as it was.
     page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
     page.locator("[data-resetlayout]").click()
-    assert _venues(page) == start
+    assert _settle(page) == start
     expect(page.locator("#lb-sort")).to_have_value("busy")
     expect(page.locator("[data-resetlayout]")).to_have_count(0)
 

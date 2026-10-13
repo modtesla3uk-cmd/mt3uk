@@ -641,7 +641,7 @@ def test_a_session_opened_from_a_kept_circuits_leaderboard_still_opens_with_no_s
     assert r["ok"] and r["boards"] == 1 and r["sessions"] >= 2, r
     go_offline(page, link)
     page.goto("/leaderboards.html?board=thruxton:main")
-    page.locator(".lb-row a.lb-name").first.click()
+    page.locator(".lb-row a.lb-open").first.click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=other1$"))
     expect(page.locator("#tp-headline")).to_be_visible()
     expect(page.get_by_text("not on this device")).to_have_count(0)
@@ -1025,13 +1025,13 @@ def test_on_a_car_browser_offline_the_laps_pages_load_inside_the_open_tab(page):
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
     assert page.evaluate("window.__sameWindow") == "yes"
     page.locator(".lb-layout[href*='thruxton']").first.click()
-    expect(page.locator(".lb-row a.lb-name").first).to_be_visible(timeout=15000)
-    page.locator(".lb-row a.lb-name").first.click()
+    expect(page.locator(".lb-row a.lb-open").first).to_be_visible(timeout=15000)
+    page.locator(".lb-row a.lb-open").first.click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=other1$"))
     expect(page.locator("#tp-headline")).to_be_visible(timeout=15000)
     assert page.evaluate("window.__sameWindow") == "yes"
     page.go_back()
-    expect(page.locator(".lb-row a.lb-name").first).to_be_visible(timeout=15000)
+    expect(page.locator(".lb-row a.lb-open").first).to_be_visible(timeout=15000)
     expect(page).to_have_url(re.compile(r"leaderboards\.html\?board="))
     assert page.evaluate("window.__sameWindow") == "yes"
 

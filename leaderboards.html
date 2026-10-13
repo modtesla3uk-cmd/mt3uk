@@ -489,9 +489,11 @@
   .lb-row > .icon { display: none; }
   .lb-row .lb-pos { grid-area: pos; }
   .lb-car { grid-area: car; min-width: 0; display: grid; }
-  .lb-name { font-weight: 700; color: var(--ink); text-decoration: none; }
-  .lb-name::after { content: ''; position: absolute; inset: 0; }
-  .lb-name:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  .lb-name { position: relative; z-index: 1; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .lb-name:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  /* The whole row opens the session (this link covers it); the name and the star sit above it, so they open their own. */
+  .lb-open { position: absolute; inset: 0; z-index: 0; border-radius: inherit; }
+  .lb-open:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
   .lb-car small, .lb-time small { color: var(--steel); font-size: 0.78rem; }
   .lb-time { grid-area: time; text-align: right; display: grid; }
   .lb-time b { font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -783,7 +785,7 @@
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/leaderboard-page.js?v=20271231" defer></script>
+<script src="js/leaderboard-page.js?v=20271232" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

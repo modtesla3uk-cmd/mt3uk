@@ -24,7 +24,7 @@ def test_a_session_opened_from_a_leaderboard_goes_back_to_the_board(page):
     open_page(page, laps_fake(), "/leaderboards.html")
     page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
     expect(page).to_have_url(re.compile(r"leaderboards\.html\?board=thruxton(:|%3A)main$"))
-    page.locator(".lb-row a.lb-name").first.click()
+    page.locator(".lb-row a.lb-open").first.click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=a1$"))
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
     back = page.locator(".tp-back")

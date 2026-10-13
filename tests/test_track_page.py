@@ -2113,10 +2113,29 @@ def _venues(page):
     return page.eval_on_selector_all(".lb-venues .lb-cardwrap[data-venue]", "els => els.map(e => e.dataset.venue)")
 
 
+def test_on_a_board_the_details_open_the_session_and_the_name_opens_the_member(page):
+    """Clicking the text under a member's name opens the session; clicking the name opens the member's car (its public page)."""
+    fake = FakeWorker()
+    a = board_row("a", "a-dry", 90.0)
+    a.update(owner="Ann", car="Ann's 3")
+    fake.boards = {"/track/board:thruxton:main": [a]}
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    row = page.locator(".lb-row").first
+    expect(row).to_be_visible()
+    # The details sit under the row's own link, which is what a click on them reaches.
+    row.locator(".lb-info").click(force=True)
+    expect(page).to_have_url(re.compile(r"track\.html\?s=a-dry"))
+    page.go_back()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    page.locator(".lb-row").first.locator("a.lb-name").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?car=a$"))
+
+
 def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
     fake = FakeWorker()
     _two_busy_tracks(fake)
     open_page(page, fake, "/leaderboards.html", signed_in=False)
+    expect(page.locator(".lb-cardwrap[data-venue]")).to_have_count(2)
     start = _venues(page)
     assert sorted(start) == ["castle-combe", "thruxton"], start
     # Hold a track and drag it above the other: the order is kept, as "My layout".
@@ -4404,8 +4423,9 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(rows.first.locator(".tp-modchip")).to_have_count(0)
     expect(rows.first).not_to_contain_text("Coilovers")
     expect(rows.nth(1)).to_contain_text("Kumho Ecsta PS71")
-    # The whole row opens the session through its name.
-    expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "track.html?s=a-dry")
+    # The whole row opens the session, except the name, which opens the member's car.
+    expect(rows.first.locator("a.lb-open")).to_have_attribute("href", "track.html?s=a-dry")
+    expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "track.html?car=a")
     # Conditions: Ann's best wet is her Kumho run; the others have no wet result.
     page.locator("#lb-cond").select_option("Wet")
     expect(rows).to_have_count(1)

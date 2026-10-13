@@ -1159,6 +1159,7 @@
   .tp-favrow.is-fav { color: var(--orange); border-color: var(--orange); }
   .tp-favrow[hidden] { display: none; }
   .tp-favrow:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  @media (max-width: 780px) { .tp-rowwrap { gap: 6px; } .tp-favrow { flex-basis: 36px; width: 36px; min-width: 36px; height: 36px; min-height: 36px; } .tp-favrow .icon { width: 18px; height: 18px; } }
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */
   .tp-fav { gap: 6px; }
   .tp-fav .icon { width: 16px; height: 16px; }
@@ -1376,7 +1377,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271059" defer></script>
+<script src="js/track-page.js?v=20271060" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

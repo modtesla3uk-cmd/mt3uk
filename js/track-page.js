@@ -1423,8 +1423,8 @@
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s, carName) {
-    return '<div class="tp-rowwrap">' + favRowButton(s.id) + '<a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
-      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a></div>';
+    return '<div class="tp-rowwrap"><a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
+      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>' + favRowButton(s.id) + '</div>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
   // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.
@@ -1447,9 +1447,9 @@
     var inner = '<span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
       esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.tyres, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
-    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' + favRowButton(s.id) +
-      '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
-    return '<div class="tp-rowwrap">' + favRowButton(s.id) + '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a></div>';
+    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
+      '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button>' + favRowButton(s.id) + '</div>';
+    return '<div class="tp-rowwrap"><a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>' + favRowButton(s.id) + '</div>';
   }
   // Sessions picked by holding on them (or Ctrl/Cmd/Shift-click): the day's bulk edit then changes only those.
   var pickedIds = {};

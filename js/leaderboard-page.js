@@ -512,7 +512,7 @@
   // ---- One board -------------------------------------------------------
   var boardModel = 'All', fCond = 'All', fMake = 'All', fTyre = 'All';
   // Compare tyres and Compare pads: which view is on show, and their extra filters.
-  var viewMode = 'board', fDrive = 'All', fTemp = 'All', fWeight = 'All', fTrack = false;
+  var viewMode = 'board', fDrive = 'All', fTemp = 'All', fWeight = 'All';
   var TEMPS = [['cold', 'Under 10\u00b0C'], ['mild', '10 to 20\u00b0C'], ['warm', 'Over 20\u00b0C']];
   var WEIGHTS = [['light', 'Under 1,800 kg'], ['mid', '1,800 to 2,100 kg'], ['heavy', 'Over 2,100 kg']];
   function tempBand(t) { return typeof t !== 'number' ? '' : t < 10 ? 'cold' : t <= 20 ? 'mild' : 'warm'; }
@@ -561,7 +561,6 @@
         var tp = tyreParts(b);
         if (fMake !== 'All' && tp.make !== fMake) return;
         if (fTyre !== 'All' && tp.model !== fTyre) return;
-        if (fTrack && !b.trackMode) return;
         if (!best || scoreOf(b, type) < scoreOf(best, type)) best = b;
       });
       if (best) out.push({ e: e, b: best, s: scoreOf(best, type) });
@@ -741,7 +740,7 @@
         var s = x.s, gap = i ? '+' + (x.t - rows[0].t).toFixed(2) + ' s' : 'Quickest';
         var detail = [s.car, s.conditions, s.privacy === 'private' ? 'Only me' : ''].filter(Boolean).join(' · ');
         return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
-          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small></div>' +
+          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small>' + (s.mode || s.logger === 'Tesla Track Mode' ? '<span class="lb-tm">Track Mode</span>' : '') + '</div>' +
           '<div class="lb-time"><b>' + fmtRes(x.t, type) + '</b><small>' + gap + '</small></div>' +
           '<div class="lb-info"><span class="lb-tyre' + (s.tyres ? '' : ' is-none') + '">' + (s.tyres ? esc(s.tyres) : 'Tyres not given') + '</span></div>' +
           icon('chev') + '</li>';
@@ -756,7 +755,7 @@
     var l = v && v.layouts ? v.layouts.filter(function (x) { return x.id === layoutId; })[0] : null;
     var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
     var path = type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
-    fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; fTrack = false; viewMode = 'board';
+    fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; viewMode = 'board';
     mineOnly = false; mineList = null;
     // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
     var FOLD = 10, foldOpen = false;
@@ -781,7 +780,7 @@
       function draw(focus) {
         var shown = rank(entries, type);
         var what = type === 'drag' ? 'Each quarter mile that places.' : type === 'sprint' ? 'Each run that places.' : 'Each lap that places.';
-        var filtered = fCond !== 'All' || fMake !== 'All' || fDrive !== 'All' || fTemp !== 'All' || fWeight !== 'All' || fTrack;
+        var filtered = fCond !== 'All' || fMake !== 'All' || fDrive !== 'All' || fTemp !== 'All' || fWeight !== 'All';
         var cmp = viewMode !== 'board', anyWeight = entries.some(function (e) { return weightOf(e); });
         var views = [['board', 'Leaderboard'], ['tyres', 'Compare tyres']].concat(type === 'drag' ? [] : [['pads', 'Compare pads']]);
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
@@ -790,8 +789,7 @@
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
           '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + (signedIn && viewMode === 'board' ? '<label class="lb-sort lb-show"><span>Show</span><select class="field" id="lb-mine"><option value="all"' + (mineOnly ? '' : ' selected') + '>All cars</option><option value="mine"' + (mineOnly ? ' selected' : '') + '>My sessions</option></select></label>' : '') + '</div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div><div class="tp-head-side">' + refreshChip() + unitsChip() + '</div></div>' +
-          (viewMode === 'board' ? '<div class="tp-chips lb-trackmode"><button type="button" class="chip' + (fTrack ? ' is-on' : '') + '" id="lb-trackmode" aria-pressed="' + fTrack + '">Track Mode data only</button></div>' : '') +
-          (conds.length > 1 || makes.length || cmp || fTrack ? '<div class="lb-selects">' +
+          (conds.length > 1 || makes.length || cmp ? '<div class="lb-selects">' +
             (conds.length > 1 || cmp ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
             (cmp ? '<label class="lb-sel"><span>Driven wheels</span><select class="field" id="lb-drive">' + options(['FWD', 'RWD', 'AWD'], fDrive, 'Any') + '</select></label>' +
               '<label class="lb-sel"><span>Air temperature</span><select class="field" id="lb-temp"><option value="All">Any</option>' + TEMPS.map(function (x) { return '<option value="' + x[0] + '"' + (fTemp === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></label>' +
@@ -829,8 +827,6 @@
         on('lb-drive', function (x) { fDrive = x; });
         on('lb-temp', function (x) { fTemp = x; });
         on('lb-weight', function (x) { fWeight = x; });
-        var tmChip = document.getElementById('lb-trackmode');
-        if (tmChip) tmChip.addEventListener('click', function () { fTrack = !fTrack; draw('lb-trackmode'); });
         document.getElementById('lb-views').addEventListener('click', function (ev) {
           var vb = ev.target.closest('[data-view]');
           if (vb && vb.getAttribute('data-view') !== viewMode) { viewMode = vb.getAttribute('data-view'); if (viewMode === 'tyres') { fMake = 'All'; fTyre = 'All'; } draw(); }
@@ -843,7 +839,7 @@
           loadMine().then(function () { draw('lb-mine'); });
         });
         var clear = document.getElementById('lb-clear');
-        if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; fTrack = false; draw(); });
+        if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; draw(); });
         var fold = document.querySelector('[data-fold]');
         if (fold) fold.addEventListener('click', function () {
           foldOpen = !foldOpen;

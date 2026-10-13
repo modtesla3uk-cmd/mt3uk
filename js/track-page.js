@@ -1278,7 +1278,7 @@
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var line = pts.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.bestTime).toFixed(1); }).join(' ');
     var dots = pts.map(function (r, i) {
-      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="' + shadeAt((y1 - r.bestTime) / ((y1 - y0) || 1)) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
+      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="' + shadeAt((y1 - r.bestTime) / ((y1 - y0) || 1)) + '"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -1309,9 +1309,9 @@
     var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
     if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
     return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' +
-      '<div class="tp-an-gbar"><button type="button" class="tp-an-fold" aria-expanded="true" aria-controls="tp-an-graph" aria-label="Hide the graph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div><div id="tp-an-graph">' + svg +
-      '<p class="tm-legend tp-an-legend"><span>Slower ' + V.fmtLap(y1) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + V.fmtLap(y0) + ' quicker</span></p></div>' +
-      '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>';
+      '<div id="tp-an-graph">' + svg +
+      '<p class="tm-legend tp-an-legend"><span>Slower ' + V.fmtLap(y1) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + V.fmtLap(y0) + ' quicker</span></p>' +
+      '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>' + '<div class="tp-an-gbar"><button type="button" class="tp-an-fold" aria-expanded="true" aria-controls="tp-an-graph" aria-label="Hide the graph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>' + '</div>';
   }
   // Your analysis at the top of My Sessions, for the car picked: a track and layout drop-down (only layouts with two or more
   // timed sessions), and the graph and words for the one chosen. Defaults to the layout of the latest timed session.

@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REFRESHED = [
-    "index.html", "gallery.html", "my-builds.html", "signin.html", "profile.html", "shop.html", "reviews.html", "track-mode.html",
+    "index.html", "gallery.html", "my-builds.html", "signin.html", "profile.html", "shop.html", "reviews.html", "track-mode.html", "my-analysis.html",
     "contact.html", "privacy.html", "event.html", "events-admin.html", "offline.html", "chat.html",
     "track-day-prep.html", "track-day-on-the-day.html", "track-day-venues.html", "blog.html", "admin.html",
     "laps.html", "track.html", "leaderboards.html",

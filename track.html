@@ -255,6 +255,9 @@
   .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
   .tp-filter { max-width: 320px; margin: 14px 0; }
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
+  .tp-an-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink); font: inherit; font-size: 0.88rem; font-weight: 600; text-decoration: none; white-space: nowrap; align-self: flex-end; }
+  .tp-an-pill:hover { background: #eef1f6; }
+  .tp-an-pill .icon { width: 18px; height: 18px; fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
   .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
   /* The vehicle box is one slim row at every width: the name and its session count together. */
@@ -367,30 +370,9 @@
   .tp-dark-hero .tp-lb-pill { background: #ffffff; color: var(--ink); }
   .tp-dark-hero .tp-lb-pill:hover { background: #eef1f6; color: var(--ink); }
   .tp-dark-hero .tp-what summary { color: #b9c0cf; }
-  .tp-analysis { margin: 4px 0 14px; padding: 12px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .tp-analysis h3 { font-size: 1rem; margin: 0 0 4px; }
-  .tp-analysis .tp-an-svg { width: 100%; height: auto; display: block; margin-top: 6px; }
-  .tp-analysis .tp-an-svg text { font-family: 'IBM Plex Sans', sans-serif; fill: #5b6475; font-size: 13px; }
-  .tp-analysis .tp-what-graph { margin: 8px 0 0; }
-  .tp-analysis-top { margin: 6px 0 14px; }
-  .tp-an-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .tp-an-bar .tp-an-head { margin: 0; }
-  .tp-an-gbar { display: flex; justify-content: center; margin: 8px 0 0; }
-  .tp-an-fold { width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
-  .tp-an-fold:hover { background: #eef1f6; }
-  .tp-an-fold svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
-  .tp-an-fold svg { transform: rotate(180deg); }
-  .tp-an-fold.is-folded svg { transform: rotate(0deg); }
-  .tp-an-toggle { font: inherit; font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--ink); background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; }
-  .tp-an-toggle:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
-  .tp-an-min:hover { background: #eef1f6; }
-  .tp-an-legend { margin: 6px 0 0; }
   .tm-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 0; font-size: .85rem; color: var(--ink-2); }
   .tm-key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
   .tm-leg { white-space: nowrap; }
-  .tp-analysis-top > p { margin: 0 0 8px; }
-  .tp-an-pick { display: grid; gap: 4px; margin-bottom: 8px; font-size: 0.82rem; color: var(--steel); max-width: 420px; }
-  .tp-an-pick select { font: inherit; font-size: 0.95rem; min-height: 44px; color: var(--ink); }
   .tp-dark-hero .tp-what p { color: #d3d8e2; }
   /* What are Sessions?: an intro line and a list of what Laps does, left-aligned in a centred block. */
   .tp-what-body { max-width: 66ch; margin: 4px auto 10px; text-align: left; }
@@ -1435,12 +1417,12 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271085" defer></script>
+<script src="js/track-page.js?v=20271091" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
-<script src="js/account-bar.js?v=16" defer></script>
+<script src="js/account-bar.js?v=17" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=3" defer></script>

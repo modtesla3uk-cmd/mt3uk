@@ -7455,70 +7455,13 @@ def test_a_board_tags_the_runs_with_track_mode_data(page):
     expect(page.locator("#lb-trackmode")).to_have_count(0)
 
 
-def test_my_sessions_shows_your_analysis_at_the_top_with_a_track_and_layout_choice(page):
+def test_my_sessions_has_no_analysis_panel_and_a_my_analysis_pill_instead(page):
     fake = FakeWorker(earlier=False)
-    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
+    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5)):
         r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
         fake.sessions[sid] = dict(r)
         fake.index.append(summary(r))
     open_page(page, fake)
-    # On the My Sessions page: folded and set to None, with the note about each session.
-    expect(page.locator("#tp-an")).to_contain_text("Detailed analysis is in each session")
-    expect(page.locator("#tp-an-pick")).to_have_value("")
-    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
-    box = page.locator("#tp-an-box [data-layout-analysis]")
-    expect(box).to_be_visible()
-    expect(box.locator("svg circle")).to_have_count(3)
-    expect(box).to_contain_text("Across 3 sessions")
-    expect(box).to_contain_text("Your best lap is 1:00.50")
-    expect(box).to_contain_text("What the graph shows")
-    expect(page.locator("#tp-an-pick")).to_have_count(1)
-
-
-def test_analysis_leaves_out_a_lap_far_slower_than_the_rest(page):
-    fake = FakeWorker(earlier=False)
-    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9), ("i4", "2026-05-22", 300.0)):
-        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
-        fake.sessions[sid] = dict(r)
-        fake.index.append(summary(r))
-    open_page(page, fake)
-    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
-    box = page.locator("#tp-an-box [data-layout-analysis]")
-    expect(box.locator("svg circle")).to_have_count(3)
-    expect(box).to_contain_text("Across 3 sessions")
-    expect(box).to_contain_text("Left out 1 much slower lap")
-
-
-def test_the_analysis_graph_folds_with_an_arrow_and_shows_again(page):
-    fake = FakeWorker(earlier=False)
-    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
-        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
-        fake.sessions[sid] = dict(r)
-        fake.index.append(summary(r))
-    open_page(page, fake)
-    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
-    expect(page.locator("#tp-an-graph")).to_be_visible()
-    page.locator("#tp-an-box .tp-an-fold").click()
-    expect(page.locator("#tp-an-graph")).to_be_hidden()
-    expect(page.locator("#tp-an-box .tp-an-fold")).to_have_attribute("aria-expanded", "false")
-    page.locator("#tp-an-box .tp-an-fold").click()
-    expect(page.locator("#tp-an-graph")).to_be_visible()
-    # The dots have no line between them, and the legend runs from slower to quicker.
-    expect(page.locator("#tp-an-box polyline")).to_have_count(0)
-    expect(page.locator("#tp-an-box .tp-an-legend")).to_contain_text("quicker")
-
-
-def test_the_analysis_heading_shows_and_hides_the_text_and_graph(page):
-    fake = FakeWorker(earlier=False)
-    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
-        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
-        fake.sessions[sid] = dict(r)
-        fake.index.append(summary(r))
-    open_page(page, fake)
-    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
-    page.locator("#tp-an .tp-an-toggle").click()
-    expect(page.locator("#tp-an-body")).to_be_hidden()
-    expect(page.locator("#tp-an .tp-an-toggle")).to_have_attribute("aria-expanded", "false")
-    page.locator("#tp-an .tp-an-toggle").click()
-    expect(page.locator("#tp-an-body")).to_be_visible()
-    expect(page.locator("#tp-an-graph")).to_be_visible()
+    expect(page.locator("#tp-an")).to_have_count(0)
+    expect(page.locator("#tp-an-pill")).to_have_attribute("href", "my-analysis.html")
+    expect(page.locator("#tp-an-pill")).to_contain_text("My Analysis")

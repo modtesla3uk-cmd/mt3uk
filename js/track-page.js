@@ -1165,12 +1165,14 @@
     var n = filteredList(list).length;
     return '<p class="tp-small tp-filter-note" id="tp-filter-note">' + (n ? 'Showing ' + n + ' of ' + list.length + ' sessions' : 'No sessions match') + ' <button type="button" class="chip" id="tp-filter-clear">Clear</button></p>';
   }
+  // The row of tools above the list: Sort by, the filters, and a small My Analysis pill for the member's own sessions.
   function trackToolsHtml(list) {
-    var filters = list.length ? FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('') : '';
-    if (trackEntries(list).length < 2 && !filters) return '';
-    return '<div class="tp-tools">' + (trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
-      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '') +
-      (filters ? '<div class="tp-filters">' + filters + '</div>' : '') + '</div>' + filterNoteHtml(list);
+    if (!list.length) return '';
+    var filters = FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('');
+    var sort = trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '';
+    var analysis = '<a class="tp-an-pill" id="tp-an-pill" href="my-analysis.html" data-laps><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Analysis</a>';
+    return '<div class="tp-tools">' + sort + (filters ? '<div class="tp-filters">' + filters + '</div>' : '') + analysis + '</div>' + filterNoteHtml(list);
   }
   // The layouts and events at one track: each layout (or a sprint's organiser, or the kind of session when there is
   // neither) once, with its count and last day. The track line's chevron drops them down (openTracks keeps them open
@@ -1253,112 +1255,8 @@
     });
     return names.join(' · ');
   }
-  // Your analysis at a layout, for the car picked (My Sessions only): the best lap of each session in date order, as a line
-  // graph (a dot opens its session), and what the graph shows in words. Nothing is drawn with fewer than two timed sessions.
-  // The dots on one orange scale, as the Over time graph: the quicker the lap, the darker the dot.
-  var SHADE_SLOW = [246, 196, 168], SHADE_QUICK = [232, 89, 12];
-  function shadeAt(t) {
-    t = Math.max(0, Math.min(1, t));
-    return 'rgb(' + SHADE_SLOW.map(function (v, k) { return Math.round(v + (SHADE_QUICK[k] - v) * t); }).join(',') + ')';
-  }
-  function layoutAnalysisHtml(rows) {
-    var pts = rows.filter(function (r) { return r.type !== 'drag' && isFinite(r.bestTime) && r.bestTime > 0; })
-      .slice().sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? -1 : 1; });
-    // A lap far slower than the rest (a cool-down, say) is left out: 50% or more slower than the middle lap here.
-    var sorted = pts.map(function (r) { return r.bestTime; }).sort(function (a, b) { return a - b; });
-    var mid = sorted[Math.floor(sorted.length / 2)];
-    var kept = pts.filter(function (r) { return r.bestTime < mid * 1.5; }), leftOut = pts.length - kept.length;
-    pts = kept;
-    if (pts.length < 2) return '';
-    var W = 560, H = 250, L = 58, R = 14, T = 14, B = 54;
-    var ys = pts.map(function (r) { return r.bestTime; });
-    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
-    if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
-    function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
-    function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
-    var line = pts.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.bestTime).toFixed(1); }).join(' ');
-    var dots = pts.map(function (r, i) {
-      return '<a href="track.html?s=' + esc(r.id) + '" data-go="s=' + esc(r.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="' + shadeAt((y1 - r.bestTime) / ((y1 - y0) || 1)) + '"><title>' + esc(niceDate(r.date) + ': ' + V.fmtLap(r.bestTime) + (r.conditions ? ', ' + r.conditions : '') + '. Open the session') + '</title></circle></a>';
-    }).join('');
-    var grid = '';
-    for (var g = 0; g <= 5; g++) {
-      var gy = T + g / 5 * (H - T - B), gx = L + g / 5 * (W - L - R);
-      grid += '<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + gy.toFixed(1) + '" stroke="#eef1f6"/>' +
-        '<line x1="' + gx.toFixed(1) + '" y1="' + T + '" x2="' + gx.toFixed(1) + '" y2="' + (H - B) + '" stroke="#eef1f6"/>';
-    }
-    var svg = '<svg class="tp-an-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Best lap of each session here, in date order">' + grid +
-      '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
-      '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
-      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + V.fmtLap(y0) + '</text>' +
-      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + V.fmtLap(y1) + '</text>' +
-      '<text x="' + L + '" y="' + (H - 30) + '">' + esc(niceDate(pts[0].date)) + '</text>' +
-      '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].date)) + '</text>' +
-      '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in date order</text>' +
-      dots + '</svg>';
-    var first = pts[0].bestTime, last = pts[pts.length - 1].bestTime;
-    var bestRow = pts.reduce(function (a, r) { return r.bestTime < a.bestTime ? r : a; });
-    var said = ['Across ' + pts.length + ' sessions here, from ' + niceDate(pts[0].date) + ' to ' + niceDate(pts[pts.length - 1].date) + '.',
-      'Your best lap is ' + V.fmtLap(bestRow.bestTime) + ', on ' + niceDate(bestRow.date) + '.'];
-    var diff = last - first;
-    said.push(Math.abs(diff) < 0.005 ? 'Your latest lap is the same as your first.' : 'Your latest lap is ' + Math.abs(diff).toFixed(2) + ' s ' + (diff < 0 ? 'quicker' : 'slower') + ' than your first.');
-    if (pts.length >= 6) {
-      var mean = function (a) { return a.reduce(function (x, r) { return x + r.bestTime; }, 0) / a.length; };
-      said.push('Your last three sessions averaged ' + V.fmtLap(mean(pts.slice(-3))) + ', your first three ' + V.fmtLap(mean(pts.slice(0, 3))) + '.');
-    }
-    if (leftOut) said.push('Left out ' + leftOut + ' much slower ' + (leftOut === 1 ? 'lap' : 'laps') + ' (50% or more slower than the middle lap), such as a cool-down.');
-    var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
-    if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
-    return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' +
-      '<div id="tp-an-graph">' + svg +
-      '<p class="tm-legend tp-an-legend"><span>Slower ' + V.fmtLap(y1) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + V.fmtLap(y0) + ' quicker</span></p>' +
-      '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>' + '<div class="tp-an-gbar"><button type="button" class="tp-an-fold" aria-expanded="true" aria-controls="tp-an-graph" aria-label="Hide the graph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>' + '</div>';
-  }
-  // Your analysis at the top of My Sessions, for the car picked: a track and layout drop-down (only layouts with two or more
-  // timed sessions), and the graph and words for the one chosen. Defaults to the layout of the latest timed session.
-  var analysisGroups = {}, analysisKey = '';
-  function myAnalysisHtml(list) {
-    analysisGroups = {};
-    list.forEach(function (x) {
-      if (x.type === 'drag' || !(x.bestTime > 0)) return;
-      var k = trackKeyOf(x) + '|' + layoutKeyOf(x);
-      analysisGroups[k] = analysisGroups[k] || { name: trackTitleOf(x) + ' · ' + layoutTitleOf(x), rows: [] };
-      analysisGroups[k].rows.push(x);
-    });
-    var keys = Object.keys(analysisGroups).filter(function (k) { return analysisGroups[k].rows.length >= 2; });
-    if (!keys.length) return '';
-    keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
-    if (analysisKey && keys.indexOf(analysisKey) === -1) analysisKey = '';
-    return '<section class="tp-analysis-top" id="tp-an"><div class="tp-an-bar"><h3 class="tp-an-head"><button type="button" class="tp-an-toggle" aria-expanded="true" aria-controls="tp-an-body">Analysis</button></h3></div><div id="tp-an-body">' +
-      '<p class="tp-small">Shows how your best lap has changed across your sessions at one track layout, for the car picked. Choose a track and layout to see the graph and what it shows. Detailed analysis is in each session, not here.</p>' +
-      '<label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field"><option value=""' + (analysisKey ? '' : ' selected') + '>None</option>' + keys.map(function (k) {
-      return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
-    }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></div></section>';
-  }
-  // The Analysis heading shows and hides the text and graph. The arrow under the graph folds the graph only.
-  document.addEventListener('click', function (e) {
-    var t = e.target && e.target.closest ? e.target.closest('.tp-an-toggle') : null;
-    if (t) {
-      var body = document.getElementById('tp-an-body'), openT = t.getAttribute('aria-expanded') === 'true';
-      if (body) body.hidden = openT;
-      t.setAttribute('aria-expanded', String(!openT));
-      return;
-    }
-    var b = e.target && e.target.closest ? e.target.closest('.tp-an-fold') : null;
-    if (!b) return;
-    var graph = document.getElementById('tp-an-graph'), open = b.getAttribute('aria-expanded') === 'true';
-    if (graph) graph.hidden = open;
-    b.setAttribute('aria-expanded', String(!open));
-    b.setAttribute('aria-label', open ? 'Show the graph' : 'Hide the graph');
-    b.classList.toggle('is-folded', open);
-  });
-  document.addEventListener('change', function (e) {
-    if (!e.target || e.target.id !== 'tp-an-pick') return;
-    analysisKey = analysisGroups[e.target.value] ? e.target.value : '';
-    var box = document.getElementById('tp-an-box');
-    if (box) box.innerHTML = analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '';
-  });
   function trackListHtml(list, carId, publicView) {
-    return (publicView ? '' : myAnalysisHtml(list)) + trackListBody(list, carId, publicView);
+    return trackListBody(list, carId, publicView);
   }
   function trackListBody(list, carId, publicView) {
     filterOpenAll = filtersOn();

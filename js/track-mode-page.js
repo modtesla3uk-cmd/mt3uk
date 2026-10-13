@@ -8,7 +8,7 @@
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var app = document.getElementById('tm-app');
   if (!app) return;
-  var state = { runs: [], track: 'all', sort: 'newest', metric: 'used', picked: '', scrollTo: '' };
+  var state = { runs: [], track: 'all', member: 'all', sort: 'newest', metric: 'used', picked: '', scrollTo: '' };
   var SORTS = [['newest', 'Newest first'], ['best', 'Quickest lap first'], ['charge', 'Most charge used'], ['power', 'Highest peak power'], ['brakes', 'Hottest brakes']];
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -32,8 +32,12 @@
   function avg(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
   function mx(list, fn) { var best = null; list.forEach(function (r) { var v = fn(r); if (v != null && isFinite(v) && (best === null || v > fn(best))) best = r; }); return best; }
 
+  // The runs of the member picked (all members when none is), before the track filter.
+  function memberRuns() {
+    return state.member === 'all' ? state.runs.slice() : state.runs.filter(function (r) { return (r.owner || 'MT3UK member') === state.member; });
+  }
   function visible() {
-    var list = state.track === 'all' ? state.runs.slice() : state.runs.filter(function (r) { return trackKey(r) === state.track; });
+    var list = state.track === 'all' ? memberRuns() : memberRuns().filter(function (r) { return trackKey(r) === state.track; });
     var key = {
       best: function (r) { return r.bestTime == null ? Infinity : r.bestTime; },
       charge: function (r) { var u = used(r); return u == null ? -Infinity : -u; },
@@ -119,7 +123,7 @@
   }
 
   function draw() {
-    var runs = state.runs;
+    var runs = memberRuns();
     if (!runs.length) {
       app.innerHTML = '<div class="tm-card"><h2>No Track Mode sessions yet</h2><p>When a member shares a track session that has its Track Mode figures, it appears here with its analysis. A session kept only for the owner is not shown.</p></div>';
       return;
@@ -129,6 +133,9 @@
     var charges = runs.map(used).filter(function (v) { return v != null; });
     var powers = runs.map(function (r) { return r.mode && r.mode.power; }).filter(function (v) { return v != null; });
     var brakes = runs.map(function (r) { return r.mode && r.mode.brakeTemp; }).filter(function (v) { return v != null; });
+    var memberSet = {};
+    state.runs.forEach(function (r) { memberSet[r.owner || 'MT3UK member'] = true; });
+    var members = Object.keys(memberSet).sort();
     var tracks = {};
     runs.forEach(function (r) { tracks[trackKey(r)] = trackOf(r); });
     var trackKeys = Object.keys(tracks).sort(function (a, b) { return tracks[a] < tracks[b] ? -1 : 1; });
@@ -143,6 +150,7 @@
     var fx = findings(runs);
     var analysis = '<div class="tm-card"><h2>What the runs show</h2>' + (fx.length ? '<ul>' + fx.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' : '<p>Not enough runs yet to compare.</p>') + '</div>';
     var controls = '<div class="tm-controls">' +
+      '<label>Member<select id="tm-member"><option value="all">All members</option>' + members.map(function (m) { return '<option value="' + esc(m) + '"' + (state.member === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></label>' +
       '<label>Track<select id="tm-track"><option value="all">All tracks</option>' + trackKeys.map(function (k) { return '<option value="' + esc(k) + '"' + (state.track === k ? ' selected' : '') + '>' + esc(tracks[k]) + '</option>'; }).join('') + '</select></label>' +
       '<label>Sort by<select id="tm-sort">' + SORTS.map(function (s) { return '<option value="' + s[0] + '"' + (state.sort === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select></label>' +
       '</div>';
@@ -155,7 +163,7 @@
     function pick(id) {
       state.picked = id;
       state.scrollTo = id;
-      if (!visible().some(function (r) { return r.id === id; })) state.track = 'all';
+      if (!visible().some(function (r) { return r.id === id; })) { state.track = 'all'; state.member = 'all'; }
       draw();
     }
     Array.prototype.forEach.call(app.querySelectorAll('circle[data-run]'), function (c) {
@@ -167,7 +175,8 @@
       state.scrollTo = '';
       if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    var tSel = document.getElementById('tm-track'), sSel = document.getElementById('tm-sort');
+    var mSel = document.getElementById('tm-member'), tSel = document.getElementById('tm-track'), sSel = document.getElementById('tm-sort');
+    if (mSel) mSel.addEventListener('change', function () { state.member = mSel.value; state.track = 'all'; draw(); });
     if (tSel) tSel.addEventListener('change', function () { state.track = tSel.value; draw(); });
     if (sSel) sSel.addEventListener('change', function () { state.sort = sSel.value; draw(); });
   }

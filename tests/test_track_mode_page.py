@@ -112,3 +112,17 @@ def test_the_graph_has_no_line_and_a_dot_picks_its_session_in_the_list(page):
     expect(page.locator("#tm-row-r1")).to_have_class(re.compile("is-picked"))
     expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(4)
     expect(page.locator("#tm-track")).to_have_value("all")
+
+
+def test_a_member_filter_shows_just_that_members_stats(page):
+    open_mode_page(page, RUNS)
+    rows = page.locator(".tm-row:not(.tm-head)")
+    expect(rows).to_have_count(4)
+    page.locator("#tm-member").select_option(label="MDebbage")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Model S")
+    # The tiles, findings and graph follow the member too: one shared session.
+    expect(page.locator(".tm-tile").nth(0)).to_contain_text("1")
+    expect(page.locator(".tm-chart")).to_contain_text("Not enough runs")
+    page.locator("#tm-member").select_option("all")
+    expect(rows).to_have_count(4)

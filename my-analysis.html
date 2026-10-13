@@ -131,6 +131,17 @@
   .tm-heroes .tm-what summary { display: block; text-align: center; }
   .tm-heroes .tm-what p { margin: 4px auto 0; max-width: 60ch; }
   .ma-fi { width: 24px; height: 24px; flex: none; margin-top: 2px; fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ma-dot { cursor: pointer; outline: none; }
+  .ma-dot:focus-visible, .ma-dot.is-picked { stroke: #16233d; stroke-width: 2.5; stroke-opacity: 1; }
+  .ma-row { cursor: pointer; }
+  .ma-row:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  .ma-row.is-picked td { background: #fff4e6; }
+  .ma-pick h2 { margin-bottom: 10px; }
+  .ma-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0 0 14px; }
+  .ma-facts dt { font-size: .74rem; color: var(--steel); }
+  .ma-facts dd { margin: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+  .ma-open { display: inline-flex; align-items: center; min-height: 44px; }
+  @media (max-width:780px) { .ma-facts { gap: 8px 12px; } }
   .ma-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 12px; }
   .tm-pick { display:grid; gap:4px; font-size:.8rem; color:var(--steel); min-width:0; }
   .tm-pick select { font:inherit; font-size:.95rem; min-height:44px; padding:6px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); width:100%; min-width:0; }

@@ -172,8 +172,10 @@
     function Y(v) { return T + (y1 - v) / span * (H - T - B); }
     var dots = pts.map(function (x, i) {
       var t = (x.v - y0) / span;
-      return '<a href="track.html?s=' + esc(x.s.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
-        esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Open the session') + '</title></circle></a>';
+      var cx = X(i).toFixed(1), cy = Y(x.v).toFixed(1), id = esc(x.s.id), on = state.picked === x.s.id;
+      return '<circle class="ma-hit" data-session="' + id + '" cx="' + cx + '" cy="' + cy + '" r="14" fill="transparent"/>' +
+        '<circle class="ma-dot' + (on ? ' is-picked' : '') + '" data-session="' + id + '" tabindex="0" role="button" cx="' + cx + '" cy="' + cy + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
+        esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Press to see the session') + '</title></circle>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -214,6 +216,23 @@
   }
 
   // Every session, newest first, with every figure its summary carries.
+  // The session picked on the graph or in the table: its figures here, and a button to open it.
+  function pickHtml(list) {
+    var s = list.filter(function (x) { return x.id === state.picked; })[0];
+    if (!s) return '<div class="tm-card ma-pick" id="ma-pick"><p class="tm-note">Press a dot on the graph, or a row in the table, to see that session here.</p></div>';
+    var m = mode(s), u = used(s), facts = [
+      ['Date', niceDate(s.date) + (s.time ? ' at ' + esc(s.time) : '')], ['Track', esc(trackOf(s))], ['Type', esc(kindOf(s))], ['Car', esc(carName(s.carId))],
+      ['Conditions', esc(s.conditions || '')], ['Air temperature', num(s.temp) != null ? Math.round(s.temp) + ' °C' : ''], ['Logger', esc(s.logger || '')],
+      ['Laps', s.type === 'drag' ? (s.runs ? s.runs + ' runs' : '') : (s.laps ? String(s.laps) : '')],
+      ['Best lap', timed(s) ? fmtLap(s.bestTime) : ''], ['Top speed', num(s.vmax) > 0 ? fmtSpeed(s.vmax) : ''],
+      ['Peak braking', num(s.brakeG) > 0 ? s.brakeG.toFixed(2) + ' g' : ''], ['Hottest brakes', num(m.brakeTemp) != null ? pctTxt(m.brakeTemp) : ''],
+      ['Charge used', u != null ? u.toFixed(1) + '%' : ''], ['Peak power', num(m.power) != null ? Math.round(m.power) + ' kW' : ''],
+      ['Peak regen', num(m.regen) != null ? Math.round(m.regen) + ' kW' : ''], ['Tyres', esc(s.tyres || '')], ['Brake pads', esc(s.pads || '')], ['Driven wheels', esc(s.drive || '')]
+    ].filter(function (f) { return f[1] !== ''; });
+    return '<div class="tm-card ma-pick" id="ma-pick"><h2>' + esc(niceDate(s.date)) + ', ' + esc(trackOf(s)) + '</h2>' +
+      '<dl class="ma-facts">' + facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + f[1] + '</dd></div>'; }).join('') + '</dl>' +
+      '<a class="tm-pill tm-pill-accent ma-open" href="track.html?s=' + esc(s.id) + '">Open this session</a></div>';
+  }
   function detailsTable(list) {
     var rows = list.slice().sort(function (a, b) { return (a.date + a.time) < (b.date + b.time) ? 1 : -1; });
     if (!rows.length) return '';
@@ -233,10 +252,10 @@
         num(m.power) != null ? Math.round(m.power) + ' kW' : '',
         esc(s.tyres || ''), esc(s.pads || ''), esc(s.drive || '')
       ];
-      return '<tr>' + cells.map(function (c) { return '<td>' + (c === '' ? '–' : c) + '</td>'; }).join('') +
+      return '<tr class="ma-row' + (state.picked === s.id ? ' is-picked' : '') + '" data-session="' + esc(s.id) + '" tabindex="0">' + cells.map(function (c) { return '<td>' + (c === '' ? '–' : c) + '</td>'; }).join('') +
         '<td><a href="track.html?s=' + esc(s.id) + '">Open</a></td></tr>';
     }).join('');
-    return '<div class="tm-card"><h2>Every session</h2><p class="tm-note">Each session of the car and track picked, with every figure it carries. Dashes are figures that session does not have. Press Open to see the session itself.</p>' +
+    return '<div class="tm-card"><h2>Every session</h2><p class="tm-note">Each session of the car and track picked, with every figure it carries. Dashes are figures that session does not have. Press a row, or a dot on the graph, to see that session above. Open goes to the session itself.</p>' +
       '<div class="ma-scroll"><table class="ma-table"><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div></div>';
   }
 
@@ -260,11 +279,30 @@
       var says = findings(list);
       body = '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
         tiles(list) +
-        chart(list) + setupBlock(list) + detailsTable(list);
+        chart(list) + pickHtml(list) + setupBlock(list) + detailsTable(list);
     }
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;
   }
 
+  // A dot or a table row selects its session: the panel above the table shows it, and the page moves to the panel.
+  function selectSession(el, scroll) {
+    state.picked = el.getAttribute('data-session');
+    draw();
+    var panel = document.getElementById('ma-pick');
+    if (scroll && panel && panel.scrollIntoView) panel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-session]') : null;
+    if (!el || !app.contains(el) || (e.target.closest && e.target.closest('a'))) return;
+    selectSession(el, el.tagName.toLowerCase() !== 'tr');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var el = e.target && e.target.getAttribute ? e.target.getAttribute('data-session') : null;
+    if (!el || !app.contains(e.target)) return;
+    e.preventDefault();
+    selectSession(e.target, true);
+  });
   // The figure and setup chips, and the drop-downs, redraw the page in place.
   document.addEventListener('click', function (e) {
     var b = e.target && e.target.closest ? e.target.closest('[data-metric],[data-setup]') : null;

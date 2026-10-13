@@ -1,4 +1,6 @@
 """My Analysis (my-analysis.html): the signed-in member's own Track sessions, analysed for the car and track picked."""
+import re
+
 from playwright.sync_api import expect
 
 from test_track_page import FakeWorker, day_session, open_page, summary
@@ -29,7 +31,7 @@ def test_my_analysis_shows_the_tiles_findings_chart_setups_and_every_session(pag
     expect(page.locator("#ma-app")).to_contain_text("Your best lap is 1:00.50")
     expect(page.locator("#ma-app")).to_contain_text("Your latest lap is 0.10 s quicker than your first")
     # The chart plots every session: a dot each, opening its session.
-    expect(page.locator("#ma-app .tm-chart svg circle")).to_have_count(3)
+    expect(page.locator("#ma-app .tm-chart .ma-dot")).to_have_count(3)
     # Every session is listed with its figures.
     rows = page.locator(".ma-table tbody tr")
     expect(rows).to_have_count(3)
@@ -81,3 +83,23 @@ def test_the_my_analysis_pill_on_my_sessions_goes_to_the_page(page):
     page.locator("#tp-an-pill").click()
     page.wait_for_url("**/my-analysis.html")
     expect(page.locator("#ma-app")).to_be_visible()
+
+
+def test_tapping_a_dot_shows_that_session_here_with_a_button_to_open_it(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", brake_g=1.1, mode={"brakeTemp": 61, "power": 230})
+    add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, mode={"brakeTemp": 84, "power": 260})
+    open_page(page, fake, "/my-analysis.html")
+    expect(page.locator("#ma-pick")).to_contain_text("Press a dot")
+    # The dot is the link's own dot, so tapping it stays on the page and shows the session.
+    page.locator('.ma-dot[data-session="a2"]').click()
+    panel = page.locator("#ma-pick")
+    expect(panel).to_contain_text("Toyo")
+    expect(panel).to_contain_text("84%")
+    expect(panel.locator(".ma-open")).to_have_attribute("href", "track.html?s=a2")
+    expect(page.locator('.ma-row[data-session="a2"]')).to_have_class(re.compile("is-picked"))
+    # A row in the table selects it the same way, and Open still goes to the session.
+    page.locator('.ma-row[data-session="a1"]').click()
+    expect(page.locator("#ma-pick")).to_contain_text("Michelin")
+    page.locator('.ma-row[data-session="a1"] a').click()
+    page.wait_for_url("**/track.html?s=a1")

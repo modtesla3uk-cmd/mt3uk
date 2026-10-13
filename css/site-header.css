@@ -342,8 +342,8 @@ nav {
   .nav-bell-count, .nav-chat-count { top: 3px; right: 1px; }
   /* The Laps header has one more icon (Favourites), so its navigation icons are a little narrower on a phone to keep the menu on screen. */
   .nav-sessions, .nav-leaders, .nav-home, .nav-favs { width: 30px; }
-  /* Track Mode is in the menu on a phone (the drawer), not in the icon row, which is full at this width. */
-  .nav-trackmode { display: none; }
+  /* On a Laps phone the notifications bell is in the menu drawer, to make room for the Track Mode icon. */
+  nav:has(.laps-logo) .nav-bell { display: none; }
   nav:has(.laps-logo) { gap: 4px; }
   .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }
@@ -564,3 +564,5 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 @keyframes tpSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .tp-spinner { animation-duration: 2.4s; } }
 .tp-loading-slow { font-size: 0.85rem; }
+/* The Laps menu's Notifications entry is for a phone; on a desktop the bell is in the header. */
+@media (min-width: 781px) { .nav-bell-drawer { display: none; } }

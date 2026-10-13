@@ -4,6 +4,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Working rules
 
+- **The test copy is deployed by hand.** `test.laps.mt3uk.com` (the mt3uk-test worker) is built from a branch only when someone runs "Deploy Laps test copy" in GitHub Actions, so it never follows `main` by itself. When the user asks for work on test, or to check something on test, remind them that the test copy needs deploying first, and offer to run it. Pushing to `main` deploys live straight away, so test changes are tried on test before they are pushed.
 - **Ask before any commit or push.** Wait for an explicit yes each time. An earlier yes does not cover later changes, and an ambiguous instruction ("leave for now") is not permission.
 - **"Push" means push to `main`** (Richard's standing instruction, October 2026). When he says push, commit if needed and push to `main` (fetch first and rebase onto `origin/main` if it has moved; never force-push), whatever feature branch the session names. Stop and tell him first only if there is a real reason not to: failing tests, a conflict that needs a decision, or work that is not finished or he has not approved.
 - **Email Richard the summary only once it is pushed to `main`**, not after a push to a side branch. Before then, tell him in chat that the email waits for `main`.

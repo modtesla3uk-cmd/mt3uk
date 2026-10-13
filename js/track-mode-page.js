@@ -80,6 +80,12 @@
     ['power', 'Peak power', function (r) { return r.mode && r.mode.power; }, ' kW', 0],
     ['pressure', 'Tyre pressure', function (r) { return r.mode && r.mode.tyrePressure; }, ' bar', 1]
   ];
+  // The Over time dots by conditions: dry orange, damp blue, wet navy, anything else grey.
+  var COND_COLOURS = [['wet', '#16233d', 'Wet'], ['damp', '#3b7bbf', 'Damp'], ['dry', '#e8590c', 'Dry']];
+  function condColour(c) {
+    var k = /wet/i.test(c || '') ? 0 : /damp/i.test(c || '') ? 1 : /dry/i.test(c || '') ? 2 : -1;
+    return k === -1 ? '#9aa3b2' : COND_COLOURS[k][1];
+  }
   function lineChart(runs) {
     var m = METRICS.filter(function (x) { return x[0] === state.metric; })[0] || METRICS[0];
     var chips = '<div class="tm-chips" role="group" aria-label="Figure to plot">' + METRICS.map(function (x) {
@@ -97,7 +103,7 @@
     function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
     function Y(v) { return T + (y1 - v) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (x, i) {
-      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="#e8590c" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="' + condColour(x.r.conditions) + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -114,7 +120,8 @@
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + niceDate(pts[pts.length - 1].r.date) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in the order driven</text>' +
       dots + '</svg>';
-    return '<div class="tm-card tm-chart">' + head + chips + svg + '</div>';
+    var legend = '<p class="tm-legend">' + COND_COLOURS.map(function (c) { return '<span class="tm-leg"><span class="tm-key" style="background:' + c[1] + '"></span><b>' + c[2] + '</b></span>'; }).join(' ') + ' <span class="tm-leg"><span class="tm-key" style="background:#9aa3b2"></span><b>Not given</b></span></p>';
+    return '<div class="tm-card tm-chart">' + head + chips + svg + legend + '</div>';
   }
 
   function median(a) {

@@ -70,6 +70,9 @@
   .tm-note { color:var(--steel); font-size:.8rem; margin:10px 2px 0; }
   .tm-chart svg { width:100%; height:auto; display:block; margin-top:6px; }
   .tm-chart text { font-family:'IBM Plex Sans', sans-serif; fill:#5b6475; font-size:13px; }
+  .tm-dot { cursor:pointer; outline:none; }
+  .tm-dot:focus-visible, .tm-dot.is-picked { stroke:#16233d; stroke-width:2.5; }
+  .tm-row.is-picked { background:#fff4e6; box-shadow: inset 4px 0 0 var(--orange); }
   .tm-chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 4px; }
   .tm-chips .chip { font:inherit; font-size:.88rem; min-height:44px; padding:8px 14px; border:1px solid var(--hair); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer; }
   .tm-chips .chip.is-on { background:var(--ink); border-color:var(--ink); color:#fff; }

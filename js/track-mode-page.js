@@ -8,7 +8,7 @@
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var app = document.getElementById('tm-app');
   if (!app) return;
-  var state = { runs: [], track: 'all', sort: 'newest', metric: 'used' };
+  var state = { runs: [], track: 'all', sort: 'newest', metric: 'used', picked: '', scrollTo: '' };
   var SORTS = [['newest', 'Newest first'], ['best', 'Quickest lap first'], ['charge', 'Most charge used'], ['power', 'Highest peak power'], ['brakes', 'Hottest brakes']];
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -87,14 +87,12 @@
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
     function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
     function Y(v) { return T + (y1 - v) / (y1 - y0) * (H - T - B); }
-    var line = pts.map(function (x, i) { return X(i).toFixed(1) + ',' + Y(x.v).toFixed(1); }).join(' ');
     var dots = pts.map(function (x, i) {
-      return '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3]) + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === x.r.id ? ' is-picked' : '') + '" data-run="' + esc(x.r.id) + '" tabindex="0" role="button" cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="6" fill="#e8590c"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3] + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m[1]) + ' for each run, in the order they were driven">' +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
-      '<polyline points="' + line + '" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + y1.toFixed(m[4]) + m[3] + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + y0.toFixed(m[4]) + m[3] + '</text>' +
       '<text x="' + L + '" y="' + (H - 10) + '">' + niceDate(pts[0].r.date) + '</text>' +
@@ -105,9 +103,10 @@
 
   function rowHtml(r) {
     var m = r.mode || {};
+    var picked = state.picked === r.id;
     var u = used(r);
     var cell = function (label, value) { return '<span class="tm-num"><span class="tm-lab tm-sub">' + label + '</span> ' + (value === '' ? '<span class="tm-sub">Not recorded</span>' : '<b>' + value + '</b>') + '</span>'; };
-    return '<div class="tm-row">' +
+    return '<div class="tm-row' + (picked ? ' is-picked' : '') + '" id="tm-row-' + esc(r.id) + '" data-run="' + esc(r.id) + '">' +
       '<div><a class="tm-open" href="track.html?s=' + encodeURIComponent(r.id) + '">' + esc(niceDate(r.date)) + ' · ' + esc(trackOf(r)) + '</a><div class="tm-sub">' + esc(r.conditions || '') + (r.logger ? ' · ' + esc(r.logger) : '') + '</div></div>' +
       '<div>' + esc(r.car || 'MT3UK member build') + '<div class="tm-sub">' + esc(r.owner || 'MT3UK member') + '</div></div>' +
       cell('Best lap', r.bestTime == null ? '' : lapTime(r.bestTime)) +
@@ -152,6 +151,22 @@
     app.innerHTML = tiles + analysis + lineChart(runs) + controls + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
+    // A dot on the graph picks its session: the list shows it (all tracks, if a track filter hides it) and it is highlighted.
+    function pick(id) {
+      state.picked = id;
+      state.scrollTo = id;
+      if (!visible().some(function (r) { return r.id === id; })) state.track = 'all';
+      draw();
+    }
+    Array.prototype.forEach.call(app.querySelectorAll('circle[data-run]'), function (c) {
+      c.addEventListener('click', function () { pick(c.getAttribute('data-run')); });
+      c.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(c.getAttribute('data-run')); } });
+    });
+    if (state.scrollTo) {
+      var row = document.getElementById('tm-row-' + state.scrollTo);
+      state.scrollTo = '';
+      if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     var tSel = document.getElementById('tm-track'), sSel = document.getElementById('tm-sort');
     if (tSel) tSel.addEventListener('change', function () { state.track = tSel.value; draw(); });
     if (sSel) sSel.addEventListener('change', function () { state.sort = sSel.value; draw(); });

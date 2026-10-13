@@ -7506,3 +7506,19 @@ def test_the_analysis_graph_folds_with_an_arrow_and_shows_again(page):
     # The dots have no line between them, and the legend runs from slower to quicker.
     expect(page.locator("#tp-an-box polyline")).to_have_count(0)
     expect(page.locator("#tp-an-box .tp-an-legend")).to_contain_text("quicker")
+
+
+def test_the_analysis_heading_shows_and_hides_the_text_and_graph(page):
+    fake = FakeWorker(earlier=False)
+    for sid, date, best in (("i1", "2026-05-01", 61.0), ("i2", "2026-05-08", 60.5), ("i3", "2026-05-15", 60.9)):
+        r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy")
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    page.locator("#tp-an-pick").select_option(label="Indy · Track days")
+    page.locator("#tp-an .tp-an-toggle").click()
+    expect(page.locator("#tp-an-body")).to_be_hidden()
+    expect(page.locator("#tp-an .tp-an-toggle")).to_have_attribute("aria-expanded", "false")
+    page.locator("#tp-an .tp-an-toggle").click()
+    expect(page.locator("#tp-an-body")).to_be_visible()
+    expect(page.locator("#tp-an-graph")).to_be_visible()

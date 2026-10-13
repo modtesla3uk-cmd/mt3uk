@@ -379,7 +379,10 @@
   .tp-an-fold { width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
   .tp-an-fold:hover { background: #eef1f6; }
   .tp-an-fold svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
-  .tp-an-fold.is-folded svg { transform: rotate(-90deg); }
+  .tp-an-fold svg { transform: rotate(180deg); }
+  .tp-an-fold.is-folded svg { transform: rotate(0deg); }
+  .tp-an-toggle { font: inherit; font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--ink); background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; }
+  .tp-an-toggle:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
   .tp-an-min:hover { background: #eef1f6; }
   .tp-an-legend { margin: 6px 0 0; }
   .tm-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 0; font-size: .85rem; color: var(--ink-2); }
@@ -1432,7 +1435,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271083" defer></script>
+<script src="js/track-page.js?v=20271085" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

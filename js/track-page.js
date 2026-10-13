@@ -1328,14 +1328,21 @@
     if (!keys.length) return '';
     keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
     if (analysisKey && keys.indexOf(analysisKey) === -1) analysisKey = '';
-    return '<section class="tp-analysis-top" id="tp-an"><div class="tp-an-bar"><h3 class="tp-an-head">Analysis</h3></div><div id="tp-an-body">' +
+    return '<section class="tp-analysis-top" id="tp-an"><div class="tp-an-bar"><h3 class="tp-an-head"><button type="button" class="tp-an-toggle" aria-expanded="true" aria-controls="tp-an-body">Analysis</button></h3></div><div id="tp-an-body">' +
       '<p class="tp-small">Shows how your best lap has changed across your sessions at one track layout, for the car picked. Choose a track and layout to see the graph and what it shows. Detailed analysis is in each session, not here.</p>' +
       '<label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field"><option value=""' + (analysisKey ? '' : ' selected') + '>None</option>' + keys.map(function (k) {
       return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
     }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></div></section>';
   }
-  // The arrow above the graph folds it away, and opens it again.
+  // The Analysis heading shows and hides the text and graph. The arrow under the graph folds the graph only.
   document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('.tp-an-toggle') : null;
+    if (t) {
+      var body = document.getElementById('tp-an-body'), openT = t.getAttribute('aria-expanded') === 'true';
+      if (body) body.hidden = openT;
+      t.setAttribute('aria-expanded', String(!openT));
+      return;
+    }
     var b = e.target && e.target.closest ? e.target.closest('.tp-an-fold') : null;
     if (!b) return;
     var graph = document.getElementById('tp-an-graph'), open = b.getAttribute('aria-expanded') === 'true';

@@ -1076,7 +1076,9 @@ def test_admin_laps_video_sound_menu_saves_the_chosen_sound_and_silent_hides_the
     assert posted[-1]["soundStyle"] == "chime" and posted[-1]["sound"] is True
     page.locator("#lxa-sound-style").select_option("silent")
     expect(page.locator("#lxa-preview .lxe-sound")).to_have_count(0)
+    page.locator("#lxa-note").evaluate("n => n.textContent = ''")
     page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
     assert posted[-1]["soundStyle"] == "silent" and posted[-1]["sound"] is False
 
 

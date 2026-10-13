@@ -271,6 +271,11 @@
       ['Save', 'Keeps your changes. The pages show them on their next load, within two minutes.'],
       ['Use the front page\'s own words', 'Clears every change, and every section goes back to the front page only.']
     ] },
+    'all-sessions-wrap': { t: 'All sessions', p: 'Every Track session from every member, read only, to look things up.', i: [
+      ['Member, track, logger, type', 'Narrow the list. The member box matches the start of a first name, last name, nickname or email.'],
+      ['Find and Load more', 'Find starts again from the top. Load more adds the next page of members.'],
+      ['Private sessions and notes', 'Private sessions are listed and marked. Members\' notes are never shown.']
+    ] },
     'explainer-wrap': { t: 'Laps video', p: 'The animation at the top of the Laps front page: its circuit, speed, sound, words and the sign-in line.', i: [
       ['Circuit, mph or km/h, speed', 'The made-up circuit shown, the units for the speeds in it, and how fast the picture runs (Slow is the default).'],
       ['Sound', 'The sound played under it. The built-in sounds are made in the browser; Your own file uses an MP3 or OGG you upload below, up to 5 MB.'],

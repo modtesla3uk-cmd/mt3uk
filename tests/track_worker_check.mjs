@@ -1726,6 +1726,27 @@ r = await call('GET', '/track/admin/usage?key=secret');
 ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.body.members.active30 === r.body.members.withSessions && r.body.sessions.total >= 2 && r.body.weeks.length === 12 && r.body.weeks[11].sessions === r.body.sessions.last30 && r.body.vehicles.cars >= 1 && typeof r.body.access.approved === 'number',
   'usage: members with sessions, all active (saved just now), sessions in all and this week, vehicles and access (' + JSON.stringify(r.body).slice(0, 160) + ')');
 
+// Favourites: a member stars a session they can open. A shared session drops off their list once its owner makes it
+// private, and a private session of someone else cannot be starred.
+{
+  let r = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'board' }, 'tok-b');
+  const fid = r.body.session.id;
+  r = await call('POST', '/track/favourites', { id: fid, on: true }, 'tok-a');
+  ok(r.body.success && r.body.favourite === true, 'a member can star another member\'s shared session');
+  r = await call('GET', '/track/favourites', undefined, 'tok-a');
+  ok(r.body.sessions.some(x => x.id === fid && x.mine === false), 'the list shows it, and not as the member\'s own');
+  r = await call('PUT', '/track/session', { id: fid, privacy: 'private' }, 'tok-b');
+  r = await call('GET', '/track/favourites', undefined, 'tok-a');
+  ok(!r.body.sessions.some(x => x.id === fid), 'once its owner makes it private it drops off that member\'s list');
+  ok(JSON.parse(kv.get('track-favs:' + (await mod.ownerKey(A)))).every(f => f.id !== fid), 'and it is taken off the stored list');
+  r = await call('POST', '/track/favourites', { id: fid, on: true }, 'tok-a');
+  ok(r.status === 404, 'a private session of another member cannot be starred');
+  r = await call('POST', '/track/favourites', { id: 'ffffffffffffffff', on: true }, 'tok-a');
+  ok(r.status === 404, 'a session that does not exist cannot be starred');
+  r = await call('GET', '/track/favourites', undefined, 'not-a-token');
+  ok(r.status === 401, 'the favourites need a sign-in');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

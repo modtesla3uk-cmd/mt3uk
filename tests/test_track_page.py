@@ -116,6 +116,18 @@ class FakeWorker:
             self.access_requests.append(body)
             self.access = "pending"
             data = {"success": True, "access": "pending"}
+        elif path == "/track/favourites" and req.method == "GET":
+            favs = getattr(self, "favs", [])
+            if q.get("ids"):
+                data = {"success": True, "ids": [f["id"] for f in favs]}
+            else:
+                data = {"success": True, "sessions": [dict(summary(self.sessions[f["id"]]), mine=True, car=CAR["name"]) for f in favs if f["id"] in self.sessions]}
+        elif path == "/track/favourites" and req.method == "POST":
+            favs = [f for f in getattr(self, "favs", []) if f["id"] != body["id"]]
+            if body["on"]:
+                favs.insert(0, {"id": body["id"], "at": 1})
+            self.favs = favs
+            data = {"success": True, "favourite": bool(body["on"]), "count": len(favs)}
         elif path == "/track/sessions" and req.method == "GET":
             data = {"success": True, "sessions": self.index}
         elif path == "/track/sessions" and req.method == "POST":
@@ -7304,3 +7316,30 @@ def test_my_sessions_sort_option_is_only_for_signed_in_members(page):
     open_page(page, FakeWorker(), path="/leaderboards.html", signed_in=False)
     expect(page.locator(".lb-venues")).to_be_visible()
     expect(page.locator("#lb-sort option", has_text="My sessions")).to_have_count(0)
+
+
+def test_a_session_can_be_starred_and_the_favourites_card_lists_it_on_sessions(page):
+    """A star on a session's page adds it to Favourites. The Sessions list has them in one card at the top (#favourites),
+    and taking one off there removes it from the card and from the worker's list."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    sid = list(fake.sessions)[0]
+    star = page.locator("#tp-session-bar [data-fav-toggle]")
+    expect(star).to_have_attribute("aria-pressed", "false")
+    star.click()
+    expect(star).to_have_attribute("aria-pressed", "true")
+    assert [f["id"] for f in fake.favs] == [sid]
+    page.locator("#tp-exit").click()
+    expect(page.locator("#favourites")).to_be_visible()
+    expect(page.locator("#favourites .tp-favrow")).to_have_count(1)
+    expect(page.locator("#fav-count")).to_have_text("1")
+    page.locator("#favourites [data-fav-toggle]").click()
+    expect(page.locator("#favourites")).to_have_count(0)
+    assert fake.favs == []
+
+
+def test_the_laps_header_has_a_favourites_star_that_goes_to_the_favourites_card(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    # On the Sessions page itself the link is to its own section (the shared header makes it a # link).
+    expect(page.locator("#nav-favs")).to_have_attribute("href", "#favourites")

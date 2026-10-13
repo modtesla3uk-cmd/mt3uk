@@ -342,6 +342,8 @@ nav {
   .nav-bell-count, .nav-chat-count { top: 3px; right: 1px; }
   /* The Laps header has one more icon (Favourites), so its navigation icons are a little narrower on a phone to keep the menu on screen. */
   .nav-sessions, .nav-leaders, .nav-home, .nav-favs { width: 30px; }
+  /* Track Mode is in the menu on a phone (the drawer), not in the icon row, which is full at this width. */
+  .nav-trackmode { display: none; }
   nav:has(.laps-logo) { gap: 4px; }
   .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }

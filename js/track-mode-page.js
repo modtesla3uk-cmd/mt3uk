@@ -282,7 +282,18 @@
       '<div class="tm-tile"><b>' + (brakes.length ? pct(Math.max.apply(null, brakes)) : '') + '</b><span>Hottest brakes (car’s estimate)</span></div>' +
       '</div>';
     var fx = findings(runs);
-    var analysis = '<div class="tm-card"><h2>What the runs show</h2>' + (fx.length ? '<ul>' + fx.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' : '<p>Not enough runs yet to compare.</p>') + '</div>';
+    // A line icon for each finding, as on a session's What the laps say cards.
+    var FINDING_ICONS = {
+      battery: '<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M8 11l-1 3h3l-1 3"/>',
+      brakes: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+      power: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
+      time: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/>'
+    };
+    function findingIcon(t) {
+      var k = /charge/.test(t) ? 'battery' : /brakes/.test(t) ? 'brakes' : /power/.test(t) ? 'power' : 'time';
+      return '<svg class="tm-fi" viewBox="0 0 24 24" aria-hidden="true">' + FINDING_ICONS[k] + '</svg>';
+    }
+    var analysis = '<div class="tm-card"><h2>What the runs show</h2>' + (fx.length ? '<ul class="tm-finds">' + fx.map(function (t) { return '<li>' + findingIcon(t) + '<span>' + t + '</span></li>'; }).join('') + '</ul>' : '<p>Not enough runs yet to compare.</p>') + '</div>';
     var controls = '<div class="tm-controls">' +
       '<label>Member<select id="tm-member"><option value="all">All members</option>' + members.map(function (m) { return '<option value="' + esc(m) + '"' + (state.member === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') + '</select></label>' +
       '<label>Track<select id="tm-track"><option value="all">All tracks</option>' + trackKeys.map(function (k) { return '<option value="' + esc(k) + '"' + (state.track === k ? ' selected' : '') + '>' + esc(tracks[k]) + '</option>'; }).join('') + '</select></label>' +

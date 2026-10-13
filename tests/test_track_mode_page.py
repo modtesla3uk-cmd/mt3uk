@@ -186,3 +186,10 @@ def test_the_lap_analysis_is_a_chart_with_a_chip_for_each_measure(page):
     card.locator("[data-lapmetric='charge']").click()
     card.locator("circle[data-run='r1']").first.evaluate("e => e.dispatchEvent(new MouseEvent('click', { bubbles: true }))")
     expect(page.locator("#tm-row-r1")).to_have_class(re.compile("is-picked"))
+
+
+def test_each_finding_has_an_icon(page):
+    open_mode_page(page, RUNS)
+    card = page.locator(".tm-card", has=page.locator("h2", has_text="What the runs show"))
+    expect(card.locator("li")).to_have_count(4)
+    expect(card.locator("li svg.tm-fi")).to_have_count(4)

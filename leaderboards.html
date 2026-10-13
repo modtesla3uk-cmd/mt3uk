@@ -547,7 +547,11 @@
     .lb-row .lb-time { grid-area: time; }
     .lb-row .lb-time b { font-size: 0.98rem; }
     .lb-row .lb-time small { display: none; }
+    .lb-head { display: grid; grid-template-columns: 40px minmax(0, 1.6fr) 104px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; column-gap: 12px; padding: 8px 16px; font-size: 0.72rem; font-weight: 600; color: var(--steel); border-bottom: 1px solid var(--hairline); background: #fbfaf7; }
+    .lb-head.lb-can-fav { grid-template-columns: 40px minmax(0, 1.6fr) 104px 44px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; }
+    .lb-head .lb-head-time { text-align: right; }
   }
+  @media (max-width: 780px) { .lb-head { display: none; } }
   /* Brakes: the pads on the session, in the same small type as the tyres (a board row shows what it was run on). */
   .lb-brakes { color: var(--ink); }
   .lb-brakes.is-none { color: var(--steel); }

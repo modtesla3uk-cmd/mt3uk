@@ -798,7 +798,10 @@
         else if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
-            '<div class="card lb-card"><ol class="lb-list" data-open="' + foldOpen + '">' + shown.map(function (r, i) {
+            '<div class="card lb-card"><ol class="lb-list" data-open="' + foldOpen + '">' +
+              // Column headings for the one-line rows on a desktop (hidden on a phone, see the board's styles).
+              '<li class="lb-head' + (signedInToken() ? ' lb-can-fav' : '') + '" aria-hidden="true"><span>#</span><span>Driver and car</span><span class="lb-head-time">Time</span>' + (signedInToken() ? '<span></span>' : '') + '<span>Tyres</span><span>Brakes</span><span>Date</span><span></span></li>' +
+              shown.map(function (r, i) {
               var row = rowHtml(r, i, shown[0].s, type);
               if (i >= FOLD) row = row.replace('<li class="lb-row', '<li class="lb-row lb-extra');
               return (i === FOLD ? '<li class="lb-fold"><button type="button" class="lb-fold-btn" data-fold aria-expanded="' + foldOpen + '">' + icon('chev') + '<span>' + foldLabel(shown.length, foldOpen) + '</span></button></li>' : '') + row;

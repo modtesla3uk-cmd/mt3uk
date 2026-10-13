@@ -171,8 +171,8 @@ def test_the_lap_analysis_is_a_chart_with_a_chip_for_each_measure(page):
     expect(card.locator("[data-lapmetric='charge']")).to_have_attribute("aria-pressed", "true")
     expect(card.locator("svg circle")).to_have_count(6)
     expect(card).to_contain_text("per lap on average")
-    # Each session's fastest lap is orange, the other laps light orange, with a legend.
-    expect(card.locator("svg circle[fill='#e8590c']")).to_have_count(2)
+    # Each session's fastest lap is green, the other laps orange, with a legend.
+    expect(card.locator("svg circle[fill='#2f9e44']")).to_have_count(2)
     expect(card.locator(".tm-legend")).to_contain_text("fastest lap")
     card.locator("[data-lapmetric='throttle']").click()
     expect(card.locator("[data-lapmetric='throttle']")).to_have_attribute("aria-pressed", "true")

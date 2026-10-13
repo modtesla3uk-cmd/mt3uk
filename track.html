@@ -424,6 +424,15 @@
     .page-hero .tp-hero-top { gap: 12px; flex-wrap: nowrap; }
     .page-hero .tp-hero-top .back-link.tp-home { width: auto; height: 44px; min-height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
     .page-hero .tp-hero-top .back-link.tp-home .icon { width: 16px; height: 16px; }
+    /* The Sessions and Leaderboard headings (October 2026) use the same four equal buttons as a session: Back on the left,
+       the other page on the right, Add a session under it, every button the width of Back. */
+    @media (max-width: 780px) {
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top { display: contents; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: center; margin-top: 14px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-actions .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 3; justify-self: stretch; align-self: center; margin-top: 10px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
+    }
     /* On a session the heading (option C, revised October 2026): a two-column grid of four equal buttons with their words.
        Row 1: Back, Leaderboards. Row 2: Add a session, My Sessions. Every button is the same width as Back. */
     @media (max-width: 780px) {
@@ -1395,7 +1404,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271066" defer></script>
+<script src="js/track-page.js?v=20271067" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

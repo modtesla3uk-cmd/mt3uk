@@ -3688,7 +3688,7 @@
     markFavs();
     if (token() && !s.local) {
       var subLine = document.querySelector('.tp-session-head .tp-sub');
-      if (subLine) { subLine.insertAdjacentHTML('afterend', '<p class="tp-rank-line" data-sid="' + esc(s.id) + '"></p>'); fetchRanks(); }
+      if (subLine) { subLine.insertAdjacentHTML('afterend', '<p class="tp-rank-line" data-sid="' + esc(s.id) + '"' + (boardHref(s) ? ' data-board-href="' + esc(boardHref(s)) + '"' : '') + '></p>'); fetchRanks(); }
     }
     setHeroTitle(trackName(s), boardHref(s));
     if (s.type === 'drag') drawDragCharts(s);
@@ -4009,7 +4009,10 @@
       var r = rankInfo[el.getAttribute('data-sid')];
       if (!r) return;
       if (el.classList.contains('tp-rank-line')) {
-        if (el.textContent !== rankWords(r)) el.textContent = rankWords(r);
+        // The track's name in the line opens its leaderboard, as the heading's does, when the session is on a board.
+        var href = el.getAttribute('data-board-href');
+        var words = r.onBoard && href ? ordinal(r.place) + ' of ' + r.of + ' on <a class="tp-title-link" href="' + esc(href) + '">' + esc(r.board) + '</a>' : esc(rankWords(r));
+        if (el.innerHTML !== words) el.innerHTML = words;
         return;
       }
       var main = el.querySelector('.tp-row-main');

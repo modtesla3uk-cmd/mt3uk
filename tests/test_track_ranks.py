@@ -66,3 +66,14 @@ def test_the_session_name_and_trophy_are_in_the_heading_and_the_owner_opens_thei
     expect(page.locator(".tp-session-head h2 a.tp-title-link")).to_have_attribute("href", "leaderboards.html?board=thruxton%3Amain")
     open_into_the_day(page)
     expect(page.locator(".page-hero .tp-hero-row h1")).to_contain_text("My Sessions")
+
+
+def test_the_rank_line_names_the_track_and_that_opens_its_leaderboard(page):
+    """A session on a board says where it stands, and its track's name in that line opens the same board as the heading."""
+    fake = FakeWorker()
+    fake.ranks = {"new1": dict(PLACE)}
+    save_thruxton_with_a_member_board(page, fake)
+    line = page.locator(".tp-rank-line")
+    expect(line).to_contain_text("2nd of 7 on")
+    expect(line.locator("a.tp-title-link")).to_have_text("Thruxton, Main")
+    expect(line.locator("a.tp-title-link")).to_have_attribute("href", "leaderboards.html?board=thruxton%3Amain")

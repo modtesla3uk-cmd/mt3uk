@@ -281,6 +281,9 @@
         tiles(list) +
         chart(list) + pickHtml(list) + setupBlock(list) + detailsTable(list);
     }
+    // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
+    var tmBadge = document.getElementById('ma-tm');
+    if (tmBadge) tmBadge.hidden = !list.some(function (x) { return !!x.mode; });
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;
   }
 

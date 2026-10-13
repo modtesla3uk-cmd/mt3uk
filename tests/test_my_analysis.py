@@ -103,3 +103,35 @@ def test_tapping_a_dot_shows_that_session_here_with_a_button_to_open_it(page):
     expect(page.locator("#ma-pick")).to_contain_text("Michelin")
     page.locator('.ma-row[data-session="a1"] a').click()
     page.wait_for_url("**/track.html?s=a1")
+
+
+def test_the_track_mode_badge_shows_only_when_the_sessions_have_track_mode_figures(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0)
+    open_page(page, fake, "/my-analysis.html")
+    expect(page.locator("#ma-tm")).to_be_hidden()
+    fake2 = FakeWorker(earlier=False)
+    add(fake2, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61, "power": 230})
+    open_page(page, fake2, "/my-analysis.html")
+    expect(page.locator("#ma-tm")).to_be_visible()
+    expect(page.locator("#ma-tm")).to_contain_text("Tesla Track Mode Data")
+
+
+def test_the_track_mode_page_is_out_of_the_laps_menus(page):
+    open_page(page, FakeWorker(earlier=False), "/track.html")
+    expect(page.locator("#nav-trackmode")).to_have_count(0)
+    expect(page.locator('a.nav-sublink-new[href="track-mode.html"]')).to_have_count(0)
+
+
+def test_the_my_analysis_icon_sits_between_the_favourites_star_and_home(page):
+    open_page(page, FakeWorker(earlier=False), "/track.html")
+    icons = page.locator("#nav-favs, #nav-analysis, #nav-home")
+    expect(icons).to_have_count(3)
+    expect(page.locator("#nav-analysis")).to_have_attribute("href", "my-analysis.html")
+    # The three icons follow each other in the header, in this order.
+    order = page.evaluate("""() => {
+        const ids = ['nav-favs', 'nav-analysis', 'nav-home'];
+        const els = ids.map(id => document.getElementById(id));
+        return els.every((el, i) => i === 0 || (els[i - 1].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) ;
+    }""")
+    assert order

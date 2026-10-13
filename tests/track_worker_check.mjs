@@ -1747,6 +1747,23 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(r.status === 401, 'the favourites need a sign-in');
 }
 
+// Where a session stands on its leaderboard: starring says it (or why it is not on one), and the Sessions list asks for
+// every session at once. A session that is not shared gives its reason; a shared one gives a place out of the cars.
+{
+  let r = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'private' }, 'tok-a');
+  const pid = r.body.session.id;
+  r = await call('POST', '/track/favourites', { id: pid, on: true }, 'tok-a');
+  ok(r.body.success && r.body.rank && r.body.rank.onBoard === false && /Turn on Shared/.test(r.body.rank.reason), 'starring a session that is not shared says why it is not on a leaderboard (' + JSON.stringify(r.body.rank) + ')');
+  r = await call('GET', '/track/ranks?ids=' + pid, undefined, 'tok-a');
+  ok(r.body.success && r.body.ranks[pid] && r.body.ranks[pid].onBoard === false, 'the ranks asked for come back, with the reason');
+  r = await call('GET', '/track/ranks?ids=' + pid, undefined, 'not-a-token');
+  ok(r.status === 401, 'the ranks need a sign-in');
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'board' }, 'tok-a');
+  const sid = r.body.session.id;
+  r = await call('POST', '/track/favourites', { id: sid, on: true }, 'tok-a');
+  ok(r.body.rank && typeof r.body.rank.onBoard === 'boolean' && typeof r.body.rank.of === 'number', 'a shared session is given its place out of the cars on its board, or the reason it is not the car\'s fastest (' + JSON.stringify(r.body.rank) + ')');
+}
+
 // A member's public profile (found from one of their cars): anyone can read it, it shows the shared sessions only, and
 // it never gives an email.
 {

@@ -8204,7 +8204,9 @@ async function handleTrackFavourites(request, env) {
     if (on) list.unshift({ id: id, at: Date.now() });
     list = list.slice(0, TRACK_FAVS_MAX);
     await env.VOTES.put(key, JSON.stringify(list));
-    return json({ success: true, favourite: on, count: list.length });
+    // Starring says where the session is on its leaderboard, or why it is not on one.
+    var rank = on ? await memberBoardPlace(env, await getTrackSession(env, id), await getTrackLibrary(env)) : null;
+    return json({ success: true, favourite: on, count: list.length, rank: rank });
   }
   // ?ids=1 gives only the ids (a session page asks which of its sessions are starred).
   if (new URL(request.url).searchParams.get('ids')) return json({ success: true, ids: list.map(function (f) { return f.id; }) });
@@ -8231,6 +8233,44 @@ async function logTrackAdminView(env, rec, car) {
   list.unshift({ at: new Date().toISOString(), id: rec.id, car: car || '', venue: rec.venue || '', type: rec.type, date: rec.date, privacy: rec.privacy });
   await env.VOTES.put(TRACK_ADMIN_VIEWS_KEY, JSON.stringify(list.slice(0, 300)));
 }
+// Where a session stands on its leaderboard, for its owner: its place out of the cars on that board, or the plain reason
+// it is not on one. It uses the admin's board check (trackBoardWhy) and says it in members' words.
+async function memberBoardPlace(env, rec, lib) {
+  var key = trackBoardKey(rec);
+  var entries = key ? await getJsonKey(env, key, []) : [];
+  var why = trackBoardWhy(rec, lib, key ? entries : null);
+  var board = why.venue ? why.venue.name + (why.layout ? ', ' + why.layout.name : '') : (rec.venue || '');
+  var idx = entries.findIndex(function (e) { return e.sessionId === rec.id; });
+  if (idx !== -1) return { onBoard: true, place: idx + 1, of: entries.length, board: board, tab: why.tab };
+  return { onBoard: false, of: entries.length, board: board, tab: why.tab, reason: memberBoardReason(rec, why, entries) };
+}
+function memberBoardReason(rec, why, entries) {
+  if (rec.type === 'other') return 'Drives are not on a leaderboard.';
+  if (rec.street) return 'Street runs are not on a leaderboard.';
+  if (rec.privacy === 'private') return 'It is not shared, so it is not on the leaderboard. Turn on Shared in Session settings to put it there.';
+  if (rec.offBoard) return 'MT3UK took it off the leaderboard.';
+  if (!why.key) return rec.type === 'drag' ? 'Its drag strip is not on the list yet. A request is waiting for MT3UK to add it.' : 'Its track or layout is not on the list yet. A request is waiting for MT3UK to add it.';
+  if (!(rec.type === 'drag' ? rec.quarter : rec.bestTime)) return 'It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.';
+  var mine = entries.find(function (e) { return e.carId === rec.carId; });
+  if (mine) return 'Your car is on this board with its fastest session (' + (mine.date || 'another day') + '). Each car shows only its fastest.';
+  return 'It is not on this board yet. Save the session again, or ask MT3UK to refresh the leaderboards.';
+}
+// The place of each of the member's sessions on its board, for the Sessions list: one read of each board, and the
+// library read once.
+async function handleTrackRanks(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var who = await ownerKey(email);
+  var ids = String(new URL(request.url).searchParams.get('ids') || '').split(',').filter(function (x) { return /^[a-f0-9]{8,40}$/.test(x); }).slice(0, 200);
+  var lib = await getTrackLibrary(env), ranks = {};
+  for (var i = 0; i < ids.length; i++) {
+    var rec = await getTrackSession(env, ids[i]);
+    if (!favViewable(rec, who)) continue;
+    ranks[ids[i]] = await memberBoardPlace(env, rec, lib);
+  }
+  return json({ success: true, ranks: ranks });
+}
+
 // Admin: a member's sessions by email, and the log of admin views.
 async function handleTrackAdminSessions(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -12127,11 +12167,12 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/session/car' || url.pathname === '/track/courses' ||
-        url.pathname === '/track/favourites' || url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
+        url.pathname === '/track/favourites' || url.pathname === '/track/ranks' || url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
     }
+    if (url.pathname === '/track/ranks' && request.method === 'GET') return handleTrackRanks(request, env);
     if (url.pathname === '/track/favourites' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackFavourites(request, env);
     }

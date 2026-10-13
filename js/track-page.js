@@ -438,6 +438,8 @@
     heroAdd();
   }
   function route() {
+    // Each view asks again, so a session shared or made private since the last look shows its true place.
+    rankInfo = {}; rankAsked = {};
     var done = routeView();
     markFavs();
     Promise.resolve(done).then(heroSettle, heroSettle);
@@ -3650,7 +3652,7 @@
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
       '<span class="tp-bar-right">' + (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
       '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></span></div>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '<svg class="icon tp-title-trophy" viewBox="0 0 24 24" aria-hidden="true">' + ICON.trophy + '</svg></h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + dashcamLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3667,6 +3669,10 @@
     app.innerHTML = h;
     wireSkip(s);
     markFavs();
+    if (token() && !s.local) {
+      var subLine = document.querySelector('.tp-session-head .tp-sub');
+      if (subLine) { subLine.insertAdjacentHTML('afterend', '<p class="tp-rank-line" data-sid="' + esc(s.id) + '"></p>'); fetchRanks(); }
+    }
     if (s.type === 'drag') drawDragCharts(s);
     else if (untimed) drawOtherCharts(s);
     else drawTrackCharts(s);
@@ -3953,7 +3959,7 @@
     });
   }
   // Rows are drawn in many places, so the stars are painted whenever the page draws.
-  if (window.MutationObserver) new MutationObserver(function () { if (favIds) paintFavs(); }).observe(app, { childList: true, subtree: true });
+  if (window.MutationObserver) new MutationObserver(function () { if (favIds) paintFavs(); paintRanks(); fetchRanks(); }).observe(app, { childList: true, subtree: true });
   function markFavs() {
     if (!token()) return;
     api('GET', '/track/favourites?ids=1').then(function (d) {
@@ -3969,12 +3975,57 @@
       favIds = (favIds || []).filter(function (x) { return x !== id; });
       if (on) favIds.push(id);
       paintFavs();
+      if (on && d.rank) { rankInfo[id] = d.rank; paintRanks(); showFavNote(d.rank); }
     }).catch(function () { b.disabled = false; b.title = 'Could not reach Laps. Try again when you are online.'; });
   }
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-fav-toggle]');
     if (b && !b.disabled) { e.preventDefault(); toggleFav(b); }
   });
+  // Where each session stands on its leaderboard (GET /track/ranks, or the starring's answer): the Sessions list shows
+  // it on each row, and a session under its title. A visitor sees none.
+  var rankInfo = {}, rankAsked = {};
+  function rankWords(r) { return r.onBoard ? ordinal(r.place) + ' of ' + r.of + ' on ' + r.board : 'Not on a leaderboard. ' + (r.reason || ''); }
+  function paintRanks() {
+    app.querySelectorAll('[data-sid]').forEach(function (el) {
+      var r = rankInfo[el.getAttribute('data-sid')];
+      if (!r) return;
+      if (el.classList.contains('tp-rank-line')) {
+        if (el.textContent !== rankWords(r)) el.textContent = rankWords(r);
+        return;
+      }
+      var main = el.querySelector('.tp-row-main');
+      if (!main) return;
+      var tag = main.querySelector('.tp-rank');
+      if (!tag) { tag = document.createElement('span'); tag.className = 'tp-rank'; main.appendChild(tag); }
+      var txt = r.onBoard ? ordinal(r.place) + ' of ' + r.of : 'Not on a board';
+      if (tag.textContent !== txt) tag.textContent = txt;
+      tag.classList.toggle('is-off', !r.onBoard);
+      var title = r.onBoard ? 'Where this session stands on ' + r.board : (r.reason || '');
+      if (tag.title !== title) tag.title = title;
+    });
+  }
+  function fetchRanks() {
+    if (!token()) return;
+    var ids = [];
+    app.querySelectorAll('[data-sid]').forEach(function (el) {
+      var id = el.getAttribute('data-sid');
+      if (id && !rankInfo[id] && !rankAsked[id] && ids.indexOf(id) === -1) ids.push(id);
+    });
+    if (!ids.length) return;
+    ids.forEach(function (id) { rankAsked[id] = true; });
+    api('GET', '/track/ranks?ids=' + ids.join(',')).then(function (d) {
+      if (!d || !d.success) { ids.forEach(function (id) { delete rankAsked[id]; }); return; }
+      Object.keys(d.ranks || {}).forEach(function (id) { rankInfo[id] = d.ranks[id]; });
+      paintRanks();
+    }).catch(function () { ids.forEach(function (id) { delete rankAsked[id]; }); });
+  }
+  // The answer to starring says where the session is, in a note at the top of the page.
+  function showFavNote(r) {
+    var note = document.getElementById('tp-fav-note');
+    if (!note) { note = document.createElement('p'); note.id = 'tp-fav-note'; note.className = 'tp-fav-note'; note.setAttribute('role', 'status'); app.insertBefore(note, app.firstChild); }
+    note.textContent = 'Starred. ' + rankWords(r) + (r.onBoard ? '.' : '');
+  }
 
   function trackHtml(s) {
     var laps = s.laps || [];

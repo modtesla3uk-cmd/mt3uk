@@ -130,7 +130,9 @@ class FakeWorker:
             if body["on"]:
                 favs.insert(0, {"id": body["id"], "at": 1})
             self.favs = favs
-            data = {"success": True, "favourite": bool(body["on"]), "count": len(favs)}
+            data = {"success": True, "favourite": bool(body["on"]), "count": len(favs), "rank": getattr(self, "star_rank", None) if body["on"] else None}
+        elif path == "/track/ranks" and req.method == "GET":
+            data = {"success": True, "ranks": getattr(self, "ranks", {})}
         elif path == "/track/sessions" and req.method == "GET":
             data = {"success": True, "sessions": self.index}
         elif path == "/track/sessions" and req.method == "POST":

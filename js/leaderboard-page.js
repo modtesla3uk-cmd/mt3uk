@@ -149,7 +149,16 @@
       favIds = (favIds || []).filter(function (x) { return x !== id; });
       if (on) favIds.push(id);
       paintLbFavs();
+      if (on && d.rank) showLbFavNote(d.rank);
     }).catch(function () { b.disabled = false; b.title = 'Could not reach Laps. Try again when you are online.'; });
+  }
+  // Starring says where the session is on this leaderboard, or why it is not on one.
+  function showLbFavNote(r) {
+    var n = r.place, t = n % 100, u = n % 10;
+    var words = r.onBoard ? n + (t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th') + ' of ' + r.of + ' on ' + r.board + '.' : 'Not on a leaderboard. ' + (r.reason || '');
+    var note = document.getElementById('lb-fav-note');
+    if (!note) { note = document.createElement('p'); note.id = 'lb-fav-note'; note.className = 'tp-fav-note'; note.setAttribute('role', 'status'); app.insertBefore(note, app.firstChild); }
+    note.textContent = 'Starred. ' + words;
   }
   // Board rows are drawn again on every change, so the stars are painted whenever the list draws.
   if (window.MutationObserver) new MutationObserver(function () { if (favIds) paintLbFavs(); }).observe(app, { childList: true, subtree: true });

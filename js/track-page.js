@@ -1293,7 +1293,38 @@
     return '<div class="tp-analysis" data-layout-analysis><h3>Your analysis here</h3><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +
       '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>';
   }
+  // Your analysis at the top of My Sessions, for the car picked: a track and layout drop-down (only layouts with two or more
+  // timed sessions), and the graph and words for the one chosen. Defaults to the layout of the latest timed session.
+  var analysisGroups = {}, analysisKey = '';
+  function myAnalysisHtml(list) {
+    analysisGroups = {};
+    list.forEach(function (x) {
+      if (x.type === 'drag' || !(x.bestTime > 0)) return;
+      var k = trackKeyOf(x) + '|' + layoutKeyOf(x);
+      analysisGroups[k] = analysisGroups[k] || { name: trackTitleOf(x) + ' · ' + layoutTitleOf(x), rows: [] };
+      analysisGroups[k].rows.push(x);
+    });
+    var keys = Object.keys(analysisGroups).filter(function (k) { return analysisGroups[k].rows.length >= 2; });
+    if (!keys.length) return '';
+    keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
+    if (keys.indexOf(analysisKey) === -1) {
+      var latest = keys.map(function (k) { return analysisGroups[k].rows.reduce(function (m, r) { return (r.date + r.time) > m ? r.date + r.time : m; }, ''); });
+      analysisKey = keys[latest.indexOf(latest.reduce(function (a, b) { return a > b ? a : b; }))];
+    }
+    return '<div class="tp-analysis-top"><label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field">' + keys.map(function (k) {
+      return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
+    }).join('') + '</select></label><div id="tp-an-box">' + layoutAnalysisHtml(analysisGroups[analysisKey].rows) + '</div></div>';
+  }
+  document.addEventListener('change', function (e) {
+    if (!e.target || e.target.id !== 'tp-an-pick' || !analysisGroups[e.target.value]) return;
+    analysisKey = e.target.value;
+    var box = document.getElementById('tp-an-box');
+    if (box) box.innerHTML = layoutAnalysisHtml(analysisGroups[analysisKey].rows);
+  });
   function trackListHtml(list, carId, publicView) {
+    return (publicView ? '' : myAnalysisHtml(list)) + trackListBody(list, carId, publicView);
+  }
+  function trackListBody(list, carId, publicView) {
     filterOpenAll = filtersOn();
     list = filteredList(list);
     if (!list.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match those filters.</p></div>';
@@ -1318,7 +1349,7 @@
           fitD.forEach(function (d) { placedDrive[d.id] = true; });
           var rows = byWhenDesc(rowsL.concat(fitD));
           return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + layoutHeadHtml(l.name, rowsL, publicView) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
-            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + (publicView ? '' : layoutAnalysisHtml(rows)) + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
+            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, !publicView, list, true) + '</div></div>';
         }).join('')) + driveTail() + '</div></div>';
     }).join('');
   }

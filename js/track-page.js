@@ -1290,7 +1290,7 @@
     }
     var wet = pts.filter(function (r) { return /wet|damp/i.test(r.conditions || ''); }).length;
     if (wet && wet < pts.length) said.push(wet + ' of these ' + (wet === 1 ? 'was' : 'were') + ' damp or wet, so compare like with like.');
-    return '<div class="tp-analysis" data-layout-analysis><h3>Your analysis here</h3><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +
+    return '<div class="tp-analysis" data-layout-analysis><p class="tp-small">The car picked, across its sessions at this layout. Press a dot to open that session.</p>' + svg +
       '<p class="tp-small tp-what-graph"><b>What the graph shows.</b> ' + said.map(esc).join(' ') + '</p></div>';
   }
   // Your analysis at the top of My Sessions, for the car picked: a track and layout drop-down (only layouts with two or more
@@ -1307,19 +1307,18 @@
     var keys = Object.keys(analysisGroups).filter(function (k) { return analysisGroups[k].rows.length >= 2; });
     if (!keys.length) return '';
     keys.sort(function (a, b) { return analysisGroups[a].name < analysisGroups[b].name ? -1 : 1; });
-    if (keys.indexOf(analysisKey) === -1) {
-      var latest = keys.map(function (k) { return analysisGroups[k].rows.reduce(function (m, r) { return (r.date + r.time) > m ? r.date + r.time : m; }, ''); });
-      analysisKey = keys[latest.indexOf(latest.reduce(function (a, b) { return a > b ? a : b; }))];
-    }
-    return '<div class="tp-analysis-top"><label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field">' + keys.map(function (k) {
+    if (analysisKey && keys.indexOf(analysisKey) === -1) analysisKey = '';
+    return '<details class="tp-analysis-top" id="tp-an"><summary><b>Analysis</b></summary>' +
+      '<p class="tp-small">Detailed analysis is available in each session.</p>' +
+      '<label class="tp-an-pick"><span>Track and layout</span><select id="tp-an-pick" class="field"><option value=""' + (analysisKey ? '' : ' selected') + '>None</option>' + keys.map(function (k) {
       return '<option value="' + esc(k) + '"' + (k === analysisKey ? ' selected' : '') + '>' + esc(analysisGroups[k].name) + '</option>';
-    }).join('') + '</select></label><div id="tp-an-box">' + layoutAnalysisHtml(analysisGroups[analysisKey].rows) + '</div></div>';
+    }).join('') + '</select></label><div id="tp-an-box">' + (analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '') + '</div></details>';
   }
   document.addEventListener('change', function (e) {
-    if (!e.target || e.target.id !== 'tp-an-pick' || !analysisGroups[e.target.value]) return;
-    analysisKey = e.target.value;
+    if (!e.target || e.target.id !== 'tp-an-pick') return;
+    analysisKey = analysisGroups[e.target.value] ? e.target.value : '';
     var box = document.getElementById('tp-an-box');
-    if (box) box.innerHTML = layoutAnalysisHtml(analysisGroups[analysisKey].rows);
+    if (box) box.innerHTML = analysisKey ? layoutAnalysisHtml(analysisGroups[analysisKey].rows) : '';
   });
   function trackListHtml(list, carId, publicView) {
     return (publicView ? '' : myAnalysisHtml(list)) + trackListBody(list, carId, publicView);

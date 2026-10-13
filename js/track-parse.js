@@ -37,7 +37,8 @@
   // 14: a standing start in a sprint or hill climb starts the clock from the accelerometer or the speed, whichever moves first.
   // 15: the 1 ft rollout is a true foot (0.3048 m) on files with real speed readings, not the 0.16 m fit.
   // 16: back to the 0.16 m start on files with real speed readings, which matches RaceBox's own times.
-  var ANALYSIS_VERSION = 16;
+  // 17: the start is 0.14 m on files with real speed readings, which matches RaceBox's 0-30 and 0-60 on the 13 October run.
+  var ANALYSIS_VERSION = 17;
   // A standing start (sprints and hill climbs): the clock starts when the car moves off. The speed column of some
   // loggers (Tesla Track Mode) lags the car, so the recorded lengthways g is read too, and the clock starts from
   // whichever moved first. The g launch is LAUNCH_G above the standing level (a hill start sits on a slope), held for
@@ -963,10 +964,10 @@
   // rollout: metres the car moves before the clock starts (0.3048 for the 1 ft rollout of strip timing
   // lights and RaceBox's option); 0 times from the first movement.
   // RaceBox's own clock, found by fitting its times: on files with real speed readings the clock starts once the car
-  // has travelled about 0.16 m from the first movement (it matches RaceBox's 0-30 and 0-60 to within 0.01 s). A true
-  // foot (0.3048 m) is about 0.09 s quicker than RaceBox. Where the speed is only worked out from positions, which
-  // smooths the launch, the clock starts at about 6 km/h instead.
-  var ROLLOUT_METRES = 0.16;
+  // has travelled about 0.14 m from the first movement (it matches RaceBox's 0-30 and 0-60 exactly on the 13 October
+  // run, and to within 0.01 s on the 14 May runs). A true foot (0.3048 m) is about 0.09 s quicker than RaceBox. Where
+  // the speed is only worked out from positions, which smooths the launch, the clock starts at about 6 km/h instead.
+  var ROLLOUT_METRES = 0.14;
   var ROLLOUT_START_KMH = 6;
   function dragRuns(points, rollout, speedDerived) {
     var runs = [];

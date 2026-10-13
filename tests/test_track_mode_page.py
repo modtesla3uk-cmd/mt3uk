@@ -134,3 +134,19 @@ def test_the_filters_sit_at_the_top_and_the_tiles_and_graph_follow_the_track(pag
     expect(page.locator(".tm-tile").nth(0)).to_contain_text("2")
     expect(page.locator(".tm-chart circle")).to_have_count(2)
     expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(2)
+
+
+def test_a_signed_in_member_opens_on_their_own_sessions_and_a_visitor_on_all_members(page):
+    def garage(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "email": "d@example.com", "cars": [{"id": "car-r2"}]}), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/my-builds" % API_HOST, garage)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession','tok');")
+    open_mode_page(page, RUNS)
+    expect(page.locator("#tm-member")).to_have_value("MDebbage")
+    expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(1)
+
+
+def test_a_visitor_opens_on_all_members(page):
+    open_mode_page(page, RUNS)
+    expect(page.locator("#tm-member")).to_have_value("all")
+    expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(4)

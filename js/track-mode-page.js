@@ -185,9 +185,19 @@
     if (sSel) sSel.addEventListener('change', function () { state.sort = sSel.value; draw(); });
   }
 
+  // The page opens on the signed-in member's own sessions when they have any here, and on all members otherwise (a visitor,
+  // or a member with no Track Mode sessions). Their cars are read from their garage with their sign-in.
   app.innerHTML = '<p class="tm-empty">Loading the Track Mode sessions…</p>';
-  fetch(API + '/track/mode-runs').then(function (r) { return r.json(); }).then(function (j) {
-    state.runs = (j && j.runs) || [];
+  var token = '';
+  try { token = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) { token = ''; }
+  var runsReq = fetch(API + '/track/mode-runs').then(function (r) { return r.json(); });
+  var carsReq = token ? fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
+    .then(function (r) { return r.json(); }).catch(function () { return null; }) : Promise.resolve(null);
+  Promise.all([runsReq, carsReq]).then(function (res) {
+    state.runs = (res[0] && res[0].runs) || [];
+    var mine = res[1] && res[1].success && Array.isArray(res[1].cars) ? res[1].cars.map(function (c) { return c.id; }) : [];
+    var own = state.runs.filter(function (r) { return mine.indexOf(r.carId) !== -1; })[0];
+    if (own) state.member = own.owner || 'MT3UK member';
     draw();
   }).catch(function () {
     app.innerHTML = '<div class="tm-card"><h2>Could not load the sessions</h2><p>Try again in a moment.</p></div>';

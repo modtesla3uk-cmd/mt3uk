@@ -12,9 +12,9 @@ def run(sid, car, owner, date, venue, layout, best, mode, conditions="Dry"):
 
 
 RUNS = [
-    run("r1", "PROJECT 3", "RichardHC", "2026-07-14", "Castle Combe", "Full circuit", 80.2, {"soc": [62.0, 55.5], "power": 244, "regen": 79, "brakeTemp": 84, "batteryTemp": 52}),
-    run("r2", "Model S", "MDebbage", "2026-05-01", "Thruxton", "Main", 96.4, {"soc": [70.0, 60.0], "power": 310, "brakeTemp": 61, "batteryTemp": 49}),
-    run("r3", "Model Y", "Ben", "2026-06-02", "Castle Combe", "Full circuit", 82.9, {"soc": [58.0, 49.0], "power": 220, "brakeTemp": 72, "batteryTemp": 55, "slip": 12}),
+    run("r1", "PROJECT 3", "RichardHC", "2026-07-14", "Castle Combe", "Full circuit", 80.2, {"soc": [62.0, 55.5], "power": 244, "regen": 79, "brakeTemp": 84, "batteryTemp": 52, "tyrePressure": 2.9}),
+    run("r2", "Model S", "MDebbage", "2026-05-01", "Thruxton", "Main", 96.4, {"soc": [70.0, 60.0], "power": 310, "brakeTemp": 61, "batteryTemp": 49, "tyrePressure": 3.1}),
+    run("r3", "Model Y", "Ben", "2026-06-02", "Castle Combe", "Full circuit", 82.9, {"soc": [58.0, 49.0], "power": 220, "brakeTemp": 72, "batteryTemp": 55, "slip": 12, "tyrePressure": 3.0}),
     run("r4", "Model 3", "Ann", "2026-06-20", "Thruxton", "Main", 97.1, {"soc": [66.0, 57.0], "power": 260, "brakeTemp": 90}),
 ]
 
@@ -35,7 +35,7 @@ def test_track_mode_page_lists_the_shared_sessions_with_their_figures(page):
     # The newest session first, with its charge used and the hottest brakes.
     expect(rows.first).to_contain_text("14 Jul 2026")
     expect(rows.first).to_contain_text("PROJECT 3")
-    expect(rows.first).to_contain_text("6.5 pts")
+    expect(rows.first).to_contain_text("6.5%")
     expect(rows.first).to_contain_text("244 kW")
     expect(rows.first).to_contain_text("84%")
     expect(page.locator(".tm-tile").nth(0)).to_contain_text("4")
@@ -47,11 +47,10 @@ def test_the_analysis_says_what_the_runs_show(page):
     findings = page.locator(".tm-card").first.locator("li")
     expect(findings.nth(0)).to_contain_text("most charge used")
     expect(findings.nth(0)).to_contain_text("Thruxton")
+    expect(findings.nth(0)).to_contain_text("10.0%")
     expect(findings.nth(1)).to_contain_text("90%")
     expect(findings.nth(2)).to_contain_text("310 kW")
     expect(findings.nth(3)).to_contain_text("quicker half")
-    # The chart has a dot for each run with a lap time and charge used.
-    expect(page.locator(".tm-chart circle")).to_have_count(4)
 
 
 def test_a_track_filter_and_sort_change_the_list(page):
@@ -75,3 +74,27 @@ def test_with_no_shared_track_mode_sessions_it_says_so(page):
 def test_the_laps_front_page_links_to_the_track_mode_page(page):
     page.goto("/laps.html#trackmode")
     expect(page.locator("#trackmode a[href='track-mode.html']")).to_have_count(1)
+
+
+def test_one_line_graph_plots_the_figure_picked_for_each_run(page):
+    open_mode_page(page, RUNS)
+    chart = page.locator(".tm-chart")
+    expect(chart).to_have_count(1)
+    expect(page.locator(".tm-chips [data-metric]")).to_have_count(4)
+    expect(page.locator(".tm-chips [data-metric='used']")).to_have_attribute("aria-pressed", "true")
+    # Every run has battery used, so the line has a dot for each run.
+    expect(chart.locator("circle")).to_have_count(4)
+    page.locator(".tm-chips [data-metric='brakes']").click()
+    expect(page.locator(".tm-chips [data-metric='brakes']")).to_have_attribute("aria-pressed", "true")
+    expect(chart.locator("circle")).to_have_count(4)
+    expect(chart).to_contain_text("Hottest brakes")
+    # Tyre pressure: only three runs have it, so three dots.
+    page.locator(".tm-chips [data-metric='pressure']").click()
+    expect(chart.locator("circle")).to_have_count(3)
+
+
+def test_the_graph_says_so_when_too_few_runs_have_the_figure(page):
+    runs = [dict(RUNS[0], mode={"soc": [62.0, 55.5]})]
+    open_mode_page(page, runs)
+    expect(page.locator(".tm-chart")).to_contain_text("Not enough runs")
+    expect(page.locator(".tm-chart circle")).to_have_count(0)

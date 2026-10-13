@@ -1,14 +1,14 @@
 /*
-  Track Mode, analysed (track-mode.html): the shared Track sessions that carry the car's own Track Mode figures, read from one
+  Tesla Track Mode, analysed (track-mode.html): the shared Track sessions that carry the car's own Track Mode figures, read from one
   public list on the worker (GET /track/mode-runs). It shows what the cars did across those sessions: charge used, peak power,
   regen, the hottest brakes (the car's own estimate, as a percentage) and battery temperature, with a few plain findings and a
-  chart of charge used against lap time. Owners' private sessions are not in the list.
+  Owners' private sessions are not in the list.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var app = document.getElementById('tm-app');
   if (!app) return;
-  var state = { runs: [], track: 'all', sort: 'newest' };
+  var state = { runs: [], track: 'all', sort: 'newest', metric: 'used' };
   var SORTS = [['newest', 'Newest first'], ['best', 'Quickest lap first'], ['charge', 'Most charge used'], ['power', 'Highest peak power'], ['brakes', 'Hottest brakes']];
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -23,7 +23,7 @@
     var M = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return Number(p[2]) + ' ' + M[Number(p[1]) - 1] + ' ' + p[0];
   }
-  // Charge used in points of the battery (start less end). Negative when the car charged during the session.
+  // Charge used, as a percentage of the battery (start less end). Negative when the car charged during the session.
   function used(r) { var s = r.mode && r.mode.soc; return s ? s[0] - s[1] : null; }
   function trackOf(r) { return (r.venue || 'Track') + (r.layout ? ' · ' + r.layout : ''); }
   function trackKey(r) { return (r.venue || '') + '|' + (r.layout || ''); }
@@ -49,7 +49,7 @@
     var out = [];
     var charged = runs.filter(function (r) { return used(r) != null; });
     var c = mx(charged, used);
-    if (c) out.push('The most charge used in one session was ' + used(c).toFixed(1) + ' points, at ' + esc(trackOf(c)) + ' on ' + niceDate(c.date) + '.');
+    if (c) out.push('The most charge used in one session was ' + used(c).toFixed(1) + '%, at ' + esc(trackOf(c)) + ' on ' + niceDate(c.date) + '.');
     var b = mx(runs.filter(function (r) { return r.mode && r.mode.brakeTemp != null; }), function (r) { return r.mode.brakeTemp; });
     if (b) out.push('The hottest brakes, by the car’s own estimate, were ' + pct(b.mode.brakeTemp) + ', at ' + esc(trackOf(b)) + ' on ' + niceDate(b.date) + '.');
     var p = mx(runs.filter(function (r) { return r.mode && r.mode.power != null; }), function (r) { return r.mode.power; });
@@ -59,33 +59,48 @@
     if (timed.length >= 4) {
       var half = Math.floor(timed.length / 2);
       var fast = avg(timed.slice(0, half).map(used)), slow = avg(timed.slice(timed.length - half).map(used));
-      out.push('The quicker half of the ' + timed.length + ' runs with a lap time used ' + fast.toFixed(1) + ' points of charge on average, the slower half ' + slow.toFixed(1) + '.');
+      out.push('The quicker half of the ' + timed.length + ' runs with a lap time used ' + fast.toFixed(1) + '% of the battery on average, the slower half ' + slow.toFixed(1) + '.');
     }
     return out;
   }
 
-  // Charge used against the best lap, one dot a run. Lower dots are quicker.
-  function chartSvg(runs) {
-    var pts = runs.filter(function (r) { return used(r) != null && r.bestTime != null; });
-    if (pts.length < 2) return '';
-    var W = 600, H = 260, L = 52, R = 16, T = 14, B = 36;
-    var xs = pts.map(used), ys = pts.map(function (r) { return r.bestTime; });
-    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
-    if (x1 - x0 < 0.5) { x0 -= 0.5; x1 += 0.5; }
+  // One line graph for the figure picked (chips, as the G-force chart on a session): the runs in the order they were driven,
+  // a dot for each, lap time in its tooltip. A run without the figure leaves a gap in the line.
+  var METRICS = [
+    ['used', 'Battery used', used, '%', 1],
+    ['brakes', 'Hottest brakes', function (r) { return r.mode && r.mode.brakeTemp; }, '%', 0],
+    ['power', 'Peak power', function (r) { return r.mode && r.mode.power; }, ' kW', 0],
+    ['pressure', 'Tyre pressure', function (r) { return r.mode && r.mode.tyrePressure; }, ' bar', 1]
+  ];
+  function lineChart(runs) {
+    var m = METRICS.filter(function (x) { return x[0] === state.metric; })[0] || METRICS[0];
+    var chips = '<div class="tm-chips" role="group" aria-label="Figure to plot">' + METRICS.map(function (x) {
+      return '<button type="button" class="chip' + (x[0] === m[0] ? ' is-on' : '') + '" data-metric="' + x[0] + '" aria-pressed="' + (x[0] === m[0]) + '">' + x[1] + '</button>';
+    }).join('') + '</div>';
+    var head = '<h2>Over time</h2><p class="tm-note">Each dot is a run, in the order it was driven. Pick a figure to plot.</p>';
+    var pts = runs.map(function (r) { return { r: r, v: m[2](r) }; }).filter(function (x) { return x.v != null && isFinite(x.v); })
+      .sort(function (a, b) { return (a.r.date + a.r.time) < (b.r.date + b.r.time) ? -1 : 1; });
+    if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough runs with this figure yet.</p></div>';
+    var W = 340, H = 240, L = 58, R = 12, T = 14, B = 36;
+    var vs = pts.map(function (x) { return x.v; });
+    var y0 = Math.min.apply(null, vs), y1 = Math.max.apply(null, vs);
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
-    function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
-    function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
-    var dots = pts.map(function (r) {
-      return '<circle cx="' + X(used(r)).toFixed(1) + '" cy="' + Y(r.bestTime).toFixed(1) + '" r="5" fill="#e8590c" fill-opacity="0.8"><title>' + esc(trackOf(r) + ', ' + niceDate(r.date) + ': ' + lapTime(r.bestTime) + ', ' + used(r).toFixed(1) + ' points used') + '</title></circle>';
+    function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
+    function Y(v) { return T + (y1 - v) / (y1 - y0) * (H - T - B); }
+    var line = pts.map(function (x, i) { return X(i).toFixed(1) + ',' + Y(x.v).toFixed(1); }).join(' ');
+    var dots = pts.map(function (x, i) {
+      return '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(trackOf(x.r) + ', ' + niceDate(x.r.date) + ': ' + lapTime(x.r.bestTime) + ', ' + m[1].toLowerCase() + ' ' + x.v.toFixed(m[4]) + m[3]) + '</title></circle>';
     }).join('');
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Charge used against best lap, one dot for each run">' +
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m[1]) + ' for each run, in the order they were driven">' +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
-      '<text x="' + L + '" y="' + (H - 12) + '">' + x0.toFixed(1) + ' points</text>' +
-      '<text x="' + (W - R) + '" y="' + (H - 12) + '" text-anchor="end">' + x1.toFixed(1) + ' points used</text>' +
-      '<text x="' + (L - 6) + '" y="' + (T + 8) + '" text-anchor="end">' + lapTime(y0) + '</text>' +
-      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + lapTime(y1) + '</text>' +
+      '<polyline points="' + line + '" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>' +
+      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + y1.toFixed(m[4]) + m[3] + '</text>' +
+      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + y0.toFixed(m[4]) + m[3] + '</text>' +
+      '<text x="' + L + '" y="' + (H - 10) + '">' + niceDate(pts[0].r.date) + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + niceDate(pts[pts.length - 1].r.date) + '</text>' +
       dots + '</svg>';
+    return '<div class="tm-card tm-chart">' + head + chips + svg + '</div>';
   }
 
   function rowHtml(r) {
@@ -96,7 +111,7 @@
       '<div><a class="tm-open" href="track.html?s=' + encodeURIComponent(r.id) + '">' + esc(niceDate(r.date)) + ' · ' + esc(trackOf(r)) + '</a><div class="tm-sub">' + esc(r.conditions || '') + (r.logger ? ' · ' + esc(r.logger) : '') + '</div></div>' +
       '<div>' + esc(r.car || 'MT3UK member build') + '<div class="tm-sub">' + esc(r.owner || 'MT3UK member') + '</div></div>' +
       cell('Best lap', r.bestTime == null ? '' : lapTime(r.bestTime)) +
-      cell('Charge used', u == null ? '' : u.toFixed(1) + ' pts') +
+      cell('Charge used', u == null ? '' : u.toFixed(1) + '%') +
       cell('Peak power', m.power == null ? '' : kW(m.power)) +
       cell('Regen', m.regen == null ? '' : kW(m.regen)) +
       cell('Hottest brakes', m.brakeTemp == null ? '' : pct(m.brakeTemp)) +
@@ -122,22 +137,21 @@
     var tiles = '<div class="tm-tiles">' +
       '<div class="tm-tile"><b>' + runs.length + '</b><span>Shared sessions</span></div>' +
       '<div class="tm-tile"><b>' + Object.keys(cars).length + '</b><span>Cars</span></div>' +
-      '<div class="tm-tile"><b>' + (charges.length ? avg(charges).toFixed(1) + ' pts' : '') + '</b><span>Average charge used</span></div>' +
+      '<div class="tm-tile"><b>' + (charges.length ? avg(charges).toFixed(1) + '%' : '') + '</b><span>Average charge used</span></div>' +
       '<div class="tm-tile"><b>' + (powers.length ? kW(Math.max.apply(null, powers)) : '') + '</b><span>Highest peak power</span></div>' +
       '<div class="tm-tile"><b>' + (brakes.length ? pct(Math.max.apply(null, brakes)) : '') + '</b><span>Hottest brakes (car’s estimate)</span></div>' +
       '</div>';
     var fx = findings(runs);
     var analysis = '<div class="tm-card"><h2>What the runs show</h2>' + (fx.length ? '<ul>' + fx.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' : '<p>Not enough runs yet to compare.</p>') + '</div>';
-    var chart = chartSvg(runs);
-    var chartCard = chart ? '<div class="tm-card tm-chart"><h2>Charge used against lap time</h2><p>One dot for each run with a lap time. Quicker laps are higher up the chart, more charge used further right.</p>' + chart + '</div>' : '';
     var controls = '<div class="tm-controls">' +
       '<label>Track<select id="tm-track"><option value="all">All tracks</option>' + trackKeys.map(function (k) { return '<option value="' + esc(k) + '"' + (state.track === k ? ' selected' : '') + '>' + esc(tracks[k]) + '</option>'; }).join('') + '</select></label>' +
       '<label>Sort by<select id="tm-sort">' + SORTS.map(function (s) { return '<option value="' + s[0] + '"' + (state.sort === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select></label>' +
       '</div>';
     var head = '<div class="tm-row tm-head"><div>Session</div><div>Car</div><div class="tm-num">Best lap</div><div class="tm-num">Charge used</div><div class="tm-num">Peak power</div><div class="tm-num">Regen</div><div class="tm-num">Hottest brakes</div><div class="tm-num">Battery max</div></div>';
     var rows = list.length ? list.map(rowHtml).join('') : '<div class="tm-empty">No runs on this track yet.</div>';
-    app.innerHTML = tiles + analysis + chartCard + controls + '<div class="tm-list">' + head + rows + '</div>' +
-      '<p class="tm-note">Charge is the battery at the start less the end, in points of charge. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
+    app.innerHTML = tiles + analysis + lineChart(runs) + controls + '<div class="tm-list">' + head + rows + '</div>' +
+      '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
+    Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
     var tSel = document.getElementById('tm-track'), sSel = document.getElementById('tm-sort');
     if (tSel) tSel.addEventListener('change', function () { state.track = tSel.value; draw(); });
     if (sSel) sSel.addEventListener('change', function () { state.sort = sSel.value; draw(); });

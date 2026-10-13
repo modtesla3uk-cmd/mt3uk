@@ -10631,7 +10631,15 @@ async function handleTrackBoardsRebuild(request, env) {
     var carId = page.keys[i].name.slice('track-public:'.length);
     // The car's driven wheels go on any of its sessions that have none, so the rows below carry them.
     await stampCarDrive(env, carId, false);
-    var shared = await getJsonKey(env, page.keys[i].name, []);
+    // Each shared summary is written again from its session, so older entries pick up what newer ones carry (the Track Mode figures).
+    var saved = await getJsonKey(env, page.keys[i].name, []);
+    var shared = [];
+    for (var si = 0; si < saved.length; si++) {
+      var srec = await getTrackSession(env, saved[si].id);
+      if (srec && srec.privacy !== 'private' && !srec.street) shared.push(trackSummary(srec));
+    }
+    shared.sort(function (x, y) { return (y.date + y.time) < (x.date + x.time) ? -1 : 1; });
+    await env.VOTES.put(page.keys[i].name, JSON.stringify(shared));
     await refreshTrackModeRuns(env, carId, shared);
     var boards = {};
     shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });

@@ -480,6 +480,16 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     const shared = after_shared_check(await call('GET', '/track/session?id=' + sid, undefined, 'tok-a'));
     ok(shared ? (mine && mine.mode && mine.mode.soc && mine.mode.soc[0] === 62.72 && mine.mode.brakeTemp === undefined) : !mine, 'the Track Mode list has a shared session with its figures, and not a private one');
   }
+  // An older shared entry with no Track Mode figures is written again from its session by Rebuild all leaderboards.
+  {
+    const probe = (await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')).body.session;
+    const key = 'track-public:' + probe.carId;
+    const list = stored(key).map(x => x.id === sid ? Object.assign({}, x, { mode: undefined }) : x);
+    kv.set(key, JSON.stringify(list));
+    const rb = await call('POST', '/track/boards/rebuild?key=secret');
+    const mine = ((await call('GET', '/track/mode-runs')).body.runs || []).find(r => r.id === sid);
+    ok(rb.status === 200 && (after_shared_check(await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')) ? !!(mine && mine.mode) : !mine), 'Rebuild all leaderboards writes the Track Mode list again from each session');
+  }
   // The admin's copy comes as a plain gzip file, not Content-Encoding, so nothing en route can re-encode it.
   res = await send('/track/admin/retime/source?key=secret&id=' + sid, undefined, undefined, 'GET');
   const adminBack = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());

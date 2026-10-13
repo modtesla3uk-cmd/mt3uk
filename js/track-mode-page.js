@@ -8,7 +8,7 @@
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var app = document.getElementById('tm-app');
   if (!app) return;
-  var state = { runs: [], track: 'all', member: 'all', sort: 'newest', metric: 'used', picked: '', scrollTo: '' };
+  var state = { runs: [], track: 'all', member: 'all', sort: 'newest', metric: 'used', lapMetric: 'charge', picked: '', scrollTo: '' };
   var SORTS = [['newest', 'Newest first'], ['best', 'Quickest lap first'], ['charge', 'Most charge used'], ['power', 'Highest peak power'], ['brakes', 'Hottest brakes']];
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -122,38 +122,86 @@
     runs.forEach(function (r) { (r.mode && r.mode.laps || []).forEach(function (l) { out.push(l); }); });
     return out;
   }
-  // Findings from the laps and the runs: charge per lap, heat soak, flat out, tyre warm-up and brakes against pads.
-  function lapAnalysis(runs) {
-    var laps = allLaps(runs), out = [], pads = {};
-    var used = laps.filter(function (l) { return l.used != null; });
-    if (used.length) {
-      var avgUsed = avg(used.map(function (l) { return l.used; }));
-      if (avgUsed > 0) out.push('Charge per lap: ' + avgUsed.toFixed(1) + '% of the battery on average across ' + used.length + ' laps, so about ' + Math.floor(80 / avgUsed) + ' laps use 80% of it.');
-      else out.push('Charge per lap: on average the battery did not go down across ' + used.length + ' laps (the car charged or regenerated more than it used).');
+  // The Lap analysis: one graph with a chip for each measure, a dot a lap (or a run for tyre warm-up) against its lap time,
+  // and the sentence for that measure under it. Brakes against pads stay a table.
+  var LAP_METRICS = [
+    ['charge', 'Charge per lap', '%', 1],
+    ['battery', 'Battery temperature', '%', 0],
+    ['throttle', 'Full throttle', '%', 0],
+    ['tyres', 'Tyre warm-up', ' bar', 2]
+  ];
+  function lapPoints(runs, k) {
+    var laps = allLaps(runs), pts = [];
+    if (k === 'tyres') {
+      runs.forEach(function (r) {
+        if (r.mode && r.mode.tyreStart != null && r.mode.tyreEnd != null && r.bestTime != null) pts.push({ x: r.mode.tyreEnd - r.mode.tyreStart, y: r.bestTime, r: r, lap: null });
+      });
+      return pts;
     }
-    var timedBt = laps.filter(function (l) { return l.bt != null && l.t != null; });
-    if (timedBt.length >= 4) {
-      var mBt = median(timedBt.map(function (l) { return l.bt; }));
-      var hot = timedBt.filter(function (l) { return l.bt > mBt; }), cool = timedBt.filter(function (l) { return l.bt <= mBt; });
-      if (hot.length && cool.length) {
-        var d = avg(hot.map(function (l) { return l.t; })) - avg(cool.map(function (l) { return l.t; }));
-        out.push('Heat soak: laps with the hotter battery (above ' + mBt.toFixed(0) + '%) were ' + (d >= 0 ? d.toFixed(2) + ' s slower' : (-d).toFixed(2) + ' s quicker') + ' on average than the cooler laps.');
-      }
+    laps.forEach(function (l) {
+      var x = k === 'charge' ? l.used : k === 'battery' ? l.bt : (l.th != null ? l.th * 100 : null);
+      if (x != null && isFinite(x) && l.t != null) pts.push({ x: x, y: l.t, r: l.run, lap: l });
+    });
+    return pts;
+  }
+  function lapCaption(runs, k) {
+    var laps = allLaps(runs);
+    if (k === 'charge') {
+      var used = laps.filter(function (l) { return l.used != null; });
+      if (!used.length) return 'No charge per lap recorded yet.';
+      var a = avg(used.map(function (l) { return l.used; }));
+      return a > 0 ? 'About ' + a.toFixed(1) + '% of the battery per lap on average, so about ' + Math.floor(80 / a) + ' laps use 80% of it.' : 'On average the battery did not go down over ' + used.length + ' laps.';
     }
-    var timedTh = laps.filter(function (l) { return l.th != null && l.t != null; });
-    if (timedTh.length >= 4) {
-      var byT = timedTh.slice().sort(function (a, b) { return a.t - b.t; });
-      var h2 = Math.floor(byT.length / 2);
-      var quick = byT.slice(0, h2), slow = byT.slice(byT.length - h2);
-      out.push('Flat out: the quicker half of the laps spent ' + (avg(quick.map(function (l) { return l.th; })) * 100).toFixed(0) + '% of the lap at full throttle, the slower half ' + (avg(slow.map(function (l) { return l.th; })) * 100).toFixed(0) + '%.');
+    if (k === 'battery') {
+      var tb = laps.filter(function (l) { return l.bt != null && l.t != null; });
+      if (tb.length < 4) return 'Not enough laps with a battery temperature yet.';
+      var mBt = median(tb.map(function (l) { return l.bt; }));
+      var hot = tb.filter(function (l) { return l.bt > mBt; }), cool = tb.filter(function (l) { return l.bt <= mBt; });
+      if (!hot.length || !cool.length) return 'The battery stayed at about the same temperature.';
+      var d = avg(hot.map(function (l) { return l.t; })) - avg(cool.map(function (l) { return l.t; }));
+      return 'Laps with the hotter battery (above ' + mBt.toFixed(0) + '%) were ' + (d >= 0 ? d.toFixed(2) + ' s slower' : (-d).toFixed(2) + ' s quicker') + ' on average than the cooler laps.';
+    }
+    if (k === 'throttle') {
+      var th = laps.filter(function (l) { return l.th != null && l.t != null; });
+      if (th.length < 4) return 'Not enough laps with throttle figures yet.';
+      var byT = th.slice().sort(function (x, y) { return x.t - y.t; }), h2 = Math.floor(byT.length / 2);
+      return 'The quicker half of the laps spent ' + (avg(byT.slice(0, h2).map(function (l) { return l.th; })) * 100).toFixed(0) + '% of the lap at full throttle, the slower half ' + (avg(byT.slice(byT.length - h2).map(function (l) { return l.th; })) * 100).toFixed(0) + '%.';
     }
     var warm = runs.filter(function (r) { return r.mode && r.mode.tyreStart != null && r.mode.tyreEnd != null && r.bestTime != null; });
-    if (warm.length >= 4) {
-      var byBest = warm.slice().sort(function (a, b) { return a.bestTime - b.bestTime; });
-      var h3 = Math.floor(byBest.length / 2);
-      var rise = function (r) { return r.mode.tyreEnd - r.mode.tyreStart; };
-      out.push('Tyre warm-up: the quicker half of the runs gained ' + avg(byBest.slice(0, h3).map(rise)).toFixed(2) + ' bar of tyre pressure from start to end, the slower half ' + avg(byBest.slice(byBest.length - h3).map(rise)).toFixed(2) + ' bar.');
-    }
+    if (warm.length < 4) return 'Not enough runs with tyre pressures yet.';
+    var byBest = warm.slice().sort(function (x, y) { return x.bestTime - y.bestTime; }), h3 = Math.floor(byBest.length / 2);
+    var rise = function (r) { return r.mode.tyreEnd - r.mode.tyreStart; };
+    return 'The quicker half of the runs gained ' + avg(byBest.slice(0, h3).map(rise)).toFixed(2) + ' bar of tyre pressure from start to end, the slower half ' + avg(byBest.slice(byBest.length - h3).map(rise)).toFixed(2) + ' bar.';
+  }
+  // Dots against the lap time: the quicker laps sit higher.
+  function dotGraph(pts, unit, dp) {
+    var W = Math.round(Math.min(900, Math.max(340, app.clientWidth - 48))), H = 240, L = 58, R = 12, T = 14, B = 36;
+    var xs = pts.map(function (p) { return p.x; }), ys = pts.map(function (p) { return p.y; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    if (x1 - x0 < 0.5) { x0 -= 0.5; x1 += 0.5; }
+    if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
+    function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
+    function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
+    var dots = pts.map(function (p) {
+      return '<circle cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit) + '</title></circle>';
+    }).join('');
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' +
+      '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + lapTime(y0) + '</text>' +
+      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + lapTime(y1) + '</text>' +
+      '<text x="' + L + '" y="' + (H - 10) + '">' + x0.toFixed(dp) + unit + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 10) + '" text-anchor="end">' + x1.toFixed(dp) + unit + '</text>' +
+      dots + '</svg>';
+  }
+  function lapAnalysis(runs) {
+    var pads = {};
+    var chips = '<div class="tm-chips" role="group" aria-label="Lap measure to plot">' + LAP_METRICS.map(function (m) {
+      return '<button type="button" class="chip' + (state.lapMetric === m[0] ? ' is-on' : '') + '" data-lapmetric="' + m[0] + '" aria-pressed="' + (state.lapMetric === m[0]) + '">' + m[1] + '</button>';
+    }).join('') + '</div>';
+    var m = LAP_METRICS.filter(function (x) { return x[0] === state.lapMetric; })[0] || LAP_METRICS[0];
+    var pts = lapPoints(runs, m[0]);
+    var graph = pts.length >= 2 ? dotGraph(pts, m[2], m[3]) : '<p class="tm-note">Not enough laps or runs with this figure yet.</p>';
     runs.forEach(function (r) {
       if (!r.pads || !r.mode) return;
       var k = r.pads;
@@ -171,8 +219,8 @@
         '<div class="tm-num"><span class="tm-lab tm-sub">Brake pressure</span> ' + (p.bp.length ? '<b>' + avg(p.bp).toFixed(1) + '</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
         '<div class="tm-num"><span class="tm-lab tm-sub">Best lap</span> <b>' + lapTime(p.best) + '</b></div></div>';
     }).join('') + '</div>' : '';
-    if (!out.length && !padHtml) return '';
-    return '<div class="tm-card"><h2>Lap analysis</h2>' + (out.length ? '<ul>' + out.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '<p class="tm-note">Not enough laps or runs yet for these.</p>') + padHtml + '</div>';
+    return '<div class="tm-card tm-lapgraph"><h2>Lap analysis</h2><p class="tm-note">Each dot is a lap, or a run for tyre warm-up, against its lap time. Quicker laps sit higher. Pick a measure.</p>' + chips + graph +
+      '<p class="tm-note">' + esc(lapCaption(runs, m[0])) + '</p>' + padHtml + '</div>';
   }
 
   function rowHtml(r) {
@@ -229,6 +277,7 @@
     app.innerHTML = controls + tiles + analysis + lineChart(runs) + lapAnalysis(runs) + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-lapmetric]'), function (b) { b.addEventListener('click', function () { state.lapMetric = b.getAttribute('data-lapmetric'); draw(); }); });
     // A dot on the graph picks its session: the list shows it (all tracks, if a track filter hides it) and it is highlighted.
     function pick(id) {
       state.picked = id;

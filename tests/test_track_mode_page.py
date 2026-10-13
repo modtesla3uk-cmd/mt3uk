@@ -152,7 +152,7 @@ def test_a_visitor_opens_on_all_members(page):
     expect(page.locator(".tm-row:not(.tm-head)")).to_have_count(4)
 
 
-def test_the_lap_analysis_gives_charge_per_lap_heat_soak_flat_out_tyres_and_pads(page):
+def test_the_lap_analysis_is_a_chart_with_a_chip_for_each_measure(page):
     laps = [
         {"n": 1, "t": 80.0, "used": 1.0, "bt": 50, "br": 60, "th": 0.5, "tp": 2.8},
         {"n": 2, "t": 81.0, "used": 1.2, "bt": 55, "br": 70, "th": 0.45, "tp": 2.9},
@@ -167,9 +167,15 @@ def test_the_lap_analysis_gives_charge_per_lap_heat_soak_flat_out_tyres_and_pads
     ]
     open_mode_page(page, runs)
     card = page.locator(".tm-card", has=page.locator("h2", has_text="Lap analysis"))
-    expect(card).to_contain_text("Charge per lap")
-    expect(card).to_contain_text("Heat soak")
-    expect(card).to_contain_text("Flat out")
-    expect(card).to_contain_text("Tyre warm-up")
-    expect(card).to_contain_text("Brakes against pads")
+    expect(card.locator("[data-lapmetric]")).to_have_count(4)
+    expect(card.locator("[data-lapmetric='charge']")).to_have_attribute("aria-pressed", "true")
+    expect(card.locator("svg circle")).to_have_count(6)
+    expect(card).to_contain_text("per lap on average")
+    card.locator("[data-lapmetric='throttle']").click()
+    expect(card.locator("[data-lapmetric='throttle']")).to_have_attribute("aria-pressed", "true")
+    expect(card.locator("svg circle")).to_have_count(6)
+    expect(card).to_contain_text("full throttle")
+    card.locator("[data-lapmetric='tyres']").click()
+    expect(card.locator("svg circle")).to_have_count(4)
+    expect(card).to_contain_text("tyre pressure")
     expect(card).to_contain_text("Carbotech XP10")

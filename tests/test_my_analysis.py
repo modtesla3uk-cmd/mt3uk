@@ -75,16 +75,6 @@ def test_my_analysis_says_when_there_are_no_sessions_yet(page):
     expect(page.locator("#ma-app")).to_contain_text("No sessions here yet")
 
 
-def test_the_my_analysis_pill_on_my_sessions_goes_to_the_page(page):
-    fake = FakeWorker(earlier=False)
-    add(fake, "a1", "2026-05-01", 61.0)
-    open_page(page, fake)
-    expect(page.locator("#tp-an-pill")).to_have_attribute("href", "my-analysis.html")
-    page.locator("#tp-an-pill").click()
-    page.wait_for_url("**/my-analysis.html")
-    expect(page.locator("#ma-app")).to_be_visible()
-
-
 def test_tapping_a_dot_shows_that_session_here_with_a_button_to_open_it(page):
     fake = FakeWorker(earlier=False)
     add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", brake_g=1.1, mode={"brakeTemp": 61, "power": 230})
@@ -135,3 +125,11 @@ def test_the_my_analysis_icon_sits_between_the_favourites_star_and_home(page):
         return els.every((el, i) => i === 0 || (els[i - 1].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) ;
     }""")
     assert order
+
+
+def test_my_analysis_is_in_the_menu_with_its_icon_after_favourites(page):
+    open_page(page, FakeWorker(earlier=False), "/track.html")
+    link = page.locator('#navlinks a[href="my-analysis.html"]')
+    expect(link).to_have_count(1)
+    expect(link).to_contain_text("My Analysis")
+    expect(link.locator("svg path")).to_have_count(3)

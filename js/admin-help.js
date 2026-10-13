@@ -276,6 +276,15 @@
       ['Find and Load more', 'Find starts again from the top. Load more adds the next page of members.'],
       ['Private sessions and notes', 'Private sessions are listed and marked. Members\' notes are never shown.']
     ] },
+    'session-sound-wrap': { t: 'Session playback sound', p: 'The motor sound that plays with a session\'s laps. It rises and falls with the car\'s speed, and is separate from the Sound panel.', i: [
+      ['Settings', 'Changing these does not change the Sound panel, and the other way round.'],
+      ['Save', 'Puts the settings on the worker, so every session plays the same sound.']
+    ] },
+    'sound-wrap': { t: 'Sound', p: 'The electric motor sound: how it pulls, holds and lifts, with a preview to listen to it.', i: [
+      ['Sliders and Play', 'Move them and press Play to hear the sound as it will be heard.'],
+      ['Save', 'Puts the settings on the worker, so the sound used on the site follows them.'],
+      ['Download', 'Gives a WAV file you can turn into an MP3 with any converter.']
+    ] },
     'explainer-wrap': { t: 'Laps video', p: 'The animation at the top of the Laps front page: its circuit, speed, sound, words and the sign-in line.', i: [
       ['Circuit, mph or km/h, speed', 'The made-up circuit shown, the units for the speeds in it, and how fast the picture runs (Slow is the default).'],
       ['Sound', 'The sound played under it. The built-in sounds are made in the browser; Your own file uses an MP3 or OGG you upload below, up to 5 MB.'],

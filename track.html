@@ -669,10 +669,12 @@
     #tp-mapcard.is-full[data-layout="wide"][data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; right: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
     .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn, .tp-mapcard.is-full[data-layout="wide"] .tp-play .chip { pointer-events: auto; }
     .tp-mapcard.is-full[data-layout="wide"] .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 5; }
-    #tp-mapcard.is-full[data-layout="wide"][data-carspeed="off"] .tv-dotlabel { display: none; }
+    #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
     /* The speed shows beside each car's dot on the map (.tv-dotlabel), so the figures block is left out. */
     .tp-mapcard.is-full[data-layout="wide"] .tp-metrics { display: none; }
-    #tp-mapcard.is-full[data-layout="wide"] .tv-dotlabel { display: inline; }
+    #tp-mapcard.is-full .tv-dotlabel { display: inline; }
+    /* The speed beside each car shows on the map card too, unless Speed on cars is off. */
+    #tp-mapcard:not([data-carspeed="off"]) .tv-dotlabel { display: inline; }
     .tp-mapcard.is-full[data-layout="wide"] .tp-speedkey { top: 6px; left: 6px; }
 
   .tv-dotlabel { display: none; }
@@ -1132,7 +1134,7 @@
   .page-hero .laps-tip-titlebulb .laps-tip-bulb { width: 18px; height: 18px; color: inherit; }
   .page-hero .laps-tip-titlebulb:hover, .page-hero .laps-tip-titlebulb[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
   /* Phone: What is...? opens from a ? button beside the share button, as a light box; Back shows its word again. */
-  @media (min-width: 901px) { .tp-what-q { display: none; } }
+  .tp-what-q { display: none; }
   @media (max-width: 900px) {
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { position: relative; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 0 auto; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
@@ -1369,6 +1371,7 @@
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
+<script src="js/motor-sound.js?v=3"></script>
 <script src="js/track-page.js?v=20271056" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>

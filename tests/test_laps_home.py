@@ -99,21 +99,14 @@ def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
     assert box["height"] >= 44 or page.viewport_size["width"] > 780
 
 
-def test_the_hero_picture_comes_from_the_sharing_panel(page):
-    """The front page's picture is the current pick of the Track sessions sharing set, so the admin controls it;
-    with none set, the built-in picture stays."""
-    pick = {"success": True, "pick": {"url": "http://localhost:8123/images/track-preview/session-overview.jpg", "caption": "Thruxton, lap 3"}}
-    def handler(route):
-        body = pick if "/share/track" in route.request.url else {"success": True, "counts": {}, "leaders": {}}
-        route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
-    page.route("**/%s/**" % API_HOST, handler)
-    page.goto("/laps.html")
-    expect(page.locator("#lh-shot-img")).to_have_attribute("src", pick["pick"]["url"])
-    expect(page.locator("#lh-shot-img")).to_have_attribute("alt", "Thruxton, lap 3")
-    pick = {"success": True, "pick": None}
-    page.goto("/laps.html")
-    page.wait_for_timeout(400)
-    assert page.locator("#lh-shot-img").get_attribute("src").endswith("images/track-preview/share.jpg")
+def test_the_laps_video_sits_in_the_hero_and_the_session_picture_is_gone(page):
+    """The animated Laps video is in the hero beside the words, under the buttons on a phone; the static session
+    picture (and the picture the sharing panel used to set for it) is no longer on the front page."""
+    open_home(page)
+    expect(page.locator(".lh-hero [data-laps-explainer]")).to_be_visible()
+    expect(page.locator("#lh-shot-img")).to_have_count(0)
+    expect(page.locator(".lh-shot")).to_have_count(0)
+    expect(page.locator("section.lh-video-sec")).to_have_count(0)
 
 
 def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
@@ -143,12 +136,11 @@ def test_what_laps_does_comes_first_then_the_lap_timers_then_track_mode_and_no_e
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)
 
 
-def test_the_session_picture_does_not_open_full_screen_on_a_tap(page):
+def test_the_laps_video_does_not_open_full_screen_on_a_tap_in_the_hero(page):
     open_home(page)
-    page.locator("#lh-shot-img").click()
     expect(page.locator(".lh-light")).to_have_count(0)
-
-
+    page.locator(".lh-hero [data-laps-explainer]").click()
+    expect(page.locator(".lh-light")).to_have_count(0)
 def test_track_mode_has_its_own_section_and_fastest_right_now_is_off_the_front_page(page):
     open_home(page)
     expect(page.locator("#trackmode")).to_be_visible()
@@ -218,14 +210,14 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.goto("/leaderboards.html")
     expect(page.locator("#lb-add-session")).to_have_text("Add a session")
     expect(page.locator("#lb-preview")).to_be_hidden()
-    # On a phone it keeps its words, as on Sessions, and is a round plus only on the narrowest phones.
+    # On a phone it keeps its words, as on Sessions, at the same width as My Sessions.
     page.set_viewport_size({"width": 390, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
     assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    # At 320px it keeps its words too, the same 190px width as My Sessions above it.
     page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
-    assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
-    expect(page.locator("#lb-add-session span")).to_be_hidden()
+    assert abs(b["width"] - 190) < 2 and abs(b["height"] - 44) < 2, b
 
 
 def test_members_waiting_for_early_access_are_told_they_are_on_the_list(page):
@@ -327,11 +319,14 @@ def test_the_laps_home_explainer_uses_the_saved_circuit_units_and_words(page):
     expect(wrap).to_have_attribute("data-units", "kph")
     expect(page.locator(".lxe canvas")).to_be_visible()
     toggle = page.locator(".lxe-btn")
+    # The picture waits for a press: Press here starts it and, with sound enabled, the sound.
+    expect(toggle).to_have_attribute("aria-label", "Play video")
+    page.locator(".lxe-go").click()
     expect(toggle).to_have_attribute("aria-label", "Pause video")
+    expect(page.locator(".lxe-go")).to_be_hidden()
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
     toggle.click()
     expect(toggle).to_have_attribute("aria-label", "Play video")
-    # The sound is on by default, so its button still reads Sound on.
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
     # The poster is replaced by the live picture, so the page has one canvas and no video file.
     assert page.locator("[data-laps-explainer] img").count() == 0
 
@@ -391,6 +386,50 @@ def test_the_end_card_sign_in_line_is_a_link_to_sign_in_on_the_front_page(page):
     # The 'Sign in to start' line sits at the middle of the end card, a little below the title.
     page.mouse.click(box["x"] + box["width"] * (480 / 960), box["y"] + box["height"] * (401 / 540))
     page.wait_for_url("**/*signin*", timeout=5000)
+
+
+def test_a_press_anywhere_on_the_end_card_goes_to_sign_in_on_the_front_page(page):
+    """The whole end card is the link: a press at its top corner, away from the words, still goes to sign in."""
+    open_home(page)
+    page.evaluate("window.MT3UKExplainerHome.seek(15.6)")
+    page.locator(".lxe canvas").scroll_into_view_if_needed()
+    page.wait_for_timeout(200)
+    box = page.locator(".lxe canvas").bounding_box()
+    page.mouse.click(box["x"] + box["width"] * (60 / 960), box["y"] + box["height"] * (60 / 540))
+    page.wait_for_url("**/*signin*", timeout=5000)
+
+
+def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
+    """The 'Sign in to start' line is still drawn at the very end of the animation, not faded away."""
+    open_home(page)
+    page.locator(".lxe canvas").scroll_into_view_if_needed()
+    orange = """() => { const c = document.querySelector('.lxe canvas'); const x = c.getContext('2d');
+        const k = c.width / 960; const d = x.getImageData(Math.floor(330 * k), Math.floor(388 * k), Math.ceil(300 * k), Math.ceil(36 * k)).data; let n = 0;
+        for (let i = 0; i < d.length; i += 4) if (d[i] > 180 && d[i + 1] < 130 && d[i + 2] < 100 && d[i + 3] > 200) n++;
+        return n; }"""
+    page.evaluate("window.MT3UKExplainerHome.seek(16.999)")
+    page.wait_for_timeout(200)
+    assert page.evaluate(orange) > 40, "sign in line missing at the end"
+
+
+def test_the_sound_waits_for_its_delay_after_press_here(page):
+    """With a start delay set, Press here starts the animation at once and the sound a little later."""
+    open_home(page, explainer={"sound": True, "soundDelay": 1})
+    page.locator(".lxe-go").click()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true", timeout=3000)
+
+
+def test_the_sound_fades_out_in_the_second_before_the_end_card(page):
+    """The sound is full until a second before the end card, falls to silence as it begins, and is full again when the
+    animation loops back to the start."""
+    open_home(page)
+    fade = lambda t: page.evaluate("t => window.MT3UKExplainer.soundFadeAt(t)", t)
+    assert fade(0) == 1 and fade(14.1) == 1
+    assert abs(fade(14.7) - 0.5) < 0.01
+    assert fade(15.2) == 0 and fade(16.9) == 0
+    assert fade(0.5) == 1
 
 
 def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):

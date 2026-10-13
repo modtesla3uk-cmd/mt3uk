@@ -401,6 +401,8 @@
   a.lb-venue { text-decoration: none; color: inherit; }
   .lb-podium { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   .lb-podium li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+  .lb-empty .lb-pos { background: transparent; color: var(--steel); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .lb-empty .lb-who b { color: var(--steel); font-weight: 400; }
   .lb-who { min-width: 0; display: grid; }
   .lb-who b { color: var(--ink); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lb-who small { color: var(--steel); font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -539,13 +541,6 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 0; width: 190px; min-width: 0; height: auto; min-height: 44px; padding: 0 16px; justify-content: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions:not([hidden]) { display: contents; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 3; grid-row: 3; justify-self: end; width: 190px; min-width: 0; height: auto; min-height: 44px; margin-top: 0; padding: 0 16px; justify-content: center; font-size: 0.92rem; }
-  /* On the narrowest phones the heading row is Back, the round My Sessions and the round Add a session. */
-  @media (max-width: 351px) {
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { grid-template-columns: auto minmax(0, 1fr) 44px; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill:not(.is-preview) { width: 44px; min-width: 0; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round:not(.lb-add) { width: 44px; min-width: 0; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round:not(.lb-add) span { display: none; }
-  }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 3; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
     .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn .laps-tip-bulb { width: 18px; height: 18px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: start; text-align: left; width: auto; max-width: none; margin-top: -4px; }
@@ -557,7 +552,7 @@
   .page-hero .laps-tip-titlebulb .laps-tip-bulb { width: 18px; height: 18px; color: inherit; }
   .page-hero .laps-tip-titlebulb:hover, .page-hero .laps-tip-titlebulb[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
   /* Phone: What is...? opens from a ? button beside the share button, as a light box; Back shows its word again. */
-  @media (min-width: 901px) { .tp-what-q { display: none; } }
+  .tp-what-q { display: none; }
   @media (max-width: 900px) {
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { position: relative; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 0 auto; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
@@ -779,13 +774,13 @@
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/leaderboard-page.js?v=20271200" defer></script>
+<script src="js/leaderboard-page.js?v=20271230" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/laps-strip.js?v=8" defer></script>
+<script src="js/laps-strip.js?v=9" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=3" defer></script>

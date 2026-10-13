@@ -163,7 +163,7 @@
           if (t.date) { var d = new Date(t.date + 'T12:00:00'); if (!isNaN(d)) when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
           var sub = what + (when ? ' \u00b7 ' + when : '') + (mine && t.privacy === 'private' ? ' \u00b7 Only me' : '');
           return '<li><a href="track.html?s=' + encodeURIComponent(t.id) + '" data-laps><span class="ls-where"><b>' + esc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><span>' + esc(sub) + '</span></span><span class="ls-time">' + esc(res) + '</span>' + icon('chev') + '</a></li>';
-        }).join('') + '</ul>' + (mine ? '<p class="laps-preview-note" data-laps-preview hidden></p>' : '') + '<div class="ls-actions">' + all + (mine ? add : '<a class="btn btn-ghost btn-sm" href="laps.html" data-laps>What is Laps?</a>') + '</div>';
+        }).join('') + '</ul>' + (mine ? '<p class="laps-preview-note" data-laps-preview hidden></p>' : '') + '<div class="ls-actions">' + all + (mine ? add : '<a class="btn btn-ghost btn-sm" href="https://laps.mt3uk.com/laps.html" data-laps>What is Laps?</a>') + '</div>';
       } else if (mine) {
         html += '<p class="ls-empty">No sessions for this ' + (el.getAttribute('data-laps-word') || 'car') + ' yet. Upload your lap timer file from a track day, sprint or drag strip and it shows here, with your best at each track.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + add + '</div>';
       } else { el.hidden = true; el.innerHTML = ''; return; }

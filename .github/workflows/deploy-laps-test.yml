@@ -1,0 +1,108 @@
+name: Deploy Laps test copy
+
+# Copies the site and worker from the branch you run this on into the test worker (mt3uk-test) at
+# test.laps.mt3uk.com. Test only: it never touches the live worker, its data or its cron.
+# Run by hand from Actions, choosing the branch. Nothing deploys to test on a push.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy the site into the test worker
+        run: |
+          mkdir -p workers/test/site
+          rsync -a --delete \
+            --exclude '.git' --exclude '.github' --exclude 'workers' --exclude 'tests' \
+            --exclude 'scripts' --exclude 'node_modules' --exclude '.assetsignore' \
+            ./ workers/test/site/
+          # The site's scripts call the worker by a fixed address. In the test copy only, point them at the test worker,
+          # so test pages never read or write live data or send live email.
+          grep -rl 'late-darkness-ebc8.modtesla3uk.workers.dev' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#late-darkness-ebc8.modtesla3uk.workers.dev#mt3uk-test.modtesla3uk.workers.dev#g'
+          echo "Remaining live worker addresses in the test copy: $(grep -rl 'late-darkness-ebc8' workers/test/site --include='*.html' --include='*.js' | wc -l)"
+
+      - name: Treat the test address as the Laps address in the test copy
+        run: |
+          # The site checks for the live Laps address (laps.mt3uk.com) to decide where sign-in and Laps links go. In the
+          # test copy only, the check and the links use the test Laps address, so Sign in to Start opens laps-signin.html.
+          grep -rl 'laps\.mt3uk\.com' workers/test/site --include='*.html' --include='*.js' | xargs -r sed -i 's#laps\.mt3uk\.com#test.laps.mt3uk.com#g'
+          echo "Live Laps address left in the test copy: $(grep -rl 'laps\.mt3uk\.com' workers/test/site --include='*.html' --include='*.js' | grep -v 'test\.laps\.mt3uk\.com' | wc -l) files"
+
+      - name: Make the test address's index page the Laps front page
+        run: |
+          # index.html is the MT3UK homepage. Its script sends visitors to Laps only on the live Laps address, so on the
+          # test address it showed MT3UK. The test copy uses the Laps front page for index.html too (test only).
+          cp workers/test/site/laps.html workers/test/site/index.html
+
+      - name: Add the Test Site banner to every page of the test copy
+        run: |
+          # Added to the files themselves, not by the worker: pages are served straight from the asset store, so the
+          # worker never sees them. Every page of the test copy shows it, the live site never has it.
+          find workers/test/site -name '*.html' -print0 | xargs -0 sed -i 's#</body>#<div id="mt3uk-test-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:\#e8572a;color:\#fff;font:700 13px/1.4 system-ui,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 -2px 8px rgba(0,0,0,.2)">This is the Test Site for Laps</div>\n</body>#'
+          echo "Pages with the banner: $(grep -rl 'Test Site for Laps' workers/test/site --include='*.html' | wc -l)"
+
+      - name: Add the test-only panel to the test copy of the admin page
+        run: |
+          # Only the test copy of admin.html gets the Test testers panel; the live admin page never loads it.
+          sed -i 's#</body>#<script src="js/test-testers-admin.js?v=1" defer></script>\n</body>#' workers/test/site/admin.html
+          grep -c 'test-testers-admin.js' workers/test/site/admin.html
+
+      - name: Make the test copy of the worker
+        run: |
+          # The worker's own links (sign-in emails, passkey origins) use live addresses. The test copy uses the test ones.
+          sed -e 's#https://late-darkness-ebc8.modtesla3uk.workers.dev#https://mt3uk-test.modtesla3uk.workers.dev#g' \
+              -e 's#https://laps.mt3uk.com#https://test.laps.mt3uk.com#g' \
+              -e 's#https://www.mt3uk.com#https://test.laps.mt3uk.com#g' \
+              -e 's#https://mt3uk.com#https://test.laps.mt3uk.com#g' \
+              workers/vote-worker.js > workers/test/vote-worker.js
+          echo "Live addresses left in the test worker: $(grep -c 'late-darkness-ebc8\|https://mt3uk.com\|https://laps.mt3uk.com' workers/test/vote-worker.js)"
+
+      - name: Read the built-in track list from the live site in the test worker
+        run: |
+          # The worker builds the track list by fetching data/tracks.json from its own site. On the test copy that is the
+          # test worker itself, so the fetch fails and the list is empty. The test copy reads the live site's copy of the
+          # file instead (read only), so the built-in tracks show. Live is unaffected.
+          python3 - <<'PY'
+          p = 'workers/test/vote-worker.js'
+          s = open(p, encoding='utf-8').read()
+          s2 = s.replace("MY_BUILDS_SITE_URL + '/data/tracks.json'", "'https://mt3uk.com/data/tracks.json'")
+          assert s2 != s, 'TRACKS_URL line not found'
+          open(p, 'w', encoding='utf-8').write(s2)
+          print('test worker reads the track list from https://mt3uk.com/data/tracks.json')
+          PY
+
+      - name: Find the test KV namespace id
+        run: |
+          id=$(npx --yes wrangler@4 kv namespace list | python3 -c "import json,sys; print(next(n['id'] for n in json.load(sys.stdin) if n['title']=='mt3uk-test-votes'))")
+          test -n "$id" || { echo "mt3uk-test-votes not found: run the create-laps-test-resources workflow first"; exit 1; }
+          sed -i "s/REPLACE_BY_DEPLOY/$id/" workers/test/wrangler.toml
+          echo "Using KV namespace $id"
+
+      - name: Deploy to mt3uk-test
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/test
+
+      - name: Clear the edge cache for the test address
+        run: |
+          # Pages are cached at Cloudflare's edge by address, so an older copy would still be served without the banner.
+          # Only this hostname is purged, never the whole zone, so live is untouched.
+          zone=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones?name=mt3uk.com" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'][0]['id'])")
+          test -n "$zone" || { echo "Could not find the mt3uk.com zone"; exit 1; }
+          curl -sS -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+            --data '{"hosts":["test.laps.mt3uk.com"]}' \
+            "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" | tee purge.json
+          python3 -c "import json; r=json.load(open('purge.json')); print('success' if r.get('success') else 'FAILED'); exit(0 if r.get('success') else 1)"

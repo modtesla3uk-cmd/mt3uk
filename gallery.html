@@ -1216,7 +1216,7 @@
           var when = t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
           return '<li><a href="track.html?s=' + encodeURIComponent(t.id) + '" data-laps><span class="ls-where"><b>' + carEsc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><span>' + carEsc(what + (when && when !== 'Invalid Date' ? ' \u00b7 ' + when : '')) + '</span></span><span class="ls-time">' + carEsc(res) + '</span>' + chev + '</a></li>';
         }).join('') + '</ul>' + (carData.mine ? '<p class="laps-preview-note" data-laps-preview hidden></p>' : '') + '<div class="ls-actions"><a class="btn btn-secondary btn-sm lightbox-car-track-all" href="track.html?car=' + encodeURIComponent(carData.carId) + '" data-laps>All shared sessions</a>' +
-          (carData.mine ? addBtn : '<a class="btn btn-ghost btn-sm" href="laps.html" data-laps>What is Laps?</a>') + '</div>';
+          (carData.mine ? addBtn : '<a class="btn btn-ghost btn-sm" href="https://laps.mt3uk.com/laps.html" data-laps>What is Laps?</a>') + '</div>';
       } else {
         trackBox.innerHTML = carData.mine ? head + '<p class="ls-empty">No shared times for this car yet. Upload your lap timer file from a track day, sprint or drag strip and it shows here.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + addBtn + '</div>' : '';
       }
@@ -1585,7 +1585,7 @@
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/laps-strip.js?v=8" defer></script>
+<script src="js/laps-strip.js?v=9" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=3" defer></script>
 <script src="js/search.js" defer></script>

@@ -129,7 +129,7 @@ def test_full_list_shows_shared_track_bests(device_page):
     assert track.get_by_text("All shared sessions").get_attribute("href") == "track.html?car=car-1"
     # Drawn as a Laps strip: the car's name on Laps, the kind of result, and What is Laps? for a visitor.
     assert "Test Model 3 on Laps" in track.inner_text() and "Best lap" in track.inner_text()
-    assert track.get_by_text("What is Laps?").get_attribute("href") == "laps.html"
+    assert track.get_by_text("What is Laps?").get_attribute("href") == "https://laps.mt3uk.com/laps.html"
     assert track.locator("[data-laps-add]").count() == 0
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)

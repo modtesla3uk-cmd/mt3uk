@@ -1,0 +1,50 @@
+name: Create Laps test resources (manual)
+
+# Run once by hand from Actions. Creates the test KV namespace and R2 bucket in the
+# Cloudflare account, using the CLOUDFLARE_LAPS_TEST_API_TOKEN secret. The test worker
+# itself and its domain (test.laps.mt3uk.com) are created by its first deploy.
+# Safe to re-run: an existing namespace or bucket is reported, not duplicated.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_LAPS_TEST_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Create the test KV namespace (votes, sessions, members)
+        run: |
+          set +e
+          out=$(npx --yes wrangler@4 kv namespace create mt3uk-test-votes 2>&1)
+          echo "$out"
+          if echo "$out" | grep -qi "already exists"; then
+            echo "KV namespace mt3uk-test-votes already exists, leaving it as it is."
+          elif echo "$out" | grep -q "\"id\""; then
+            echo "KV namespace created."
+          else
+            echo "KV namespace step failed." && exit 1
+          fi
+
+      - name: Create the test R2 bucket (photos, events, shares)
+        run: |
+          set +e
+          out=$(npx --yes wrangler@4 r2 bucket create mt3uk-test 2>&1)
+          echo "$out"
+          if echo "$out" | grep -qi "already exists\|already own"; then
+            echo "R2 bucket mt3uk-test already exists, leaving it as it is."
+          elif echo "$out" | grep -qi "created\|Created bucket"; then
+            echo "R2 bucket created."
+          else
+            echo "R2 bucket step failed." && exit 1
+          fi
+
+      - name: List what is there now
+        run: |
+          npx --yes wrangler@4 kv namespace list
+          npx --yes wrangler@4 r2 bucket list

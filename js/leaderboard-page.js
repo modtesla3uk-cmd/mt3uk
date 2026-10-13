@@ -163,13 +163,20 @@
 
   // The top three at one board, shown on the track list so nobody has to open
   // each track to see who is quickest.
+  // The track list shows five rows for every layout: the top three have medals, and any place not taken yet is a
+  // plain row marked Not taken yet.
+  var LIST_ROWS = 5;
   function podium(key, drag) {
-    var top = leaders[key] || [];
+    var top = (leaders[key] || []).slice(0, LIST_ROWS);
     if (!top.length) return '';
-    return '<ol class="lb-podium">' + top.map(function (l, i) {
+    var rows = [];
+    for (var i = 0; i < LIST_ROWS; i++) {
+      var l = top[i];
+      if (!l) { rows.push('<li class="lb-empty"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>Not taken yet</b></span></li>'); continue; }
       var res = drag ? Number(l.quarter).toFixed(2) + ' s' : V.fmtLap(l.time);
-      return '<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>';
-    }).join('') + '</ol>';
+      rows.push('<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>');
+    }
+    return '<ol class="lb-podium">' + rows.join('') + '</ol>';
   }
 
   // The member's own sessions on the track list (the My sessions sort): each layout's count, its top three, and each
@@ -205,7 +212,7 @@
   }
   // The place is shown as the board shows a row: the medal circle, the member's name, car and date, and the time,
   // with the medals 1st platinum, 2nd gold, 3rd silver, 4th bronze.
-  var MEDALS = ['', 'platinum', 'gold', 'silver', 'bronze'];
+  var MEDALS = ['', 'platinum', 'gold', 'silver'];
   function rankCount(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId), r = myRanks[key];
     if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }

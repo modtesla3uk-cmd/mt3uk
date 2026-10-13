@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap", "all-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "explainer-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "explainer-wrap", "sound-wrap", "session-sound-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions", "All sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Laps video", "Sound", "Session playback sound", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -1201,6 +1201,149 @@ def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
     expect(page.locator(".ll-opt[data-logo='ramp'] b")).to_have_text("Speed-ramp L (in use)")
     assert posted == [{"logo": "ramp"}], posted
     expect(page.locator("#ll-save")).to_be_disabled()
+
+
+def test_admin_sound_panel_shapes_a_motor_sound_and_saves_it(page):
+    """The Sound panel has a slider for each setting, renders the sound (3.6 seconds at 44.1 kHz by default), and Save sends
+    the settings the sliders show to the worker, which the reload then shows back."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def sound_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/ev/admin**", sound_admin)
+    page.locator("#sound-wrap summary").click()
+    rows = page.locator("#snd-controls .snd-row")
+    expect(rows).to_have_count(15)
+    expect(rows.first.locator("output")).to_have_text("95")
+    expect(page.locator("#snd-controls .snd-row").nth(1).locator("output")).to_have_text("430")
+    # Move the top pitch and save it
+    page.evaluate("""() => { const r = document.querySelectorAll('#snd-controls .snd-row input')[1];
+        r.value = '520'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(page.locator("#snd-controls .snd-row").nth(1).locator("output")).to_have_text("520")
+    page.locator("#snd-save").click()
+    expect(page.locator("#snd-note")).to_have_text("Saved.")
+    assert len(posted) == 1 and posted[0]["fPeak"] == 520, posted
+    assert len(posted[0]["harm"]) == 4, posted[0]
+    # The synth itself: default length is 3.6 seconds of samples, peak-normalised
+    length, peak = page.evaluate("() => { const s = MT3UKEvSound.render({}); let m = 0; for (const v of s) m = Math.max(m, Math.abs(v)); return [s.length, m]; }")
+    assert length == 158760, length
+    assert 0.7 < peak < 0.72, peak
+
+
+def test_the_sound_panels_play_button_plays_without_an_error(page):
+    """Play on the Sound panel renders the sound and plays it: no page error, and the note says it is playing."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    open_admin(page, "track-admin.html")
+    page.locator("#sound-wrap summary").click()
+    page.locator("#snd-play").click()
+    expect(page.locator("#snd-note")).to_have_text("Playing the sound.")
+    assert errors == [], errors
+
+
+def test_the_uploaded_sound_can_play_once_while_the_animation_loops(page):
+    """The Loop the uploaded sound switch is separate from the animation's Loop switch: turning it off saves audioLoop false,
+    and the animation's loop is left as it was."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {"loop": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-audio-loop")).to_have_attribute("aria-checked", "true")
+    page.locator("#lxa-audio-loop").click()
+    expect(page.locator("#lxa-audio-loop")).to_have_attribute("aria-checked", "false")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted and posted[-1]["audioLoop"] is False and posted[-1]["loop"] is True, posted
+
+
+def test_a_save_result_out_of_view_is_also_shown_at_the_bottom_of_the_screen(page):
+    """Pressing Save at the bottom of a panel shows its result at the bottom of the screen, where the button is, when the
+    result line at the top of the panel is out of view. A page load that changes a line without a press shows nothing."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def explainer_admin(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    page.locator("#lxa-save").scroll_into_view_if_needed()
+    expect(page.locator("#admin-toast.is-on")).to_have_count(0)
+    page.locator("#lxa-save").click()
+    toast = page.locator("#admin-toast")
+    expect(toast).to_have_class(re.compile("is-on"))
+    expect(toast).to_contain_text("Saved")
+    page.locator("#admin-toast").click()
+    expect(page.locator("#admin-toast.is-on")).to_have_count(0)
+
+
+def test_the_session_playback_sound_section_has_play_and_stop(page):
+    """Play on the Session playback sound section plays the sliders as they are now, without a session open: no page error,
+    and the note says it is playing. Stop ends it."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    open_admin(page, "track-admin.html")
+    page.locator("#session-sound-wrap summary").click()
+    page.locator("#ss-play").click()
+    expect(page.locator("#ss-note")).to_have_text("Playing the session sound for four seconds.")
+    page.locator("#ss-stop").click()
+    assert errors == [], errors
+
+
+def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_the_panel(page):
+    """The Session playback sound section sits under the Sound panel, has its own sliders, and Save sends its own settings to
+    /sound/session/admin, not the shaping settings of the Sound panel."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def session_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/session/admin**", session_admin)
+    page.locator("#session-sound-wrap summary").click()
+    rows = page.locator("#ss-controls .snd-row")
+    expect(rows).to_have_count(10)
+    expect(rows.first.locator("output")).to_have_text("95")
+    page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[1];
+        r.value = '600'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    page.locator("#ss-save").click()
+    expect(page.locator("#ss-note")).to_contain_text("Saved")
+    assert len(posted) == 1 and posted[0]["fPeak"] == 600, posted
+    assert "sub" in posted[0] and len(posted[0]["harm"]) == 4, posted[0]
+    assert "fEnd" not in posted[0] and "length" not in posted[0], posted[0]
+    # The Sound panel above keeps its own settings
+    sub = page.locator("#admin-subnav")
+    expect(sub.locator("a", has_text="Session playback sound")).to_have_count(1)
 
 
 LINES_API = "**/track/lines/admin**"
@@ -2571,19 +2714,55 @@ def test_admin_uploads_an_mp3_for_the_laps_video_and_uses_it_and_can_remove_it(p
     expect(page.locator("#lxa-sound-style")).to_have_value("custom")
     assert uploads and uploads[-1]["type"] == "audio/mpeg" and uploads[-1]["size"] == sound.stat().st_size
     assert saves[-1]["soundStyle"] == "custom"
+    assert saves[-1]["sound"] is True, saves[-1]
+    expect(page.locator("#lxa-sound-state")).to_have_text("Yes")
     expect(page.locator("#lxa-note")).to_contain_text("Uploaded and saved")
+    expect(page.locator("#lxa-audio-note")).to_contain_text("Uploaded and saved")
     page.on("dialog", lambda d: d.accept())
     page.locator("#lxa-audio-remove").click()
     expect(page.locator("#lxa-audio-now")).to_contain_text("No file yet")
     expect(page.locator("#lxa-sound-style")).to_have_value("pad")
 
 
-def test_the_laps_video_sound_is_on_by_default_and_starts_on_the_first_press(page):
+def test_the_laps_video_sound_can_wait_a_set_number_of_seconds_before_it_starts(page):
+    """The Start the sound after slider saves its value with the settings."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def explainer_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            settings = dict(body)
+        else:
+            settings = {}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/explainer/admin**", explainer_admin)
+    page.locator("#explainer-wrap summary").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Changes show in the preview")
+    page.evaluate("""() => { const r = document.getElementById('lxa-sound-delay'); r.value = '3';
+        r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(page.locator("#lxa-sound-delay-out")).to_have_text("3")
+    page.locator("#lxa-save").click()
+    expect(page.locator("#lxa-note")).to_contain_text("Saved")
+    assert posted and posted[-1]["soundDelay"] == 3, posted
+
+
+def test_the_laps_video_waits_for_click_to_play_and_then_starts_the_sound_too(page):
+    """Nothing plays on load and a press elsewhere on the page does not start it. Press here starts the animation and,
+    with sound enabled, the sound."""
     from tests.test_laps_home import open_home
     open_home(page)
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator(".lxe-sound")).to_contain_text("Sound on")
+    expect(page.locator(".lxe-go")).to_be_visible()
+    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
     page.mouse.click(5, 5)
+    expect(page.locator(".lxe-go")).to_be_visible()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Play video")
+    page.locator(".lxe-go").click()
+    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
 
 

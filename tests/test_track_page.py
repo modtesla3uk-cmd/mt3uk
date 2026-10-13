@@ -3070,6 +3070,49 @@ def test_compare_dots_show_each_lap_at_the_same_moment(page):
     assert sep > 20, sep
 
 
+def test_the_sound_on_switch_makes_the_motor_sound_while_the_lap_plays(page):
+    """Sound on makes the motor sound (js/motor-sound.js) while the laps play and quiets it on Pause. The switch is kept in
+    this browser."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    sound = page.locator("#tp-sound")
+    expect(sound).to_have_text("Sound off")
+    expect(sound).to_have_attribute("aria-pressed", "false")
+    sound.click()
+    expect(sound).to_have_text("Sound on")
+    expect(sound).to_have_attribute("aria-pressed", "true")
+    assert page.evaluate("localStorage.getItem('mt3ukTrackSound')") == "on"
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-play-toggle")).to_have_text("Pause")
+    page.wait_for_timeout(600)
+    assert page.evaluate("window.MT3UKMotorSound.on") is True
+    freq = page.evaluate("window.MT3UKMotorSound.oscs[0].osc.frequency.value")
+    assert 80 < freq < 500, freq
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-play-toggle")).to_have_text("Play")
+    assert page.evaluate("window.MT3UKMotorSound.on") is False
+    sound.click()
+    expect(sound).to_have_text("Sound off")
+    assert page.evaluate("localStorage.getItem('mt3ukTrackSound')") == "off"
+
+
+def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(page):
+    """The motor sound on a session takes its settings from /sound/session (the Session playback sound section of the Sound
+    panel). Without them, or if they cannot be read, the built-in sound is used."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.route("**/sound/session**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"fPeak": 600, "harm": [0.5, 0.2, 0.1, 0.05], "volume": 80}}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.reload()
+    settings = page.evaluate("MT3UKMotorSound.ready.then(function (s) { return s; })")
+    assert settings["fPeak"] == 600 and settings["volume"] == 80, settings
+    assert settings["f0"] == 95 and settings["harm"][0] == 0.5, settings
+
+
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     """Play moves both laps along the track in real time (x1), Rewind goes back
     the same way, and x0.5, x2 and x5 change the pace. The slider moves the

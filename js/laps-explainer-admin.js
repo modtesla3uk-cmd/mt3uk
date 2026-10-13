@@ -12,10 +12,12 @@
   var unitBtns = document.querySelectorAll('#lxa-units [data-units]'), sound = document.getElementById('lxa-sound');
   var soundStyle = document.getElementById('lxa-sound-style'), pace = document.getElementById('lxa-pace');
   var loop = document.getElementById('lxa-loop'), previewLabel = document.getElementById('lxa-preview-label');
+  var audioLoopSw = document.getElementById('lxa-audio-loop');
   var audioNow = document.getElementById('lxa-audio-now'), audioFile = document.getElementById('lxa-audio-file');
   var audioUpload = document.getElementById('lxa-audio-upload'), audioRemove = document.getElementById('lxa-audio-remove');
   var MAX_AUDIO = 5 * 1024 * 1024;
   var volume = document.getElementById('lxa-volume'), note = document.getElementById('lxa-note');
+  var soundDelay = document.getElementById('lxa-sound-delay'), soundDelayOut = document.getElementById('lxa-sound-delay-out');
   var saveBtn = document.getElementById('lxa-save'), resetBtn = document.getElementById('lxa-reset');
   var previewBox = document.getElementById('lxa-preview');
   var fields = {}, preview = null, loaded = false, units = 'mph';
@@ -31,6 +33,9 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
   function say(t, bad) { if (note) { note.textContent = t || ''; note.classList.toggle('is-bad', !!bad); } }
+  // The upload and remove messages sit under their buttons, where the reader is looking.
+  var audioNote = document.getElementById('lxa-audio-note');
+  function sayAudio(t, bad) { if (audioNote) { audioNote.textContent = t || ''; audioNote.classList.toggle('is-bad', !!bad); } say(t, bad); }
 
   // Options and the scene boxes (one title and one caption per scene, with the built-in words as the placeholder).
   Object.keys(E.MAPS).forEach(function (id) {
@@ -72,7 +77,7 @@
       if (mine.title || mine.caption) texts[id] = mine;
     });
     var style = soundStyle.value;
-    return { map: mapSel.value, units: units, pace: pace.value, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
+    return { map: mapSel.value, units: units, pace: pace.value, soundDelay: parseFloat(soundDelay.value) || 0, audio: currentAudio, loop: loop.getAttribute('aria-checked') === 'true', audioLoop: audioLoopSw.getAttribute('aria-checked') === 'true', previewLabel: previewLabel.getAttribute('aria-checked') === 'true', soundStyle: style, sound: sound.getAttribute('aria-checked') === 'true' && style !== 'silent', volume: parseInt(volume.value, 10), texts: texts };
   }
   // Shows the uploaded file, and offers it in the Sound menu only while there is one.
   var currentAudio = null;
@@ -90,9 +95,13 @@
     }
     audioRemove.disabled = !(audio && audio.url);
   }
+  // The Enable sound switch reads Yes or No beside it.
+  function soundLabel() { var o = document.getElementById('lxa-sound-state'); if (o) o.textContent = sound.getAttribute('aria-checked') === 'true' ? 'Yes' : 'No'; }
   function fill(s) {
     s = E.merge(s || {});
     showAudio(s.audio);
+    // Until it is set, the uploaded sound follows the animation's loop switch, as it always did.
+    audioLoopSw.setAttribute('aria-checked', String(s.audioLoop !== undefined ? s.audioLoop : s.loop !== false));
     mapSel.value = s.map;
     setUnits(s.units);
     soundStyle.value = s.soundStyle;
@@ -100,7 +109,10 @@
     loop.setAttribute('aria-checked', String(s.loop !== false));
     previewLabel.setAttribute('aria-checked', String(s.previewLabel !== false));
     sound.setAttribute('aria-checked', String(!!s.sound));
+    soundLabel();
     volume.value = String(s.volume);
+    soundDelay.value = String(s.soundDelay || 0);
+    soundDelayOut.textContent = String(s.soundDelay || 0);
     E.SCENES.forEach(function (id) {
       var saved = (s.texts && s.texts[id]) || {};
       var t = saved.title, c = saved.caption;
@@ -123,11 +135,12 @@
   mapSel.addEventListener('change', refreshPreview);
   soundStyle.addEventListener('change', refreshPreview);
   pace.addEventListener('change', refreshPreview);
-  [loop, previewLabel].forEach(function (b) {
+  [loop, previewLabel, audioLoopSw].forEach(function (b) {
     b.addEventListener('click', function () { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
   });
-  sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); refreshPreview(); });
+  sound.addEventListener('click', function () { sound.setAttribute('aria-checked', String(sound.getAttribute('aria-checked') !== 'true')); soundLabel(); refreshPreview(); });
   volume.addEventListener('input', refreshPreview);
+  soundDelay.addEventListener('input', function () { soundDelayOut.textContent = soundDelay.value; refreshPreview(); });
   E.SCENES.forEach(function (id) {
     fields[id].title.addEventListener('input', refreshPreview);
     fields[id].caption.addEventListener('input', refreshPreview);
@@ -151,24 +164,26 @@
   // Upload: the file goes to the worker, then the settings are saved so the sound is used on laps.mt3uk.com.
   audioUpload.addEventListener('click', function () {
     var file = audioFile.files && audioFile.files[0];
-    if (!file) { say('Choose an MP3 or OGG file first.', true); return; }
-    if (file.size > MAX_AUDIO) { say('That file is over 5 MB. Please choose a shorter or smaller one.', true); return; }
-    if (!key()) { say('Enter the admin key at the top of the page first.', true); return; }
+    if (!file) { sayAudio('Choose an MP3 or OGG file first.', true); return; }
+    if (file.size > MAX_AUDIO) { sayAudio('That file is over 5 MB. Please choose a shorter or smaller one.', true); return; }
+    if (!key()) { sayAudio('Enter the admin key at the top of the page first.', true); return; }
     audioUpload.disabled = true;
-    say('Uploading ' + file.name + '…');
+    sayAudio('Uploading ' + file.name + '…');
     fetch(API + '/laps/explainer/admin/audio?name=' + encodeURIComponent(file.name) + '&key=' + encodeURIComponent(key()), {
       method: 'POST', headers: { 'Content-Type': file.type || 'audio/mpeg' }, cache: 'no-store', body: file
     }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-      if (!d.success) { audioUpload.disabled = false; say(d.message || 'Could not upload the file.', true); return; }
+      if (!d.success) { audioUpload.disabled = false; sayAudio(d.message || 'Could not upload the file.', true); return; }
       fill(d.settings);
       soundStyle.value = 'custom';
+      // An uploaded sound is meant to be heard, so Enable sound goes to Yes with it.
+      sound.setAttribute('aria-checked', 'true'); soundLabel();
       return call('POST', '/laps/explainer/admin', read()).then(function (saved) {
         audioUpload.disabled = false;
         audioFile.value = '';
-        if (saved.success) { fill(saved.settings); soundStyle.value = 'custom'; refreshPreview(); say('Uploaded and saved. laps.mt3uk.com uses it within two minutes.'); }
-        else say(saved.message || 'Uploaded, but it could not be saved.', true);
+        if (saved.success) { fill(saved.settings); soundStyle.value = 'custom'; refreshPreview(); sayAudio('Uploaded and saved. laps.mt3uk.com uses it within two minutes.'); }
+        else sayAudio(saved.message || 'Uploaded, but it could not be saved.', true);
       });
-    }).catch(function () { audioUpload.disabled = false; say('Could not reach the server.', true); });
+    }).catch(function () { audioUpload.disabled = false; sayAudio('Could not reach the server.', true); });
   });
   audioRemove.addEventListener('click', function () {
     if (!window.confirm('Remove your sound file? The Sound menu goes back to Soft pad.')) return;
@@ -176,12 +191,12 @@
     fetch(API + '/laps/explainer/admin/audio?key=' + encodeURIComponent(key()), { method: 'DELETE', cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
         audioRemove.disabled = false;
-        if (!d.success) { say(d.message || 'Could not remove the file.', true); return; }
+        if (!d.success) { sayAudio(d.message || 'Could not remove the file.', true); return; }
         fill(d.settings);
         if (soundStyle.value === 'custom') soundStyle.value = 'pad';
         refreshPreview();
-        say('Removed. The Sound menu is back to the built-in sounds.');
-      }).catch(function () { audioRemove.disabled = false; say('Could not reach the server.', true); });
+        sayAudio('Removed. The Sound menu is back to the built-in sounds.');
+      }).catch(function () { audioRemove.disabled = false; sayAudio('Could not reach the server.', true); });
   });
 
   saveBtn.addEventListener('click', function () {

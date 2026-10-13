@@ -42,8 +42,7 @@
   // The sounds the admin can choose. Each is made here in the browser (no audio file). Silent offers no Sound button.
   var SOUNDS = { pad: 'Soft pad', pulse: 'Pulse', engine: 'Engine hum', chime: 'Chime', stopwatch: 'Stopwatch', whoosh: 'Whoosh', silent: 'Silent (no Sound button)' };
   var DEFAULTS = { map: 'club', units: 'mph', sound: true, soundStyle: 'pad', pace: 'slow', volume: 60, loop: true, previewLabel: true, texts: {} };
-  // Where the 'Sign in to start' line on the end card goes, and the area of the picture that counts as a press on it.
-  var CTA = { x0: 330, x1: 630, y0: 376, y1: 426 };
+  // Where the end card's picture goes when pressed on the Laps front page.
   function signInTarget() {
     return typeof window.mt3ukSignInUrl === 'function' ? window.mt3ukSignInUrl('track.html') : 'laps-signin.html?next=track.html';
   }
@@ -56,7 +55,8 @@
     s = s || {};
     var audio = s.audio && s.audio.url ? { url: String(s.audio.url), name: String(s.audio.name || '') } : null;
     var out = { map: MAPS[s.map] ? s.map : DEFAULTS.map, units: s.units === 'kph' ? 'kph' : 'mph',
-      loop: s.loop !== false, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
+      soundDelay: typeof s.soundDelay === 'number' ? clamp(s.soundDelay, 0, 10) : 0,
+      loop: s.loop !== false, audioLoop: typeof s.audioLoop === 'boolean' ? s.audioLoop : undefined, previewLabel: s.previewLabel !== false, pace: PACES[s.pace] ? s.pace : 'slow', audio: audio, soundStyle: s.soundStyle === 'custom' ? (audio ? 'custom' : 'pad') : (SOUNDS[s.soundStyle] ? s.soundStyle : 'pad'), sound: s.sound !== false && s.soundStyle !== 'silent',
       volume: typeof s.volume === 'number' ? clamp(s.volume, 0, 100) : DEFAULTS.volume, texts: {} };
     SCENES.forEach(function (sc) {
       var mine = (s.texts && s.texts[sc.id]) || {};
@@ -159,8 +159,8 @@
       ctx.save(); ctx.globalAlpha = a * ease(clamp(local / 0.9));
       roundRect(ctx, 300, y, 360, 200, 18); ctx.fillStyle = NAVY2; ctx.fill();
       ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
-      text(ctx, 'my-session.csv', 330, y + 56, 24, CREAM, FONT, 600, 'left');
-      text(ctx, 'RaceBox export', 330, y + 88, 18, MUTED, FONT, 400, 'left');
+      text(ctx, 'Your session', 330, y + 56, 24, CREAM, FONT, 600, 'left');
+      text(ctx, 'RaceBox import', 330, y + 88, 18, MUTED, FONT, 400, 'left');
       var p = ease(clamp((local - 0.9) / 2.0));
       roundRect(ctx, 330, y + 130, 300, 12, 6); ctx.fillStyle = 'rgba(244,241,234,0.12)'; ctx.fill();
       roundRect(ctx, 330, y + 130, Math.max(12, 300 * p), 12, 6); ctx.fillStyle = ORANGE; ctx.fill();
@@ -252,7 +252,8 @@
     var k = sceneIndex(t);
     SCENES.forEach(function (sc, i) {
       if (t < sc.t0 - 0.001 || t > sc.t1 + 0.001) return;
-      var a = Math.min(clamp((t - sc.t0) / FADE), clamp((sc.t1 - t) / FADE));
+      // The end card fades in and then stays, so the sign-in line is there when the animation stops.
+      var a = sc.id === 'end' ? clamp((t - sc.t0) / FADE) : Math.min(clamp((t - sc.t0) / FADE), clamp((sc.t1 - t) / FADE));
       SCENE_DRAW[sc.id](ctx, t - sc.t0, a, S);
     });
     SCENES.forEach(function (sc, i) {
@@ -332,6 +333,14 @@
     src.connect(bp); bp.connect(g); g.connect(a.master); src.start(when, 0, 1.1);
   }
   // Called each frame with the picture's time. sceneChanged is true on the frame a new scene starts.
+  // The sound fades out over the second before the end card, so the closing words come in on silence.
+  var FADE_BEFORE_END = 1;
+  function soundFadeAt(t) {
+    var end = SCENES[SCENES.length - 1].t0, from = end - FADE_BEFORE_END;
+    if (t <= from) return 1;
+    if (t >= end) return 0;
+    return 1 - (t - from) / FADE_BEFORE_END;
+  }
   function playSound(a, t, scene, sceneChanged, playing) {
     var now = a.ac.currentTime + 0.02;
     if (a.eng) a.eng.frequency.setTargetAtTime(48 + 26 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2 * 0.6)), now, 0.08);
@@ -358,7 +367,10 @@
     '.lxe-btn:hover,.lxe-btn:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
     '.lxe-btn svg,.lxe-sound svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
     '.lxe-sound{height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:600 14px ' + FONT + ';cursor:pointer}' +
-    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}';
+    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
+    '.lxe-go{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);height:28px;padding:0 12px;border-radius:14px;border:0;background:' + ORANGE + ';color:#fff;font:700 12px ' + HEAD + ';cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3)}' +
+    '.lxe-go::before{content:"";position:absolute;inset:-8px -10px}' +
+    '.lxe-go:focus-visible{outline:3px solid #fff;outline-offset:3px}.lxe-go[hidden]{display:none}';
   var styled = false;
   function addStyle() {
     if (styled || !document.head) return;
@@ -392,11 +404,20 @@
     soundBtn.type = 'button'; soundBtn.className = 'lxe-sound';
     bar.appendChild(playBtn);
     if (S.sound) bar.appendChild(soundBtn);
+    // On the Laps front page the picture waits for a press: 'Press here' starts the animation and, if sound is enabled, the sound.
+    var go = null;
+    if (opts.clickToPlay) {
+      go = document.createElement('button');
+      go.type = 'button'; go.className = 'lxe-go'; go.textContent = 'Press here';
+      wrap.appendChild(go);
+    }
     wrap.appendChild(canvas); wrap.appendChild(bar); el.appendChild(wrap);
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: !!(opts.autoSound && S.sound), scene: -1, raf: 0, scale: 1 };
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1 };
+    // The first start hides the 'Press here' button for good.
+    function started() { st.started = true; if (go) go.hidden = true; }
 
     function sizeCanvas() {
       var w = wrap.clientWidth || W, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -426,15 +447,15 @@
     }
     function fadeMaster() {
       if (!st.audio) return;
-      var target = st.playing && st.soundOn ? (S.volume / 100) * 0.5 : 0;
+      var target = st.playing && st.soundOn ? (S.volume / 100) * 0.5 * st.duck : 0;
       st.audio.master.gain.setTargetAtTime(target, st.audio.ac.currentTime, 0.05);
     }
     // Starts, pauses and sets the level of whichever sound is in use. Nothing plays before the first press on the page.
     function syncSound() {
       fadeMaster();
       if (!st.custom) return;
-      st.custom.volume = S.volume / 100;
-      st.custom.loop = S.loop;
+      st.custom.volume = (S.volume / 100) * st.duck;
+      st.custom.loop = S.audioLoop !== undefined ? S.audioLoop : S.loop;
       var want = st.playing && st.soundOn && st.gestured;
       if (want && st.custom.paused) { var p = st.custom.play(); if (p && p.catch) p.catch(function () {}); }
       else if (!want && !st.custom.paused) st.custom.pause();
@@ -450,13 +471,19 @@
       }
       var k = sceneIndex(st.t), changed = k !== st.scene && st.scene !== -1;
       st.scene = k;
+      // Fade the sound out before the end card, and bring it back when the animation loops.
+      var duck = soundFadeAt(st.t);
+      if (duck !== st.duck) { st.duck = duck; if (st.custom) st.custom.volume = (S.volume / 100) * duck; fadeMaster(); }
       if (st.audio && st.soundOn) playSound(st.audio, st.t, k, changed, st.playing);
       paint();
     }
 
     playBtn.addEventListener('click', function () {
+      started();
       if (!st.playing && st.t >= TOTAL - 0.01) st.t = 0;
       st.playing = !st.playing;
+      if (st.playing) { st.gestured = true; if (S.sound) startSoundLater(); }
+      else { clearTimeout(st.soundTimer); st.soundTimer = 0; }
       if (st.playing && st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume();
       syncSound(); showControls();
     });
@@ -467,28 +494,31 @@
       st.soundOn = !st.soundOn;
       syncSound(); showControls();
     });
-    // On by default: the first press anywhere on the page starts the sound (browsers allow sound only after a press).
-    if (opts.autoSound && S.sound) {
-      var firstPress = function () {
-        document.removeEventListener('pointerdown', firstPress, true);
-        document.removeEventListener('keydown', firstPress, true);
+    // The sound starts after the delay the admin set (0 is at once). A pause cancels a start that is still waiting.
+    function startSoundLater() {
+      clearTimeout(st.soundTimer); st.soundTimer = 0;
+      var d = S.soundDelay || 0;
+      if (d <= 0) { st.soundOn = true; return; }
+      st.soundOn = false;
+      st.soundTimer = setTimeout(function () { st.soundTimer = 0; if (st.playing) { st.soundOn = true; syncSound(); showControls(); } }, d * 1000);
+    }
+    // Press here: starts the animation, and the sound too when sound is enabled (browsers allow sound only after a press).
+    if (go) {
+      go.addEventListener('click', function () {
+        started();
         st.gestured = true;
-        // The labels already say Sound on, so the buttons are not redrawn here (a redraw under a press loses its click).
-        if (st.soundOn) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); syncSound(); }
-      };
-      document.addEventListener('pointerdown', firstPress, true);
-      document.addEventListener('keydown', firstPress, true);
+        if (S.sound) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); startSoundLater(); }
+        if (st.t >= TOTAL - 0.01) st.t = 0;
+        st.playing = true;
+        syncSound(); showControls();
+      });
     }
 
-    // On the Laps front page the 'Sign in to start' line of the end card is a link to sign in.
-    function onCta(e) {
-      var r = canvas.getBoundingClientRect();
-      var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
-      return sceneIndex(st.t) === SCENES.length - 1 && x >= CTA.x0 && x <= CTA.x1 && y >= CTA.y0 && y <= CTA.y1;
-    }
+    // On the Laps front page the whole picture is a link to sign in while the end card is showing (the 'Sign in to start' line says so).
+    function onEnd() { return sceneIndex(st.t) === SCENES.length - 1; }
     if (opts.link) {
-      canvas.addEventListener('mousemove', function (e) { canvas.style.cursor = onCta(e) ? 'pointer' : ''; });
-      canvas.addEventListener('click', function (e) { if (onCta(e)) window.location.href = signInTarget(); });
+      canvas.addEventListener('mousemove', function () { canvas.style.cursor = onEnd() ? 'pointer' : ''; });
+      canvas.addEventListener('click', function () { if (onEnd()) window.location.href = signInTarget(); });
     }
     sizeCanvas(); showControls(); paint();
     var resize = function () { sizeCanvas(); paint(); };
@@ -529,10 +559,10 @@
     if (!el) return;
     fetch(API + '/laps/explainer', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: true, link: true, autoSound: true }); })
-      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: true, link: true, autoSound: true }); });
+      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: false, clickToPlay: true, link: true }); })
+      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: false, clickToPlay: true, link: true }); });
   }
-  window.MT3UKExplainer = { mount: mount, merge: merge, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES, CTA: CTA };
+  window.MT3UKExplainer = { mount: mount, merge: merge, soundFadeAt: soundFadeAt, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

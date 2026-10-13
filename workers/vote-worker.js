@@ -743,7 +743,7 @@ async function wantsEmails(env, email) {
 async function sendMemberEmail(env, toEmail, subject, body) {
   if (!(await wantsEmails(env, toEmail))) return false;
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail))));
+    await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail))));
     return true;
   } catch (err) {
     console.log('Member email failed:', err.message);
@@ -1138,7 +1138,7 @@ async function sendUnsubscribedEmail(env, email, plan, byAdmin, wiped) {
       '\n\nIf this was not what you expected, please get in touch: ' + MY_BUILDS_SITE_URL + '/contact.html';
   }
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(from, email, subject, body)));
+    await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(from, email, subject, body)));
     return true;
   } catch (err) {
     console.log('Unsubscribed email failed:', err.message);
@@ -1689,7 +1689,7 @@ async function handleAdminBroadcastTest(request, env) {
   var headers = variant === 'withheader' ? await listUnsubscribeHeaders(env, email)
     : variant === 'full' ? await memberEmailHeaders(env, email) : [];
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
+    await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
       '[Test] ' + title, emailText, headers)));
   } catch (err) {
     console.log('Test email failed:', err.message);
@@ -1941,7 +1941,7 @@ async function handleInterviewPreviewRequest(request, env) {
       (isMember ? '' :
         '\n\nUsing this code also subscribes you to MT3UK (it\'s free) with this email address. You\'ll be signed in, so you can like and comment on member builds and Owner Interviews, and add your own car in My Garage whenever you like. You can stop emails or unsubscribe any time from your Profile: ' + PROFILE_URL + '#unsubscribe') +
       '\n\nPlease don\'t share the interview until it is published. If you did not ask for this code, you can ignore this email.';
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
+    await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
   } catch (err) {
     console.log('Interview preview email failed:', err.message);
   }
@@ -2497,7 +2497,7 @@ async function handleEventPreviewRequest(request, env) {
       (isMember ? '' :
         '\n\nUsing this code also subscribes you to MT3UK (it\'s free) with this email address. You\'ll be signed in, so you can like and comment on member builds and Owner Interviews, and add your own car in My Garage whenever you like. You can stop emails or unsubscribe any time from your Profile: ' + PROFILE_URL + '#unsubscribe') +
       '\n\nPlease don\'t share the event page until it is published. If you did not ask for this code, you can ignore this email.';
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
+    await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
   } catch (err) {
     console.log('Event preview email failed:', err.message);
   }
@@ -3297,7 +3297,7 @@ async function sendAdminEmail(env, raw, subject, page) {
   await bumpAdminStamp(env);
   await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: String(subject || 'Something needs your attention'), url: page || '/admin.html' });
   if (!(await adminAlerts(env)).email) return;
-  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
+  await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
 }
 // The daily changes email (.github/workflows/daily-changes-email.yml, written by scripts/daily_changes.py): what was
 // pushed to the site that day, to MT3UK. Admin key only. It is a report Richard asked for, not an admin action, so it
@@ -3309,9 +3309,37 @@ async function handleAdminDailySummary(request, env) {
   var subject = trackText(body && body.subject, 150), text = String((body && body.text) || '').slice(0, 20000);
   if (!subject || !text.trim()) return json({ success: false, message: 'Nothing to send' }, 400);
   if (!(await adminAlerts(env)).email) return json({ success: true, sent: false, message: 'The Email switch is off' });
-  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   return json({ success: true, sent: true });
 }
+// Approved testers for the test copy only (mt3uk-test sets TEST_EMAIL_TO). One KV key, read with get().
+var TEST_TESTERS_KEY = 'test-testers';
+async function testTesters(env) {
+  var list = await env.VOTES.get(TEST_TESTERS_KEY, 'json');
+  return Array.isArray(list) ? list : [];
+}
+
+async function handleTestTesters(request, env) {
+  if (!env.TEST_EMAIL_TO) return json({ success: false, message: 'Not found' }, 404);
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await testTesters(env);
+  if (request.method === 'GET') return json({ success: true, testers: list });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var email = String((body && (body.add || body.remove)) || '').trim().toLowerCase();
+  if (body && body.add) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'Enter a full email address' }, 400);
+    if (list.indexOf(email) === -1) list.push(email);
+  } else if (body && body.remove) {
+    list = list.filter(function (e) { return e !== email; });
+  } else {
+    return json({ success: false, message: 'Nothing to change' }, 400);
+  }
+  list.sort();
+  await env.VOTES.put(TEST_TESTERS_KEY, JSON.stringify(list));
+  return json({ success: true, testers: list });
+}
+
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
@@ -3905,7 +3933,7 @@ async function sendMyGarageAccessEmail(env, toEmail, subject, introText) {
   var body = introText + ' Use this one-time link to sign in to My Garage:\n\n' + link +
     '\n\nThis link expires in 7 days and can only be used once. ' +
     'If you did not expect this, you can ignore this email.';
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -4576,7 +4604,7 @@ async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn, code) {
       : '') +
     '\n\nThis ' + (code ? 'link and code expire' : 'link expires') + ' in ' + (expiresIn || '15 minutes') + ' and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -4620,7 +4648,7 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, 
     body = fromName + ' left a comment on an MT3UK Owner Interview:\n\n"' + text + '"' +
       '\n\nView and reply: ' + link;
   }
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail)));
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail)));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -4943,7 +4971,7 @@ async function sendSubscribersDigest(env) {
   var body = 'Daily My Builds subscriber list for ' + todayStr + '.\n\n' +
     'Total subscribers: ' + subscribers.length + '\n\n' + lines;
 
-  var message = new EmailMessage(
+  var message = mailMessage(
     MY_BUILDS_FROM_EMAIL,
     SUBSCRIBERS_DIGEST_EMAIL,
     rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, body)
@@ -6473,7 +6501,9 @@ async function issueSignInLink(env, email, page, joining, from) {
     else await sendMyBuildsLinkEmail(env, email, link, null, code);
   } catch (err) {
     console.log('Sign-in link email failed:', err.message);
+    return String(err && err.message || err);
   }
+  return '';
 }
 
 // The Laps sign-in and welcome emails, from "Laps by MT3UK". The admin can change the opening line of each.
@@ -6487,7 +6517,7 @@ async function sendLapsSignInEmail(env, toEmail, link, code, joining, laps) {
     (joining && laps.preview ? '\n\nLaps is in early preview. Once you have joined we will put you on the early access list, and email you as soon as you are in.' : '') +
     (joining && laps.mt3ukToo ? '\n\nYour account works on MT3UK too, where you can like and comment on member builds and owner interviews.' : '') +
     '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ' + (joining ? 'ask to join' : 'request this') + ', you can ignore this email.';
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body));
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -6531,7 +6561,9 @@ async function handleMyBuildsJoin(request, env) {
   }
   var lapsOnly = from.site === 'laps' && !(await getLapsSignin(env)).mt3ukToo;
   await env.VOTES.put('pending-join:' + email, JSON.stringify({ firstName: firstName, lastName: lastName, site: from.site, lapsOnly: lapsOnly }), { expirationTtl: PENDING_JOIN_TTL_SECONDS });
-  await issueSignInLink(env, email, 'signin.html', true, from);
+  var mailError = await issueSignInLink(env, email, 'signin.html', true, from);
+  // Test copy only: say why the email was not sent, so it can be seen without the dashboard logs.
+  if (env.TEST_EMAIL_TO && mailError) return json({ success: true, message: 'Test copy: the email was not sent.', testMailError: mailError });
   return reply;
 }
 
@@ -6631,7 +6663,7 @@ async function sendJoinEmail(env, toEmail, link, code) {
     '\n\nOr enter this code on the Sign Up / Sign In page:\n\n' + code +
     '\n\nWant to show off your car too? Add it any time in My Garage, it\'s optional.' +
     '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ask to join, you can ignore this email.';
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -7598,10 +7630,10 @@ async function refreshTrackBoard(env, boardKey, carId) {
   var total = board.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
-  // The top three on each board, so the track list can show them (one key).
+  // The top five on each board, so the track list can show them (one key). Places past five are on the board itself.
   var leaders = await getJsonKey(env, 'track-board-leaders', {});
   if (board.length) {
-    leaders[boardKey] = board.slice(0, 3).map(function (e) {
+    leaders[boardKey] = board.slice(0, 5).map(function (e) {
       var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
       if (e.make) l.make = e.make;
       if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }
@@ -7764,7 +7796,7 @@ async function handleTrackAccessAdmin(request, env) {
       if (action === 'approve' && body.notify !== false) {
         try {
           var text = 'Hello,\n\nYou now have early access to Track Sessions on MT3UK. Sign in and open Track Sessions to add your first session: ' + LAPS_SITE_URL + '/track.html\n\nIt is an early preview, so please tell us what works and what does not.';
-          await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail(MY_BUILDS_FROM_EMAIL, e, 'You have early access to Track Sessions', text)));
+          await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail(MY_BUILDS_FROM_EMAIL, e, 'You have early access to Track Sessions', text)));
         } catch (err) { /* approved either way */ }
       }
     } else if (action === 'revoke') {
@@ -8314,7 +8346,7 @@ async function emailAdminAboutLines(env, subject, text) {
 }
 async function emailMemberAboutLines(env, entry, subject, text) {
   if (!entry || !entry.email) return;
-  try { await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, entry.email, rawEmail(MY_BUILDS_FROM_EMAIL, entry.email, subject, text))); } catch (e) { /* done either way */ }
+  try { await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, entry.email, rawEmail(MY_BUILDS_FROM_EMAIL, entry.email, subject, text))); } catch (e) { /* done either way */ }
 }
 async function handleTrackLinesStatus(request, env) {
   var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
@@ -9131,6 +9163,9 @@ function cleanLapsExplainer(body) {
   if (LAPS_EXPLAINER_SOUNDS.indexOf(String(src.soundStyle || '')) !== -1) out.soundStyle = String(src.soundStyle);
   if (LAPS_EXPLAINER_PACES.indexOf(String(src.pace || '')) !== -1) out.pace = String(src.pace);
   if (typeof src.loop === 'boolean') out.loop = src.loop;
+  if (typeof src.audioLoop === 'boolean') out.audioLoop = src.audioLoop;
+  var delay = Number(src.soundDelay);
+  if (src.soundDelay !== undefined && src.soundDelay !== null && src.soundDelay !== '' && isFinite(delay)) out.soundDelay = Math.max(0, Math.min(10, delay));
   if (typeof src.previewLabel === 'boolean') out.previewLabel = src.previewLabel;
   var vol = parseInt(src.volume, 10);
   if (!isNaN(vol)) out.volume = Math.max(0, Math.min(100, vol));
@@ -9174,6 +9209,17 @@ async function handleLapsExplainerAdmin(request, env) {
 // The sound the admin uploads for the Laps video: an MP3 or OGG up to 5 MB, kept in the bucket under laps/explainer/
 // and named in the settings (audio: { url, key, name, size, at }). POST uploads (the body is the file, ?name= its name),
 // DELETE removes it and goes back to a built-in sound.
+// What a file that is not an MP3 or OGG really is, from its first bytes, so the admin can see why it was refused.
+function describeAudioBytes(bytes) {
+  var ascii = '';
+  for (var i = 0; i < Math.min(12, bytes.length); i++) ascii += bytes[i] >= 32 && bytes[i] < 127 ? String.fromCharCode(bytes[i]) : '.';
+  if (bytes[0] === 0x50 && bytes[1] === 0x4B) return 'It is a zip or Word or Office file, not sound.';
+  if (ascii.slice(4, 8) === 'ftyp') return 'It is an MP4 or M4A (AAC) file. Convert it to MP3 and try again.';
+  if (ascii.slice(0, 4) === 'RIFF') return 'It is a WAV file. Convert it to MP3 and try again.';
+  if (ascii.slice(0, 1) === '<') return 'It is a web page or text file, so the download probably did not save the sound.';
+  if (ascii.slice(0, 4) === 'fLaC') return 'It is a FLAC file. Convert it to MP3 and try again.';
+  return 'It starts with ' + Array.prototype.map.call(bytes.slice(0, 4), function (b) { return b.toString(16).padStart(2, '0'); }).join(' ') + ' (' + ascii.replace(/\./g, '') + '), which is not MP3 or OGG data.';
+}
 async function handleLapsExplainerAudio(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var old = (await getJsonKey(env, LAPS_EXPLAINER_KEY, {})) || {};
@@ -9188,9 +9234,11 @@ async function handleLapsExplainerAudio(request, env) {
   if (!bytes.length) return json({ success: false, message: 'No file received' }, 400);
   if (bytes.length > LAPS_EXPLAINER_AUDIO_MAX) return json({ success: false, message: 'That file is over 5 MB, please use a shorter or smaller one' }, 400);
   var type = '', ext = '';
-  if ((bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) || (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0)) { type = 'audio/mpeg'; ext = 'mp3'; }
+  // Some files start with a UTF-8 byte-order mark (EF BB BF) before the MP3 data, which is still an MP3.
+  var at = bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF ? 3 : 0;
+  if ((bytes[at] === 0x49 && bytes[at + 1] === 0x44 && bytes[at + 2] === 0x33) || (bytes[at] === 0xFF && (bytes[at + 1] & 0xE0) === 0xE0)) { type = 'audio/mpeg'; ext = 'mp3'; }
   else if (bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53) { type = 'audio/ogg'; ext = 'ogg'; }
-  if (!type) return json({ success: false, message: 'The sound needs to be an MP3 or OGG file' }, 400);
+  if (!type) return json({ success: false, message: 'The sound needs to be an MP3 or OGG file. ' + describeAudioBytes(bytes) }, 400);
   var name = trackText(new URL(request.url).searchParams.get('name') || 'sound', 60) || 'sound';
   var key = 'laps/explainer/sound-' + randomToken().slice(0, 16) + '.' + ext;
   if (old.audio && old.audio.key) await env.GALLERY_BUCKET.delete(old.audio.key);
@@ -9198,6 +9246,85 @@ async function handleLapsExplainerAudio(request, env) {
   old.audio = { url: GALLERY_PUBLIC_BASE_URL + '/' + key, key: key, name: name, size: bytes.length, at: Date.now() };
   await env.VOTES.put(LAPS_EXPLAINER_KEY, JSON.stringify(old));
   return json({ success: true, settings: old });
+}
+
+// ---------- Motor sound (the Sound panel of track-admin.html) ----------
+// The settings for the electric motor sound made in js/ev-sound.js. One KV key (ev-sound), read with get(). The ranges
+// here match LIMITS in js/ev-sound.js. The public route is read by any page that plays the sound; the admin reads and writes.
+var EV_SOUND_KEY = 'ev-sound';
+var EV_SOUND_LIMITS = {
+  f0: [40, 400], fPeak: [60, 1200], fEnd: [40, 800], rise: [0.5, 4], hold: [0, 3], length: [2, 6],
+  sub: [0, 1], whine: [0, 0.3], texture: [0, 0.2], cut: [400, 4000], volume: [0, 100]
+};
+var EV_SOUND_HARM = [0, 1];
+function cleanEvSound(body) {
+  var src = body || {}, out = {};
+  Object.keys(EV_SOUND_LIMITS).forEach(function (k) {
+    var n = Number(src[k]), lim = EV_SOUND_LIMITS[k];
+    if (src[k] !== undefined && src[k] !== null && src[k] !== '' && isFinite(n)) out[k] = Math.max(lim[0], Math.min(lim[1], n));
+  });
+  var harm = Array.isArray(src.harm) ? src.harm : [];
+  if (harm.length) {
+    out.harm = [0, 1, 2, 3].map(function (i) {
+      var n = Number(harm[i]);
+      return isFinite(n) ? Math.max(EV_SOUND_HARM[0], Math.min(EV_SOUND_HARM[1], n)) : 0;
+    });
+  }
+  return out;
+}
+async function handleEvSoundPublic(request, env) {
+  var settings = await getJsonKey(env, EV_SOUND_KEY, {});
+  var res = json({ success: true, settings: settings || {} });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleEvSoundAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, EV_SOUND_KEY, {})) || {} });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.reset) { await env.VOTES.delete(EV_SOUND_KEY); return json({ success: true, settings: {} }); }
+  var settings = cleanEvSound(body);
+  await env.VOTES.put(EV_SOUND_KEY, JSON.stringify(settings));
+  return json({ success: true, settings: settings });
+}
+
+// ---------- Session playback sound (the Session playback sound section of the Sound panel) ----------
+// The settings for the motor sound on a session's playback (js/motor-sound.js), kept apart from the shaping settings above
+// so the two can differ. One KV key (session-sound), read with get(). The ranges match DEFAULTS and LIMITS in js/motor-sound.js.
+var SESSION_SOUND_KEY = 'session-sound';
+var SESSION_SOUND_LIMITS = { f0: [40, 400], fPeak: [60, 1200], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100] };
+var SESSION_SOUND_HARM = [0, 1];
+function cleanSessionSound(body) {
+  var src = body || {}, out = {};
+  Object.keys(SESSION_SOUND_LIMITS).forEach(function (k) {
+    var n = Number(src[k]), lim = SESSION_SOUND_LIMITS[k];
+    if (src[k] !== undefined && src[k] !== null && src[k] !== '' && isFinite(n)) out[k] = Math.max(lim[0], Math.min(lim[1], n));
+  });
+  var harm = Array.isArray(src.harm) ? src.harm : [];
+  if (harm.length) {
+    out.harm = [0, 1, 2, 3].map(function (i) {
+      var n = Number(harm[i]);
+      return isFinite(n) ? Math.max(SESSION_SOUND_HARM[0], Math.min(SESSION_SOUND_HARM[1], n)) : 0;
+    });
+  }
+  return out;
+}
+async function handleSessionSoundPublic(request, env) {
+  var settings = await getJsonKey(env, SESSION_SOUND_KEY, {});
+  var res = json({ success: true, settings: settings || {} });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleSessionSoundAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, settings: (await getJsonKey(env, SESSION_SOUND_KEY, {})) || {} });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.reset) { await env.VOTES.delete(SESSION_SOUND_KEY); return json({ success: true, settings: {} }); }
+  var settings = cleanSessionSound(body);
+  await env.VOTES.put(SESSION_SOUND_KEY, JSON.stringify(settings));
+  return json({ success: true, settings: settings });
 }
 
 // ---------- Laps logo ----------
@@ -11526,8 +11653,22 @@ async function tallyVotesIfUkMidnight(env) {
   if (!putRes.ok) throw new Error('Could not update featured.json (' + putRes.status + ')');
 }
 
+// Every email goes through here. On the test copy (mt3uk-test) TEST_EMAIL_TO is set, and every email goes to that
+// address instead, with the real recipient in the subject. On live it is not set, so mail is unchanged.
+var mailRedirectTo = null;
+// Approved testers on the test copy: mail to them goes to them directly (kept in KV as test-testers, see handleTestTesters).
+var mailTesters = [];
+function mailMessage(from, to, raw) {
+  if (!mailRedirectTo) return new EmailMessage(from, to, raw);
+  if (mailTesters.indexOf(String(to).toLowerCase()) !== -1) return new EmailMessage(from, to, raw);
+  var redirected = raw.replace(/^To: .*$/m, 'To: ' + mailRedirectTo).replace(/^Subject: (.*)$/m, 'Subject: [test, for ' + to + '] $1');
+  return new EmailMessage(from, mailRedirectTo, redirected);
+}
+
 export default {
   async fetch(request, env, ctx) {
+    mailRedirectTo = env.TEST_EMAIL_TO || null;
+    mailTesters = mailRedirectTo ? await testTesters(env) : [];
     var url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -12068,6 +12209,18 @@ export default {
     if (url.pathname === '/laps/explainer/admin/audio' && (request.method === 'POST' || request.method === 'DELETE')) {
       return handleLapsExplainerAudio(request, env);
     }
+    if (url.pathname === '/sound/ev' && request.method === 'GET') {
+      return handleEvSoundPublic(request, env);
+    }
+    if (url.pathname === '/sound/ev/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleEvSoundAdmin(request, env);
+    }
+    if (url.pathname === '/sound/session' && request.method === 'GET') {
+      return handleSessionSoundPublic(request, env);
+    }
+    if (url.pathname === '/sound/session/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSessionSoundAdmin(request, env);
+    }
     if (url.pathname === '/laps/logo' && request.method === 'GET') {
       return handleLapsLogoPublic(request, env);
     }
@@ -12116,6 +12269,9 @@ export default {
     }
     if (url.pathname === '/my-builds/car/make-private' && request.method === 'POST') {
       return handleGarageMakePrivate(request, env);
+    }
+    if (url.pathname === '/test/testers' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTestTesters(request, env);
     }
     if (url.pathname === '/admin/alerts' && (request.method === 'GET' || request.method === 'POST')) {
       return handleAdminAlerts(request, env);
@@ -12405,6 +12561,7 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
+    mailRedirectTo = env.TEST_EMAIL_TO || null;
     ctx.waitUntil(tallyVotesIfUkMidnight(env));
     ctx.waitUntil(sendSubscribersDigestIfUk8pm(env).catch(function (e) {
       console.log('Subscribers digest failed:', e.message);

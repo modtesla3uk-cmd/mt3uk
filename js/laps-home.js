@@ -26,19 +26,5 @@
   }
 
   function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
-  // The hero picture is the one set on the Track sessions sharing panel of track-admin.html (the current pick of
-  // the Track sessions set, /share/track), so the admin controls it; the built-in picture is only the start.
-  var shot = document.getElementById('lh-shot-img');
-  if (shot) get(API + '/share/track').then(function (d) {
-    var pick = d && d.success && d.pick;
-    if (!pick || !pick.url) return;
-    var img = new Image();
-    img.onload = function () {
-      // The hero's picture, and its copy under Fastest right now on a phone.
-      [shot].concat([].slice.call(document.querySelectorAll('.lh-shot-copy'))).forEach(function (el) { el.src = pick.url; if (pick.caption) el.alt = pick.caption; });
-    };
-    img.src = pick.url;
-  });
-
   // Fastest right now and the admin's words for each section: js/laps-panels.js.
 })();

@@ -1,0 +1,30 @@
+# Test copy of the site and worker (mt3uk-test). Deployed by .github/workflows/deploy-laps-test.yml, which copies the
+# site into ./site and fills in the KV namespace id before deploying. Not the live worker: no cron, its own data.
+name = "mt3uk-test"
+main = "test-entry.js"
+compatibility_date = "2026-09-07"
+
+# Secrets (ADMIN_KEY and the rest) are set in the Cloudflare dashboard for this worker, not here.
+keep_vars = true
+
+[assets]
+directory = "./site"
+binding = "ASSETS"
+html_handling = "none"
+# Send every request through the worker first, so the test banner and the test address changes apply to pages too.
+run_worker_first = true
+
+[[kv_namespaces]]
+binding = "VOTES"
+id = "REPLACE_BY_DEPLOY"
+
+# Mail goes out through the same email routing as live; the worker sends every message to TEST_EMAIL_TO (a secret).
+[[send_email]]
+name = "SEND_EMAIL"
+
+[[r2_buckets]]
+binding = "GALLERY_BUCKET"
+bucket_name = "mt3uk-test"
+
+[observability]
+enabled = true

@@ -1165,14 +1165,12 @@
     var n = filteredList(list).length;
     return '<p class="tp-small tp-filter-note" id="tp-filter-note">' + (n ? 'Showing ' + n + ' of ' + list.length + ' sessions' : 'No sessions match') + ' <button type="button" class="chip" id="tp-filter-clear">Clear</button></p>';
   }
-  // The row of tools above the list: Sort by, the filters, and a small My Analysis pill for the member's own sessions.
   function trackToolsHtml(list) {
-    if (!list.length) return '';
-    var filters = FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('');
-    var sort = trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
-      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '';
-    var analysis = '<a class="tp-an-pill" id="tp-an-pill" href="my-analysis.html" data-laps><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>My Analysis</a>';
-    return '<div class="tp-tools">' + sort + (filters ? '<div class="tp-filters">' + filters + '</div>' : '') + analysis + '</div>' + filterNoteHtml(list);
+    var filters = list.length ? FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('') : '';
+    if (trackEntries(list).length < 2 && !filters) return '';
+    return '<div class="tp-tools">' + (trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '') +
+      (filters ? '<div class="tp-filters">' + filters + '</div>' : '') + '</div>' + filterNoteHtml(list);
   }
   // The layouts and events at one track: each layout (or a sprint's organiser, or the kind of session when there is
   // neither) once, with its count and last day. The track line's chevron drops them down (openTracks keeps them open

@@ -7464,4 +7464,4 @@ def test_my_sessions_has_no_analysis_panel_and_a_my_analysis_pill_instead(page):
     open_page(page, fake)
     expect(page.locator("#tp-an")).to_have_count(0)
     expect(page.locator("#tp-an-pill")).to_have_attribute("href", "my-analysis.html")
-    expect(page.locator("#tp-an-pill")).to_contain_text("My Analysis")
+    expect(page.locator("#tp-an-pill")).to_have_attribute("aria-label", "My Analysis")

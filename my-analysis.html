@@ -126,6 +126,11 @@
     .tm-lab { display:block; }
   }
 
+  .tm-heroes h1 .ma-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .tm-heroes .tm-what { text-align: center; }
+  .tm-heroes .tm-what summary { display: block; text-align: center; }
+  .tm-heroes .tm-what p { margin: 4px auto 0; max-width: 60ch; }
+  .ma-fi { width: 24px; height: 24px; flex: none; margin-top: 2px; fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .ma-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 12px; }
   .tm-pick { display:grid; gap:4px; font-size:.8rem; color:var(--steel); min-width:0; }
   .tm-pick select { font:inherit; font-size:.95rem; min-height:44px; padding:6px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); width:100%; min-width:0; }
@@ -202,7 +207,7 @@
         <a class="tm-pill tm-pill-accent" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add a session</a>
       </div>
     </div>
-    <h1>My Analysis</h1>
+    <h1>My Analysis<svg class="icon ma-title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></h1>
     <details class="tm-what"><summary>What is My Analysis?</summary><p>Your own Track sessions, analysed for the car and track you pick: lap times, top speed, braking, the Track Mode figures where the car recorded them, and how your tyres, brake pads, driven wheels, conditions and logger compare. Only you see this page. Press a dot to open its session.</p></details>
   </div>
 </section>

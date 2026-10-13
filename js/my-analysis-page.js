@@ -97,31 +97,44 @@
   }
 
   // What the figures say, in plain words. Only what the sessions carry is mentioned.
+  // The icon before each finding (the same line style as the rest of Laps).
+  var FI = {
+    clock: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>',
+    trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    battery: '<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M6 10v4M10 10v4"/>',
+    brake: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+    bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+    pulse: '<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+    setup: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/>'
+  };
+  function findIcon(k) { return '<svg class="ma-fi" viewBox="0 0 24 24" aria-hidden="true">' + (FI[k] || FI.pulse) + '</svg>'; }
   function findings(list) {
     var out = [], tl = list.filter(timed);
     if (tl.length) {
       var best = tl.reduce(function (a, s) { return s.bestTime < a.bestTime ? s : a; });
-      out.push('Your best lap is ' + fmtLap(best.bestTime) + ', at ' + esc(trackOf(best)) + ' on ' + niceDate(best.date) + '.');
+      out.push({ k: 'clock', t: 'Your best lap is ' + fmtLap(best.bestTime) + ', at ' + esc(trackOf(best)) + ' on ' + niceDate(best.date) + '.' });
     }
     if (tl.length >= 2) {
       var sorted = sortByWhen(tl), first = sorted[0].bestTime, last = sorted[sorted.length - 1].bestTime, diff = last - first;
-      out.push(Math.abs(diff) < 0.005 ? 'Your latest lap is the same as your first.' : 'Your latest lap is ' + Math.abs(diff).toFixed(2) + ' s ' + (diff < 0 ? 'quicker' : 'slower') + ' than your first.');
+      out.push({ k: 'trend', t: Math.abs(diff) < 0.005 ? 'Your latest lap is the same as your first.' : 'Your latest lap is ' + Math.abs(diff).toFixed(2) + ' s ' + (diff < 0 ? 'quicker' : 'slower') + ' than your first.' });
     }
-    function most(fn, label, fmt) {
+    function most(fn, label, fmt, k) {
       var best = null;
       list.forEach(function (s) { var v = fn(s); if (v != null && (best === null || v > fn(best))) best = s; });
-      if (best) out.push('The ' + label + ' was ' + fmt(fn(best)) + ', at ' + esc(trackOf(best)) + ' on ' + niceDate(best.date) + '.');
+      if (best) out.push({ k: k, t: 'The ' + label + ' was ' + fmt(fn(best)) + ', at ' + esc(trackOf(best)) + ' on ' + niceDate(best.date) + '.' });
     }
-    most(used, 'most charge used in one session', function (v) { return v.toFixed(1) + '%'; });
-    most(function (s) { return num(mode(s).brakeTemp); }, 'hottest brakes, by the car’s own estimate', pctTxt);
-    most(function (s) { return num(mode(s).power); }, 'highest peak power', function (v) { return Math.round(v) + ' kW'; });
-    most(function (s) { return num(s.brakeG); }, 'hardest braking', function (v) { return v.toFixed(2) + ' g'; });
+    most(used, 'most charge used in one session', function (v) { return v.toFixed(1) + '%'; }, 'battery');
+    most(function (s) { return num(mode(s).brakeTemp); }, 'hottest brakes, by the car’s own estimate', pctTxt, 'brake');
+    most(function (s) { return num(mode(s).power); }, 'highest peak power', function (v) { return Math.round(v) + ' kW'; }, 'bolt');
+    most(function (s) { return num(s.brakeG); }, 'hardest braking', function (v) { return v.toFixed(2) + ' g'; }, 'pulse');
     // The tyres and pads with the quickest typical lap, where there are two or more to compare.
     [SETUPS[0], SETUPS[1]].forEach(function (d) {
       var groups = setupGroups(d, tl);
-      if (groups.length < 2) return;
-      var g = groups[0];
-      out.push('On ' + d.label.toLowerCase() + ', ' + esc(g.label) + ' gave the quickest best lap, ' + fmtLap(g.best) + ', over ' + g.n + ' ' + (g.n === 1 ? 'session' : 'sessions') + '.');
+      // Sessions with nothing set are left out of the comparison: 'Not set' is not a tyre or pad.
+      var named = groups.filter(function (x) { return x.label !== 'Not set'; });
+      if (named.length < 2) return;
+      var g = named[0];
+      out.push({ k: 'setup', t: 'On ' + d.label.toLowerCase() + ', ' + esc(g.label) + ' gave the quickest best lap, ' + fmtLap(g.best) + ', over ' + g.n + ' ' + (g.n === 1 ? 'session' : 'sessions') + '.' });
     });
     return out;
   }
@@ -159,7 +172,7 @@
     function Y(v) { return T + (y1 - v) / span * (H - T - B); }
     var dots = pts.map(function (x, i) {
       var t = (x.v - y0) / span;
-      return '<a href="track.html?s=' + esc(x.s.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
+      return '<a href="track.html?s=' + esc(x.s.id) + '"><circle cx="' + X(i).toFixed(1) + '" cy="' + Y(x.v).toFixed(1) + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
         esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Open the session') + '</title></circle></a>';
     }).join('');
     var grid = '';
@@ -245,8 +258,8 @@
       body = '<div class="tm-card"><p>No sessions here yet. Once you have saved a track session with this car, its analysis appears here.</p></div>';
     } else {
       var says = findings(list);
-      body = tiles(list) +
-        '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul></div>' +
+      body = '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
+        tiles(list) +
         chart(list) + setupBlock(list) + detailsTable(list);
     }
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;

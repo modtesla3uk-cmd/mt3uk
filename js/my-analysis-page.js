@@ -27,7 +27,11 @@
   function num(v) { return v != null && isFinite(v) ? Number(v) : null; }
   function mode(s) { return s.mode || {}; }
   function timed(s) { return s.type !== 'drag' && num(s.bestTime) > 0; }
-  function trackOf(s) { return (s.venue || 'Track') + (s.layout && s.layout !== s.venue ? ' · ' + s.layout : ''); }
+  // A circuit session with no layout name is a track day, as the Sessions list calls it.
+  function trackOf(s) {
+    var layout = s.layout && s.layout !== s.venue ? s.layout : (s.type === 'track' ? 'Track day' : '');
+    return (s.venue || 'Track') + (layout ? ' · ' + layout : '');
+  }
   function trackKey(s) { return (s.venue || '') + '|' + (s.layout || ''); }
   function used(s) { var m = mode(s); return m.soc ? m.soc[0] - m.soc[1] : null; }
   function avg(a) { return a.reduce(function (x, y) { return x + y; }, 0) / a.length; }

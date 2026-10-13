@@ -554,14 +554,15 @@
   /* Phone and tablet: the title with its share button; Back, the bulb and Leaderboards / My Sessions on the second row;
      Add a session, the same width, under them on the third; What is...? last. Kept last so it wins over the older rules. */
   @media (max-width: 900px) {
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { grid-template-columns: auto minmax(0, 1fr) 190px; column-gap: 10px; row-gap: 12px; align-items: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 10px; align-items: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > h1.mt3uk-share-heading { grid-column: 1 / -1; grid-row: 1; justify-self: stretch; margin: 0; display: flex; align-items: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) h1.mt3uk-share-heading > .mt3uk-share-dot { float: none; margin: 0 0 0 auto; top: 0; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: center; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 0; width: 190px; min-width: 0; height: auto; min-height: 44px; padding: 0 16px; justify-content: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: stretch; display: flex; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top .back-link { flex: 1 1 auto; width: 100%; height: 44px; min-height: 44px; padding: 0 10px; justify-content: center; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; margin: 0; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; margin-top: 0; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; justify-content: center; font-size: 0.88rem; white-space: nowrap; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions:not([hidden]) { display: contents; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 3; grid-row: 3; justify-self: end; width: 190px; min-width: 0; height: auto; min-height: 44px; margin-top: 0; padding: 0 16px; justify-content: center; font-size: 0.92rem; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 3; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 2; grid-row: 3; justify-self: stretch; width: 100%; min-width: 0; height: 44px; min-height: 44px; margin-top: 0; padding: 0 10px; justify-content: center; font-size: 0.88rem; white-space: nowrap; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 2; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
     .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn .laps-tip-bulb { width: 18px; height: 18px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: start; text-align: left; width: auto; max-width: none; margin-top: -4px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what p { margin: 0; max-width: none; }

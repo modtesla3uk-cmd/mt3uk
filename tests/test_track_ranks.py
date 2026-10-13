@@ -2,7 +2,7 @@ import re
 
 from playwright.sync_api import expect
 
-from test_track_page import FakeWorker, save_thruxton_with_a_member_board
+from test_track_page import FakeWorker, open_page, save_thruxton_with_a_member_board
 
 PLACE = {"onBoard": True, "place": 2, "of": 7, "board": "Thruxton, Main", "tab": "Track days"}
 
@@ -77,3 +77,16 @@ def test_the_rank_line_names_the_track_and_that_opens_its_leaderboard(page):
     expect(line).to_contain_text("2nd of 7 on")
     expect(line.locator("a.tp-title-link")).to_have_text("Thruxton, Main")
     expect(line.locator("a.tp-title-link")).to_have_attribute("href", "leaderboards.html?board=thruxton%3Amain")
+
+
+def test_someone_elses_session_has_add_a_session_that_opens_the_add_page(page):
+    """On a session another member owns, the heading still offers Add a session, which opens the Add page with the member's
+    own car (the page lets them choose another)."""
+    from test_track_page import day_session
+    fake = FakeWorker()
+    fake.sessions["other1"] = day_session("other1", "10:00", 95.0, 4)
+    fake.admin_view = True
+    open_page(page, fake, "/track.html?s=other1")
+    add = page.locator("#tp-hero-add")
+    expect(add).to_be_visible()
+    expect(add).to_have_attribute("href", "track.html?add=1")

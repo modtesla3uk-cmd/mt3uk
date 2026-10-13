@@ -421,16 +421,17 @@
   }
   // Add a session in the page heading (track.html), under Leaderboards: shown on the member's list of sessions only,
   // for the vehicle picked there.
-  var heroAddCar = null;
+  var heroAddCar = null, heroAddAny = false;
   function heroAdd() {
     var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
     if (!box || !a) return;
     // While the list is still loading (track.html shows the box as a placeholder, .is-waiting), it stays.
-    box.hidden = !heroAddCar && !box.classList.contains('is-waiting');
-    if (!heroAddCar) return;
+    box.hidden = !heroAddCar && !heroAddAny && !box.classList.contains('is-waiting');
+    if (!heroAddCar && !heroAddAny) return;
     box.classList.remove('is-waiting');
     a.classList.remove('is-wait');
-    var q = 'add=1&car=' + encodeURIComponent(heroAddCar);
+    // On someone else's session it opens the Add page with the member's own first car (the page lets them choose another).
+    var q = heroAddCar ? 'add=1&car=' + encodeURIComponent(heroAddCar) : 'add=1';
     a.href = 'track.html?' + q;
     a.setAttribute('data-go', q);
   }
@@ -465,7 +466,7 @@
     routeSeq++;
     stopPlay();
     syncPageBack();
-    heroAddCar = null;
+    heroAddCar = null; heroAddAny = false;
     heroAdd();
     if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
@@ -3660,6 +3661,7 @@
     lastSession = s.id;
     // Add a session stays in the page heading on the owner's own session, for the same car.
     heroAddCar = s.mine && s.carId ? s.carId : null;
+    heroAddAny = !s.mine && !s.local && !!token();
     heroAdd();
     // Where it falls among your sessions at this track that day, by time of day.
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;

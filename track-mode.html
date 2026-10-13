@@ -63,22 +63,30 @@
   .tm-pill { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; }
   .tm-pill:hover { background:#eef1f6; }
   .tm-pill-accent { background:var(--orange); border-color:var(--orange); color:#fff; }
+  .tm-hero-top .back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; }
+  .tm-hero-top .back-link:hover { background:#eef1f6; color:var(--ink); }
+  .tm-hero-top .back-link, .tm-hero-top .tm-pill { white-space:nowrap; }
+  @media (max-width:780px) { .tm-hero-top .back-link, .tm-hero-top .tm-pill { padding:0 12px; font-size:.92rem; } }
   .tm-pill { gap:8px; }
   .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .tm-pill-accent .icon { stroke:#fff; }
   .tm-pill-accent:hover { background:#cf4d0a; }
   .tm { padding:4px 0 40px; }
-  .tm-tiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 16px; }
-  .tm-tile { background:#fff; border:1px solid var(--hair); border-radius:10px; padding:12px 14px; }
-  .tm-tile b { display:block; font-family:'Archivo Expanded', sans-serif; font-size:1.2rem; }
-  .tm-tile span { color:var(--steel); font-size:.8rem; }
+  .tm-tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 12px; }
+  .tm-tile { background:#fff; border:1px solid var(--hair); border-radius:10px; padding:8px 10px; }
+  .tm-what { margin:0 0 6px; }
+  .tm-what summary { cursor:pointer; font-weight:600; color:#d3d8e2; padding:6px 0; list-style:none; }
+  .tm-what summary::-webkit-details-marker { display:none; }
+  .tm-what p { margin:4px 0 0; color:#d3d8e2; }
+  .tm-tile b { display:block; font-family:'Archivo Expanded', sans-serif; font-size:1.05rem; }
+  .tm-tile span { color:var(--steel); font-size:.72rem; }
   .tm-card { background:#fff; border:1px solid var(--hair); border-radius:10px; padding:14px 16px; margin:0 0 16px; }
   .tm-card h2 { font-size:1.05rem; margin:0 0 8px; }
   .tm-card p, .tm-card li { color:var(--ink-2); font-size:.92rem; }
   .tm-card ul { margin:0; padding-left:18px; }
-  .tm-controls { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 12px; }
-  .tm-controls label { display:grid; gap:4px; font-size:.8rem; color:var(--steel); }
-  .tm-controls select { font:inherit; font-size:.92rem; padding:8px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); min-height:44px; }
+  .tm-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:0 0 10px; }
+  .tm-controls label { display:grid; gap:2px; font-size:.72rem; color:var(--steel); }
+  .tm-controls select { font:inherit; font-size:.85rem; padding:6px 8px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); min-height:40px; width:100%; min-width:0; }
   .tm-list { background:#fff; border:1px solid var(--hair); border-radius:10px; overflow:hidden; }
   .tm-row { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1.2fr) repeat(6,minmax(0,.7fr)); gap:4px 12px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--hair); font-size:.88rem; }
   .tm-lab { display:none; }
@@ -112,16 +120,13 @@
   .tm-chips .chip { font:inherit; font-size:.88rem; min-height:44px; padding:8px 14px; border:1px solid var(--hair); border-radius:999px; background:#fff; color:var(--ink); cursor:pointer; }
   .tm-chips .chip.is-on { background:var(--ink); border-color:var(--ink); color:#fff; }
   @media (max-width:780px) {
-    .tm-tiles { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .tm-row.tm-head { display:none; }
     .tm-row { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 10px; padding:12px 14px; }
     .tm-row > div:nth-child(1), .tm-row > div:nth-child(2) { grid-column:1 / -1; }
     .tm-row .tm-num { text-align:left; }
     .tm-lab { display:block; }
   }
-  @media (min-width:781px) {
-    .tm-tiles { grid-template-columns:repeat(5,minmax(0,1fr)); }
-  }
+
 </style>
 </head>
 <body data-no-share>
@@ -181,7 +186,7 @@
       </div>
     </div>
     <h1>Tesla Track Mode, analysed</h1>
-    <p>Shared track sessions that carry the car's own Track Mode figures: charge used, power, regen, brake and battery temperatures, tyre pressures and slip. Press a session to open it.</p>
+    <details class="tm-what"><summary>What is Tesla Track Mode, analysed?</summary><p>Shared track sessions that carry the car's own Track Mode figures: charge used, power, regen, brake and battery temperatures, tyre pressures and slip. Press a session to open it.</p></details>
   </div>
 </section>
 <div class="wrap tm">
@@ -196,7 +201,7 @@
   </div>
 </footer>
 
-<script src="js/track-mode-page.js?v=16" defer></script>
+<script src="js/track-mode-page.js?v=18" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=16" defer></script>

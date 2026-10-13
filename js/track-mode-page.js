@@ -189,7 +189,7 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#2f9e44' : '#e8590c') + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="' + (p.best ? '#2f9e44' : '#e8590c') + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     // Faint grid lines at six even steps on each axis, so a dot can be read against them.
     var grid = '';
@@ -275,11 +275,10 @@
     var trackKeys = Object.keys(tracks).sort(function (a, b) { return tracks[a] < tracks[b] ? -1 : 1; });
     var list = visible();
     var tiles = '<div class="tm-tiles">' +
-      '<div class="tm-tile"><b>' + runs.length + '</b><span>Shared sessions</span></div>' +
-      '<div class="tm-tile"><b>' + Object.keys(cars).length + '</b><span>Cars</span></div>' +
-      '<div class="tm-tile"><b>' + (charges.length ? avg(charges).toFixed(1) + '%' : '') + '</b><span>Average charge used</span></div>' +
-      '<div class="tm-tile"><b>' + (powers.length ? kW(Math.max.apply(null, powers)) : '') + '</b><span>Highest peak power</span></div>' +
-      '<div class="tm-tile"><b>' + (brakes.length ? pct(Math.max.apply(null, brakes)) : '') + '</b><span>Hottest brakes (car’s estimate)</span></div>' +
+      '<div class="tm-tile"><b>' + runs.length + '</b><span>Sessions</span></div>' +
+      '<div class="tm-tile"><b>' + (charges.length ? avg(charges).toFixed(1) + '%' : '') + '</b><span>Avg charge used</span></div>' +
+      '<div class="tm-tile"><b>' + (powers.length ? kW(Math.max.apply(null, powers)) : '') + '</b><span>Top power</span></div>' +
+      '<div class="tm-tile"><b>' + (brakes.length ? pct(Math.max.apply(null, brakes)) : '') + '</b><span>Hottest brakes</span></div>' +
       '</div>';
     var fx = findings(runs);
     // A line icon for each finding, as on a session's What the laps say cards.
@@ -301,7 +300,7 @@
       '</div>';
     var head = '<div class="tm-row tm-head"><div>Session</div><div>Car</div><div class="tm-num">Best lap</div><div class="tm-num">Charge used</div><div class="tm-num">Peak power</div><div class="tm-num">Regen</div><div class="tm-num">Hottest brakes</div><div class="tm-num">Battery max</div></div>';
     var rows = list.length ? list.map(rowHtml).join('') : '<div class="tm-empty">No runs on this track yet.</div>';
-    app.innerHTML = controls + tiles + analysis + lineChart(runs) + lapAnalysis(runs) + '<div class="tm-list">' + head + rows + '</div>' +
+    app.innerHTML = analysis + controls + tiles + lineChart(runs) + lapAnalysis(runs) + '<div class="tm-list">' + head + rows + '</div>' +
       '<p class="tm-note">Charge used is the battery at the start less the end, as a percentage of the battery. Brake temperature is the car’s own estimate, not a reading. Battery is the highest battery temperature the car reported.</p>';
     Array.prototype.forEach.call(app.querySelectorAll('[data-metric]'), function (b) { b.addEventListener('click', function () { state.metric = b.getAttribute('data-metric'); draw(); }); });
     Array.prototype.forEach.call(app.querySelectorAll('[data-lapmetric]'), function (b) { b.addEventListener('click', function () { state.lapMetric = b.getAttribute('data-lapmetric'); draw(); }); });

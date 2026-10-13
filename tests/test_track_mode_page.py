@@ -40,7 +40,7 @@ def test_track_mode_page_lists_the_shared_sessions_with_their_figures(page):
     expect(rows.first).to_contain_text("244 kW")
     expect(rows.first).to_contain_text("84%")
     expect(page.locator(".tm-tile").nth(0)).to_contain_text("4")
-    expect(page.locator(".tm-tile").nth(1)).to_contain_text("4")
+    expect(page.locator(".tm-tile").nth(1)).to_contain_text("Avg charge used")
 
 
 def test_the_analysis_says_what_the_runs_show(page):

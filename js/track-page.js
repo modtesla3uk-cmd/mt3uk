@@ -3638,7 +3638,7 @@
   }
   // Skip to section: lists the sections this session page has and scrolls to the one chosen.
   var SKIP_TO = [['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'], ['#tp-mapcard', 'Map'], ['#tp-gbox', 'G-force and speed'], ['[data-tile="corners"]', 'Corner by corner'],
-    ['[data-tile="grip"]', 'How much grip you used'], ['[data-tile="cmpnotes"]', 'What the laps say'], ['#tp-laps', 'Laps'], ['[data-tile="spotted"]', 'What we spotted'], ['#over-time', 'Over time'],
+    ['[data-tile="grip"]', 'How much grip you used'], ['[data-tile="cmpnotes"]', 'What the laps say'], ['#tp-laps', 'Laps'], ['[data-tile="spotted"]', 'What we spotted'],
     ['#tp-impact', 'What each mod did'], ['#lineedit', 'Start and finish lines'], ['#settings', 'Session settings']];
   function wireSkip(s) {
     var sel = document.getElementById('tp-skip');
@@ -4097,7 +4097,6 @@
       boardOpen = true;
     }
     h += lapsHtml + spottedHtml;
-    if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time" data-tile="overtime"><div class="tp-head">' + '<h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;
   }
   // "Lap 5", or "Session 2, lap 5" on a day made from several files
@@ -4234,7 +4233,7 @@
       sb.addEventListener('change', function () { view.b = sb.value; drawCompare(s); });
       drawCompare(s);
     }
-    if (s.mine) drawOverTime(s);
+    if (s.mine) drawModImpact(s);
   }
   // How the two laps are lined up on the Map.
   // What the G-force charts show (key, label). Each measure switched on gets a chart of its own, stacked, with lap A
@@ -4251,7 +4250,7 @@
   // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
   // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
   var boardOpen = false;
-  var DEFAULT_SPAN = { speed: 6, map: 6, corners: 6, grip: 6, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var DEFAULT_SPAN = { speed: 6, map: 6, corners: 6, grip: 6, cmpnotes: 12, laps: 12, spotted: 12, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of
@@ -5108,44 +5107,17 @@
     if (r.skipped.length) h += '<p class="tp-small">Not compared (' + r.skipped.map(function (x) { return esc(x.labels.join(', ') + ': ' + x.why); }).join('; ') + ').</p>';
     return h + '<p class="tp-small">Your best dry time before and after each part, at this track. Weather, tyres and driving change between days, so treat it as a guide.</p></div>';
   }
-  // The Sessions list under the best lap chart shows only the latest few until opened, so it is no taller than What the trend says.
-  var timeAll = false, SHORT_ROWS = 4;
-  function drawOverTime(s) {
-    var box = document.getElementById('tp-time'), tile = box && box.closest('[data-tile]'), b = board();
-    if (!box || !view.mine) return;
-    // Tiles drawn last time (the page redraws on a change of settings).
-    if (b) tilesOf(b).forEach(function (t) { if (/^overtime-/.test(keyOf(t))) t.remove(); });
+
+  // What each mod did, on the session's board after What we spotted. It used to sit under the Over time chart, which is gone.
+  function drawModImpact(s) {
+    var b = board();
+    if (!b || !view.mine || !s.mine) return;
     var list = view.mine.sessions.filter(function (o) { return o.carId === s.carId && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
-    if (list.length < 2) { box.innerHTML = '<div class="card tp-empty">' + icon('up') + '<p>Add another session here to see your times over time, with the mods you fitted in between marked from My Garage.</p></div>'; return; }
-    var dates = list.map(function (o) { return o.date.slice(0, 7); }).sort();
-    var mods = carMods(s.carId).filter(function (m) { return m.date >= dates[0].slice(0, 7) && m.date <= dates[dates.length - 1]; });
-    box.innerHTML = '<div class="card"><div class="tp-chart-head"><h3>Best lap per session</h3><div class="tp-key"><span><i style="background:' + RUN_COLORS[0] + '"></i>Dry</span><span><i class="is-ring"></i>Wet or damp (left out of the trend)</span><span class="is-mod"><i class="is-dash"></i>Mod fitted</span></div></div><svg class="tv-chart" id="tp-timeline" role="img" aria-label="Best lap at this track for each session, faster is higher"></svg>' + '<p class="tp-small">Higher up is faster. Tap a point to open that session.</p></div>';
-    var after = '<div class="card" data-tile="overtime-notes"><div class="tp-chart-head">' + '<h3>What the trend says</h3></div><div class="tp-notes">' + notesHtml(T.trendNotes(list.map(function (o) { return { date: o.date, bestTime: o.bestTime, conditions: o.conditions || 'Dry', tyres: o.tyres, temp: o.temp }; }), mods)) + '</div></div>' +
-      '<div class="card' + (timeAll ? '' : ' is-short') + '" data-tile="overtime-table" id="tp-sessions-tile"><div class="tp-chart-head">' + '<h3>Sessions</h3></div><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Date</th><th>Best</th><th>Change</th><th>Conditions</th></tr></thead><tbody>' +
-      list.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (o, i, arr) {
-        var prev = arr.slice(0, i).filter(function (p) { return (p.conditions || 'Dry') === 'Dry'; }).pop();
-        var ch = (o.conditions || 'Dry') === 'Dry' && prev ? o.bestTime - prev.bestTime : null;
-        return '<tr' + (o.id === s.id ? ' class="is-best"' : '') + '><td><a href="track.html?s=' + esc(o.id) + '" data-go="s=' + esc(o.id) + '">' + esc(niceDate(o.date)) + '</a></td><td>' + V.fmtLap(o.bestTime) + '</td><td>' + (ch === null ? '' : (ch > 0 ? '+' : '') + ch.toFixed(2)) + '</td><td>' + esc(o.conditions || '') + (o.temp != null ? ', ' + o.temp + '°C' : '') + '</td></tr>';
-      }).join('') + '</tbody></table></div>' +
-      (list.length > SHORT_ROWS ? '<button type="button" class="btn btn-secondary btn-sm tp-sess-more" id="tp-sess-more" aria-expanded="' + timeAll + '">' + (timeAll ? 'Show fewer sessions' : 'Show all ' + list.length + ' sessions') + '</button>' : '') + '</div>' + impactHtml(list, s);
-    // The extra tiles go on the board after the chart's tile (or into the section when there is no board).
-    if (tile && b) tile.insertAdjacentHTML('afterend', after); else box.insertAdjacentHTML('beforeend', after);
-    timelineData = { list: list, mods: mods, s: s };
-    drawTimeline();
-    var more = document.getElementById('tp-sess-more');
-    if (more) more.addEventListener('click', function () { timeAll = !timeAll; drawOverTime(s); });
+    tilesOf(b).forEach(function (t) { if (keyOf(t) === 'overtime-mods') t.remove(); });
+    var spotted = b.querySelector('[data-tile="spotted"]'), html = impactHtml(list, s);
+    if (spotted) spotted.insertAdjacentHTML('afterend', html); else b.insertAdjacentHTML('beforeend', html);
     applyLayout();
   }
-  // The best lap chart, drawn again at its chosen height (the grip bar under it).
-  var timelineData = null;
-  function drawTimeline() {
-    var svg = document.getElementById('tp-timeline'), d = timelineData;
-    if (!svg || !d) return;
-    V.timeline(svg, d.list.map(function (o) {
-      return { date: o.date, time: o.bestTime, wet: (o.conditions || 'Dry') !== 'Dry', mine: o.id === d.s.id, label: niceDate(o.date), conditions: o.conditions, temp: o.temp, onClick: function () { go('s=' + o.id); } };
-    }), d.mods, { H: 300 });
-  }
-
   function dragHtml(s) {
     var runs = s.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];

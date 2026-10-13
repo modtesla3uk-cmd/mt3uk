@@ -629,10 +629,6 @@ def test_add_a_session_from_the_racebox_file(page):
     page.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5)
     expect(page.locator(".tv-tip")).to_contain_text("L2")
     expect(page.locator("#tp-corners tbody tr").first).to_be_visible()
-    # Over time, with the coilovers fitted between the two sessions.
-    expect(page.locator("#tp-timeline circle").first).to_be_attached()
-    expect(page.locator("#tp-timeline")).to_contain_text("Coilovers: KW V3")
-    expect(page.locator('[data-tile="overtime-notes"] .tp-notes')).to_contain_text("after Coilovers: KW V3 was fitted")
     # Compare with the earlier day is offered.
     expect(page.locator("#tp-cmp-b optgroup")).to_have_attribute("label", "Your other sessions at this track")
 
@@ -6631,9 +6627,9 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
         return page.evaluate("k => getComputedStyle(document.querySelector('#tp-board > [data-tile=\"' + k + '\"]')).getPropertyValue('--span').trim()", key)
     first = order()
     assert first[:5] == ["speed", "map", "corners", "grip", "cmpnotes"]
-    for k in ("laps", "spotted", "overtime", "overtime-notes", "overtime-table", "overtime-mods", "lineedit", "rename", "settings"):
+    for k in ("laps", "spotted", "overtime-mods", "lineedit", "rename", "settings"):
         assert k in first, k
-    assert span("speed") == "6" and span("map") == "6" and span("settings") == "12" and span("overtime") == "12"
+    assert span("speed") == "6" and span("map") == "6" and span("settings") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
     # Packed: Corner by corner starts straight under the speed charts, not under the taller map beside them.
     sb = page.locator('[data-tile="speed"]').bounding_box()
@@ -6691,28 +6687,6 @@ def test_the_grip_tile_is_wide_enough_to_close_the_gap_beside_it(page):
     page.wait_for_timeout(400)
     grip, mapcard = page.locator("[data-tile='grip']").bounding_box(), page.locator("[data-tile='map']").bounding_box()
     assert abs(grip["y"] - mapcard["y"]) < 2000 and mapcard["x"] - (grip["x"] + grip["width"]) < 40, (grip, mapcard)
-
-
-def test_the_sessions_list_under_the_trend_is_short_until_opened(page):
-    fake = FakeWorker()
-    save_thruxton_with_a_member_board(page, fake)
-    base = fake.sessions["new1"]
-    for i in range(6):
-        rec = dict(base, id="x%d" % i, date="2026-0%d-1%d" % (i + 1, i), bestTime=99.0 - i)
-        fake.sessions[rec["id"]] = rec
-        fake.index.append(summary(rec))
-    page.goto("/track.html?s=new1")
-    tile = page.locator("[data-tile='overtime-table']")
-    tile.wait_for()
-    rows = page.locator("[data-tile='overtime-table'] tbody tr")
-    total = rows.count()
-    assert total > 4
-    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == 4
-    page.locator("#tp-sess-more").click()
-    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == total
-    expect(page.locator("#tp-sess-more")).to_have_text("Show fewer sessions")
-    page.locator("#tp-sess-more").click()
-    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == 4
 
 
 def test_the_bulk_edit_can_use_the_previous_tyres_and_brake_pads(page):

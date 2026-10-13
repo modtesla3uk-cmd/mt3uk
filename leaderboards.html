@@ -534,13 +534,14 @@
   }
   /* One line per session on a desktop: place, car, time, tyres, brakes and date in columns (js/leaderboard-page.js rowHtml). */
   @media (min-width: 781px) {
-    .lb-row { grid-template-columns: 40px minmax(0, 1.1fr) 104px minmax(0, 1.2fr) minmax(0, 1.2fr) 128px 18px; grid-template-areas: "pos car time tyre brakes date chev"; column-gap: 12px; padding: 8px 16px; align-items: center; }
-    .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.1fr) 104px 44px minmax(0, 1.2fr) minmax(0, 1.2fr) 128px 18px; grid-template-areas: "pos car time fav tyre brakes date chev"; }
+    .lb-row { grid-template-columns: 40px minmax(0, 1.6fr) 104px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; grid-template-areas: "pos car time tyre brakes date chev"; column-gap: 12px; padding: 8px 16px; align-items: center; }
+    .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.6fr) 104px 44px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; grid-template-areas: "pos car time fav tyre brakes date chev"; }
     .lb-row .lb-info { display: contents; }
     .lb-row .lb-tyre { grid-area: tyre; }
     .lb-row .lb-brakes { grid-area: brakes; }
     .lb-row .lb-date { grid-area: date; }
     .lb-row .lb-car { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+    .lb-row .lb-car .lb-name { flex: 0 0 auto; max-width: 75%; }
     .lb-row .lb-car small, .lb-row .lb-tyre, .lb-row .lb-brakes, .lb-row .lb-date, .lb-row .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lb-row .lb-car small { flex: 0 1 auto; }
     .lb-row .lb-time { grid-area: time; }

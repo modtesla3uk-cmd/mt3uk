@@ -415,6 +415,11 @@
   .lb-who { min-width: 0; display: grid; }
   .lb-who b { color: var(--ink); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lb-who small { color: var(--steel); font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* A track card's row is one line: the member, then the car and the date beside it (the car gives way first). */
+  .lb-podium .lb-who { display: flex; align-items: baseline; gap: 6px; }
+  .lb-podium .lb-who b { flex: 0 0 auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+  .lb-podium .lb-who small { min-width: 0; flex: 0 1 auto; }
+  .lb-podium .lb-who small.lb-date { flex: 0 0 auto; }
   .lb-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
   .lb-idle { margin: 0; }
   .lb-more { margin: 14px 0 0; }

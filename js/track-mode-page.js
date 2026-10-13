@@ -144,6 +144,10 @@
         if (x != null && isFinite(x) && l.t != null) pts.push({ x: x, y: l.t, r: run });
       });
     });
+    // Each session's fastest lap is marked, so it stands out from the other laps.
+    var fastest = {};
+    pts.forEach(function (p) { if (fastest[p.r.id] === undefined || p.y < fastest[p.r.id]) fastest[p.r.id] = p.y; });
+    pts.forEach(function (p) { p.best = p.y === fastest[p.r.id]; });
     return pts;
   }
   function lapCaption(runs, k) {
@@ -185,7 +189,7 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="' + (p.best ? '#16233d' : '#e8590c') + '"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
@@ -221,7 +225,8 @@
         '<div class="tm-num"><span class="tm-lab tm-sub">Brake pressure</span> ' + (p.bp.length ? '<b>' + avg(p.bp).toFixed(1) + '</b>' : '<span class="tm-sub">Not recorded</span>') + '</div>' +
         '<div class="tm-num"><span class="tm-lab tm-sub">Best lap</span> <b>' + lapTime(p.best) + '</b></div></div>';
     }).join('') + '</div>' : '';
-    return '<div class="tm-card tm-lapgraph"><h2>Lap analysis</h2><p class="tm-note">Each dot is a lap, or a run for tyre warm-up, against its lap time. Quicker laps sit higher. Pick a measure.</p>' + chips + graph +
+    var legend = m[0] === 'tyres' ? '' : '<p class="tm-legend"><span class="tm-key tm-key-best" aria-hidden="true"></span>Each session\u2019s fastest lap <span class="tm-key tm-key-lap" aria-hidden="true"></span>Other laps</p>';
+    return '<div class="tm-card tm-lapgraph"><h2>Lap analysis</h2><p class="tm-note">Each dot is a lap, or a run for tyre warm-up, against its lap time. Quicker laps sit higher. Pick a measure.</p>' + chips + graph + legend +
       '<p class="tm-note">' + esc(lapCaption(runs, m[0])) + '</p>' + padHtml + '</div>';
   }
 

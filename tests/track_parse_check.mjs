@@ -134,9 +134,9 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   const plain = mk({}), rolled = mk({ rollout: true });
   const r0 = plain.runs && plain.runs[0], r1 = rolled.runs && rolled.runs[0];
   ok(r0 && r0.s30 > 2 && r0.s30 < 4, 'a 0 to 30 mph time is worked out (' + (r0 && r0.s30) + ' s)');
-  // A true 1 ft (0.3048 m) at 5 m/s/s takes 0.35 s from the launch, and the plain clock already starts about 0.11 s in
-  // (at 2 km/h), so about 0.24 s comes off, with the 0.02 s sampling on top.
-  ok(r1 && rolled.rollout === true && near(r0.s60 - r1.s60, 0.25, 0.04) && near(r0.s30 - r1.s30, 0.25, 0.04), 'a true 1 ft rollout takes about 0.25 of a second off each time here (' + (r0.s60 - r1.s60).toFixed(2) + ', ' + (r0.s30 - r1.s30).toFixed(2) + ')');
+  // The 0.16 m start at 5 m/s/s takes about 0.18 s from the launch, and the plain clock already starts about 0.11 s in
+  // (at 2 km/h), so about 0.2 of a second comes off.
+  ok(r1 && rolled.rollout === true && near(r0.s60 - r1.s60, 0.18, 0.06) && near(r0.s30 - r1.s30, 0.18, 0.06), 'a 1 ft rollout takes about 0.2 of a second off each time here (' + (r0.s60 - r1.s60).toFixed(2) + ', ' + (r0.s30 - r1.s30).toFixed(2) + ')');
 }
 
 // A standing start away from any known drag strip is not assumed to be a drag run (it may be a sprint).

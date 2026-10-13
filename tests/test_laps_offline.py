@@ -545,7 +545,9 @@ def test_holding_a_track_in_sessions_keeps_it_offline_without_opening_it(page):
     expect(cloud).to_have_attribute("aria-pressed", "true")
     expect(row).to_have_attribute("aria-expanded", "false")
     assert page.evaluate("MT3UKOffline.circuits().map(c => c.id)") == ["thruxton"]
-    # Hold again: asks, then takes it off.
+    # Hold again: asks, then takes it off. The "kept on this device" bar sits fixed at the foot of the screen and can
+    # cover this row, so bring the row to the middle of the screen first, as a reader would scroll it up.
+    row.evaluate("e => e.scrollIntoView({ block: 'center', behavior: 'instant' })")
     page.once("dialog", lambda d: d.accept())
     hold(page, row)
     expect(cloud).to_have_attribute("aria-pressed", "false")

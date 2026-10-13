@@ -10,7 +10,17 @@
   if (!app) return;
   var GROUPS = [['track', 'Track days'], ['sprint', 'Sprints'], ['hill', 'Hill climbs'], ['drag', 'Drag strips'], ['drive', 'Drives']];
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>';
-  var state = { list: [], filter: 'all' };
+  var state = { list: [], filter: 'all', ranks: {} };
+  var TIERS = { 1: 'Platinum', 2: 'Gold', 3: 'Silver' };
+  function ordinal(n) { var t = n % 100, u = n % 10; return n + (t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th'); }
+  // The session's place on its leaderboard, or why it is not on one (GET /track/ranks), as on the Sessions list.
+  function rankHtml(id) {
+    var r = state.ranks[id];
+    if (!r) return '';
+    if (!r.onBoard) return '<span class="fav-rank is-off" title="' + esc(r.reason || '') + '">Not on a board</span>';
+    var medal = r.place <= 3 ? '<em class="fav-medal fav-medal-' + r.place + '">' + TIERS[r.place] + '</em> ' : '';
+    return '<span class="fav-rank">' + medal + ordinal(r.place) + ' of ' + r.of + ' on ' + esc(r.board) + '</span>';
+  }
 
   function token() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -47,7 +57,7 @@
   function rowHtml(f) {
     var meta = [f.car, f.date, f.mine ? '' : 'Shared by another member'].filter(Boolean).join(' · ');
     return '<div class="fav-row" data-fav-row>' +
-      '<a class="fav-link" href="track.html?s=' + esc(f.id) + '"><b>' + esc(trackName(f)) + '</b><span>' + esc(meta) + '</span></a>' +
+      '<a class="fav-link" href="track.html?s=' + esc(f.id) + '"><b>' + esc(trackName(f)) + '</b><span>' + esc(meta) + '</span>' + rankHtml(f.id) + '</a>' +
       '<span class="fav-res">' + esc(result(f)) + '</span>' +
       '<button type="button" class="fav-star" data-fav-remove data-id="' + esc(f.id) + '" aria-pressed="true" aria-label="Remove from favourites" title="Remove from favourites">' + STAR + '</button>' +
       '</div>';
@@ -85,6 +95,10 @@
       if (!d.success) { app.innerHTML = '<p class="fav-empty">Your favourites could not be loaded. Try again in a moment.</p>'; return; }
       state.list = d.sessions || [];
       render();
+      // Where each one stands on its leaderboard, once the list is drawn.
+      if (state.list.length) api('GET', '/track/ranks?ids=' + state.list.map(function (f) { return f.id; }).join(',')).then(function (rk) {
+        if (rk && rk.success) { state.ranks = rk.ranks || {}; render(); }
+      }).catch(function () {});
     }).catch(function () {
       app.innerHTML = '<p class="fav-empty">Your favourites could not be loaded. Check your connection and try again.</p>';
     });

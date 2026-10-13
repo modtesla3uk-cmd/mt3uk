@@ -90,3 +90,25 @@ def test_someone_elses_session_has_add_a_session_that_opens_the_add_page(page):
     add = page.locator("#tp-hero-add")
     expect(add).to_be_visible()
     expect(add).to_have_attribute("href", "track.html?add=1")
+
+
+def test_a_session_in_the_top_three_shows_its_medal_in_the_rank_line(page):
+    """A session that holds a top-three place shows its medal (Platinum, Gold or Silver) before the place."""
+    fake = FakeWorker()
+    fake.ranks = {"new1": {"onBoard": True, "place": 1, "of": 6, "board": "Thruxton, Main", "tab": "Track days"}}
+    save_thruxton_with_a_member_board(page, fake)
+    line = page.locator(".tp-rank-line")
+    expect(line.locator(".tp-medal")).to_have_text("Platinum")
+    expect(line).to_contain_text("1st of 6 on")
+
+
+def test_the_favourites_page_shows_each_sessions_place_and_medal(page):
+    """On Favourites each session says where it stands on its leaderboard, with its medal when it has one."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    fake.favs = [{"id": "new1", "at": 1}]
+    fake.ranks = {"new1": {"onBoard": True, "place": 2, "of": 7, "board": "Thruxton, Main", "tab": "Track days"}}
+    open_page(page, fake, "/favourites.html")
+    row = page.locator("#fav-app .fav-row").first
+    expect(row.locator(".fav-rank")).to_contain_text("2nd of 7 on Thruxton, Main")
+    expect(row.locator(".fav-medal")).to_have_text("Gold")

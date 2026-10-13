@@ -3710,10 +3710,6 @@
       wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | Laps by MT3UK', campaign: 'track_session',
         text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on Laps by MT3UK' });
     }
-    if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
-      var slot = document.getElementById('tp-rank-slot');
-      if (slot && view && view.s === s && r[s.id]) slot.innerHTML = rankBadge(r[s.id], trackName(s));
-    });
   }
   var LW = 'Lap';
   // Set when a session has just been saved, so the page it opens on says so once.
@@ -4013,8 +4009,11 @@
       if (el.classList.contains('tp-rank-line')) {
         // The track's name in the line opens its leaderboard, as the heading's does, when the session is on a board.
         var href = el.getAttribute('data-board-href');
-        var words = r.onBoard && href ? ordinal(r.place) + ' of ' + r.of + ' on <a class="tp-title-link" href="' + esc(href) + '">' + esc(r.board) + '</a>' : esc(rankWords(r));
-        if (el.innerHTML !== words) el.innerHTML = words;
+        // Places 1 to 3 carry their medal (Platinum, Gold, Silver) in a chip before the place.
+        var medal = r.onBoard && r.place <= 3 ? '<em class="tp-medal tp-rank-' + r.place + '">' + icon('trophy') + TIERS[r.place] + '</em> ' : '';
+        var words = r.onBoard && href ? medal + ordinal(r.place) + ' of ' + r.of + ' on <a class="tp-title-link" href="' + esc(href) + '">' + esc(r.board) + '</a>' : esc(rankWords(r));
+        // Compare with what was written last time: the browser rewrites the markup it stores, so comparing the HTML would never match.
+        if (el.getAttribute('data-written') !== words) { el.setAttribute('data-written', words); el.innerHTML = words; }
         return;
       }
       var main = el.querySelector('.tp-row-main');

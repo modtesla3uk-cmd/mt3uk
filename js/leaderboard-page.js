@@ -802,7 +802,7 @@
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
             '<div class="card lb-card"><ol class="lb-list" data-open="' + foldOpen + '">' +
               // Column headings for the one-line rows on a desktop (hidden on a phone, see the board's styles).
-              '<li class="lb-head' + (signedInToken() ? ' lb-can-fav' : '') + '" aria-hidden="true"><span>#</span><span>Driver and car</span><span class="lb-head-time">Time</span>' + (signedInToken() ? '<span></span>' : '') + '<span>Tyres</span><span>Brakes</span><span>Date</span><span></span></li>' +
+              '<li class="lb-head' + (signedInToken() ? ' lb-can-fav' : '') + '" aria-hidden="true"><span>#</span><span>Driver and car</span><span>Tyres</span><span>Brakes</span><span>Date</span>' + (signedInToken() ? '<span class="lb-head-fav">Favourite</span>' : '') + '<span class="lb-head-time">Time</span><span></span></li>' +
               shown.map(function (r, i) {
               var row = rowHtml(r, i, shown[0].s, type);
               if (i >= FOLD) row = row.replace('<li class="lb-row', '<li class="lb-row lb-extra');

@@ -532,10 +532,11 @@
     .lb-row > .icon { display: block; grid-area: chev; width: 18px; height: 18px; color: var(--steel); }
     .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.2fr) 110px 44px minmax(0, 1.3fr) 20px; grid-template-areas: "pos car time fav info chev" ". mods mods mods mods ."; }
   }
-  /* One line per session on a desktop: place, car, time, tyres, brakes and date in columns (js/leaderboard-page.js rowHtml). */
+  /* One line per session on a desktop: place, car, tyres, brakes, date, favourite star, then the time with its gap under it (js/leaderboard-page.js rowHtml). */
   @media (min-width: 781px) {
-    .lb-row { grid-template-columns: 40px minmax(0, 1.6fr) 104px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; grid-template-areas: "pos car time tyre brakes date chev"; column-gap: 12px; padding: 8px 16px; align-items: center; }
-    .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.6fr) 104px 44px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; grid-template-areas: "pos car time fav tyre brakes date chev"; }
+    .lb-row { grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 118px 96px 18px; grid-template-areas: "pos car tyre brakes date time chev"; column-gap: 12px; padding: 8px 16px; align-items: center; }
+    .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 118px 60px 96px 18px; grid-template-areas: "pos car tyre brakes date fav time chev"; }
+    .lb-row .lb-fav { justify-self: end; }
     .lb-row .lb-info { display: contents; }
     .lb-row .lb-tyre { grid-area: tyre; }
     .lb-row .lb-brakes { grid-area: brakes; }
@@ -544,12 +545,12 @@
     .lb-row .lb-car .lb-name { flex: 0 0 auto; max-width: 75%; }
     .lb-row .lb-car small, .lb-row .lb-tyre, .lb-row .lb-brakes, .lb-row .lb-date, .lb-row .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lb-row .lb-car small { flex: 0 1 auto; }
-    .lb-row .lb-time { grid-area: time; }
+    .lb-row .lb-time { grid-area: time; justify-items: end; text-align: right; }
     .lb-row .lb-time b { font-size: 0.98rem; }
-    .lb-row .lb-time small { display: none; }
-    .lb-head { display: grid; grid-template-columns: 40px minmax(0, 1.6fr) 104px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; column-gap: 12px; padding: 8px 16px; font-size: 0.72rem; font-weight: 600; color: var(--steel); border-bottom: 1px solid var(--hairline); background: #fbfaf7; }
-    .lb-head.lb-can-fav { grid-template-columns: 40px minmax(0, 1.6fr) 104px 44px minmax(0, 1fr) minmax(0, 1fr) 128px 18px; }
-    .lb-head .lb-head-time { text-align: right; }
+    .lb-row .lb-time small { display: block; font-size: 0.74rem; white-space: nowrap; }
+    .lb-head { display: grid; grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 118px 96px 18px; column-gap: 12px; padding: 8px 16px; font-size: 0.72rem; font-weight: 600; color: var(--steel); border-bottom: 1px solid var(--hairline); background: #fbfaf7; }
+    .lb-head.lb-can-fav { grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 118px 60px 96px 18px; }
+    .lb-head .lb-head-time, .lb-head .lb-head-fav { text-align: right; }
   }
   @media (max-width: 780px) { .lb-head { display: none; } }
   /* Brakes: the pads on the session, in the same small type as the tyres (a board row shows what it was run on). */
@@ -824,7 +825,7 @@
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/leaderboard-page.js?v=20271236" defer></script>
+<script src="js/leaderboard-page.js?v=20271237" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

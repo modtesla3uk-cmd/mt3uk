@@ -1151,6 +1151,14 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { width: auto; height: 44px; min-height: 44px; padding: 0 16px; gap: 6px; border-radius: 999px; font-size: 1rem; justify-content: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link .icon { width: 18px; height: 18px; }
   }
+  /* The star beside a Sessions row (js/track-page.js favRowButton): outside the row's link, painted once the list has loaded. */
+  .tp-rowwrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .tp-rowwrap > .tp-row { flex: 1 1 auto; min-width: 0; }
+  .tp-favrow { flex: 0 0 44px; width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: #fff; color: var(--steel); cursor: pointer; }
+  .tp-favrow .icon { width: 20px; height: 20px; display: block; }
+  .tp-favrow.is-fav { color: var(--orange); border-color: var(--orange); }
+  .tp-favrow[hidden] { display: none; }
+  .tp-favrow:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */
   .tp-fav { gap: 6px; }
   .tp-fav .icon { width: 16px; height: 16px; }
@@ -1368,7 +1376,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271058" defer></script>
+<script src="js/track-page.js?v=20271059" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

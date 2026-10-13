@@ -439,6 +439,7 @@
   }
   function route() {
     var done = routeView();
+    markFavs();
     Promise.resolve(done).then(heroSettle, heroSettle);
   }
   function routeView() {
@@ -1422,8 +1423,8 @@
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s, carName) {
-    return '<a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
-      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
+    return '<div class="tp-rowwrap">' + favRowButton(s.id) + '<a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
+      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a></div>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
   // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.
@@ -1446,9 +1447,9 @@
     var inner = '<span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
       esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.tyres, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
-    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
+    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' + favRowButton(s.id) +
       '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
-    return '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
+    return '<div class="tp-rowwrap">' + favRowButton(s.id) + '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a></div>';
   }
   // Sessions picked by holding on them (or Ctrl/Cmd/Shift-click): the day's bulk edit then changes only those.
   var pickedIds = {};
@@ -3936,6 +3937,11 @@
   function favButton(id, on) {
     return '<button type="button" class="btn btn-secondary btn-sm tp-fav' + (on ? ' is-fav' : '') + '" data-fav-toggle data-id="' + esc(id) + '" aria-pressed="' + (on ? 'true' : 'false') + '" title="' + (on ? 'Remove from favourites' : 'Add to favourites') + '" aria-label="' + (on ? 'Remove from favourites' : 'Add to favourites') + '">' + icon('star') + '<span>' + FAV_STAR + '</span></button>';
   }
+  // The star on each list row (.tp-favrow) stays hidden until the member's list has loaded, so a visitor or a member
+  // without early access sees no star.
+  function favRowButton(id) {
+    return '<button type="button" class="tp-favrow" data-fav-toggle data-id="' + esc(id) + '" hidden aria-pressed="false" title="Add to favourites" aria-label="Add to favourites">' + icon('star') + '</button>';
+  }
   function paintFavs() {
     app.querySelectorAll('[data-fav-toggle]').forEach(function (b) {
       var on = !!favIds && favIds.indexOf(b.getAttribute('data-id')) !== -1;
@@ -3943,8 +3949,11 @@
       b.classList.toggle('is-fav', on);
       b.title = on ? 'Remove from favourites' : 'Add to favourites';
       b.setAttribute('aria-label', b.title);
+      if (b.classList.contains('tp-favrow')) b.hidden = favIds === null;
     });
   }
+  // Rows are drawn in many places, so the stars are painted whenever the page draws.
+  if (window.MutationObserver) new MutationObserver(function () { if (favIds) paintFavs(); }).observe(app, { childList: true, subtree: true });
   function markFavs() {
     if (!token()) return;
     api('GET', '/track/favourites?ids=1').then(function (d) {

@@ -503,9 +503,17 @@
   .lb-mods { grid-area: mods; display: flex; flex-wrap: wrap; gap: 4px; }
   .lb-mods .tp-modchip { margin-top: 0; }
   .tp-modchip.is-more { color: var(--steel); }
+  /* A favourite star on a row (js/leaderboard-page.js): its own column, above the name's link, hidden until the list has loaded. */
+  .lb-row.lb-can-fav { grid-template-columns: 34px minmax(0, 1fr) auto 44px; grid-template-areas: "pos car time fav" ". info info info" ". mods mods mods"; }
+  .lb-fav { grid-area: fav; position: relative; z-index: 1; width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: #fff; color: var(--steel); cursor: pointer; }
+  .lb-fav .icon { width: 20px; height: 20px; display: block; }
+  .lb-fav.is-fav { color: var(--orange); border-color: var(--orange); }
+  .lb-fav[hidden] { display: none; }
+  .lb-fav:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
   @media (min-width: 781px) {
     .lb-row { grid-template-columns: 40px minmax(0, 1.2fr) 110px minmax(0, 1.3fr) 20px; grid-template-areas: "pos car time info chev" ". mods mods mods ."; column-gap: 16px; padding: 14px 20px; }
     .lb-row > .icon { display: block; grid-area: chev; width: 18px; height: 18px; color: var(--steel); }
+    .lb-row.lb-can-fav { grid-template-columns: 40px minmax(0, 1.2fr) 110px 44px minmax(0, 1.3fr) 20px; grid-template-areas: "pos car time fav info chev" ". mods mods mods mods ."; }
   }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
@@ -775,7 +783,7 @@
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/leaderboard-page.js?v=20271230" defer></script>
+<script src="js/leaderboard-page.js?v=20271231" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

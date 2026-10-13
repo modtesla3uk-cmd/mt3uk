@@ -81,6 +81,8 @@
   }
   app.addEventListener('click', function (e) {
     goLink(e);
+    var fb = e.target.closest('[data-lb-fav]');
+    if (fb && !fb.disabled) { e.preventDefault(); toggleLbFav(fb); return; }
     if (e.target.closest('[data-units]')) { V.setMph(!V.units.mph); route(); }
   });
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
@@ -113,7 +115,47 @@
     b.hidden = !!inner;
     if (inner) heroTop.insertBefore(inner, b);
   }
+  // Favourites: a star on each board row, the same list as the session page's star (GET and POST /track/favourites).
+  var favIds = null;
+  var FAV_STAR = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>';
+  function favApi(method, path, body) {
+    var opts = { method: method, cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': signedInToken() } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    return fetch(API + path, opts).then(function (r) { return r.json().catch(function () { return {}; }); });
+  }
+  // The stars stay hidden until the member's list has loaded (a visitor or a member without early access sees none).
+  function paintLbFavs() {
+    app.querySelectorAll('[data-lb-fav]').forEach(function (b) {
+      var on = !!favIds && favIds.indexOf(b.getAttribute('data-id')) !== -1;
+      b.hidden = favIds === null;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.classList.toggle('is-fav', on);
+      b.title = on ? 'Remove from favourites' : 'Add to favourites';
+      b.setAttribute('aria-label', b.title);
+    });
+  }
+  function markLbFavs() {
+    if (!signedInToken()) return;
+    favApi('GET', '/track/favourites?ids=1').then(function (d) {
+      if (d && d.success) { favIds = d.ids || []; paintLbFavs(); }
+    }).catch(function () {});
+  }
+  function toggleLbFav(b) {
+    var id = b.getAttribute('data-id'), on = b.getAttribute('aria-pressed') !== 'true';
+    b.disabled = true;
+    favApi('POST', '/track/favourites', { id: id, on: on }).then(function (d) {
+      b.disabled = false;
+      if (!d || !d.success) { b.title = (d && d.message) || 'Could not save that. Try again.'; return; }
+      favIds = (favIds || []).filter(function (x) { return x !== id; });
+      if (on) favIds.push(id);
+      paintLbFavs();
+    }).catch(function () { b.disabled = false; b.title = 'Could not reach Laps. Try again when you are online.'; });
+  }
+  // Board rows are drawn again on every change, so the stars are painted whenever the list draws.
+  if (window.MutationObserver) new MutationObserver(function () { if (favIds) paintLbFavs(); }).observe(app, { childList: true, subtree: true });
+
   function route() {
+    markLbFavs();
     V.hideTip();
     if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     var p = params();
@@ -526,9 +568,12 @@
     var drive = b.drive || e.drive;
     var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
       (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + (e.sessions > 1 ? ' · ' + e.sessions + ' sessions' : '') + '</span>';
-    return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
+    // A signed-in member gets a star on the row, outside the name's link (it is shown once the list has loaded).
+    var fav = signedInToken() ? ' lb-can-fav' : '';
+    var star = signedInToken() ? '<button type="button" class="lb-fav" data-lb-fav data-id="' + esc(b.sessionId) + '" hidden aria-pressed="false" title="Add to favourites" aria-label="Add to favourites">' + FAV_STAR + '</button>' : '';
+    return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + fav + '"><span class="lb-pos">' + (i + 1) + '</span>' +
       '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(b.sessionId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
-      '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' +
+      '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' + star +
       '<div class="lb-info">' + info + '</div>' +
       // The car's mods are kept on the entry (and shown on its session page), but a board row lists only the tyres for now.
       icon('chev') + '</li>';

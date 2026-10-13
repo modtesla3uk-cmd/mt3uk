@@ -7341,6 +7341,48 @@ def test_a_session_can_be_starred_and_the_favourites_page_lists_it_apart_from_th
     assert fake.favs == []
 
 
+def test_a_session_row_on_the_list_has_a_star_that_favourites_it_without_opening_it(page):
+    """Each Sessions row has a star beside it (outside the row's link), so a member can favourite a session without
+    opening it: the star changes, the list stays, and the worker has the session."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    sid = list(fake.sessions)[0]
+    page.locator("#tp-exit").click()
+    expect(page.locator("#tp-sess-list")).to_be_visible()
+    # The tree folds: step down to the track's layouts, then to the layout's dates, then open the day.
+    page.locator("#tp-sess-list .tp-trackrow", has_text="Thruxton").click()
+    page.locator("#tp-sess-list [data-layout-toggle]").first.click()
+    page.locator("#tp-sess-list .tp-day-tile").first.click()
+    star = page.locator('.tp-favrow[data-id="%s"]' % sid)
+
+    expect(star).to_be_visible()
+    expect(star).to_have_attribute("aria-pressed", "false")
+    star.click()
+    expect(star).to_have_attribute("aria-pressed", "true")
+    assert [f["id"] for f in fake.favs] == [sid]
+    assert "s=" not in page.url, page.url
+    star.click()
+    expect(star).to_have_attribute("aria-pressed", "false")
+    assert fake.favs == []
+
+
+def test_a_board_row_on_the_leaderboard_has_a_star_that_favourites_its_session(page):
+    """A signed-in member can star a board row without opening its session: the star sits outside the name's link,
+    and the leaderboard stays where it is."""
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
+    open_page(page, fake, path="/leaderboards.html")
+    page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    star = page.locator(".lb-row .lb-fav").first
+    expect(star).to_be_visible()
+    expect(star).to_have_attribute("aria-pressed", "false")
+    star.click()
+    expect(star).to_have_attribute("aria-pressed", "true")
+    assert [f["id"] for f in fake.favs] == ["a1"]
+    assert "s=" not in page.url, page.url
+    expect(page.locator(".lb-row").first).to_be_visible()
+
+
 def test_the_laps_header_has_a_favourites_star_that_goes_to_the_favourites_card(page):
     fake = FakeWorker()
     open_page(page, fake)

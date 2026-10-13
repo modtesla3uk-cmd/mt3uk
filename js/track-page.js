@@ -1446,7 +1446,7 @@
   }
   function sessionRow(s, carName) {
     return '<div class="tp-rowwrap"><a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
-      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (isTrackModeSession(s) ? '<span class="tp-pill tp-pill-tm">Tesla Track Mode</span>' : '') + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>' + favRowButton(s.id) + '</div>';
+      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (isTrackModeSession(s) ? '<span class="tp-pill tp-pill-tm">Track Mode Data</span>' : '') + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>' + favRowButton(s.id) + '</div>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
   // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.

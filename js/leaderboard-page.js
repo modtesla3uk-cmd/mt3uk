@@ -590,7 +590,7 @@
     // Hovering a row shows all of its details, as a long car name or tyre is shortened on the row.
     var full = [(i + 1) + '. ' + (e.owner || e.car), 'Car: ' + (who || 'not given'), 'Time: ' + res + (i ? ' (' + gap + ')' : ' (fastest)'), 'Tyres: ' + (drive ? drive + ' · ' : '') + (tyres || 'not given'), 'Brakes: ' + (b.pads || 'not given'), 'Date: ' + T.niceDate(b.date) + (b.conditions ? ' · ' + b.conditions : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '')].join('\n');
     return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + fav + '" title="' + esc(full) + '"><a class="lb-open" href="track.html?s=' + esc(b.sessionId) + '" aria-label="Open this session"></a><span class="lb-pos">' + (i + 1) + '</span>' +
-      '<div class="lb-car"><a class="lb-name" href="member.html?car=' + esc(b.carId || e.carId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small>' + (b.trackMode ? '<span class="lb-tm">Track Mode</span>' : '') + '</div>' +
+      '<div class="lb-car"><a class="lb-name" href="member.html?car=' + esc(b.carId || e.carId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small>' + (b.trackMode ? '<span class="lb-tm">Track Mode Data</span>' : '') + '</div>' +
       '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' + star +
       '<div class="lb-info">' + info + '</div>' +
       icon('chev') + '</li>';
@@ -740,7 +740,7 @@
         var s = x.s, gap = i ? '+' + (x.t - rows[0].t).toFixed(2) + ' s' : 'Quickest';
         var detail = [s.car, s.conditions, s.privacy === 'private' ? 'Only me' : ''].filter(Boolean).join(' · ');
         return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
-          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small>' + (s.mode || s.logger === 'Tesla Track Mode' ? '<span class="lb-tm">Track Mode</span>' : '') + '</div>' +
+          '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(s.id) + '">' + esc(T.niceDate(s.date) + (s.time ? ' at ' + s.time : '')) + '</a><small>' + esc(detail) + '</small>' + (s.mode || s.logger === 'Tesla Track Mode' ? '<span class="lb-tm">Track Mode Data</span>' : '') + '</div>' +
           '<div class="lb-time"><b>' + fmtRes(x.t, type) + '</b><small>' + gap + '</small></div>' +
           '<div class="lb-info"><span class="lb-tyre' + (s.tyres ? '' : ' is-none') + '">' + (s.tyres ? esc(s.tyres) : 'Tyres not given') + '</span></div>' +
           icon('chev') + '</li>';

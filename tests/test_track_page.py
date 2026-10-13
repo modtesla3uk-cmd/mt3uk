@@ -7450,6 +7450,6 @@ def test_a_board_tags_the_runs_with_track_mode_data(page):
     open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
     rows = page.locator(".lb-row")
     expect(rows).to_have_count(2)
-    expect(rows.first.locator(".lb-tm")).to_have_text("Track Mode")
+    expect(rows.first.locator(".lb-tm")).to_have_text("Track Mode Data")
     expect(rows.nth(1).locator(".lb-tm")).to_have_count(0)
     expect(page.locator("#lb-trackmode")).to_have_count(0)

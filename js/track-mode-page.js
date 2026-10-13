@@ -189,7 +189,7 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#2f9e44' : '#e8590c') + '"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="' + (p.best ? 6 : 4.5) + '" fill="' + (p.best ? '#2f9e44' : '#e8590c') + '" stroke="#16233d" stroke-width="0.8"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     // Faint grid lines at six even steps on each axis, so a dot can be read against them.
     var grid = '';

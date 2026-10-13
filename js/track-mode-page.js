@@ -138,9 +138,11 @@
       });
       return pts;
     }
-    laps.forEach(function (l) {
-      var x = k === 'charge' ? l.used : k === 'battery' ? l.bt : (l.th != null ? l.th * 100 : null);
-      if (x != null && isFinite(x) && l.t != null) pts.push({ x: x, y: l.t, r: l.run, lap: l });
+    runs.forEach(function (run) {
+      (run.mode && run.mode.laps || []).forEach(function (l) {
+        var x = k === 'charge' ? l.used : k === 'battery' ? l.bt : (l.th != null ? l.th * 100 : null);
+        if (x != null && isFinite(x) && l.t != null) pts.push({ x: x, y: l.t, r: run });
+      });
     });
     return pts;
   }
@@ -183,7 +185,7 @@
     function X(v) { return L + (v - x0) / (x1 - x0) * (W - L - R); }
     function Y(v) { return T + (v - y0) / (y1 - y0) * (H - T - B); }
     var dots = pts.map(function (p) {
-      return '<circle cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit) + '</title></circle>';
+      return '<circle class="tm-dot' + (state.picked === p.r.id ? ' is-picked' : '') + '" data-run="' + esc(p.r.id) + '" tabindex="0" role="button" cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="5" fill="#e8590c"><title>' + esc(trackOf(p.r) + ', ' + niceDate(p.r.date) + ': ' + lapTime(p.y) + ', ' + p.x.toFixed(dp) + unit + '. Press to see the session below.') + '</title></circle>';
     }).join('');
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Lap time against the figure, one dot for each">' +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +

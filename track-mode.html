@@ -63,6 +63,9 @@
   .tm-pill { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; }
   .tm-pill:hover { background:#eef1f6; }
   .tm-pill-accent { background:var(--orange); border-color:var(--orange); color:#fff; }
+  .tm-pill { gap:8px; }
+  .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .tm-pill-accent .icon { stroke:#fff; }
   .tm-pill-accent:hover { background:#cf4d0a; }
   .tm { padding:4px 0 40px; }
   .tm-tiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 16px; }
@@ -162,11 +165,11 @@
     <div class="tm-hero-top">
       <div class="tm-hero-left">
         <a href="laps.html#trackmode" class="back-link" aria-label="Back to Tesla Track Mode on Laps"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
-        <a class="tm-pill" href="track.html">My Sessions</a>
+        <a class="tm-pill" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>My Sessions</a>
       </div>
       <div class="tm-hero-right">
-        <a class="tm-pill" href="leaderboards.html">Leaderboards</a>
-        <a class="tm-pill tm-pill-accent" href="track.html?add=1">Add a session</a>
+        <a class="tm-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
+        <a class="tm-pill tm-pill-accent" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add a session</a>
       </div>
     </div>
     <h1>Tesla Track Mode, analysed</h1>
@@ -185,7 +188,7 @@
   </div>
 </footer>
 
-<script src="js/track-mode-page.js?v=6" defer></script>
+<script src="js/track-mode-page.js?v=7" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=16" defer></script>

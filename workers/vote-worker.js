@@ -7717,7 +7717,7 @@ async function refreshTrackModeRuns(env, carId, shared) {
   }
   var kept = all.filter(function (r) { return r.carId !== carId; });
   mine.forEach(function (s) {
-    kept.push({ id: s.id, carId: carId, car: car, owner: owner, date: s.date || '', time: s.time || '', venue: s.venue || '', layout: s.layout || '', type: s.type || '', bestTime: s.bestTime || null, conditions: s.conditions || '', tyres: s.tyres || '', pads: s.pads || '', logger: s.logger || '', mode: s.mode });
+    kept.push({ id: s.id, carId: carId, car: car, owner: owner, date: s.date || '', time: s.time || '', venue: s.venue || '', layout: s.layout || '', type: s.type || '', bestTime: s.bestTime || null, conditions: s.conditions || '', tyres: s.tyres || '', pads: s.pads || '', drive: s.drive || '', logger: s.logger || '', mode: s.mode });
   });
   kept.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
   await env.VOTES.put(TRACK_MODE_RUNS_KEY, JSON.stringify(kept.slice(0, TRACK_MODE_RUNS_MAX)));

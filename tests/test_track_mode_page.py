@@ -205,3 +205,14 @@ def test_over_time_dots_are_coloured_by_conditions_with_a_legend(page):
     expect(graph.locator(".tm-legend")).to_contain_text("Wet")
     expect(graph.locator(".tm-legend")).to_contain_text("Damp")
     expect(graph.locator(".tm-legend")).to_contain_text("Dry")
+
+
+def test_the_over_time_legend_changes_with_the_figure_picked(page):
+    runs = [dict(RUNS[0], pads="Pagid RSL29"), dict(RUNS[1], pads="Carbotech XP10"), dict(RUNS[2], pads="Pagid RSL29"), dict(RUNS[3], pads="Pagid RSL29")]
+    open_mode_page(page, runs)
+    graph = page.locator(".tm-chart")
+    expect(graph.locator(".tm-legend")).to_contain_text("Conditions:")
+    page.locator("[data-metric='brakes']").click()
+    expect(graph.locator(".tm-legend")).to_contain_text("Brake pads:")
+    expect(graph.locator(".tm-legend")).to_contain_text("Pagid RSL29")
+    expect(graph.locator(".tm-legend")).to_contain_text("Carbotech XP10")

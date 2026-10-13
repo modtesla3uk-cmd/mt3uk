@@ -571,9 +571,9 @@
     // A signed-in member gets a star on the row, outside the name's link (it is shown once the list has loaded).
     var fav = signedInToken() ? ' lb-can-fav' : '';
     var star = signedInToken() ? '<button type="button" class="lb-fav" data-lb-fav data-id="' + esc(b.sessionId) + '" hidden aria-pressed="false" title="Add to favourites" aria-label="Add to favourites">' + FAV_STAR + '</button>' : '';
-    // The whole row opens the session, except the name, which opens the member's car (its public page).
+    // The whole row opens the session, except the name, which opens the member's public profile.
     return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + fav + '"><a class="lb-open" href="track.html?s=' + esc(b.sessionId) + '" aria-label="Open this session"></a><span class="lb-pos">' + (i + 1) + '</span>' +
-      '<div class="lb-car"><a class="lb-name" href="track.html?car=' + esc(b.carId || e.carId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
+      '<div class="lb-car"><a class="lb-name" href="member.html?car=' + esc(b.carId || e.carId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
       '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' + star +
       '<div class="lb-info">' + info + '</div>' +
       // The car's mods are kept on the entry (and shown on its session page), but a board row lists only the tyres for now.

@@ -104,7 +104,10 @@ class FakeWorker:
             except ValueError:
                 body = None
         status, data = 200, {"success": True}
-        if path == "/my-builds":
+        if path == "/profile/public" and req.method == "GET":
+            member = getattr(self, "member", None)
+            status, data = (200, dict(member, success=True)) if member else (404, {"success": False, "message": "Not found"})
+        elif path == "/my-builds":
             data = {"success": True, "cars": [CAR] + list(getattr(self, "extra_cars", []))}
         elif path == "/track/sessions" and req.method == "GET" and self.access != "approved":
             status, data = 403, {"success": False, "needsAccess": True}
@@ -2128,7 +2131,7 @@ def test_on_a_board_the_details_open_the_session_and_the_name_opens_the_member(p
     page.go_back()
     expect(page.locator(".lb-row").first).to_be_visible()
     page.locator(".lb-row").first.locator("a.lb-name").click()
-    expect(page).to_have_url(re.compile(r"track\.html\?car=a$"))
+    expect(page).to_have_url(re.compile(r"member\.html\?car=a$"))
 
 
 def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
@@ -4425,7 +4428,7 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(rows.nth(1)).to_contain_text("Kumho Ecsta PS71")
     # The whole row opens the session, except the name, which opens the member's car.
     expect(rows.first.locator("a.lb-open")).to_have_attribute("href", "track.html?s=a-dry")
-    expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "track.html?car=a")
+    expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "member.html?car=a")
     # Conditions: Ann's best wet is her Kumho run; the others have no wet result.
     page.locator("#lb-cond").select_option("Wet")
     expect(rows).to_have_count(1)

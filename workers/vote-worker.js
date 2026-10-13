@@ -8809,6 +8809,46 @@ async function handleTrackPublic(request, env) {
   return res;
 }
 
+// A member's public profile, found from one of their cars: the name other members see, the cars they have shared Track
+// sessions on, and those sessions, newest first. Only what is shared is sent (the track-public lists hold the shared
+// sessions only): no email, no notes, no private sessions. A member who has chosen to hide their real name shows
+// their nickname, or MT3UK member.
+async function handleProfilePublic(request, env) {
+  var carId = String(new URL(request.url).searchParams.get('car') || '');
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId)) return json({ success: false, message: 'car is required' }, 400);
+  var record = await getCarRecord(env, carId);
+  if (!record) return json({ success: false, message: 'Not found' }, 404);
+  var email = await carOwnerEmail(env, record);
+  if (!email) return json({ success: false, message: 'Not found' }, 404);
+  var profile = (await getProfileRecord(env, email)) || {};
+  var name = (profile.hideRealName ? profile.nickname || '' : publicName(profile)) || 'MT3UK member';
+  var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+  var carIds = [];
+  index.forEach(function (s) { if (s.carId && carIds.indexOf(s.carId) === -1) carIds.push(s.carId); });
+  var lists = await Promise.all(carIds.slice(0, 30).map(function (id) { return getJsonKey(env, 'track-public:' + id, []); }));
+  var sessions = [], shownCars = [];
+  lists.forEach(function (list, i) {
+    if (!list.length) return;
+    shownCars.push(carIds[i]);
+    sessions = sessions.concat(list);
+  });
+  sessions.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+  var cars = await Promise.all(shownCars.map(async function (id) {
+    var r = await getCarRecord(env, id), d = await getCarDetails(env, id);
+    return { id: id, name: (r && r.name) || '', make: (d && d.make) || '', model: (d && d.model) || '', year: (d && d.year) || '' };
+  }));
+  var res = json({
+    success: true,
+    member: { name: name },
+    cars: cars,
+    sessions: sessions.slice(0, 60).map(function (s) {
+      return { id: s.id, carId: s.carId, type: s.type || '', venue: s.venue || '', layout: s.layout || '', organizer: s.organizer || '', date: s.date || '', time: s.time || '', bestTime: s.bestTime || 0, quarter: s.quarter || 0, s60: s.s60 || 0, runs: s.runs || 0, laps: s.laps || 0, conditions: s.conditions || '', tyres: s.tyres || '' };
+    })
+  });
+  res.headers.set('Cache-Control', 'private, max-age=60');
+  return res;
+}
+
 // Best shared lap per track for a car (Gallery and My Garage), one get.
 async function trackBestsForCar(env, carId) {
   if (!carId) return [];
@@ -12155,6 +12195,7 @@ export default {
     if (url.pathname === '/track/session' && request.method === 'DELETE') {
       return handleTrackSessionDelete(request, env);
     }
+    if (url.pathname === '/profile/public' && request.method === 'GET') return handleProfilePublic(request, env);
     if (url.pathname === '/track/public' && request.method === 'GET') {
       return handleTrackPublic(request, env);
     }

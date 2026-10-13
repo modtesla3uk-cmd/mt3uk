@@ -1747,6 +1747,20 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(r.status === 401, 'the favourites need a sign-in');
 }
 
+// A member's public profile (found from one of their cars): anyone can read it, it shows the shared sessions only, and
+// it never gives an email.
+{
+  let r = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'private' }, 'tok-a');
+  const privateId = r.body.session.id;
+  r = await call('GET', '/profile/public?car=cara1');
+  ok(r.status === 200 && r.body.success && typeof r.body.member.name === 'string' && r.body.member.name.length > 0, 'the public profile needs no sign-in and has a name (' + JSON.stringify(r.body).slice(0, 120) + ')');
+  ok(r.body.sessions.length >= 1 && r.body.sessions.every(x => x.id !== privateId), 'the profile lists shared sessions only, not the private one');
+  ok(!JSON.stringify(r.body).includes('@'), 'the profile gives no email address');
+  ok(r.body.cars.some(c => c.id === 'cara1'), 'the profile lists the cars with shared sessions');
+  r = await call('GET', '/profile/public?car=ffffffffffffffff');
+  ok(r.status === 404, 'a car that does not exist has no profile');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

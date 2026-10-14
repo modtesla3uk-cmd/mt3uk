@@ -1201,7 +1201,7 @@
   // A sprint at a track the list marks as a hill climb is a hill climb too (the track decides, as on the leaderboard).
   function sessionKindOf(s) { return s.type === 'drag' ? 'drag' : s.type === 'sprint' ? (isHillSession(s, library) ? 'hill' : 'sprint') : s.type === 'other' ? 'other' : 'track'; }
   function byWhenDesc(rows) { return rows.slice().sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; }); }
-  function kindTreeHtml(here, tkey, list) {
+  function kindTreeHtml(here, tkey, list, owner) {
     // Drives are not a kind. Each one goes into the day it was recorded on, inside the kind or layout that has
     // sessions on that date; a drive with no session on its date sits under the place, as its own day.
     var drives = byWhenDesc(here.filter(function (x) { return sessionKindOf(x) === 'other'; })), placed = {};
@@ -1214,21 +1214,21 @@
     }).map(function (kd) {
       var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;
       var kopen = filterOpenAll || !!openKinds[kk], lays = layoutEntries(mineK), body;
-      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK.concat(dayDrives(mineK))), true, list, true);
+      if (lays.length === 1) body = sessionListHtml(byWhenDesc(mineK.concat(dayDrives(mineK))), owner, list, true);
       else body = lays.map(function (l, n) {
         var lk = kk + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
         var rowsL = mineK.filter(function (x) { return layoutKeyOf(x) === l.key; });
         var fit = dayDrives(rowsL).concat(n === 0 ? dayDrives(mineK).filter(function (d) { return !placed[d.id]; }) : []);
         var rows = byWhenDesc(rowsL.concat(fit));
         return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + '</span></span>' + icon('chev') + '</button>' +
-          '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list, true) + '</div></div>';
+          '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, owner, list, true) + '</div></div>';
       }).join('');
       var count = mineK.length + ' session' + (mineK.length === 1 ? '' : 's') + (lays.length === 1 ? ', ' + esc(lays[0].name) : '');
       return '<div class="tp-kindwrap"><button type="button" class="tp-row tp-kindrow" data-kind-toggle="' + esc(kk) + '" aria-expanded="' + kopen + '"><span class="tp-row-main"><b>' + KIND_TREE_NAMES[kd] + '</b><span>' + count + '</span></span>' + icon('chev') + '</button>' +
         '<div class="tp-kind-body"' + (kopen ? '' : ' hidden') + '>' + body + '</div></div>';
     }).join('');
     var loose = drives.filter(function (d) { return !placed[d.id]; });
-    return kinds + (loose.length ? '<div class="tp-drives">' + sessionListHtml(loose, true, list, true) + '</div>' : '');
+    return kinds + (loose.length ? '<div class="tp-drives">' + sessionListHtml(loose, owner, list, true) + '</div>' : '');
   }
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for
@@ -1267,14 +1267,14 @@
       var plainHere = here.filter(function (x) { return sessionKindOf(x) !== 'other'; }), looseDrives = here.filter(function (x) { return sessionKindOf(x) === 'other'; }), placedDrive = {};
       var lays = layoutEntries(plainHere);
       function driveTail() {
-        if (treeKindsOn && !publicView) return '';
+        if (treeKindsOn) return '';
         var left = byWhenDesc(looseDrives.filter(function (d) { return !placedDrive[d.id]; }));
         return left.length ? '<div class="tp-drives">' + sessionListHtml(left, !publicView, list, true) + '</div>' : '';
       }
       var keepV = t.key.indexOf('v:') === 0 ? t.key.slice(2) : '';
       return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"' + (keepV ? ' data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + '><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '"' + (keepV ? ' data-keep-hold data-keep-venue="' + esc(keepV) + '" data-keep-name="' + esc(t.name) + '"' : '') + ' aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + (placeKindsText(here) ? esc(placeKindsText(here)) + ' · ' : '') + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
         (keepV ? '<button type="button" class="tp-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' : '') +
-        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn && !publicView ? kindTreeHtml(here, t.key, list) : lays.map(function (l) {
+        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + (treeKindsOn ? kindTreeHtml(here, t.key, list, !publicView) : lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rowsL = plainHere.filter(function (x) { return layoutKeyOf(x) === l.key; });
           var fitD = looseDrives.filter(function (d) { return !placedDrive[d.id] && rowsL.some(function (x) { return x.date === d.date; }); });

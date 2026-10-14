@@ -7520,3 +7520,13 @@ def test_the_add_page_blocks_a_save_the_free_plan_cannot_cover(page):
     expect(page.locator("#tp-quota-save")).to_contain_text("but you have 0 left")
     page.locator("#tp-save").click()
     expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("You need 1 session")
+
+
+def test_the_add_view_heading_buttons_use_the_shared_slots_like_the_list(page):
+    """On the Add view the Back and My Sessions buttons carry the heading's classes, so the saved heading layout places
+    them the same way it places the list's buttons."""
+    open_page(page, FakeWorker(earlier=True), path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
+    page.set_viewport_size({"width": 1280, "height": 900})
+    expect(page.locator("#tp-home")).to_be_attached()
+    assert page.locator(".lh-hero .tp-back").evaluate("e => e.classList.contains('lh-back')")
+    assert page.locator("#tp-home").evaluate("e => e.classList.contains('lh-s3') && e.classList.contains('lh-pill')")

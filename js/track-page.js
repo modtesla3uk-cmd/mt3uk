@@ -405,10 +405,11 @@
     var inner = app.querySelector('.tp-back');
     if (!inner || !heroTop || !pageBack) return;
     [].slice.call(heroTop.querySelectorAll('.tp-back, .tp-home')).forEach(function (x) { x.remove(); });
-    inner.classList.add('back-link');
+    // The heading's own classes (lh-back, lh-s3), so the saved heading layout places these buttons as it places the list's.
+    inner.classList.add('back-link', 'lh-back');
     heroTop.insertBefore(inner, pageBack);
     // On every view but the list itself, whatever Back does (it steps back one view at a time).
-    inner.insertAdjacentHTML('afterend', '<a class="back-link tp-home" id="tp-home" href="track.html" data-go="" aria-label="My Sessions" title="My Sessions">' + icon('sessions') + 'My Sessions</a>');
+    inner.insertAdjacentHTML('afterend', '<a class="back-link tp-home lh-pill lh-s3" id="tp-home" href="track.html" data-go="" aria-label="My Sessions" title="My Sessions">' + icon('sessions') + 'My Sessions</a>');
     pageBack.hidden = true;
   }
   if (heroTop) {

@@ -69,3 +69,28 @@
     max-width: 66ch !important; margin: 0 auto !important; text-align: left !important;
   }
 }
+
+/* The ? button and its panel (desktop). The "What is ...?" line is hidden until its panel opens from the ? button by
+   the title; the panel covers the page below rather than pushing it down (js/laps-heading-what.js fixes the height). */
+@media (min-width: 901px) {
+  body:not([data-tp-view="session"]) .lh-hero .lh-title .tp-what-q {
+    display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 12px; width: 36px; height: 36px;
+    padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold:not([open]) > summary { display: none !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open].lh-fold {
+    position: absolute !important; top: 150px !important; left: 0 !important; width: min(640px, 100%) !important; height: auto !important; min-height: 0 !important;
+    z-index: 60; background: #22324f; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); padding: 16px 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; color: #d3d8e2; margin: 0;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] > :not(summary) { max-width: none !important; margin: 0 !important; text-align: left !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] p { margin: 0 0 8px; color: #d3d8e2 !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] li { color: #d3d8e2 !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] b, body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] strong { color: #fff !important; }
+}
+/* On phone the ? button is only for the pages that already have it (Sessions and the Leaderboard). */
+@media (max-width: 900px) {
+  .lh-hero .lh-title .tp-what-q { display: none; }
+}
+

@@ -193,20 +193,21 @@ def test_the_editor_starts_from_the_site_layout_and_keeps_back(page):
     page.wait_for_function("() => [...document.querySelectorAll('[data-layout-name]')].some(e => e.dataset.layoutName.includes('Back'))", timeout=8000)
 
 
-def test_what_are_sessions_opens_from_the_question_mark_on_desktop_without_pushing_the_page(page):
-    """Desktop matches the phone: the ? button by the title opens What are Sessions? as a panel over the page."""
+@pytest.mark.parametrize("name", ["track.html", "leaderboards.html", "my-analysis.html", "favourites.html"])
+def test_what_is_the_page_opens_from_the_question_mark_on_desktop_without_pushing_the_page(page, name):
+    """On all four heading pages the ? button by the title opens the "What is ...?" text as a panel over the page."""
     page.set_viewport_size({"width": 1280, "height": 900})
-    page.goto("/track.html")
-    question = page.locator(".tp-what-q").first
+    page.goto(f"/{name}")
+    question = page.locator(".lh-title .tp-what-q").first
     expect(question).to_be_visible()
-    fold = page.locator(".lh-hero .tp-what.lh-fold")
+    fold = page.locator(".lh-hero .lh-fold").first
     assert not fold.evaluate("e => e.open")
-    # Shut, the heading shows only the ? button, not the What are Sessions? line.
-    assert page.locator(".lh-hero .tp-what.lh-fold > summary").evaluate("e => getComputedStyle(e).display") == "none"
+    # Shut, the heading shows only the ? button, not the summary line.
+    assert fold.locator("> summary").evaluate("e => getComputedStyle(e).display") == "none"
     height = "() => Math.round(document.querySelector('.lh-hero').getBoundingClientRect().height)"
-    page.wait_for_timeout(1500)  # the list settles (its heading buttons and sizes) before the first measure
+    page.wait_for_timeout(1500)  # the page settles (its buttons and sizes) before the first measure
     before = page.evaluate(height)
     question.click()
     expect(fold).to_have_js_property("open", True)
     page.wait_for_timeout(300)
-    assert page.evaluate(height) == before, "the open panel pushed the page down"
+    assert page.evaluate(height) == before, f"{name}: the open panel pushed the page down"

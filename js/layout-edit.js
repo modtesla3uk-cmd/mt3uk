@@ -75,7 +75,7 @@
 
     wrap.style.position = 'relative';
     wrap.style.display = 'block';
-    wrap.style.height = (saved.H || naturalH) + 'px';
+    wrap.style.setProperty('height', (saved.H || naturalH) + 'px', 'important');
     wrap.style.minHeight = '0';
     gridEl = document.createElement('div');
     gridEl.className = 'layout-edit-grid';
@@ -92,7 +92,7 @@
       var start = { y: e.clientY, h: wrap.offsetHeight };
       band.setPointerCapture(e.pointerId);
       var move = function (ev) {
-        wrap.style.height = Math.max(120, snapv(start.h + (ev.clientY - start.y))) + 'px';
+        wrap.style.setProperty('height', Math.max(120, snapv(start.h + (ev.clientY - start.y))) + 'px', 'important');
         fill();
       };
       var up = function () {
@@ -129,7 +129,7 @@
     });
     items.forEach(apply);
     if (!saved.H) saved.H = wrap.offsetHeight;
-    wrap.style.height = saved.H + 'px';
+    wrap.style.setProperty('height', saved.H + 'px', 'important');
     panel();
     document.addEventListener('click', blockClicks, true);
     document.addEventListener('keydown', keys);
@@ -252,7 +252,7 @@
         var v = parseFloat(this.value);
         if (isNaN(v)) return;
         if (this.dataset.leIn === 'H') {
-          wrap.style.height = Math.max(40, v) + 'px';
+          wrap.style.setProperty('height', Math.max(40, v) + 'px', 'important');
           persist();
           return;
         }

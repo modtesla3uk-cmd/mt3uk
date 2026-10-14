@@ -211,3 +211,12 @@ def test_what_is_the_page_opens_from_the_question_mark_on_desktop_without_pushin
     expect(fold).to_have_js_property("open", True)
     page.wait_for_timeout(300)
     assert page.evaluate(height) == before, f"{name}: the open panel pushed the page down"
+
+
+def test_the_editor_leaves_out_the_what_is_panel_which_opens_from_the_question_mark(page):
+    """The What is ...? panel has no place of its own in the editor (it opens from the ? button), so it is not an item."""
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/track.html?layout=edit")
+    page.wait_for_selector("[data-layout-name*='Back']", timeout=8000)
+    names = page.evaluate("() => [...document.querySelectorAll('[data-layout-name]')].map(e => e.dataset.layoutName)")
+    assert not any("What are Sessions" in n for n in names), names

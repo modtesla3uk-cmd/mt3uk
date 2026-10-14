@@ -64,6 +64,8 @@
     list = list.concat(Array.prototype.slice.call(wrap.querySelectorAll(PARA_SEL)));
     // A container with display: contents has no box of its own, so it cannot be placed: its buttons are the items.
     list = list.filter(function (el) { return getComputedStyle(el).display !== 'contents'; });
+    // A "What is ...?" panel (lh-fold) opens from the ? button, so it has no place of its own in the frame: it is left out.
+    list = list.filter(function (el) { return !el.classList.contains('lh-fold'); });
     list = list.filter(function (el, i, all) {
       if (!visible(el)) return false;
       // Skip anything that sits inside another item (the title's own icons and buttons).

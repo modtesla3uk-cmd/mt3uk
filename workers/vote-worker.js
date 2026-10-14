@@ -9878,6 +9878,50 @@ async function handleSiteLookAdmin(request, env) {
   return json({ success: true, look: look });
 }
 
+// ---------- Button look (one button's colours, by its name) ----------
+// One KV key, read with get(): { buttons: { 'leaderboards': { bg: '#...', text: '#...' } } }. A button on a page carries
+// data-btn="<name>" (the same name on every page for the same destination), and js/site-look.js gives it these colours.
+// Saved from the look editor with the admin key: { key, bg, text } sets one, { key, reset: true } takes one off,
+// { reset: true } takes all off.
+var SITE_BUTTONS_KEY = 'site-buttons';
+function cleanSiteButtons(src) {
+  var out = {};
+  Object.keys(src || {}).slice(0, 80).forEach(function (name) {
+    if (!/^[a-z0-9-]{1,40}$/.test(name)) return;
+    var v = src[name] || {}, o = {};
+    ['bg', 'text'].forEach(function (k) {
+      var c = String(v[k] || '').trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(c)) o[k] = c.toLowerCase();
+    });
+    if (o.bg || o.text) out[name] = o;
+  });
+  return out;
+}
+async function handleSiteButtonsPublic(request, env) {
+  var res = json({ success: true, buttons: await getJsonKey(env, SITE_BUTTONS_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleSiteButtonsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, buttons: await getJsonKey(env, SITE_BUTTONS_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var all = await getJsonKey(env, SITE_BUTTONS_KEY, {});
+  if (body && body.reset && !body.key) all = {};
+  else if (body && body.key) {
+    var name = String(body.key);
+    if (!/^[a-z0-9-]{1,40}$/.test(name)) return json({ success: false, message: 'Unknown button' }, 400);
+    if (body.reset) delete all[name];
+    else all[name] = cleanSiteButtons({ x: { bg: body.bg, text: body.text } }).x || {};
+    if (all[name] && !all[name].bg && !all[name].text) delete all[name];
+  } else return json({ success: false, message: 'Nothing to save' }, 400);
+  var clean = cleanSiteButtons(all);
+  if (Object.keys(clean).length) await env.VOTES.put(SITE_BUTTONS_KEY, JSON.stringify(clean));
+  else await env.VOTES.delete(SITE_BUTTONS_KEY);
+  return json({ success: true, buttons: clean });
+}
+
 // ---------- Link preview pictures ----------
 // The picture a shared link previews with, for the Track Sessions page (slot track) and the homepage (slot home).
 // The admin saves pictures (a card drawn from a session, or a photo) to the bucket under share/<slot>/, each with
@@ -12760,6 +12804,12 @@ export default {
     }
     if (url.pathname === '/laps/panels/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsPanelsAdmin(request, env);
+    }
+    if (url.pathname === '/site/buttons' && request.method === 'GET') {
+      return handleSiteButtonsPublic(request, env);
+    }
+    if (url.pathname === '/site/buttons/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSiteButtonsAdmin(request, env);
     }
     if (url.pathname === '/site/look' && request.method === 'GET') {
       return handleSiteLookPublic(request, env);

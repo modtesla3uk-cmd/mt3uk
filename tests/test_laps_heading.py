@@ -8,6 +8,20 @@ that drifts out of line fails here. Phone is left to each page's own rules and i
 import pytest
 from playwright.sync_api import expect
 
+import json as _json
+
+
+@pytest.fixture(autouse=True)
+def built_in_look(page):
+    """These tests check the built-in heading, so the saved layout and look on the live worker are left out."""
+    page.route("**/laps/heading-layout", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=_json.dumps({"success": True, "layout": {}})))
+    page.route("**/site/look", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=_json.dumps({"success": True, "look": {}})))
+    page.route("**/site/buttons", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=_json.dumps({"success": True, "buttons": {}})))
+
+
 PAGES = {
     # page: the slot each button sits in (s1 top right, left; s2 top right, right; s3 under s2)
     "favourites.html": {"s1": "My Analysis", "s2": "Leaderboards", "s3": "My Sessions"},

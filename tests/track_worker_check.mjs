@@ -1899,6 +1899,24 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(!kvL.has('site-look'), 'reset takes the saved site colours off the site');
 }
 
+// Button colours, by name: one button at a time, admin key to save, reset takes one or all off.
+{
+  const kvB = new Map();
+  const envB = { ADMIN_KEY: 'k3', VOTES: { get: async k => kvB.get(k) ?? null, put: async (k, v) => kvB.set(k, v), delete: async k => kvB.delete(k) } };
+  const cb = mod.cleanSiteButtons({ 'Leaderboards': { bg: '#00AA55' }, 'bad name!': { bg: '#000000' }, 'sessions': { bg: 'red', text: '#FFFFFF' } });
+  ok(!('Leaderboards' in cb) && !('bad name!' in cb) && cb.sessions.text === '#ffffff' && !('bg' in cb.sessions), 'button colours keep only lowercase names and six-figure hex');
+  const denied = await mod.handleSiteButtonsAdmin(new Request('https://w.test/site/buttons/admin?key=no', { method: 'POST', body: '{}' }), envB);
+  ok(denied.status === 401, 'saving a button colour needs the admin key');
+  await mod.handleSiteButtonsAdmin(new Request('https://w.test/site/buttons/admin?key=k3', { method: 'POST', body: JSON.stringify({ key: 'leaderboards', bg: '#00aa55', text: '#000000' }) }), envB);
+  await mod.handleSiteButtonsAdmin(new Request('https://w.test/site/buttons/admin?key=k3', { method: 'POST', body: JSON.stringify({ key: 'sessions', bg: '#112233', text: '#ffffff' }) }), envB);
+  const pubB = await (await mod.handleSiteButtonsPublic(new Request('https://w.test/site/buttons'), envB)).json();
+  ok(pubB.buttons.leaderboards.bg === '#00aa55' && pubB.buttons.sessions.bg === '#112233', 'anyone reads the saved button colours');
+  await mod.handleSiteButtonsAdmin(new Request('https://w.test/site/buttons/admin?key=k3', { method: 'POST', body: JSON.stringify({ key: 'sessions', reset: true }) }), envB);
+  ok(!('sessions' in JSON.parse(kvB.get('site-buttons'))) && 'leaderboards' in JSON.parse(kvB.get('site-buttons')), 'taking one button back leaves the others');
+  await mod.handleSiteButtonsAdmin(new Request('https://w.test/site/buttons/admin?key=k3', { method: 'POST', body: JSON.stringify({ reset: true }) }), envB);
+  ok(!kvB.has('site-buttons'), 'reset with no name takes every button back to default');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

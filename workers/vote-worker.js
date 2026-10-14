@@ -8025,17 +8025,66 @@ async function trackTierFor(env, email) {
   var full = t.full.some(function (x) { return x.email === e; });
   return { mode: t.mode, applies: t.mode === 'all' || (t.mode === 'testers' && tester), tester: tester, full: full, allowance: t.allowance };
 }
+// The allowance a free member has left. Each member has one balance (track-quota:<owner>): it starts at `start`, gets
+// `monthly` more on the 1st of each month up to `cap`, goes down by one for each new session, and goes up by one when an
+// admin deletes a session (up to the cap). A member's own delete does not give one back, and a re-upload of a session
+// that is already saved is a duplicate and does not count.
+function trackMonthIndex(d) { return d.getUTCFullYear() * 12 + d.getUTCMonth(); }
+function trackNextTopUp(d) { return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).toISOString(); }
+async function trackQuotaState(env, owner, allowance, now) {
+  var q = await getJsonKey(env, 'track-quota:' + owner, null);
+  var m = trackMonthIndex(now);
+  if (!q || typeof q.balance !== 'number') return { balance: allowance.start, month: m, fresh: true };
+  if (q.month < m) q = { balance: Math.min(allowance.cap, q.balance + (m - q.month) * allowance.monthly), month: m };
+  return { balance: q.balance, month: q.month, fresh: false };
+}
+async function trackUploadGate(env, email, owner) {
+  var t = await getTrackTiers(env), tier = await trackTierFor(env, email);
+  if (!tier.applies || tier.full) return { counted: false, ok: true };
+  var now = new Date(), q = await trackQuotaState(env, owner, t.allowance, now);
+  if (q.balance > 0) return { counted: true, ok: true, state: q };
+  return { counted: false, ok: false, message: 'You have used your free sessions for now. You can still open all your sessions. New sessions come back on the 1st of next month, or ask MT3UK for more.', nextTopUp: trackNextTopUp(now) };
+}
+async function trackQuotaWrite(env, owner, q, change) {
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: Math.max(0, q.balance + change), month: q.month }));
+}
+async function trackQuotaRefund(env, owner) {
+  var t = await getTrackTiers(env), q = await trackQuotaState(env, owner, t.allowance, new Date());
+  if (q.fresh) return;
+  await trackQuotaWrite(env, owner, q, Math.min(1, Math.max(0, t.allowance.cap - q.balance)));
+}
+// A free member asks MT3UK for more sessions. One open request per member; the admin is emailed and sees it on the bell.
+var TRACK_QUOTA_REQUESTS_KEY = 'track-quota-requests';
+async function handleTrackQuotaRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var e = accessEmail(email);
+  var list = await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, []);
+  if (list.some(function (x) { return x.email === e && !x.done; })) return json({ success: true, already: true, message: 'You have already asked. MT3UK will be in touch.' });
+  var name = '';
+  try { name = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { name = ''; }
+  var at = new Date().toISOString();
+  list.push({ id: randomToken().slice(0, 12), email: e, name: name, at: at, done: false });
+  await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(list.slice(-100)));
+  var subject = 'More Track sessions asked for' + (name ? ': ' + name : '');
+  var text = (name || e) + ' has used their free Track sessions and asked for more. Top them up on the Free tier and Full access panel of track-admin.html: ' + MY_BUILDS_SITE_URL + '/track-admin.html#tiers-wrap';
+  try { await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#tiers-wrap'); } catch (er) { /* the request is kept even if the email fails */ }
+  return json({ success: true, message: 'Thanks. MT3UK has been asked for more sessions and will be in touch.' });
+}
 async function handleTrackTiersAccess(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
-  var r = await trackTierFor(env, email);
-  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance });
+  var r = await trackTierFor(env, email), now = new Date();
+  var owner = await ownerKey(email);
+  var q = await trackQuotaState(env, owner, r.allowance, now);
+  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, balance: q.balance, nextTopUp: trackNextTopUp(now) });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
   if (request.method === 'GET') {
     var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full };
+    reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
     return json(reply);
   }
@@ -8063,6 +8112,22 @@ async function handleTrackTiersAdmin(request, env) {
         t[list] = t[list].slice(-500);
       }
     } else t[list] = t[list].filter(function (x) { return x.email !== e; });
+  } else if (action === 'topup') {
+    // The admin adds sessions to a member's balance (a request is marked done).
+    var te = accessEmail(body.email), n = parseInt(body.sessions, 10);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(te)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (!(n >= 1 && n <= 1000)) return json({ success: false, message: 'Add between 1 and 1,000 sessions.' }, 400);
+    var towner = await ownerKey(te), tq = await trackQuotaState(env, towner, t.allowance, new Date());
+    await trackQuotaWrite(env, towner, tq, n);
+    var reqs = await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, []);
+    reqs.forEach(function (x) { if (x.email === te) x.done = true; });
+    await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(reqs));
+  } else if (action === 'requestdone') {
+    var rid = String(body.id || '');
+    var rl = await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, []);
+    rl.forEach(function (x) { if (x.id === rid) x.done = true; });
+    await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(rl));
+    return json({ success: true });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
   return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full });
@@ -8141,7 +8206,10 @@ async function handleTrackSessionSave(request, env) {
     var twin = mine.filter(function (s) { return s.carId === rec.carId && s.type === rec.type && s.date === rec.date && (s.time || '') === (rec.time || '') && sameTrackResult(s, rec); })[0];
     if (twin) return json({ success: false, duplicate: true, session: twin, message: 'You already have this session: ' + (twin.venue || 'the same place') + ', ' + twin.date + (twin.time ? ' at ' + twin.time : '') + '. Open it from your list instead.' }, 409);
   }
+  var gate = await trackUploadGate(env, email, rec.owner);
+  if (!gate.ok) return json({ success: false, limited: true, message: gate.message, nextTopUp: gate.nextTopUp }, 403);
   if (!(await putTrackSession(env, rec))) return tooBig;
+  if (gate.counted) await trackQuotaWrite(env, rec.owner, gate.state, -1);
   await putTrackIndexes(env, email, rec);
   await markHillTrack(env, rec, library);
   await noteNewTrackSession(env, email, rec, record);
@@ -8517,6 +8585,7 @@ async function handleTrackAdminSessionRename(request, env) {
     await env.VOTES.delete('track-session:' + rec.id);
     await env.VOTES.delete('track-source:' + rec.id);
     await putTrackIndexesFor(env, rec.owner, rec, true);
+    await trackQuotaRefund(env, rec.owner);
     return json({ success: true, deleted: rec.id });
   }
   if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list. Rename the track on the Tracks panel.' }, 400);
@@ -12416,6 +12485,9 @@ export default {
     }
     if (url.pathname === '/track/tiers/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackTiersAdmin(request, env);
+    }
+    if (url.pathname === '/track/tiers/request' && request.method === 'POST') {
+      return handleTrackQuotaRequest(request, env);
     }
     if (url.pathname === '/track/tiers/access' && request.method === 'GET') {
       return handleTrackTiersAccess(request, env);

@@ -10,6 +10,7 @@
   var noteEl = document.getElementById('tiers-note'), countEl = document.getElementById('tiers-count');
   var testersEl = document.getElementById('tiers-testers'), fullEl = document.getElementById('tiers-full');
   var membersEl = document.getElementById('tiers-members'), findEl = document.getElementById('tiers-find');
+  var reqEl = document.getElementById('tiers-requests');
   var state = null, members = null;
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
@@ -49,6 +50,11 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="full" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has Full access yet.</p>';
+    var asks = state.requests || [];
+    reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
+      return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
+        '<td><button type="button" class="iv-act" data-topup="' + esc(a.email) + '" data-req="' + esc(a.id) + '">Add 10</button> <button type="button" class="secondary iv-act" data-done="' + esc(a.id) + '">Done</button></td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="empty">No requests waiting.</p>';
     if (members) drawMembers();
   }
   function drawMembers() {
@@ -81,6 +87,10 @@
     call('POST', body).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); return; }
       state = Object.assign({}, state, d); draw(); note(done || '');
+      if (body.action === 'topup' || body.action === 'requestdone') {
+        // The reply does not list the requests, so the list is read again (the note stays).
+        call('GET').then(function (g) { if (g.ok && g.success) { state.requests = g.requests || []; draw(); } });
+      }
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
@@ -93,6 +103,10 @@
       act({ action: 'mode', mode: mode }, 'Switch set to ' + MODE_WORDS[mode] + '.');
       return;
     }
+    var tu = e.target.closest('[data-topup]');
+    if (tu) { act({ action: 'topup', email: tu.getAttribute('data-topup'), sessions: 10 }, 'Added 10 sessions. The request is marked done.'); return; }
+    var dn = e.target.closest('[data-done]');
+    if (dn) { act({ action: 'requestdone', id: dn.getAttribute('data-done') }, 'Marked done.'); return; }
     var g = e.target.closest('[data-give]');
     if (g) { act({ action: 'add', list: g.getAttribute('data-give'), email: g.getAttribute('data-email') }, 'Added as a tester.'); return; }
     var r = e.target.closest('[data-revoke]');

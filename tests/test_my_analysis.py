@@ -159,3 +159,20 @@ def test_the_track_mode_badge_has_a_red_recording_dot_that_comes_in_when_it_show
     assert "ma-rec-pulse" in page.locator("#ma-tm .ma-rec-dot").evaluate("e => getComputedStyle(e).animationName")
     page.wait_for_timeout(2200)
     assert page.locator("#ma-tm .ma-rec-dot").evaluate("e => getComputedStyle(e).opacity") == "1"
+
+
+def test_my_analysis_is_a_paid_tool_for_free_members_while_the_switch_is_on(page):
+    fake = FakeWorker(earlier=False)
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    add(fake, "a1", "2026-05-01", 61.0)
+    open_page(page, fake, "/my-analysis.html")
+    expect(page.locator("#ma-app")).to_contain_text("My Analysis is a paid tool")
+    expect(page.locator(".ma-tiles")).to_have_count(0)
+
+
+def test_full_access_and_the_switch_off_see_my_analysis(page):
+    fake = FakeWorker(earlier=False)
+    fake.tiers = {"success": True, "applies": True, "full": True, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    add(fake, "a1", "2026-05-01", 61.0)
+    open_page(page, fake, "/my-analysis.html")
+    expect(page.locator(".ma-tiles .tm-tile").first).to_be_visible()

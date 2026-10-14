@@ -346,6 +346,16 @@
     return;
   }
   var H = { headers: { 'X-Session-Token': token }, cache: 'no-store' };
+  // My Analysis is a paid tool. While the switch is on for a member on the free tier (the worker says so), it shows
+  // what a paid plan includes instead. Full access and the switch being off see the page as before.
+  fetch(API + '/track/tiers/access', H).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (t) {
+    if (t && t.success && t.applies && !t.full) {
+      app.innerHTML = '<div class="tm-card"><h2>My Analysis is a paid tool</h2><p>It brings every session together: tyres, pads, weather and what each change did, across all your cars. On your free plan you can still open each session on its own, with its map, laps and speed.</p><p><a class="tm-pill" href="track.html">Back to Sessions</a></p></div>';
+      return;
+    }
+    loadAnalysis();
+  });
+  function loadAnalysis() {
   Promise.all([
     fetch(API + '/track/sessions', H).then(function (r) { if (r.status === 401) throw { signIn: true }; if (r.status === 403) throw { early: true }; return r.json(); }),
     fetch(API + '/my-builds', H).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
@@ -359,4 +369,5 @@
     if (err && err.early) { app.innerHTML = '<div class="tm-card"><p>My Analysis is part of Sessions, which is in early preview. <a href="track.html">Ask for access on Sessions</a>.</p></div>'; return; }
     app.innerHTML = '<div class="tm-card"><p>Your sessions could not be read just now. Try again in a moment.</p></div>';
   });
+  }
 })();

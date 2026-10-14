@@ -113,6 +113,11 @@ class FakeWorker:
             status, data = 403, {"success": False, "needsAccess": True}
         elif path == "/laps/offline/access" and req.method == "GET":
             data = {"success": True, "access": getattr(self, "offline_access", True)}
+        elif path == "/track/tiers/request" and req.method == "POST":
+            self.asked = getattr(self, "asked", 0) + 1
+            data = {"success": True, "message": "Thanks. MT3UK has been asked for more sessions and will be in touch."}
+        elif path == "/track/tiers/access" and req.method == "GET":
+            data = getattr(self, "tiers", {"success": True, "applies": False, "full": False, "balance": 10, "nextTopUp": "2026-11-01T00:00:00.000Z"})
         elif path == "/track/access" and req.method == "GET":
             data = {"success": True, "access": self.access}
         elif path == "/track/access/request" and req.method == "POST":
@@ -7452,3 +7457,38 @@ def test_my_sessions_has_no_analysis_panel_and_a_my_analysis_pill_instead(page):
     expect(page.locator("#tp-an")).to_have_count(0)
     expect(page.locator("#tp-an-pill")).to_have_count(0)
     expect(page.locator('#navlinks a[href="my-analysis.html"]')).to_have_count(1)
+
+
+def test_the_free_plan_balance_shows_only_while_the_switch_is_on(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 7, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota")).to_contain_text("7 sessions left on your free plan")
+    expect(page.locator("#tp-quota")).to_contain_text("1 November")
+
+
+def test_a_member_with_no_sessions_left_is_told_when_they_come_back(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota")).to_contain_text("You have used your free sessions for now")
+    expect(page.locator("#tp-quota")).to_contain_text("ask MT3UK for more")
+
+
+def test_full_access_is_shown_and_nothing_shows_while_the_switch_is_off(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": True, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota")).to_contain_text("Full access")
+    off = FakeWorker()
+    open_page(page, off)
+    expect(page.locator("#tp-quota")).to_be_hidden()
+
+
+def test_a_member_out_of_sessions_can_ask_mt3uk_for_more(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    page.locator("#tp-ask-more").click()
+    expect(page.locator("#tp-quota")).to_contain_text("MT3UK has been asked for more sessions")
+    assert fake.asked == 1

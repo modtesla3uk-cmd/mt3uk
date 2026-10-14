@@ -843,6 +843,30 @@
   });
 
   // ---------- Home ----------
+  // The free tier, shown only while the switch is on for this member (the worker says so). A member with the allowance
+  // used up is told when new sessions come back; a member with Full access is told so. Nothing shows while it is off.
+  function drawQuota() {
+    var box = document.getElementById('tp-quota');
+    if (!box) { box = document.createElement('div'); box.id = 'tp-quota'; box.className = 'card tp-quota'; box.setAttribute('role', 'status'); app.insertBefore(box, app.firstChild); }
+    box.hidden = true;
+    api('GET', '/track/tiers/access').then(function (d) {
+      if (!d || !d.success || !d.applies) return;
+      box.hidden = false;
+      if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
+      var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+      box.innerHTML = d.balance > 0
+        ? '<b>' + d.balance + ' session' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get 10 more on ' + when + ', up to 20 at once.'
+        : '<b>You have used your free sessions for now.</b> You can still open all your sessions. New sessions come back on ' + when + ', or ask MT3UK for more. ' +
+          '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more sessions</button></div>';
+      var ask = document.getElementById('tp-ask-more');
+      if (ask) ask.addEventListener('click', function () {
+        ask.disabled = true;
+        api('POST', '/track/tiers/request', {}, false).then(function (r) {
+          box.insertAdjacentHTML('beforeend', '<p class="tp-quota-note" role="status" style="margin:8px 0 0">' + esc((r && r.message) || 'Thanks. MT3UK has been asked.') + '</p>');
+        }).catch(function (e) { ask.disabled = false; box.insertAdjacentHTML('beforeend', '<p class="tp-quota-note" role="status" style="margin:8px 0 0">' + esc((e && e.message) || 'Could not send that. Try again.') + '</p>'); });
+      });
+    }).catch(function () { box.hidden = true; });
+  }
   function showHome() {
     loading();
     var my = routeSeq;
@@ -870,6 +894,7 @@
       // Offline mode: an old list is marked, and sessions saved on the device and waiting to be sent are listed.
       if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
       if (window.MT3UKOffline && m) window.MT3UKOffline.drawPending(app);
+      if (m) drawQuota();
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
@@ -3661,6 +3686,37 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
+  // Paid tools (the free tier only). While the switch is on for a member on the free tier, these tiles show what they
+  // get with a paid plan instead of the analysis itself. Full access and the switch being off see everything.
+  var PAID_TILES = { grip: 'How much grip you used', corners: 'Corner by corner', spotted: 'What we spotted', 'overtime-mods': 'What each mod did' };
+  var tierCheckPromise = null;
+  function tierCheck() {
+    if (!tierCheckPromise) {
+      tierCheckPromise = api('GET', '/track/tiers/access').then(function (d) { return d && d.success ? d : { applies: false }; }).catch(function () { return { applies: false }; });
+    }
+    return tierCheckPromise;
+  }
+  function lockPaidTiles(root) {
+    tierCheck().then(function (t) {
+      if (!t.applies || t.full) return;
+      var lock = function (el, title) {
+        if (!el || el.getAttribute('data-locked')) return;
+        el.setAttribute('data-locked', '1');
+        el.innerHTML = '<div class="tp-lock" style="padding:14px;border:1px dashed #9aa1b2;border-radius:10px;color:#4a5366;font-size:.9rem;line-height:1.45">' +
+          '<b style="display:block;color:#16233d;margin-bottom:4px">' + esc(title) + '</b>' +
+          'Paid. On your free plan you see your laps, map and speed. Paid plans include this.</div>';
+      };
+      Object.keys(PAID_TILES).forEach(function (k) { lock(root.querySelector('[data-tile="' + k + '"]'), PAID_TILES[k]); });
+      lock(root.querySelector('#tp-gbox'), 'G-force and speed');
+      // Compare laps: the free plan has one comparison (the pair the page starts on). Choosing other laps is paid.
+      var pick = root.querySelector('.tp-cmp-pick');
+      if (pick && !pick.getAttribute('data-locked')) {
+        pick.setAttribute('data-locked', '1');
+        ['tp-cmp-a', 'tp-cmp-b'].forEach(function (id) { var sel = document.getElementById(id); if (sel) sel.disabled = true; });
+        pick.insertAdjacentHTML('beforeend', '<p class="tp-small" style="margin:8px 0 0;color:#4a5366">Paid: choose any two laps to compare. Your free plan includes one comparison.</p>');
+      }
+    });
+  }
   function drawSession() {
     var s = view.s;
     lastSession = s.id;
@@ -3694,6 +3750,7 @@
     wireSkip(s);
     markFavs();
     markLikes(s);
+    lockPaidTiles(app);
     if (token() && !s.local) {
       var subLine = document.querySelector('.tp-session-head .tp-sub');
       if (subLine) { subLine.insertAdjacentHTML('afterend', '<p class="tp-rank-line" data-sid="' + esc(s.id) + '"' + (boardHref(s) ? ' data-board-href="' + esc(boardHref(s)) + '"' : '') + '></p>'); fetchRanks(); }

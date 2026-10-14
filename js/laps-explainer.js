@@ -405,7 +405,7 @@
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1, zoom: parseFloat(el.getAttribute('data-zoom')) > 0 ? parseFloat(el.getAttribute('data-zoom')) : 1 };
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1, zoom: parseFloat(el.getAttribute('data-zoom')) > 0 ? parseFloat(el.getAttribute('data-zoom')) : 1, shift: parseFloat(el.getAttribute('data-shift')) || 0 };
     function started() { st.started = true; }
 
     function sizeCanvas() {
@@ -416,7 +416,7 @@
     function paint() {
       // A zoom (data-zoom on the wrapper) enlarges the scene about its middle; the controls are not in the canvas.
       var z = st.zoom;
-      ctx.setTransform(st.scale * z, 0, 0, st.scale * z, st.scale * W * (1 - z) / 2, st.scale * H * (1 - z) / 2);
+      ctx.setTransform(st.scale * z, 0, 0, st.scale * z, st.scale * (W * (1 - z) / 2 + st.shift), st.scale * H * (1 - z) / 2);
       drawFrame(ctx, st.t, S);
     }
     function showControls() {

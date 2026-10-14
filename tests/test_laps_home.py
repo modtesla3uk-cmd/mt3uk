@@ -405,7 +405,8 @@ def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
     page.locator(".lxe canvas").scroll_into_view_if_needed()
     orange = """() => { const c = document.querySelector('.lxe canvas'); const x = c.getContext('2d');
         const z = parseFloat(document.querySelector('[data-laps-explainer]').dataset.zoom) || 1;
-        const k = c.width / 960; const x0 = 480 * (1 - z) + z * 330, y0 = 270 * (1 - z) + z * 388;
+        const sh = parseFloat(document.querySelector('[data-laps-explainer]').dataset.shift) || 0;
+        const k = c.width / 960; const x0 = 480 * (1 - z) + z * 330 + sh, y0 = 270 * (1 - z) + z * 388;
         const d = x.getImageData(Math.floor(x0 * k), Math.floor(y0 * k), Math.ceil(300 * z * k), Math.ceil(36 * z * k)).data; let n = 0;
         for (let i = 0; i < d.length; i += 4) if (d[i] > 180 && d[i + 1] < 130 && d[i + 2] < 100 && d[i + 3] > 200) n++;
         return n; }"""

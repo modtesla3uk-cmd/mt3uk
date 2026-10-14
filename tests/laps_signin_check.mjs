@@ -107,7 +107,7 @@ ok(r.body.success && r.body.separate === true, 'the public setting: Laps has its
 r = await call('POST', '/laps/signin/admin?key=secret', { separate: true, mt3ukToo: false, signinIntro: 'Hello <b>racer</b>, sign in here:', joinIntro: '' });
 ok(r.body.success && r.body.settings.mt3ukToo === false && r.body.settings.signinIntro === 'Hello  b racer /b , sign in here:' && r.body.lapsAccounts === 0, 'the admin saves them, the words cleaned (' + r.body.settings.signinIntro + ')');
 await call('POST', '/my-builds/request-link', { email: M, site: 'laps' });
-ok(mail().body.startsWith('Hello  b racer /b , sign in here:'), 'the admin\'s opening line starts the Laps sign-in email');
+ok(mail().body.includes('Content-Type: text/plain') && mail().body.includes('\r\nHello  b racer /b , sign in here:'), 'the admin\'s opening line starts the text part of the Laps sign-in email');
 
 // ---- Someone new joining on Laps with MT3UK membership off: a Laps-only account ----
 const L = 'laps@example.com';

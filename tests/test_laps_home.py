@@ -293,7 +293,7 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
     page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
                                                          body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
     page.goto("/index.html")
-    expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Lap analysis: fastest at Thruxton, 1:21.42")
+    expect(page.locator(".hp-cat[data-cat='sessions'] .hp-cat-meta")).to_have_text("Lap analysis and leaderboards")
 
 
 
@@ -446,7 +446,6 @@ def test_the_laps_promo_sits_beside_the_latest_interview_in_a_row_that_swipes(pa
     expect(row).to_have_count(1)
     promo = row.locator(".hp-laps-promo")
     expect(promo).to_contain_text("Laps by MT3UK")
-    expect(promo.locator("[data-laps-fast-line]")).to_have_count(0)
     expect(promo.locator(".hp-laps-btn")).to_have_text("Open Laps")
     expect(promo.locator("a.hp-laps-btn")).to_have_attribute("href", "laps.html")
     assert promo.evaluate("e => e.tagName") == "DIV"

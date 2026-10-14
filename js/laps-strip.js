@@ -5,8 +5,6 @@
     to be the first.
   - <div data-laps-more></div>: the other tracks, strips and hill climbs with times on Laps (busiest first, at most
     12), leaving out the ones the page already shows with data-laps-venue, each linking to its board.
-  - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Lap analysis: fastest at Thruxton, 1:21.42", the leader
-    of the busiest board, in place of its own words (kept when there are no times).
   - <div data-laps-car="<carId>" data-laps-name="<car>"></div>: that car on Laps (My Garage's open car; also
     MT3UKLapsStrip.car(el) to draw or redraw one). With data-laps-mine, the owner's own list (/track/sessions, every
     session, the private ones marked "Only me") is used; otherwise, or if that cannot be read, the car's shared
@@ -23,7 +21,7 @@
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more], [data-laps-fast-line]');
+  var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more]');
   // Where the viewer stands with the early preview: 'open' (Laps is open to all, nothing to say), 'approved',
   // 'pending', 'none' (signed in, not asked) or 'out' (signed out). /laps/signin says whether it is still a preview
   // (public); /track/access where a signed-in member stands. Both kept for the browser session.
@@ -233,11 +231,6 @@
         return '<li><a href="' + esc(boardHref(b.kind, b.venue.id, b.layoutId)) + '" data-laps><span class="ls-where"><b>' + esc(where) + '</b><span>' + esc(b.top.owner || 'MT3UK member') +
           (carOf(b.top) ? ', ' + esc(carOf(b.top)) : '') + ' &middot; fastest ' + esc(what(b)) + '</span></span><span class="ls-time">' + esc(result(b)) + '</span>' + icon('chev') + '</a></li>';
       }).join('') + '</ul><p class="ls-actions"><a class="btn btn-secondary btn-sm" href="leaderboards.html" data-laps>All leaderboards</a></p>';
-    });
-    document.querySelectorAll('[data-laps-fast-line]').forEach(function (el) {
-      var top = boards.slice().sort(function (a, b) { return b.n - a.n; })[0];
-      if (!top) return;
-      el.textContent = 'Lap analysis: fastest at ' + top.venue.name + ', ' + result(top);
     });
     gateAdds(document);
     tagHeads(document);

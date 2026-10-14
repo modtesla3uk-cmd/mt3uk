@@ -8,7 +8,7 @@
   var wrap = document.getElementById('member-sessions-wrap');
   if (!wrap) return;
   var noteEl = document.getElementById('ms-note'), listEl = document.getElementById('ms-list'), viewsEl = document.getElementById('ms-views');
-  var emailEl = document.getElementById('ms-email'), findBtn = document.getElementById('ms-find');
+  var emailEl = document.getElementById('ms-email'), findBtn = document.getElementById('ms-find'), matchesEl = document.getElementById('ms-matches');
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -41,10 +41,32 @@
     if (!key()) return;
     call('').then(function (d) { if (d.ok && d.views) drawViews(d.views); });
   }
+  // Find by email, or by name: a name is matched against the members the admin can see, and a name that matches
+  // more than one member is listed so the admin can choose.
+  function callMembers() {
+    return fetch(API + '/track/admin/sessions?key=' + encodeURIComponent(key()) + '&members=1', { cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
+  }
   function find() {
-    var email = emailEl.value.trim();
+    var q = emailEl.value.trim();
     if (!key()) { note('Enter the admin key above first.', ''); return; }
-    if (!email) { note('Type the member\'s email.', ''); return; }
+    if (!q) { note('Type the member\'s name or email.', ''); return; }
+    matchesEl.innerHTML = '';
+    if (q.indexOf('@') !== -1) { lookup(q); return; }
+    note('Looking...', '');
+    callMembers().then(function (d) {
+      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); return; }
+      var ql = q.toLowerCase();
+      var rows = (d.members || []).filter(function (m) { return (m.name || '').toLowerCase().indexOf(ql) !== -1 || m.email.indexOf(ql) !== -1; });
+      if (!rows.length) { note('No member has that name.', 'error'); return; }
+      if (rows.length === 1) { lookup(rows[0].email); return; }
+      note(rows.length + ' members match. Choose one.', '');
+      matchesEl.innerHTML = rows.slice(0, 20).map(function (m) {
+        return '<button type="button" class="iv-act ms-pick" data-email="' + esc(m.email) + '">' + esc((m.name || m.email) + (m.name ? ' (' + m.email + ')' : '')) + '</button>';
+      }).join(' ');
+    }).catch(function () { note('Could not reach the server.', 'error'); });
+  }
+  function lookup(email) {
     note('Looking...', '');
     call(email).then(function (d) {
       if (!d.ok) { note(d.message || 'Could not look that up.', 'error'); return; }
@@ -101,6 +123,13 @@
     if (btn) saveName(btn);
   });
   findBtn.addEventListener('click', find);
+  matchesEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.ms-pick');
+    if (!b) return;
+    emailEl.value = b.getAttribute('data-email');
+    matchesEl.innerHTML = '';
+    lookup(b.getAttribute('data-email'));
+  });
   emailEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); find(); } });
 
   // Why a session is or is not on a leaderboard (/track/admin/boardcheck).

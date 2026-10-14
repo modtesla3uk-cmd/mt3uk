@@ -7997,50 +7997,75 @@ async function handleSessionsTreeAdmin(request, env) {
   return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
-// Tiers for the Track sessions free tier. One KV key (track-tiers): the number of sessions a member on the free tier
-// may upload in total (deleted sessions still count), and the members with Full access, who are not held to that
-// limit. Full access is for testing for now; paid tiers come later. Managed on the Full access panel of track-admin.html
-// (js/tiers-admin.js, /track/tiers/admin).
+// Track sessions tiers. One KV key (track-tiers): the switch (off, testers only, or everyone), the testers (members
+// who see the free tier while it is on for testers only), the members with Full access (not held to the limit), and
+// the allowance: a new free member starts with `start` sessions, gets `monthly` more on the 1st of each month, and can
+// hold at most `cap`. Deleted sessions still count; an admin delete gives one back. Managed on the Full access and
+// free limit panel of track-admin.html (js/tiers-admin.js, /track/tiers/admin). Nothing shows to members or enforces
+// anything while the switch is off.
 var TRACK_TIERS_KEY = 'track-tiers';
-var TRACK_FREE_LIMIT = 30;
+var TRACK_TIER_MODES = ['off', 'testers', 'all'];
+var TRACK_ALLOWANCE = { start: 10, monthly: 10, cap: 20 };
+function cleanTierList(x) { return Array.isArray(x) ? x.filter(function (y) { return y && y.email; }) : []; }
+function tierNumber(v, d) { var n = parseInt(v, 10); return n >= 0 && n <= 1000 ? n : d; }
 async function getTrackTiers(env) {
   var t = await getJsonKey(env, TRACK_TIERS_KEY, {});
-  var limit = parseInt(t.limit, 10);
+  var al = t.allowance || {};
   return {
-    limit: limit >= 0 && limit <= 10000 ? limit : TRACK_FREE_LIMIT,
-    full: Array.isArray(t.full) ? t.full.filter(function (x) { return x && x.email; }) : []
+    mode: TRACK_TIER_MODES.indexOf(t.mode) !== -1 ? t.mode : 'off',
+    allowance: { start: tierNumber(al.start, TRACK_ALLOWANCE.start), monthly: tierNumber(al.monthly, TRACK_ALLOWANCE.monthly), cap: tierNumber(al.cap, TRACK_ALLOWANCE.cap) },
+    testers: cleanTierList(t.testers),
+    full: cleanTierList(t.full)
   };
 }
-async function hasTrackFullAccess(env, email) {
-  var e = accessEmail(email);
-  var t = await getTrackTiers(env);
-  return t.full.some(function (x) { return x.email === e; });
+// What one member sees: whether the free tier applies to them, and whether they have Full access.
+async function trackTierFor(env, email) {
+  var t = await getTrackTiers(env), e = accessEmail(email);
+  var tester = t.testers.some(function (x) { return x.email === e; });
+  var full = t.full.some(function (x) { return x.email === e; });
+  return { mode: t.mode, applies: t.mode === 'all' || (t.mode === 'testers' && tester), tester: tester, full: full, allowance: t.allowance };
+}
+async function handleTrackTiersAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var r = await trackTierFor(env, email);
+  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
-  if (request.method === 'GET') return json({ success: true, limit: t.limit, full: t.full });
+  if (request.method === 'GET') {
+    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
+    return json(reply);
+  }
   var body;
   try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var action = String(body.action || '');
-  if (action === 'limit') {
-    var n = parseInt(body.limit, 10);
-    if (!(n >= 0 && n <= 10000)) return json({ success: false, message: 'The limit must be a whole number from 0 to 10,000.' }, 400);
-    t.limit = n;
+  if (action === 'mode') {
+    if (TRACK_TIER_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Unknown mode' }, 400);
+    t.mode = body.mode;
+  } else if (action === 'allowance') {
+    var a = { start: parseInt(body.start, 10), monthly: parseInt(body.monthly, 10), cap: parseInt(body.cap, 10) };
+    if (!(a.start >= 0 && a.monthly >= 0 && a.cap >= 0 && a.start <= 1000 && a.monthly <= 1000 && a.cap <= 1000)) return json({ success: false, message: 'Each allowance must be a whole number from 0 to 1,000.' }, 400);
+    if (a.cap < a.start) return json({ success: false, message: 'The cap cannot be less than the starting allowance.' }, 400);
+    t.allowance = a;
   } else if (action === 'add' || action === 'revoke') {
+    var list = body.list === 'full' ? 'full' : body.list === 'testers' ? 'testers' : '';
+    if (!list) return json({ success: false, message: 'Choose the testers or Full access list.' }, 400);
     var e = accessEmail(body.email);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
     if (action === 'add') {
-      if (!t.full.some(function (x) { return x.email === e; })) {
+      if (!t[list].some(function (x) { return x.email === e; })) {
         var nm = '';
         try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
-        t.full.push({ email: e, name: nm, at: new Date().toISOString() });
-        t.full = t.full.slice(-500);
+        t[list].push({ email: e, name: nm, at: new Date().toISOString() });
+        t[list] = t[list].slice(-500);
       }
-    } else t.full = t.full.filter(function (x) { return x.email !== e; });
+    } else t[list] = t[list].filter(function (x) { return x.email !== e; });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
-  return json({ success: true, limit: t.limit, full: t.full });
+  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full });
 }
 
 async function handleTrackSessionsList(request, env) {
@@ -8468,6 +8493,8 @@ async function handleTrackRanks(request, env) {
 async function handleTrackAdminSessions(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams, email = accessEmail(params.get('email'));
+  // Every member the admin can see, with their names, so the panel can find a member by name.
+  if (params.get('members')) return json({ success: true, members: await lapsOfflineMembers(env, { open: false, allowed: [] }) });
   if (!email) return json({ success: true, views: await getJsonKey(env, TRACK_ADMIN_VIEWS_KEY, []) });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
   var list = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
@@ -12389,6 +12416,9 @@ export default {
     }
     if (url.pathname === '/track/tiers/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackTiersAdmin(request, env);
+    }
+    if (url.pathname === '/track/tiers/access' && request.method === 'GET') {
+      return handleTrackTiersAccess(request, env);
     }
     if (url.pathname === '/track/admin/session' && request.method === 'POST') {
       return handleTrackAdminSessionRename(request, env);

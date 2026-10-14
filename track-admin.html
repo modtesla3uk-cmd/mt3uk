@@ -107,14 +107,31 @@
       <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
     </details>
     <details class="collapsible" id="tiers-wrap">
-      <summary><h3 class="panel-title">Full access and free limit <span class="summary-count" id="tiers-count"></span></h3></summary>
-      <p class="iv-note">The free tier lets a member upload this many Track sessions in total. Deleted sessions still count, and an admin delete gives one back. Members with Full access are not held to the limit. Full access is for testing for now; there are no payments yet.</p>
+      <summary><h3 class="panel-title">Free tier and Full access <span class="summary-count" id="tiers-count"></span></h3></summary>
+      <p class="iv-note">The free tier limits how many Track sessions a member can upload. Testers see it while it is on for testers only; everyone sees it when it is on for everyone. Members with Full access are not held to the limit. Nothing shows to members while this is off.</p>
       <p class="iv-note" id="tiers-note" role="status"></p>
-      <form class="iv-toolbar" id="tiers-limit-form"><label>Free limit, sessions in total <input type="number" id="tiers-limit" min="0" max="10000" step="1" aria-label="Free limit, sessions in total"></label><button type="submit">Save limit</button></form>
+      <h3 class="sub-head">Switch</h3>
+      <div class="iv-toolbar" role="radiogroup" aria-label="Free tier switch">
+        <button type="button" class="secondary" data-mode="off" aria-pressed="false">Off</button>
+        <button type="button" class="secondary" data-mode="testers" aria-pressed="false">Testers only</button>
+        <button type="button" class="secondary" data-mode="all" aria-pressed="false">Everyone</button>
+      </div>
+      <h3 class="sub-head">Allowance</h3>
+      <form class="iv-toolbar" id="tiers-allowance-form">
+        <label>Start <input type="number" id="tiers-start" min="0" max="1000" step="1" aria-label="Starting allowance"></label>
+        <label>Monthly top-up <input type="number" id="tiers-monthly" min="0" max="1000" step="1" aria-label="Monthly top-up"></label>
+        <label>Cap <input type="number" id="tiers-cap" min="0" max="1000" step="1" aria-label="Cap"></label>
+        <button type="submit">Save allowance</button>
+      </form>
+      <h3 class="sub-head">Testers</h3>
+      <p class="iv-note">Testers see the free tier while the switch is on for testers only. Find a member by name or email, then give access.</p>
+      <div id="tiers-testers"></div>
+      <div class="iv-toolbar"><input type="search" id="tiers-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="tiers-load">Show members</button></div>
+      <div id="tiers-members"></div>
+      <form class="iv-toolbar" id="tiers-tester-form"><input type="email" id="tiers-tester-email" placeholder="Member's email" aria-label="Tester's email" autocomplete="off"><button type="submit">Add tester</button></form>
       <h3 class="sub-head">Full access</h3>
       <div id="tiers-full"></div>
-      <h3 class="sub-head">Give Full access</h3>
-      <form class="iv-toolbar" id="tiers-add-form"><input type="email" id="tiers-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give Full access</button></form>
+      <form class="iv-toolbar" id="tiers-full-form"><input type="email" id="tiers-full-email" placeholder="Member's email" aria-label="Full access email" autocomplete="off"><button type="submit">Give Full access</button></form>
     </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
@@ -168,9 +185,10 @@
     </details>
     <details class="collapsible" id="member-sessions-wrap">
       <summary><h3 class="panel-title">Member sessions</h3></summary>
-      <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key. A session at a track we do not list yet can be renamed here; one at a listed track takes its name from the Tracks panel.</p>
+      <p class="iv-note">Find a member by name or email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key. A session at a track we do not list yet can be renamed here; one at a listed track takes its name from the Tracks panel.</p>
       <p class="iv-note" id="ms-note" role="status"></p>
-      <div class="iv-toolbar"><input type="email" class="field" id="ms-email" placeholder="Member email" autocomplete="off"><button type="button" class="iv-act" id="ms-find">Find sessions</button></div>
+      <div class="iv-toolbar"><input type="search" class="field" id="ms-email" placeholder="Member's name or email" aria-label="Member's name or email" autocomplete="off"><button type="button" class="iv-act" id="ms-find">Find sessions</button></div>
+      <div id="ms-matches"></div>
       <div id="ms-list"></div>
       <h3 class="sub-head">Recent admin views</h3>
       <div id="ms-views"></div>
@@ -403,13 +421,13 @@
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/laps-offline-admin.js?v=2" defer></script>
 <script src="js/sessions-tree-admin.js?v=1" defer></script>
-<script src="js/tiers-admin.js?v=1" defer></script>
+<script src="js/tiers-admin.js?v=2" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>
 <script src="js/laps-members-admin.js?v=20271017" defer></script>
 <script src="js/track-lines-admin.js?v=20271021" defer></script>
-<script src="js/track-member-admin.js?v=20261164" defer></script>
+<script src="js/track-member-admin.js?v=20261165" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261251" defer></script>
 <script src="js/all-sessions-admin.js?v=1" defer></script>
 <script src="js/track-admin.js?v=20270134" defer></script>

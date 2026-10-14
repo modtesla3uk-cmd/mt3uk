@@ -2834,29 +2834,73 @@ def test_admin_can_delete_a_members_session_from_the_member_sessions_panel(page)
     assert deleted == ["dddd4444"]
 
 
-def test_admin_full_access_and_free_limit_panel_gives_full_access_and_sets_the_limit(page):
+def test_admin_free_tier_panel_sets_the_switch_the_allowance_and_full_access(page):
     cors = {"Access-Control-Allow-Origin": "*"}
-    state = {"limit": 30, "full": []}
+    state = {"mode": "off", "allowance": {"start": 10, "monthly": 10, "cap": 20}, "testers": [], "full": []}
     posts = []
 
     def tiers(route):
         if route.request.method == "POST":
             body = json.loads(route.request.post_data)
             posts.append(body)
-            if body["action"] == "limit":
-                state["limit"] = body["limit"]
+            if body["action"] == "mode":
+                state["mode"] = body["mode"]
+            elif body["action"] == "allowance":
+                state["allowance"] = {"start": body["start"], "monthly": body["monthly"], "cap": body["cap"]}
             elif body["action"] == "add":
-                state["full"].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "limit": state["limit"], "full": state["full"]}), headers=cors)
+                state[body["list"]].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/track/tiers/admin**", tiers)
     page.locator("#tiers-wrap summary").click()
-    expect(page.locator("#tiers-limit")).to_have_value("30")
-    page.fill("#tiers-add-email", "tester@example.com")
-    page.locator("#tiers-add-form button").click()
-    expect(page.locator("#tiers-full")).to_contain_text("tester@example.com")
-    page.fill("#tiers-limit", "40")
-    page.locator("#tiers-limit-form button").click()
-    expect(page.locator("#tiers-note")).to_contain_text("Free limit saved as 40")
-    assert posts == [{"action": "add", "email": "tester@example.com"}, {"action": "limit", "limit": 40}]
+    expect(page.locator("#tiers-start")).to_have_value("10")
+    expect(page.locator("[data-mode='off']")).to_have_attribute("aria-pressed", "true")
+    page.locator("[data-mode='testers']").click()
+    expect(page.locator("[data-mode='testers']")).to_have_attribute("aria-pressed", "true")
+    page.fill("#tiers-tester-email", "tester@example.com")
+    page.locator("#tiers-tester-form button").click()
+    expect(page.locator("#tiers-testers")).to_contain_text("tester@example.com")
+    page.fill("#tiers-full-email", "full@example.com")
+    page.locator("#tiers-full-form button").click()
+    expect(page.locator("#tiers-full")).to_contain_text("full@example.com")
+    page.fill("#tiers-cap", "25")
+    page.locator("#tiers-allowance-form button").click()
+    expect(page.locator("#tiers-note")).to_contain_text("Allowance saved")
+    assert posts == [
+        {"action": "mode", "mode": "testers"},
+        {"action": "add", "list": "testers", "email": "tester@example.com"},
+        {"action": "add", "list": "full", "email": "full@example.com"},
+        {"action": "allowance", "start": 10, "monthly": 10, "cap": 25},
+    ]
+
+
+def test_admin_finds_a_members_sessions_by_name_and_lists_matches(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    members = [
+        {"email": "sam.jones@example.com", "name": "Sam Jones", "account": "mt3uk", "access": False},
+        {"email": "sam.lee@example.com", "name": "Sam Lee", "account": "mt3uk", "access": False},
+        {"email": "rhc@example.com", "name": "Richard Hughes-Chen", "account": "mt3uk", "access": False},
+    ]
+    looked_up = []
+
+    def admin_sessions(route):
+        url = route.request.url
+        if "members=1" in url:
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "members": members}), headers=cors)
+            return
+        looked_up.append(url.split("email=")[-1])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": [], "views": []}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/sessions**", admin_sessions)
+    page.locator("#member-sessions-wrap summary").click()
+    page.fill("#ms-email", "nobody")
+    page.locator("#ms-find").click()
+    expect(page.locator("#ms-note")).to_contain_text("No member has that name")
+    page.fill("#ms-email", "Sam")
+    page.locator("#ms-find").click()
+    expect(page.locator("#ms-matches .ms-pick")).to_have_count(2)
+    page.locator("#ms-matches .ms-pick").nth(1).click()
+    expect(page.locator("#ms-note")).to_contain_text("No sessions for that email")
+    assert "sam.lee%40example.com" in looked_up

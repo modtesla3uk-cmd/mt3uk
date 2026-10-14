@@ -4486,21 +4486,32 @@ function bytesToBase64(bytes) {
 }
 function rawEmailWithImages(from, to, subject, bodyText, bodyHtml, images) {
   var id = crypto.randomUUID().replace(/-/g, ''), rel = 'rel-' + id, alt = 'alt-' + id;
-  var lines = [
+  var pictures = images || [];
+  var head = [
     'From: ' + (/</.test(from) ? from : 'MT3UK <' + from + '>'), 'To: ' + to, 'Subject: ' + encodeHeaderText(subject), 'Date: ' + new Date().toUTCString(),
-    'Message-ID: <' + crypto.randomUUID() + '@mt3uk.com>', 'MIME-Version: 1.0',
-    'Content-Type: multipart/related; boundary="' + rel + '"', '',
-    '--' + rel, 'Content-Type: multipart/alternative; boundary="' + alt + '"', '',
+    'Message-ID: <' + crypto.randomUUID() + '@mt3uk.com>', 'MIME-Version: 1.0'
+  ];
+  // The text and HTML versions, as one multipart/alternative section.
+  var versions = [
     '--' + alt, 'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: 8bit', '', String(bodyText).replace(/\r?\n/g, '\r\n'),
     '--' + alt, 'Content-Type: text/html; charset=utf-8', 'Content-Transfer-Encoding: 8bit', '', String(bodyHtml).replace(/\r?\n/g, '\r\n'),
     '--' + alt + '--'
   ];
-  (images || []).forEach(function (im) {
-    var b64 = bytesToBase64(im.bytes).replace(/(.{76})/g, '$1\r\n');
-    lines.push('--' + rel, 'Content-Type: ' + im.type + '; name="' + im.name + '"', 'Content-Transfer-Encoding: base64', 'Content-ID: <' + im.cid + '>',
-      'Content-Disposition: inline; filename="' + im.name + '"', '', b64);
-  });
-  lines.push('--' + rel + '--', '');
+  var lines;
+  if (!pictures.length) {
+    // No pictures: the text and HTML versions are the whole message, the usual shape for a mail with an HTML version.
+    lines = head.concat(['Content-Type: multipart/alternative; boundary="' + alt + '"', ''], versions, ['']);
+  } else {
+    // Pictures are inline parts of a multipart/related message, with the text and HTML versions first.
+    lines = head.concat(['Content-Type: multipart/related; boundary="' + rel + '"', '', '--' + rel,
+      'Content-Type: multipart/alternative; boundary="' + alt + '"', ''], versions);
+    pictures.forEach(function (im) {
+      var b64 = bytesToBase64(im.bytes).replace(/(.{76})/g, '$1\r\n');
+      lines.push('--' + rel, 'Content-Type: ' + im.type + '; name="' + im.name + '"', 'Content-Transfer-Encoding: base64', 'Content-ID: <' + im.cid + '>',
+        'Content-Disposition: inline; filename="' + im.name + '"', '', b64);
+    });
+    lines.push('--' + rel + '--', '');
+  }
   return lines.join('\r\n');
 }
 function htmlEscape(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }

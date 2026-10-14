@@ -25,10 +25,11 @@
   }
   /* The share button keeps a gap from the bulb and title icons. */
   body:not([data-tp-view="session"]) .lh-hero .lh-title .mt3uk-share-dot { margin-left: 12px !important; }
-  /* On a view other than the list, My Sessions sits beside Back (tp-home is moved into the heading with it). */
+  /* On a view other than the list, My Sessions sits on the right, under Leaderboards, the same size as its neighbours
+     (tp-home is moved into the heading with Back). */
   body:not([data-tp-view="session"]) .lh-hero .tp-home {
-    position: absolute !important; left: 200px !important; top: 100px !important; width: 190px !important; height: 44px !important;
-    min-width: 0 !important; margin: 0 !important; font-size: 16px !important; justify-content: center !important;
+    position: absolute !important; left: 768px !important; top: 84px !important; width: 190px !important; height: 52px !important;
+    min-width: 0 !important; margin: 0 !important; padding: 0 16px !important; font-size: 16px !important; justify-content: center !important;
   }
   /* The three slots every page uses for its buttons. */
   body:not([data-tp-view="session"]) .lh-hero .lh-s1 { left: 572px !important; top: 24px !important; }

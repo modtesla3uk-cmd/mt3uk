@@ -82,6 +82,30 @@
     gridEl.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:0';
     wrap.insertBefore(gridEl, wrap.firstChild);
     drawGrid();
+    // A handle along the bottom edge of the band: drag it up or down to change the band's height.
+    var band = document.createElement('div');
+    band.className = 'layout-edit-band';
+    band.setAttribute('title', 'Drag to change the height of this band');
+    band.style.cssText = 'position:absolute;left:0;right:0;bottom:0;height:12px;background:#e8542a;cursor:ns-resize;z-index:6;border-radius:6px';
+    wrap.appendChild(band);
+    band.addEventListener('pointerdown', function (e) {
+      var start = { y: e.clientY, h: wrap.offsetHeight };
+      band.setPointerCapture(e.pointerId);
+      var move = function (ev) {
+        wrap.style.height = Math.max(120, snapv(start.h + (ev.clientY - start.y))) + 'px';
+        fill();
+      };
+      var up = function () {
+        band.removeEventListener('pointermove', move);
+        band.removeEventListener('pointerup', up);
+        band.removeEventListener('pointercancel', up);
+        persist();
+      };
+      band.addEventListener('pointermove', move);
+      band.addEventListener('pointerup', up);
+      band.addEventListener('pointercancel', up);
+      e.preventDefault();
+    });
     hero.style.boxSizing = 'border-box';
 
     measured.forEach(function (m) {
@@ -207,7 +231,7 @@
     bar.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
         '<strong class="le-frame">' + frameLabel() + '</strong>' +
-        '<span><button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
+        '<span><button type="button" data-le="panel" aria-expanded="false">Controls</button> <button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
       '</div>' +
       '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong></div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' +
@@ -247,6 +271,15 @@
     bar.querySelector('[data-le="snap"]').addEventListener('click', function () {
       snap = !snap;
       this.textContent = 'Snap: ' + (snap ? 'on' : 'off');
+    });
+    // The panel starts as one slim bar, so the heading's band and its drag handle stay in view. Controls opens it.
+    bar.style.maxHeight = '44px';
+    bar.style.overflow = 'hidden';
+    bar.querySelector('[data-le="panel"]').addEventListener('click', function () {
+      var open = bar.style.maxHeight !== '44px';
+      bar.style.maxHeight = open ? '44px' : '55vh';
+      bar.style.overflow = open ? 'hidden' : 'auto';
+      this.setAttribute('aria-expanded', String(!open));
     });
     bar.querySelector('[data-le="grid"]').addEventListener('click', function () {
       showGrid = !showGrid;

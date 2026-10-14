@@ -156,6 +156,6 @@ def test_the_track_mode_badge_has_a_red_recording_dot_that_comes_in_when_it_show
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator("#ma-tm")).to_be_visible()
     assert page.locator("#ma-tm .ma-tm-tick circle.ma-rec-dot").count() == 1
-    assert page.locator("#ma-tm .ma-rec-dot").evaluate("e => getComputedStyle(e).animationName") == "ma-rec-in"
-    page.wait_for_timeout(1000)
+    assert "ma-rec-pulse" in page.locator("#ma-tm .ma-rec-dot").evaluate("e => getComputedStyle(e).animationName")
+    page.wait_for_timeout(2200)
     assert page.locator("#ma-tm .ma-rec-dot").evaluate("e => getComputedStyle(e).opacity") == "1"

@@ -1676,14 +1676,14 @@ def test_what_are_sessions_is_open_until_a_car_is_added(page):
     """What are Sessions? lists what Laps does (tyres and pads among it). It starts open for a member with no car, and
     closes once a car is added."""
     open_page(page, FakeWorker(earlier=False), "/track.html", signed_in=True)
-    page.locator(".page-hero .tp-what").wait_for()
+    page.locator(".page-hero .tp-what").wait_for(state="attached")
     what = page.locator(".page-hero .tp-what")
     # The fake member has a car, so it starts closed.
     expect(what).not_to_have_attribute("open", "")
     # A member with no car yet sees it open, with the list of what Laps does.
     page.route(re.compile(r".*/my-builds$"), lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "cars": []})))
     page.reload()
-    page.locator(".page-hero .tp-what").wait_for()
+    page.locator(".page-hero .tp-what").wait_for(state="attached")
     expect(what).to_have_attribute("open", "")
     expect(what.locator(".tp-what-list li")).to_have_count(5)
     expect(what).to_contain_text("Tyres and brake pads")

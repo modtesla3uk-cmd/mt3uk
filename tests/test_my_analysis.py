@@ -148,3 +148,13 @@ def test_the_track_drop_down_leaves_out_drives_which_have_no_time(page):
     assert not any("Indy Drive" in o for o in options), options
     expect(page.locator(".ma-table tbody tr")).to_have_count(2)
     expect(page.locator(".ma-table")).not_to_contain_text("Indy Drive")
+
+
+def test_the_track_mode_tick_draws_itself_on_when_the_badge_shows(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61, "power": 230})
+    open_page(page, fake, "/my-analysis.html")
+    expect(page.locator("#ma-tm")).to_be_visible()
+    assert page.locator("#ma-tm .ma-tm-tick path").evaluate("e => getComputedStyle(e).animationName") == "ma-tick-draw"
+    page.wait_for_timeout(900)
+    assert page.locator("#ma-tm .ma-tm-tick path").evaluate("e => getComputedStyle(e).strokeDashoffset") in ("0px", "0")

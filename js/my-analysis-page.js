@@ -293,6 +293,9 @@
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     var tmBadge = document.getElementById('ma-tm');
     if (tmBadge) tmBadge.hidden = !list.some(function (x) { return !!x.mode; });
+    // Draw the tick again each time the badge shows (page load, or a new track or car picked).
+    var tick = tmBadge && !tmBadge.hidden ? tmBadge.querySelector('.ma-tm-tick path') : null;
+    if (tick) { tick.style.animation = 'none'; void tick.getBoundingClientRect(); tick.style.animation = ''; }
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;
   }
 

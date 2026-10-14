@@ -845,11 +845,46 @@
   // ---------- Home ----------
   // The free tier, shown only while the switch is on for this member (the worker says so). A member with the allowance
   // used up is told when new sessions come back; a member with Full access is told so. Nothing shows while it is off.
+  // The member's free plan state, read once per draw and kept for the Add page and the saved message.
+  var quotaNow = null;
+  function quotaFetch() {
+    return api('GET', '/track/tiers/access').then(function (d) { quotaNow = d && d.success ? d : null; return d; });
+  }
+  function sessionsToUse(a) {
+    return Math.max(1, (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length);
+  }
+  function freePlanLimits() { return !!(quotaNow && quotaNow.applies && !quotaNow.full); }
+  // Before saving: how many sessions this uses, and how many are left. Blocks the save when there are not enough.
+  function quotaSaveNote(a) {
+    var btn = document.getElementById('tp-save');
+    if (!btn) return;
+    quotaFetch().then(function (d) {
+      if (!freePlanLimits()) return;
+      var n = sessionsToUse(a), left = d.balance;
+      var note = document.createElement('p');
+      note.id = 'tp-quota-save';
+      note.className = 'tp-small';
+      note.setAttribute('role', 'status');
+      note.style.cssText = 'margin:8px 0 0;color:' + (left < n ? '#b3261e' : '#4a5366');
+      note.textContent = left < n
+        ? 'This needs ' + n + ' session' + (n === 1 ? '' : 's') + ', but you have ' + left + ' left on your free plan. Take some files out, or ask MT3UK for more.'
+        : 'This will use ' + n + ' session' + (n === 1 ? '' : 's') + '. You have ' + left + ' left, so ' + (left - n) + ' will be left after saving.';
+      btn.parentNode.insertBefore(note, btn);
+    }).catch(function () {});
+  }
+  // Blocks a save the free plan cannot cover. Returns true when it blocked.
+  function quotaBlocks(a) {
+    if (!freePlanLimits()) return false;
+    var n = sessionsToUse(a);
+    if (quotaNow.balance >= n) return false;
+    status('You need ' + n + ' session' + (n === 1 ? '' : 's') + ' for this, but you have ' + quotaNow.balance + ' left on your free plan. Take some files out, or ask MT3UK for more.', 'error');
+    return true;
+  }
   function drawQuota() {
     var box = document.getElementById('tp-quota');
     if (!box) { box = document.createElement('div'); box.id = 'tp-quota'; box.className = 'card tp-quota'; box.setAttribute('role', 'status'); app.insertBefore(box, app.firstChild); }
     box.hidden = true;
-    api('GET', '/track/tiers/access').then(function (d) {
+    quotaFetch().then(function (d) {
       if (!d || !d.success || !d.applies) return;
       box.hidden = false;
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
@@ -2793,8 +2828,10 @@
     wireTyres('tp-tyre');
     wirePads('tp-pad');
     var save = document.getElementById('tp-save');
+    quotaSaveNote(a);
     if (save) save.addEventListener('click', function () {
       keep();
+      if (quotaBlocks(a)) return;
       if (a.lineEdit) { sendLineChange(save); return; }
       var miss = missingName(); if (miss) { nameError(miss); return; }
       if (document.getElementById('tp-logger') && !loggerValue('tp-logger')) { loggerError('tp-logger'); return; }
@@ -3781,6 +3818,12 @@
   var LW = 'Lap';
   // Set when a session has just been saved, so the page it opens on says so once.
   var justSaved = null;
+  // After saving: how many sessions this used, and how many are left (from the state read before the save).
+  function savedUseLine(j) {
+    if (!freePlanLimits() || !j) return '';
+    var used = j.batch || 1, left = Math.max(0, quotaNow.balance - used);
+    return '<p class="tp-small" style="margin:6px 0 0">' + used + ' session' + (used === 1 ? '' : 's') + ' used on your free plan. ' + left + ' left.</p>';
+  }
   function savedHtml(j) {
     if (j.queued) {
       return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved on this device</b><br>' + (j.queued === 1 ? 'Your session is' : j.queued + ' sessions are') +
@@ -3791,7 +3834,7 @@
     }
     if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     if (j.batch) {
-      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' +
+      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' + savedUseLine(j) +
         (j.noReadings && j.noReadings.length ? '<br><span class="tp-small">The readings were not kept for ' + esc(j.noReadings.join(', ')) + ' (a long file can be too big), so their type and map lines cannot be changed later.</span>' : '') +
         (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') + '</div>' +
         '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';

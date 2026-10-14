@@ -7497,3 +7497,24 @@ def test_a_member_out_of_sessions_can_ask_mt3uk_for_more(page):
     page.locator("#tp-ask-more").click()
     expect(page.locator("#tp-quota")).to_contain_text("MT3UK has been asked for more sessions")
     assert fake.asked == 1
+
+
+def test_the_add_page_says_how_many_sessions_a_save_uses_and_how_many_are_left(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 6, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-quota-save")).to_contain_text("This will use 1 session")
+    expect(page.locator("#tp-quota-save")).to_contain_text("You have 6 left, so 5 will be left after saving")
+
+
+def test_the_add_page_blocks_a_save_the_free_plan_cannot_cover(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-quota-save")).to_contain_text("but you have 0 left")
+    page.locator("#tp-save").click()
+    expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("You need 1 session")

@@ -179,3 +179,15 @@ def test_the_editor_takes_the_leaderboards_action_button_as_an_item(page):
     page.wait_for_selector("[data-layout-name*='early preview'], [data-layout-name*='Add a session']", timeout=8000)
     names = page.evaluate("() => [...document.querySelectorAll('[data-layout-name]')].map(e => e.dataset.layoutName)")
     assert any("early preview" in n or "Add a session" in n for n in names), names
+
+
+def test_the_editor_starts_from_the_site_layout_and_keeps_back(page):
+    """The editor shows the layout visitors see (its height), and the Back button stays in it on the Sessions page."""
+    import json
+    layout = {"success": True, "layout": {"desk": {"H": 200, "items": {}}}}
+    page.route("**/laps/heading-layout", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=json.dumps(layout)))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/track.html?layout=edit")
+    page.wait_for_function("() => document.querySelector('.page-hero > .wrap').style.height === '200px'", timeout=8000)
+    page.wait_for_function("() => [...document.querySelectorAll('[data-layout-name]')].some(e => e.dataset.layoutName.includes('Back'))", timeout=8000)

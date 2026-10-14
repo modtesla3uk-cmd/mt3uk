@@ -394,7 +394,10 @@
   function syncPageBack() {
     if (!heroTop || !pageBack) return;
     [].slice.call(heroTop.querySelectorAll('.tp-back, .tp-home')).forEach(function (x) { x.remove(); });
-    pageBack.hidden = !!location.search.replace(/^\?/, '');
+    // The editors' own addresses (?layout=edit, ?look=edit) do not count: the list keeps its Back for them.
+    var q = new URLSearchParams(location.search);
+    q.delete('layout'); q.delete('look');
+    pageBack.hidden = !!q.toString();
   }
   // A view's own Back goes to the list it came from, which on a session can be two or three steps from My Sessions,
   // so a My Sessions button (#tp-home) sits beside it on every view but the list.

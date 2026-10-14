@@ -23,10 +23,14 @@
   // 2.5 seconds, leaderboards.html, and only then shown), so the editor waits until they have all appeared before it
   // takes its items. Otherwise a button that is still hidden is left out and cannot be moved.
   var SETTLE_MS = 2600;
-  function ready(fn) {
-    var go = function () { setTimeout(fn, SETTLE_MS); };
-    if (document.readyState !== 'loading') go();
-    else document.addEventListener('DOMContentLoaded', go);
+  var SITE_WAIT_MS = 3000;
+  function begin() {
+    var settled = new Promise(function (resolve) { setTimeout(resolve, SETTLE_MS); });
+    Promise.all([siteFrame(), settled]).then(function (v) { start(v[0]); });
+  }
+  function ready() {
+    if (document.readyState !== 'loading') begin();
+    else document.addEventListener('DOMContentLoaded', begin);
   }
 
   function load() {
@@ -71,28 +75,77 @@
     return list;
   }
 
-  function start() {
+  // The frame's saved layout on the site (what visitors see at this width), read before the editor starts. A local edit
+  // in progress wins over it, so the editor shows the site's layout until you change something.
+  function siteFrame() {
+    var frame = innerWidth > 900 ? 'desk' : 'phone';
+    var fetched = fetch(API + '/laps/heading-layout', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { return (d && d.layout && d.layout[frame]) || null; })
+      .catch(function () { return null; });
+    var waited = new Promise(function (resolve) { setTimeout(function () { resolve(null); }, SITE_WAIT_MS); });
+    return Promise.race([fetched, waited]);
+  }
+
+  var savedBase = {};
+  // Where an element sits in the frame, measured from its current place on the page.
+  function measure(el, n) {
+    var r = el.getBoundingClientRect(), b = wrap.getBoundingClientRect();
+    return {
+      el: el,
+      name: nameOf(el, n),
+      key: roleOf(el) || nameOf(el, n),
+      x: Math.round(r.left - b.left), y: Math.round(r.top - b.top),
+      w: Math.round(r.width), h: Math.round(r.height),
+      fs: Math.round(parseFloat(getComputedStyle(el).fontSize))
+    };
+  }
+  // Takes one element into the editor: its saved place (or where it is now), its outline and grip.
+  function adopt(m) {
+    var p = (savedBase.items && (savedBase.items[m.key] || savedBase.items[m.name])) || m;
+    m.x = p.x; m.y = p.y; m.w = p.w; m.h = p.h; m.fs = p.fs; m.hide = !!p.hide;
+    var el = m.el;
+    el.dataset.layoutName = m.name;
+    el.style.position = 'absolute';
+    el.style.margin = '0';
+    el.style.boxSizing = 'border-box';
+    el.style.outline = '1px dashed rgba(232,84,42,.6)';
+    el.style.cursor = 'move';
+    el.style.zIndex = '5';
+    el.style.overflow = 'hidden';
+    var grip = document.createElement('span');
+    grip.className = 'layout-edit-grip';
+    grip.style.cssText = 'position:absolute;right:0;bottom:0;width:14px;height:14px;background:#e8542a;cursor:nwse-resize;border-top-left-radius:4px';
+    el.appendChild(grip);
+    el.addEventListener('pointerdown', down);
+    items.push(m);
+    apply(m);
+  }
+  // Items that appear after the editor has started (the Back button and Add a session wait on the page's own answers)
+  // are taken in as they show, so they can be moved like the rest.
+  var refreshTimer = null;
+  function refresh() {
+    if (!hero || !wrap) return;
+    var known = items.map(function (m) { return m.el; });
+    var fresh = collect().filter(function (el) { return known.indexOf(el) === -1; });
+    if (!fresh.length) return;
+    fresh.forEach(function (el) { adopt(measure(el, items.length + 1)); });
+    fill();
+  }
+
+  function start(site) {
     hero = document.querySelector('.page-hero');
     if (!hero) return;
     wrap = hero.querySelector('.wrap');
     document.documentElement.setAttribute('data-layout-edit', '');
-    var base = wrap.getBoundingClientRect();
-    var els = collect();
-    var saved = load();
+    var local = load();
+    var hasLocal = !!(local.H || (local.items && Object.keys(local.items).length));
+    var saved = hasLocal ? local : (site || {});
+    savedBase = saved;
     var naturalH = wrap.offsetHeight;
 
     // Measure everything before moving anything, so the first layout is the real one.
-    var measured = els.map(function (el, i) {
-      var r = el.getBoundingClientRect();
-      return {
-        el: el,
-        name: nameOf(el, i + 1),
-        key: roleOf(el) || nameOf(el, i + 1),
-        x: Math.round(r.left - base.left), y: Math.round(r.top - base.top),
-        w: Math.round(r.width), h: Math.round(r.height),
-        fs: Math.round(parseFloat(getComputedStyle(el).fontSize))
-      };
-    });
+    var measured = collect().map(function (el, i) { return measure(el, i + 1); });
 
     wrap.style.position = 'relative';
     wrap.style.display = 'block';
@@ -129,26 +182,7 @@
     });
     hero.style.boxSizing = 'border-box';
 
-    measured.forEach(function (m) {
-      var p = (saved.items && (saved.items[m.key] || saved.items[m.name])) || m;
-      m.x = p.x; m.y = p.y; m.w = p.w; m.h = p.h; m.fs = p.fs; m.hide = !!p.hide;
-      var el = m.el;
-      el.dataset.layoutName = m.name;
-      el.style.position = 'absolute';
-      el.style.margin = '0';
-      el.style.boxSizing = 'border-box';
-      el.style.outline = '1px dashed rgba(232,84,42,.6)';
-      el.style.cursor = 'move';
-      el.style.zIndex = '5';
-      el.style.overflow = 'hidden';
-      var grip = document.createElement('span');
-      grip.className = 'layout-edit-grip';
-      grip.style.cssText = 'position:absolute;right:0;bottom:0;width:14px;height:14px;background:#e8542a;cursor:nwse-resize;border-top-left-radius:4px';
-      el.appendChild(grip);
-      el.addEventListener('pointerdown', down);
-      items.push(m);
-    });
-    items.forEach(apply);
+    measured.forEach(adopt);
     if (!saved.H) saved.H = wrap.offsetHeight;
     wrap.style.setProperty('height', saved.H + 'px', 'important');
     panel();
@@ -159,6 +193,11 @@
       var bar = document.getElementById('layout-edit-bar');
       if (bar) bar.querySelector('.le-frame').textContent = frameLabel();
     });
+    // Watch for items that appear later (hidden or shown, or added to the page).
+    new MutationObserver(function () {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(refresh, 150);
+    }).observe(hero, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class'] });
   }
 
   function frameLabel() {
@@ -401,5 +440,5 @@
     persist();
   }
 
-  ready(start);
+  ready();
 })();

@@ -27,9 +27,12 @@
   function num(v) { return v != null && isFinite(v) ? Number(v) : null; }
   function mode(s) { return s.mode || {}; }
   function timed(s) { return s.type !== 'drag' && num(s.bestTime) > 0; }
-  // A circuit session with no layout name is a track day, as the Sessions list calls it.
+  // A session with no layout name is named for its kind, as the Sessions list names it: anything that is not a drag,
+  // a sprint or a drive is a track day.
+  var KIND_NAME = { track: 'Track day', sprint: 'Sprint', drag: 'Drag strip', other: 'Drives' };
   function trackOf(s) {
-    var layout = s.layout && s.layout !== s.venue ? s.layout : (s.type === 'track' ? 'Track day' : '');
+    var kind = s.type === 'drag' ? 'drag' : s.type === 'sprint' ? 'sprint' : s.type === 'other' ? 'other' : 'track';
+    var layout = s.layout && s.layout !== s.venue ? s.layout : KIND_NAME[kind];
     return (s.venue || 'Track') + (layout ? ' · ' + layout : '');
   }
   function trackKey(s) { return (s.venue || '') + '|' + (s.layout || ''); }

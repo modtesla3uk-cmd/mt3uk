@@ -23,6 +23,8 @@
     position: absolute !important; width: 190px !important; height: 52px !important; min-width: 0 !important; min-height: 0 !important;
     margin: 0 !important; padding: 0 16px !important; font-size: 16px !important; justify-content: center !important;
   }
+  /* The share button keeps a gap from the bulb and title icons. */
+  body:not([data-tp-view="session"]) .lh-hero .lh-title .mt3uk-share-dot { margin-left: 12px !important; }
   /* The three slots every page uses for its buttons. */
   body:not([data-tp-view="session"]) .lh-hero .lh-s1 { left: 572px !important; top: 24px !important; }
   body:not([data-tp-view="session"]) .lh-hero .lh-s2 { left: 768px !important; top: 24px !important; }
@@ -43,6 +45,16 @@
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] {
     position: relative !important; top: auto !important; left: auto !important; width: 100% !important;
     text-align: center;
+  }
+  /* An open fold reads as one column: its paragraphs and list share a left edge, with space between them. */
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] .tp-what-body {
+    max-width: 66ch !important; margin: 0 auto !important; padding: 0 !important;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] p {
+    max-width: none !important; margin: 0 0 12px !important;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] ul {
+    margin: 0 !important; padding-left: 20px !important;
   }
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] > summary {
     display: flex !important; justify-content: center !important; align-items: center !important;

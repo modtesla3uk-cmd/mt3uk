@@ -6517,7 +6517,21 @@ async function sendLapsSignInEmail(env, toEmail, link, code, joining, laps) {
     (joining && laps.preview ? '\n\nLaps is in early preview. Once you have joined we will put you on the early access list, and email you as soon as you are in.' : '') +
     (joining && laps.mt3ukToo ? '\n\nYour account works on MT3UK too, where you can like and comment on member builds and owner interviews.' : '') +
     '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ' + (joining ? 'ask to join' : 'request this') + ', you can ignore this email.';
-  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body));
+  // A plain text version and an HTML one (the code and the link as a button), so mail apps show the nicer one and
+  // filters see a normal message rather than a bare link.
+  var html = '<!doctype html><html><body style="margin:0;background:#f3f1ea;font-family:Arial,Helvetica,sans-serif;color:#16233d">' +
+    '<div style="max-width:560px;margin:0 auto;padding:24px 16px">' +
+    '<p style="margin:0 0 6px;font-size:14px;color:#5b6578">Laps by MT3UK</p>' +
+    '<h1 style="margin:0 0 16px;font-size:22px">' + htmlEscape(joining ? 'Welcome to Laps by MT3UK' : 'Your Laps sign-in code') + '</h1>' +
+    '<p style="margin:0 0 16px;font-size:16px;line-height:1.5">' + htmlEscape(intro) + '</p>' +
+    '<p style="margin:0 0 6px;font-size:14px;color:#5b6578">Your code</p>' +
+    '<p style="margin:0 0 20px;font-size:28px;font-weight:bold;letter-spacing:4px">' + htmlEscape(code) + '</p>' +
+    '<p style="margin:0 0 24px"><a href="' + htmlEscape(link) + '" style="display:inline-block;background:#e8542a;color:#ffffff;text-decoration:none;font-weight:bold;padding:14px 22px;border-radius:999px">' + (joining ? 'Finish joining' : 'Sign in to Laps') + '</a></p>' +
+    '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#5b6578">Or enter the code on the Laps sign-in page.</p>' +
+    (joining && laps.preview ? '<p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#5b6578">Laps is in early preview. Once you have joined we will put you on the early access list, and email you as soon as you are in.</p>' : '') +
+    '<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#5b6578">This link and code expire in 15 minutes and can only be used once. If you did not ' + (joining ? 'ask to join' : 'request this') + ', you can ignore this email.</p>' +
+    '</div></body></html>';
+  var message = mailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmailWithImages('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body, html, []));
   await env.SEND_EMAIL.send(message);
 }
 

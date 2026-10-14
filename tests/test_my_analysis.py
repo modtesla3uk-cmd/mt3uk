@@ -104,7 +104,7 @@ def test_the_track_mode_badge_shows_only_when_the_sessions_have_track_mode_figur
     add(fake2, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61, "power": 230})
     open_page(page, fake2, "/my-analysis.html")
     expect(page.locator("#ma-tm")).to_be_visible()
-    expect(page.locator("#ma-tm")).to_contain_text("Tesla Track Mode Logged")
+    expect(page.locator("#ma-tm")).to_contain_text("Recorded with Track Mode")
 
 
 def test_the_track_mode_page_is_out_of_the_laps_menus(page):

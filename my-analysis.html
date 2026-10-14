@@ -142,15 +142,16 @@
   .ma-facts dd { margin: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   .ma-open { display: inline-flex; align-items: center; min-height: 44px; }
   @media (max-width:780px) { .ma-facts { gap: 8px 12px; } }
-  .ma-tm { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 4px 12px 4px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: .82rem; font-weight: 600; vertical-align: middle; }
+  .ma-tm { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 4px 12px 4px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: .82rem; font-weight: 600; vertical-align: middle; text-align: center; }
   .ma-tm[hidden] { display: none; }
   .ma-tm-tick { width: 14px; height: 14px; flex: none; fill: none; stroke: #7ee08a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   @media (max-width:780px) {
-    .tm-heroes h1 { font-size: 1.5rem; white-space: nowrap; display: flex; align-items: center; flex-wrap: nowrap; }
-    .tm-heroes h1 .ma-title-icon { width: 0.9em; height: 0.9em; margin-left: 8px; }
-    .ma-tm { margin-left: auto; padding: 3px 9px 3px 7px; gap: 4px; font-size: .68rem; white-space: nowrap; flex: none; }
-    .ma-tm-icon { width: 12px; height: 12px; }
-    .ma-tm-tick { width: 11px; height: 11px; }
+    .tm-heroes h1 { font-size: 1.36rem; white-space: nowrap; display: flex; align-items: center; flex-wrap: nowrap; }
+    .tm-heroes h1 .ma-title-icon { width: 0.9em; height: 0.9em; margin-left: 8px; margin-right: 12px; flex: none; }
+    .ma-tm { margin-left: auto; width: calc(50% - 5px); min-height: 44px; padding: 6px 11px 6px 9px; gap: 6px; justify-content: center; text-align: center; font-size: .76rem; line-height: 1.25; white-space: normal; flex: 0 0 auto; min-width: 0; }
+    .ma-tm { position: relative; padding-left: 34px; }
+    .ma-tm-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; }
+    .ma-tm-tick { width: 13px; height: 13px; }
   }
   .ma-tm-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: #f58a68; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .ma-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 12px; }
@@ -185,6 +186,7 @@
   .ma-facts dd { font-size: 1.04rem; }
   .ma-table { font-size: .9rem; }
   #navlinks a { text-decoration: none; }
+  .tm-pick span { font-size: 1rem; font-weight: 700; color: var(--ink); }
 </style>
 </head>
 <body data-no-share>
@@ -243,7 +245,7 @@
         <a class="tm-pill" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>Sessions</a>
       </div>
     </div>
-    <h1>My Analysis<svg class="icon ma-title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span class="ma-tm" id="ma-tm" hidden><svg class="ma-tm-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Tesla Track Mode Logged<svg class="ma-tm-tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></h1>
+    <h1>My Analysis<svg class="icon ma-title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span class="ma-tm" id="ma-tm" hidden><svg class="ma-tm-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Recorded with Track Mode<svg class="ma-tm-tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></h1>
     <details class="tm-what"><summary>What is My Analysis?</summary><p>Your own Track sessions, analysed for the car and track you pick: lap times, top speed, braking, the Track Mode figures where the car recorded them, and how your tyres, brake pads, driven wheels, conditions and logger compare. Only you see this page. Press a dot to open its session.</p></details>
   </div>
 </section>
@@ -260,7 +262,7 @@
 </footer>
 
 <script src="js/track-view.js?v=20270115" defer></script>
-<script src="js/my-analysis-page.js?v=9" defer></script>
+<script src="js/my-analysis-page.js?v=11" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=17" defer></script>

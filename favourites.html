@@ -416,13 +416,45 @@
   </nav>
 </header>
 <main data-no-share>
-<section class="page-hero">
+<section class="page-hero tp-dark-hero fav-hero">
   <div class="wrap">
-    <a href="track.html" class="back-link" aria-label="Back to Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
     <h1>Favourites</h1>
+    <div class="tp-hero-top"><a href="track.html" class="back-link" aria-label="Back to Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
+    <div class="fav-tools">
+      <a class="fav-pill" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>My Sessions</a>
+      <a class="fav-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
+      <a class="fav-pill" href="my-analysis.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis</a>
+    </div>
     <p>The Track sessions you have starred, grouped by type. Press a session to open it, or its star to take it off.</p>
   </div>
 </section>
+<style>
+  .fav-hero { background:#16233d; border-bottom:0; }
+  .fav-hero h1 { color:#fff; margin:0 0 12px; }
+  .fav-hero p { color:#d3d8e2; }
+  .fav-hero .back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; }
+  .fav-tools { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; }
+  .fav-pill { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 16px; border-radius:999px; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; border:1px solid #fff; }
+  .fav-pill .icon { width:20px; height:20px; fill:none; stroke:var(--orange); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .fav-pill:hover { background:#eef1f6; }
+  @media (max-width: 900px) {
+    .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; align-items:center; }
+    .fav-hero h1 { grid-column:1 / -1; margin:0 0 6px; }
+    .fav-tools { display:contents; }
+    .fav-hero .tp-hero-top { margin:0; }
+    .fav-hero .back-link, .fav-pill { width:100%; min-height:52px; justify-content:center; box-sizing:border-box; font-size:1rem; }
+    .fav-hero p { grid-column:1 / -1; margin:12px 0 0; }
+  }
+  @media (min-width: 901px) {
+    .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; align-items:center; }
+    .fav-hero h1 { grid-column:1 / -1; grid-row:1; justify-self:start; }
+    .fav-hero .tp-hero-top { grid-column:1; grid-row:2; justify-self:start; }
+    .fav-tools { grid-column:2; grid-row:2; justify-self:end; margin:0; }
+    .fav-hero p { grid-column:1 / -1; grid-row:3; margin:12px 0 0; }
+    .fav-pill { min-height:52px; min-width:190px; padding:0 26px; font-size:1.02rem; }
+    .fav-hero .back-link { width:190px; justify-content:center; }
+  }
+</style>
 <div class="wrap fav-wrap">
   <div id="fav-app" aria-live="polite"><p class="fav-empty">Loading your favourites…</p></div>
 </div>

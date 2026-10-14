@@ -75,6 +75,8 @@
   .tm-pill-accent .icon { stroke:#fff; }
   .tm-pill-accent:hover { background:#cf4d0a; }
   /* Desktop: the same heading as Sessions and the Leaderboard. Back at the left, the title centred, the buttons at the right at the same size. */
+  /* Desktop: Back is the same width as the other heading buttons. */
+  @media (min-width: 901px) { .page-hero .back-link { min-width: 190px; justify-content: center; } }
   @media (min-width:901px) { .page-hero { padding:26px 0 18px; } .tm-heroes { display:grid; grid-template-columns:1fr auto 1fr; column-gap:16px; row-gap:14px; align-items:center; } .tm-heroes .tm-hero-top { display:contents; } .tm-heroes h1 { grid-column:1 / -1; grid-row:1; justify-self:start; margin:0; } .tm-hero-left { grid-column:1; grid-row:2; justify-self:start; align-self:start; display:flex; align-items:center; gap:16px; flex-wrap:wrap; } .tm-heroes .tm-what { margin:0; } .tm-hero-right { grid-column:3; grid-row:2; justify-self:end; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:10px; } .tm-heroes p { grid-column:1 / -1; grid-row:3; justify-self:center; text-align:center; margin:0; } .tm-hero-top .tm-pill { min-height:52px; min-width:190px; padding:0 26px; font-size:1.02rem; } }
   .tm { padding:4px 0 40px; }
   .tm-tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 12px; }

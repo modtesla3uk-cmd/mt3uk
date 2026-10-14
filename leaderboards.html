@@ -104,7 +104,13 @@
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 2; margin: 12px 0 0; }
     .page-hero .tp-what { grid-column: 1 / -1; grid-row: 3; }
   }
+  /* Desktop: the title sits on top and Back is below it, as on My Sessions. */
+  @media (min-width: 901px) { .page-hero .wrap:has(> .tp-hero-top) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; align-items: center; } .page-hero .wrap > .tp-hero-row { grid-column: 1 / -1; grid-row: 1; } .page-hero .wrap > .tp-hero-top { grid-column: 1; grid-row: 2; justify-self: start; margin: 14px 0 0; width: max-content; } }
+  /* Phone: a gap between My Sessions and Join preview. */
+  @media (max-width: 900px) { #lb-add-session { margin-top: 12px; } }
   /* Desktop: one top row, Back (and the badge) on the left, the title in the middle and the page's own button on
+  /* Desktop: Back is the same width as the other heading buttons. */
+  @media (min-width: 901px) { .page-hero .back-link { min-width: 190px; justify-content: center; } }
      the right, with the What is...? link centred below. */
   @media (min-width: 901px) {
     .page-hero { padding: 26px 0 18px; }

@@ -895,9 +895,9 @@
       if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
       if (window.MT3UKOffline && m) window.MT3UKOffline.drawPending(app);
       if (m) drawQuota();
-      // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
+      // A member with no car yet sees What are Sessions? open, so they see what Laps does. Once a car is added it closes.
       var what = document.querySelector('.page-hero .tp-what');
-      if (what && m && !(m.sessions || []).length) what.open = true;
+      if (what && m) what.open = !(m.cars || []).length;
       if (m && m.cars && m.cars.length) { drawNews(); drawSince(m); }
       // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
       if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);

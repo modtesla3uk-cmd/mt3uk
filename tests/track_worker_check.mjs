@@ -1860,6 +1860,45 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(r.status === 404, 'a car that does not exist has no profile');
 }
 
+// The heading layout the editor saves to the site: cleaned by role, kept under one key, admin key to save.
+{
+  const kvH = new Map();
+  const envH = { ADMIN_KEY: 'k1', VOTES: { get: async k => kvH.get(k) ?? null, put: async (k, v) => kvH.set(k, v), delete: async k => kvH.delete(k) } };
+  const cleaned = mod.cleanLapsHeading({ H: 184.4, items: { title: { x: 0, y: 16.2, w: 320, h: 52, fs: 36, hide: false }, bogus: { x: 1 }, s1: { x: 'no', y: 0, w: 1, h: 1, fs: 1 } } });
+  ok(cleaned.H === 184 && cleaned.items.title && cleaned.items.title.y === 16 && !cleaned.items.bogus && !cleaned.items.s1, 'the heading layout keeps only the roles it knows, as whole pixels');
+  const denied = await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=nope', { method: 'POST', body: '{}' }), envH);
+  ok(denied.status === 401, 'saving the heading layout needs the admin key');
+  const saved = await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=k1', { method: 'POST', body: JSON.stringify({ frame: 'desk', H: 184, items: { title: { x: 0, y: 16, w: 320, h: 52, fs: 36 } } }) }), envH);
+  ok(saved.status === 200 && kvH.has('laps-heading-layout'), 'the admin key saves the heading layout under one key');
+  const phoneSaved = await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=k1', { method: 'POST', body: JSON.stringify({ frame: 'phone', H: 260, items: { s1: { x: 4, y: 8, w: 120, h: 44, fs: 14 } } }) }), envH);
+  const both = JSON.parse(kvH.get('laps-heading-layout'));
+  ok(phoneSaved.status === 200 && both.desk.H === 184 && both.phone.H === 260, 'the desktop and phone layouts are kept apart');
+  const noFrame = await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=k1', { method: 'POST', body: JSON.stringify({ H: 100 }) }), envH);
+  ok(noFrame.status === 400, 'a layout save without a frame is refused');
+  const pub = await mod.handleLapsHeadingPublic(new Request('https://w.test/laps/heading-layout'), envH);
+  const body = await pub.json();
+  ok(body.layout.desk.H === 184 && body.layout.desk.items.title.x === 0, 'anyone reads the saved heading layout');
+  await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=k1', { method: 'POST', body: JSON.stringify({ frame: 'phone', reset: true }) }), envH);
+  ok(JSON.parse(kvH.get('laps-heading-layout')).desk && !JSON.parse(kvH.get('laps-heading-layout')).phone, 'reset takes one frame off and keeps the other');
+  await mod.handleLapsHeadingAdmin(new Request('https://w.test/laps/heading-layout/admin?key=k1', { method: 'POST', body: JSON.stringify({ frame: 'desk', reset: true }) }), envH);
+  ok(!kvH.has('laps-heading-layout'), 'resetting both frames takes the saved heading layout off the site');
+}
+
+// The site colours saved from the look editor: whitelisted names and six-figure hex only, admin key to save.
+{
+  const kvL = new Map();
+  const envL = { ADMIN_KEY: 'k2', VOTES: { get: async k => kvL.get(k) ?? null, put: async (k, v) => kvL.set(k, v), delete: async k => kvL.delete(k) } };
+  const c = mod.cleanSiteLook({ vars: { '--ink': '#16233D', '--orange': 'red', '--evil': '#000000', '--btn-accent': '#00AA55' } });
+  ok(c.vars['--ink'] === '#16233d' && c.vars['--btn-accent'] === '#00aa55' && !('--orange' in c.vars) && !('--evil' in c.vars), 'site colours keep only known names as six-figure hex');
+  const denied = await mod.handleSiteLookAdmin(new Request('https://w.test/site/look/admin?key=no', { method: 'POST', body: '{}' }), envL);
+  ok(denied.status === 401, 'saving site colours needs the admin key');
+  await mod.handleSiteLookAdmin(new Request('https://w.test/site/look/admin?key=k2', { method: 'POST', body: JSON.stringify({ vars: { '--ink': '#123456' } }) }), envL);
+  const pubL = await (await mod.handleSiteLookPublic(new Request('https://w.test/site/look'), envL)).json();
+  ok(pubL.look.vars['--ink'] === '#123456', 'anyone reads the saved site colours');
+  await mod.handleSiteLookAdmin(new Request('https://w.test/site/look/admin?key=k2', { method: 'POST', body: JSON.stringify({ reset: true }) }), envL);
+  ok(!kvL.has('site-look'), 'reset takes the saved site colours off the site');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

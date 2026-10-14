@@ -7,7 +7,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(243,241,234,0.92);
+  background: var(--hdr-bg, rgba(243,241,234,0.92));
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--ink);
 }
@@ -460,11 +460,11 @@ nav {
   transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
 .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.45; cursor: default; }
-.btn-primary { background: var(--ink); color: #ffffff; }
-.btn-primary:hover { background: #22345a; }
-.btn-accent { background: var(--orange); color: #ffffff; }
-.btn-accent:hover { background: #d4481f; }
-.btn-secondary { background: #ffffff; color: var(--ink); border-color: var(--hairline-strong); }
+.btn-primary { background: var(--btn-primary, var(--ink)); color: var(--btn-primary-text, #ffffff); }
+.btn-primary:hover { filter: brightness(1.12); }
+.btn-accent { background: var(--btn-accent, var(--orange)); color: var(--btn-accent-text, #ffffff); }
+.btn-accent:hover { filter: brightness(0.92); }
+.btn-secondary { background: var(--btn-secondary, #ffffff); color: var(--btn-secondary-text, var(--ink)); border-color: var(--hairline-strong); }
 .btn-secondary:hover { border-color: var(--ink); }
 /* Back links on every page: a white button with an orange arrow */
 a.back-link, .page-hero a.back-link {

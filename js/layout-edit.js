@@ -9,6 +9,11 @@
   var ITEM_SEL = '.back-link, .tp-lb-pill, .tm-pill, h1, .tp-hero-actions, .tp-what, .tm-what';
   var PARA_SEL = ':scope > p';
   var hero, wrap, items = [], sel = null, snap = true, drag = null, gridPx = 8, showGrid = true, gridEl = null;
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  // The four heading pages share one saved layout. An item is saved by its role (the lh-* class it carries), so the
+  // same slot on each page is the same saved position.
+  var ROLE_OF = { 'lh-title': 'title', 'lh-back': 'back', 'lh-s1': 's1', 'lh-s2': 's2', 'lh-s3': 's3', 'lh-intro': 'intro', 'lh-fold': 'intro' };
+  var ROLES = ['title', 'back', 's1', 's2', 's3', 'intro'];
   var frameKey = location.pathname + ':' + (innerWidth > 900 ? 'desk' : 'phone');
   var STORE = 'mt3uk-layout-edit:' + frameKey;
 
@@ -28,6 +33,12 @@
     if (el.hidden || el.closest('[hidden]')) return false;
     var cs = getComputedStyle(el);
     return cs.display !== 'none' && cs.visibility !== 'hidden';
+  }
+
+  function roleOf(el) {
+    var found = null;
+    Object.keys(ROLE_OF).some(function (c) { if (el.classList.contains(c)) { found = ROLE_OF[c]; return true; } return false; });
+    return found;
   }
 
   function nameOf(el, n) {
@@ -67,6 +78,7 @@
       return {
         el: el,
         name: nameOf(el, i + 1),
+        key: roleOf(el) || nameOf(el, i + 1),
         x: Math.round(r.left - base.left), y: Math.round(r.top - base.top),
         w: Math.round(r.width), h: Math.round(r.height),
         fs: Math.round(parseFloat(getComputedStyle(el).fontSize))
@@ -109,7 +121,7 @@
     hero.style.boxSizing = 'border-box';
 
     measured.forEach(function (m) {
-      var p = (saved.items && saved.items[m.name]) || m;
+      var p = (saved.items && (saved.items[m.key] || saved.items[m.name])) || m;
       m.x = p.x; m.y = p.y; m.w = p.w; m.h = p.h; m.fs = p.fs; m.hide = !!p.hide;
       var el = m.el;
       el.dataset.layoutName = m.name;
@@ -211,7 +223,7 @@
   function persist() {
     var data = { H: parseInt(wrap.style.height, 10), items: {} };
     items.forEach(function (m) {
-      data.items[m.name] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs, hide: !!m.hide };
+      data.items[m.key] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs, hide: !!m.hide };
     });
     save(data);
     fill();
@@ -232,9 +244,9 @@
     bar.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
         '<strong class="le-frame">' + frameLabel() + '</strong>' +
-        '<span><button type="button" data-le="panel" aria-expanded="false">Controls</button> <button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
+        '<span><button type="button" data-le="panel" aria-expanded="false">Controls</button> <button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <button type="button" data-le="site">Save to site</button> <button type="button" data-le="site-clear">Clear site layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
       '</div>' +
-      '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong></div>' +
+      '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong> <span data-le="site-msg" style="margin-left:8px;color:#f7c9b9"></span></div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' +
         ['x', 'y', 'w', 'h', 'fs'].map(function (k) {
           var lab = { x: 'X', y: 'Y', w: 'Width', h: 'Height', fs: 'Font size' }[k];
@@ -295,6 +307,13 @@
       try { localStorage.removeItem(STORE); } catch (e) { /* not kept */ }
       location.reload();
     });
+    bar.querySelector('[data-le="site"]').addEventListener('click', function () {
+      site({ frame: frame(), H: parseInt(wrap.style.height, 10), items: siteItems() }, 'Saved. Every visitor sees this ' + frame() + ' layout.');
+    });
+    bar.querySelector('[data-le="site-clear"]').addEventListener('click', function () {
+      if (!window.confirm('Take the saved ' + frame() + ' layout off the site? Visitors go back to the built-in layout for this screen width.')) return;
+      site({ frame: frame(), reset: true }, 'Cleared. The site uses the built-in ' + frame() + ' layout again.');
+    });
     bar.querySelector('[data-le="copy"]').addEventListener('click', function () {
       var btn = this;
       out.select();
@@ -304,6 +323,42 @@
       } catch (e) { btn.textContent = 'Select the text and copy'; }
     });
     fill();
+  }
+
+  /* Save to site: the positions for this screen width go to the worker under the admin key, and every page applies them
+     at that width (js/laps-heading-layout.js). The key is kept for this tab only, the same as the admin pages. */
+  function say(text) {
+    var msg = bar && bar.querySelector('[data-le="site-msg"]');
+    if (msg) msg.textContent = text;
+  }
+  function siteItems() {
+    var out = {};
+    items.forEach(function (m) { if (ROLES.indexOf(m.key) !== -1) out[m.key] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs, hide: !!m.hide }; });
+    return out;
+  }
+  function adminKey() {
+    var k = (sessionStorage.getItem('mt3ukAdminKey') || '').trim();
+    if (!k) {
+      k = (window.prompt('Admin key, to save this layout for every visitor:') || '').trim();
+      if (k) sessionStorage.setItem('mt3ukAdminKey', k);
+    }
+    return k;
+  }
+  // Desktop and phone each have their own saved layout. The editor saves the one for the width it is open at.
+  function frame() { return innerWidth > 900 ? 'desk' : 'phone'; }
+  function site(body, done) {
+    var key = adminKey();
+    if (!key) { say('Not saved: no admin key.'); return; }
+    say('Saving...');
+    fetch(API + '/laps/heading-layout/admin?key=' + encodeURIComponent(key), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (r.status === 401) { sessionStorage.removeItem('mt3ukAdminKey'); say('Not saved: the admin key was not accepted.'); return; }
+        if (!r.ok || !d.success) { say('Not saved: ' + (d.message || 'the site did not answer.')); return; }
+        say(done);
+      });
+    }).catch(function () { say('Not saved: no connection.'); });
   }
 
   function fill() {

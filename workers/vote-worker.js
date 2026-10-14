@@ -9803,6 +9803,81 @@ async function handleLapsPanelsAdmin(request, env) {
   return json({ success: true, panels: panels });
 }
 
+// ---------- Heading layout (the Laps heading pages, desktop) ----------
+// The positions the layout editor (?layout=edit on the four Laps heading pages) saves for the shared heading. One KV
+// key, read with get(): { desk: { H, items }, phone: { H, items } } where items hold { title, back, s1, s2, s3, intro }
+// and each item is { x, y, w, h, fs, hide } in px from the top left of the heading box. Every page applies its frame
+// (js/laps-heading-layout.js), so what the editor shows is what members see. Saved from the editor with the admin key.
+var LAPS_HEADING_KEY = 'laps-heading-layout';
+var LAPS_HEADING_FRAMES = ['desk', 'phone'];
+var LAPS_HEADING_ROLES = ['title', 'back', 's1', 's2', 's3', 'intro'];
+function cleanLapsHeading(body) {
+  var src = (body && body.items) || {}, items = {};
+  var num = function (v, lo, hi) { v = Number(v); return isFinite(v) ? Math.max(lo, Math.min(hi, Math.round(v))) : null; };
+  LAPS_HEADING_ROLES.forEach(function (r) {
+    var p = src[r];
+    if (!p || typeof p !== 'object') return;
+    var x = num(p.x, 0, 3000), y = num(p.y, 0, 3000), w = num(p.w, 0, 3000), h = num(p.h, 0, 3000), fs = num(p.fs, 6, 120);
+    if (x === null || y === null || w === null || h === null || fs === null) return;
+    items[r] = { x: x, y: y, w: w, h: h, fs: fs, hide: !!p.hide };
+  });
+  var H = num(body && body.H, 40, 2000);
+  return { H: H, items: items };
+}
+function layoutHasAny(f) {
+  return !!(f && (f.H || (f.items && Object.keys(f.items).length)));
+}
+async function handleLapsHeadingPublic(request, env) {
+  var res = json({ success: true, layout: await getJsonKey(env, LAPS_HEADING_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleLapsHeadingAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, layout: await getJsonKey(env, LAPS_HEADING_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var frame = body && body.frame;
+  if (LAPS_HEADING_FRAMES.indexOf(frame) === -1) return json({ success: false, message: 'Unknown frame' }, 400);
+  var all = await getJsonKey(env, LAPS_HEADING_KEY, {});
+  var f = body.reset ? null : cleanLapsHeading(body);
+  if (layoutHasAny(f)) all[frame] = f; else delete all[frame];
+  if (layoutHasAny(all.desk) || layoutHasAny(all.phone)) await env.VOTES.put(LAPS_HEADING_KEY, JSON.stringify(all));
+  else await env.VOTES.delete(LAPS_HEADING_KEY);
+  return json({ success: true, layout: all });
+}
+
+// ---------- Site look (colours and header and button colours) ----------
+// One KV key, read with get(): { vars: { '--ink': '#16233d', ... } }, the colour overrides every public page applies
+// (js/site-look.js sets them on the root element, so they beat the page's own colour tokens). Only the names listed
+// here are kept, each a six-figure hex colour. Saved from the look editor (?look=edit) with the admin key.
+var SITE_LOOK_KEY = 'site-look';
+var SITE_LOOK_VARS = ['--ink', '--orange', '--steel', '--paper', '--white', '--charcoal', '--hdr-bg',
+  '--btn-primary', '--btn-primary-text', '--btn-accent', '--btn-accent-text', '--btn-secondary', '--btn-secondary-text'];
+function cleanSiteLook(body) {
+  var src = (body && body.vars) || {}, vars = {};
+  SITE_LOOK_VARS.forEach(function (name) {
+    var v = String(src[name] || '').trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) vars[name] = v.toLowerCase();
+  });
+  return { vars: vars };
+}
+async function handleSiteLookPublic(request, env) {
+  var res = json({ success: true, look: await getJsonKey(env, SITE_LOOK_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleSiteLookAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, look: await getJsonKey(env, SITE_LOOK_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var look = body && body.reset ? { vars: {} } : cleanSiteLook(body);
+  if (Object.keys(look.vars).length) await env.VOTES.put(SITE_LOOK_KEY, JSON.stringify(look));
+  else await env.VOTES.delete(SITE_LOOK_KEY);
+  return json({ success: true, look: look });
+}
+
 // ---------- Link preview pictures ----------
 // The picture a shared link previews with, for the Track Sessions page (slot track) and the homepage (slot home).
 // The admin saves pictures (a card drawn from a session, or a photo) to the bucket under share/<slot>/, each with
@@ -12685,6 +12760,18 @@ export default {
     }
     if (url.pathname === '/laps/panels/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsPanelsAdmin(request, env);
+    }
+    if (url.pathname === '/site/look' && request.method === 'GET') {
+      return handleSiteLookPublic(request, env);
+    }
+    if (url.pathname === '/site/look/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleSiteLookAdmin(request, env);
+    }
+    if (url.pathname === '/laps/heading-layout' && request.method === 'GET') {
+      return handleLapsHeadingPublic(request, env);
+    }
+    if (url.pathname === '/laps/heading-layout/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsHeadingAdmin(request, env);
     }
     if (url.pathname === '/track/copy' && request.method === 'GET') {
       return handleTrackCopyPublic(request, env);

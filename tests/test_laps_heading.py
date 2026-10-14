@@ -75,3 +75,84 @@ def test_the_heading_is_the_shared_box_on_desktop(page, name):
         x, y = SPEC[slot]
         assert abs(boxes[slot][0] - x) <= TOLERANCE and abs(boxes[slot][1] - y) <= TOLERANCE, (name, slot, label, boxes[slot])
         assert abs(boxes[slot][2] - 190) <= TOLERANCE, (name, slot, label, boxes[slot])
+
+
+def test_a_saved_heading_layout_is_applied_on_desktop(page):
+    """The layout the editor saves to the site is what every visitor sees on desktop, not only the editor."""
+    import json
+    layout = {"success": True, "layout": {"desk": {"H": 200, "items": {
+        "title": {"x": 0, "y": 30, "w": 320, "h": 52, "fs": 36},
+        "s1": {"x": 600, "y": 30, "w": 190, "h": 52, "fs": 16},
+    }}}}
+    page.route("**/laps/heading-layout", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=json.dumps(layout)))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/track.html")
+    page.wait_for_selector("#laps-heading-layout", state="attached")
+    boxes = heading_boxes(page)
+    assert boxes["size"] == [1000, 200], boxes
+    assert boxes["title"][1] == 30, boxes
+    assert boxes["s1"][0] == 600 and boxes["s1"][1] == 30, boxes
+
+
+def test_the_editor_saves_the_layout_to_the_site_by_role(page):
+    """Save to site posts the desktop positions keyed by role, so every page can place its own items the same way."""
+    import json
+    sent = {}
+
+    def capture(route):
+        sent["url"] = route.request.url
+        sent["body"] = json.loads(route.request.post_data or "{}")
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": sent["body"]}))
+
+    page.route("**/laps/heading-layout/admin**", capture)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/track.html?layout=edit")
+    expect(page.locator("#layout-edit-bar")).to_be_attached()
+    page.locator('[data-le="site"]').click()
+    page.wait_for_function("() => document.querySelector('[data-le=\"site-msg\"]').textContent.startsWith('Saved')")
+    assert "key=test-key" in sent["url"], sent
+    items = sent["body"]["items"]
+    assert sent["body"]["frame"] == "desk", sent
+    assert "title" in items and "s1" in items, items
+    assert set(items) <= {"title", "back", "s1", "s2", "s3", "intro"}, items
+    assert sent["body"]["H"] > 0, sent
+
+
+def test_a_saved_phone_heading_layout_is_applied_on_a_phone(page):
+    """The phone layout the editor saves is applied at phone width, and the desktop one is left alone."""
+    import json
+    layout = {"success": True, "layout": {"phone": {"H": 260, "items": {
+        "title": {"x": 10, "y": 40, "w": 300, "h": 40, "fs": 26},
+    }}}}
+    page.route("**/laps/heading-layout", lambda route: route.fulfill(
+        status=200, content_type="application/json", body=json.dumps(layout)))
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/track.html")
+    page.wait_for_selector("#laps-heading-layout", state="attached")
+    boxes = page.evaluate("""() => {
+      const hero = document.querySelector('.lh-hero');
+      const wrap = hero.querySelector(':scope > .wrap').getBoundingClientRect();
+      const t = hero.querySelector('.lh-title').getBoundingClientRect();
+      return { h: Math.round(wrap.height), x: Math.round(t.left - wrap.left), y: Math.round(t.top - wrap.top) };
+    }""")
+    assert boxes["h"] == 260 and boxes["x"] == 10 and boxes["y"] == 40, boxes
+
+
+def test_the_editor_saves_a_phone_layout_for_the_phone_frame(page):
+    import json
+    sent = {}
+
+    def capture(route):
+        sent["body"] = json.loads(route.request.post_data or "{}")
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}))
+
+    page.route("**/laps/heading-layout/admin**", capture)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/track.html?layout=edit")
+    expect(page.locator("#layout-edit-bar")).to_be_attached()
+    page.locator('[data-le="site"]').click()
+    page.wait_for_function("() => document.querySelector('[data-le=\"site-msg\"]').textContent.startsWith('Saved')")
+    assert sent["body"]["frame"] == "phone", sent

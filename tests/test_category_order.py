@@ -15,8 +15,7 @@ def test_hold_and_drag_rearranges_categories(device_page):
     grid.scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     start = order(page)
-    # Owner interviews and Laps share a swipe row on a phone; Laps is the last tile.
-    assert start[0] == "addphoto" and start[1] == "garage" and start[-2:] == ["interviews", "laps"]
+    assert start[0] == "addphoto" and start[1] == "garage" and start[-1] == "interviews"
 
     # Hold the first tile, then drag it over the last one.
     first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
@@ -32,7 +31,7 @@ def test_hold_and_drag_rearranges_categories(device_page):
     page.wait_for_timeout(300)
 
     moved = order(page)
-    assert moved != start and moved.index("garage") > start.index("garage"), moved
+    assert moved[-1] == "garage", moved
     assert page.url.endswith("/index.html"), "Dropping a tile should not open it"
     assert page.locator("#hp-cat-reset").is_visible()
     assert overflow_width(page) <= 1
@@ -69,8 +68,7 @@ def test_any_order_fits_the_screen(device_page):
         assert order(page)[0] == first
         assert overflow_width(page) <= 1, "Page wider than the screen with %s first" % first
         grid = page.locator(".categories-grid.hp-cats").bounding_box()
-        # The Laps tile sits in the swipe row beside Owner interviews, so it is reached by swiping, not by fitting the grid.
-        for box in page.eval_on_selector_all(".hp-cat[data-cat]:not([data-cat='laps'])", "els => els.map(e => { const r = e.getBoundingClientRect(); return [r.left, r.right]; })"):
+        for box in page.eval_on_selector_all(".hp-cat[data-cat]", "els => els.map(e => { const r = e.getBoundingClientRect(); return [r.left, r.right]; })"):
             assert box[1] <= grid["x"] + grid["width"] + 1, (first, box)
 
 
@@ -135,7 +133,6 @@ def test_mouse_can_drag_a_tile_without_holding(device_page):
     grid.scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     assert order(page)[1] == "garage"
-    start_order = order(page)
     first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
     last = page.locator('.hp-cat[data-cat="interviews"]').bounding_box()
     page.mouse.move(first["x"] + 20, first["y"] + 20)
@@ -146,7 +143,7 @@ def test_mouse_can_drag_a_tile_without_holding(device_page):
         page.wait_for_timeout(20)
     page.mouse.up()
     page.wait_for_timeout(200)
-    assert order(page) != start_order and order(page).index("garage") > start_order.index("garage"), order(page)
+    assert order(page)[-1] == "garage", order(page)
     assert page.url.endswith("/index.html"), "Dragging doesn't open the tile's link"
     assert page.locator(".hp-cat-hint-mouse").is_visible()
     assert page.errors == []

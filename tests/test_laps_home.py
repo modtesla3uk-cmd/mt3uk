@@ -439,15 +439,14 @@ def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     assert page.evaluate("window.MT3UKExplainer.DEFAULTS.previewLabel") is True
 
 
-def test_the_laps_tile_sits_in_a_swipe_row_with_owner_interviews(page):
+def test_the_laps_promo_sits_beside_the_latest_interview_in_a_row_that_swipes(page):
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/index.html")
-    row = page.locator(".hp-cat-pair")
+    row = page.locator(".hp-next-row")
     expect(row).to_have_count(1)
-    expect(row.locator('.hp-cat[data-cat="interviews"]')).to_have_count(1)
-    laps = row.locator('.hp-cat[data-cat="laps"]')
-    expect(laps).to_contain_text("Analyse your laps")
-    # On a phone the row scrolls sideways, so the Laps tile is reached by swiping left.
-    assert page.locator(".hp-cat-pair").evaluate("e => getComputedStyle(e).overflowX") == "auto"
-    laps.scroll_into_view_if_needed()
-    expect(laps).to_be_visible()
+    promo = row.locator("a.hp-laps-promo")
+    expect(promo).to_contain_text("Laps by MT3UK")
+    expect(promo.locator("[data-laps-fast-line]")).to_have_count(1)
+    expect(promo.locator(".hp-laps-btn")).to_have_text("Open Laps")
+    assert row.evaluate("e => getComputedStyle(e).overflowX") == "auto"
+    expect(page.locator(".hp-cat-laps")).to_have_count(0)

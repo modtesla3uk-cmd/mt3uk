@@ -2244,6 +2244,28 @@
   .hp-hero-next { display: flex; align-items: center; gap: 14px; max-width: 460px; margin-top: 18px; padding: 12px 16px 12px 12px; background: rgba(14, 22, 40, 0.86); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1px solid rgba(245, 138, 104, 0.85); box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.6); color: #ffffff; text-decoration: none; transition: background 0.2s ease, border-color 0.2s ease; }
   .hp-hero-next:hover { background: rgba(14, 22, 40, 0.95); border-color: #f58a68; color: #ffffff; }
   .hp-hero-next[hidden] { display: none; }
+  .hp-next-row { display: contents; }
+  .hp-swipe-hint { display: none; }
+  @media (max-width: 780px) {
+    .hp-swipe-hint { display: block; margin: 8px 0 0; font-size: .8rem; color: #d3d8e2; text-align: right; }
+    .hp-next-row:has(#hp-hero-next[hidden]) + .hp-swipe-hint { display: none; }
+  }
+  .hp-laps-promo { display: flex; flex-direction: column; gap: 6px; max-width: 460px; margin-top: 18px; padding: 14px 16px; border-radius: var(--radius); background: rgba(14, 22, 40, 0.86); color: #fff; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.14); }
+  .hp-laps-promo:hover { border-color: #f58a68; }
+  .hp-laps-promo { position: relative; overflow: hidden; }
+  .hp-laps-promo > * { position: relative; z-index: 1; }
+  .hp-laps-track { position: absolute; right: -6%; top: 50%; transform: translateY(-50%); width: 78%; height: auto; pointer-events: none; z-index: 0; }
+  .hp-laps-track path { fill: none; stroke: #f58a68; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: .3; }
+  .hp-laps-top { display: flex; align-items: center; gap: 10px; font-family: "Archivo Expanded", sans-serif; font-weight: 800; font-size: 1.05rem; }
+  .hp-laps-ico { width: 24px; height: 24px; flex: none; fill: none; stroke: #f58a68; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-laps-line { font-weight: 600; font-size: .92rem; color: #f5f7fb; }
+  .hp-laps-text { font-size: .9rem; line-height: 1.45; color: #d3d8e2; }
+  .hp-laps-btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #e8590c; color: #fff; font-weight: 700; font-size: .9rem; }
+  @media (max-width: 780px) {
+    .hp-next-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-top: 18px; }
+    .hp-next-row::-webkit-scrollbar { display: none; }
+    .hp-next-row > * { flex: 0 0 100%; min-width: 0; max-width: none; margin-top: 0; scroll-snap-align: start; }
+  }
   .hp-next-thumb { width: 84px; height: 63px; border-radius: var(--radius-sm, 8px); flex-shrink: 0; overflow: hidden; background: var(--ink); }
   .hp-next-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: blur(4px) saturate(0.8); transform: scale(1.15); }
   .hp-next-text { min-width: 0; }
@@ -2315,12 +2337,6 @@
   /* Eight tiles: two across on phones, three across on desktop, and the
      last one runs the full width (the rule above). */
   @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .hp-cat-pair { display: contents; }
-  @media (max-width: 899px) {
-    .hp-cat-pair { display: flex; grid-column: 1 / -1; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-    .hp-cat-pair::-webkit-scrollbar { display: none; }
-    .hp-cat-pair > .hp-cat { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; }
-  }
   .hp-new { font-style: normal; font-family: var(--font-body); font-size: 0.7rem; font-weight: 500; background: #c8431d; color: #ffffff; padding: 2px 6px; }
 
   .hp-int-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
@@ -3185,7 +3201,11 @@
           <p class="hp-hero-excerpt" id="hp-hero-excerpt">From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.</p>
           <a href="blog-richard.html" class="hp-btn hp-hero-read" id="hp-hero-cta"><span id="hp-hero-cta-text">Read the interview</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
+        <div class="hp-next-row">
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
+          <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span>Laps by MT3UK <span class="early-badge">Early preview</span></span></span><span class="hp-laps-line" data-laps-fast-line>Fastest lap on Laps: see the boards</span><span class="hp-laps-text">Upload your lap timer file to see your laps, compare with the boards and track your Tesla&rsquo;s Track Mode figures.</span><span class="hp-laps-btn">Open Laps</span></a>
+        </div>
+        <p class="hp-swipe-hint" aria-hidden="true">Swipe left to show Laps</p>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Add a photo of your car to join MT3UK.</strong> It&rsquo;s free, and you can like, comment and get alerts too.</p>
@@ -3405,7 +3425,6 @@
           </div>
           <div class="hp-cat-meta">Tees, hoodies, stickers and member deals on parts</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
-        <div class="hp-cat-pair">
         <a href="#owner-interviews" class="category-card hp-cat" id="hp-cat-interviews" data-cat="interviews">
           <div class="hp-cat-top">
             <div class="category-card-content">
@@ -3416,17 +3435,6 @@
           </div>
           <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
-        <a href="laps.html" class="category-card hp-cat hp-cat-laps" data-cat="laps" data-laps>
-          <div class="hp-cat-top">
-            <div class="category-card-content">
-              <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg>
-              <span>Analyse your laps <span class="early-badge">Early preview</span></span>
-            </div>
-            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
-          </div>
-          <div class="hp-cat-meta">Upload a lap timer file on Laps by MT3UK</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
-        </a>
-        </div>
       </div>
       <script>
         // Hold a category tile, then drag it to rearrange the grid. The order
@@ -3441,29 +3449,18 @@
           var defaultOrder = tiles().map(function (t) { return t.dataset.cat; });
 
           function tiles() { return Array.prototype.slice.call(grid.querySelectorAll('.hp-cat[data-cat]')); }
-          // The interviews and Laps tiles share a swipe row on a phone; the row is split while tiles move and joined again after.
-          function unpair() { grid.querySelectorAll('.hp-cat-pair').forEach(function (p) { while (p.firstChild) grid.insertBefore(p.firstChild, p); p.remove(); }); }
-          function pair() {
-            var a = grid.querySelector('.hp-cat[data-cat="interviews"]'), b = grid.querySelector('.hp-cat[data-cat="laps"]');
-            if (!a || !b || a.nextElementSibling !== b) return;
-            var p = document.createElement('div'); p.className = 'hp-cat-pair'; grid.insertBefore(p, a); p.appendChild(a); p.appendChild(b);
-          }
-          function tidy() { unpair(); pair(); }
           function currentOrder() { return tiles().map(function (t) { return t.dataset.cat; }); }
           function save() {
-            tidy();
             var order = currentOrder();
             var custom = order.join() !== defaultOrder.join();
             try { if (custom) localStorage.setItem(KEY, JSON.stringify(order)); else localStorage.removeItem(KEY); } catch (e) {}
             resetBtn.hidden = !custom;
           }
           function apply(order) {
-            unpair();
             var byKey = {};
             tiles().forEach(function (t) { byKey[t.dataset.cat] = t; });
             order.forEach(function (k) { if (byKey[k]) { grid.appendChild(byKey[k]); delete byKey[k]; } });
             Object.keys(byKey).forEach(function (k) { grid.appendChild(byKey[k]); });
-            pair();
           }
           try {
             var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -3496,7 +3493,6 @@
           }
 
           function beginDrag() {
-            unpair();
             dragging = true;
             var r = tile.getBoundingClientRect();
             offset = { x: start.x - r.left, y: start.y - r.top };

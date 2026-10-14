@@ -33,3 +33,21 @@
     margin: 0 !important;
   }
 }
+
+/* An open fold (What are Sessions?, What is the Leaderboard?, What is My Analysis?) takes its own room in the heading
+   and pushes the page below it down, rather than being laid over the content underneath. */
+@media (min-width: 901px) {
+  body:not([data-tp-view="session"]) .lh-hero > .wrap:has(.lh-fold[open]) {
+    height: auto !important; padding-top: 170px !important;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] {
+    position: relative !important; top: auto !important; left: auto !important; width: 100% !important;
+    text-align: center;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] > summary {
+    display: flex !important; justify-content: center !important; align-items: center !important;
+  }
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] > :not(summary) {
+    max-width: 66ch !important; margin: 0 auto !important; text-align: left !important;
+  }
+}

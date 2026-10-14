@@ -1619,13 +1619,15 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
     m, a = mine.bounding_box(), add.bounding_box()
-    # On desktop My Sessions and Add a session sit side by side at the right, the same height; Back is at the left.
+    # On desktop My Sessions sits at the top right and Add a session (Join preview) under it, in the same column, the
+    # same size; Back is at the left, under the title (css/laps-heading.css slots).
     assert m["height"] >= 50 and a["height"] >= 40, (m, a)
-    assert a["x"] >= m["x"] + m["width"] and abs(a["y"] - m["y"]) < 2, (m, a)
+    assert a["y"] >= m["y"] + m["height"] - 2 and abs(a["x"] - m["x"]) < 2, (m, a)
     assert page.locator("#lb-page-back").inner_text().strip() == "Back"
     t = page.locator(".page-hero h1").bounding_box()
     assert abs((t["y"] + t["height"] / 2) - (m["y"] + m["height"] / 2)) < 30, (t, m)
-    assert page.locator(".page-hero").bounding_box()["height"] < 230
+    # The shared heading is 280 px tall on desktop (css/laps-heading.css), plus the band's padding.
+    assert page.locator(".page-hero").bounding_box()["height"] < 370
     back = page.locator("#lb-page-back").bounding_box()
     assert back["x"] + back["width"] <= m["x"] and back["y"] >= t["y"] + t["height"] - 2, (back, m, t)
     expect(page.locator(".lb-hero h1 .mt3uk-share-dot")).to_be_visible()
@@ -1822,7 +1824,8 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     assert a["y"] >= l["y"] + l["height"] - 2 and abs((a["x"] + a["width"]) - (l["x"] + l["width"])) < 2, (a, l)
     assert page.locator(".page-hero .tp-hero-top .back-link").inner_text().strip() == "Back"
     assert page.locator(".page-hero h1").bounding_box()["y"] < l["y"]
-    assert page.locator(".page-hero").bounding_box()["height"] < 230
+    # The shared heading is 280 px tall on desktop (css/laps-heading.css), plus the band's padding.
+    assert page.locator(".page-hero").bounding_box()["height"] < 340
     expect(page.locator("#tp-app").get_by_role("link", name="Add a session", exact=True)).to_have_count(0)
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))

@@ -4,31 +4,31 @@
    intro below Back. Positions are from the top left of the heading box. Phone is left to each page's own rules.
    Pages mark their parts with lh-* classes (see tests/test_laps_heading.py). */
 @media (min-width: 901px) {
-  .lh-hero > .wrap {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero > .wrap {
     position: relative !important; display: block !important; height: 280px !important;
   }
-  .lh-hero .lh-hero-row, .lh-hero .lh-hero-top, .lh-hero .lh-hero-left, .lh-hero .lh-hero-right,
-  .lh-hero .lh-hero-actions:not([hidden]) {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-hero-row, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-hero-top, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-hero-left, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-hero-right,
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-hero-actions:not([hidden]) {
     display: contents !important;
   }
-  .lh-hero .lh-title {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-title {
     position: absolute !important; left: 0 !important; top: 20px !important; width: 320px !important; height: 52px !important;
     margin: 0 !important; font-size: 36px !important; line-height: 1.1 !important; display: flex !important; align-items: center !important; white-space: nowrap !important;
   }
-  .lh-hero .lh-back {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-back, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .tp-back {
     position: absolute !important; left: 0 !important; top: 100px !important; width: 190px !important; height: 44px !important;
     min-width: 0 !important; margin: 0 !important; font-size: 16px !important; justify-content: center !important;
   }
-  .lh-hero .lh-pill, .lh-hero .lh-pill.tp-round, .lh-hero .lh-pill.lb-add, .lh-hero .lh-pill.tm-pill {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-pill, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-pill.tp-round, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-pill.lb-add, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-pill.tm-pill {
     position: absolute !important; width: 190px !important; height: 52px !important; min-width: 0 !important; min-height: 0 !important;
     margin: 0 !important; padding: 0 16px !important; font-size: 16px !important; justify-content: center !important;
   }
   /* The three slots every page uses for its buttons. */
-  .lh-hero .lh-s1 { left: 572px !important; top: 24px !important; }
-  .lh-hero .lh-s2 { left: 768px !important; top: 24px !important; }
-  .lh-hero .lh-s3 { left: 768px !important; top: 84px !important; }
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-s1 { left: 572px !important; top: 24px !important; }
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-s2 { left: 768px !important; top: 24px !important; }
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-s3 { left: 768px !important; top: 84px !important; }
   /* The intro (or the What is...? fold on the pages that have one) sits under Back. */
-  .lh-hero .lh-intro, .lh-hero .lh-fold {
+  body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-intro, body:not([data-tp-view="session"]):not([data-tp-view="car"]) .lh-hero .lh-fold {
     position: absolute !important; left: 0 !important; top: 170px !important; width: 640px !important; max-width: none !important;
     margin: 0 !important;
   }

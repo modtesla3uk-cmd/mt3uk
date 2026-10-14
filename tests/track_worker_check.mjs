@@ -1786,6 +1786,49 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(r.status === 401, 'the favourites need a sign-in');
 }
 
+// Likes: a signed-in member likes another member's shared session, once. The count is for everyone; the names and
+// the member's own like are for signed-in viewers. The owner cannot like their own, and a private one cannot be liked.
+{
+  let r = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'board' }, 'tok-b');
+  const lid = r.body.session.id;
+  r = await call('GET', '/track/likes?id=' + lid, undefined, 'tok-a');
+  ok(r.status === 200 && r.body.count === 0 && r.body.canLike === true && r.body.liked === false, 'a shared session can be liked by another member');
+  r = await call('POST', '/track/likes', { id: lid, on: true }, 'tok-a');
+  ok(r.body.success && r.body.liked === true && r.body.count === 1, 'a member likes a shared session');
+  r = await call('POST', '/track/likes', { id: lid, on: true }, 'tok-a');
+  ok(r.body.count === 1, 'liking twice still counts once');
+  r = await call('GET', '/track/likes?id=' + lid, undefined, 'tok-a');
+  ok(r.body.liked === true && r.body.likers.length === 1 && r.body.likers[0].mine === true, 'the list shows the member, marked as them');
+  r = await call('GET', '/track/likes?id=' + lid);
+  ok(r.body.count === 1 && r.body.likers === undefined && r.body.canLike === false, 'a visitor sees the count but not the names, and cannot like');
+  r = await call('POST', '/track/likes', { id: lid, on: true }, 'tok-b');
+  ok(r.status === 400, 'the owner cannot like their own session');
+  r = await call('POST', '/track/likes', { id: lid, on: true });
+  ok(r.status === 401, 'liking needs a sign-in');
+  r = await call('POST', '/track/likes', { id: lid, on: false }, 'tok-a');
+  ok(r.body.count === 0 && r.body.liked === false, 'unliking takes the like off');
+  r = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'private' }, 'tok-b');
+  const priv = r.body.session.id;
+  r = await call('POST', '/track/likes', { id: priv, on: true }, 'tok-a');
+  ok(r.status === 404, 'a private session cannot be liked');
+}
+
+// Sessions saved before likes have no owner email: the admin's fill-in gives every such session its owner's email,
+// and leaves the ones that have one alone. It needs the admin key.
+{
+  let r = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'board' }, 'tok-b');
+  const oid = r.body.session.id;
+  kv.delete('track-owner-email:' + oid);
+  kv.set('subscriber:' + B, '1');
+  r = await call('POST', '/track/admin/owner-emails?key=wrong');
+  ok(r.status === 401, 'the owner fill-in needs the admin key');
+  r = await call('POST', '/track/admin/owner-emails?key=secret');
+  ok(r.body.success && r.body.filled >= 1 && r.body.done === true, 'the admin fill-in gives sessions without an owner email their owner\'s');
+  ok(kv.get('track-owner-email:' + oid) === B, 'the session now records its owner\'s email');
+  r = await call('POST', '/track/admin/owner-emails?key=secret');
+  ok(r.body.filled === 0, 'running it again changes nothing that is filled in');
+}
+
 // Where a session stands on its leaderboard: starring says it (or why it is not on one), and the Sessions list asks for
 // every session at once. A session that is not shared gives its reason; a shared one gives a place out of the cars.
 {

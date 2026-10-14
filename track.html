@@ -983,6 +983,32 @@
   .tp-gg { max-width: 420px; margin: 0 auto; }
   /* The bar at the top of a session: Skip to section on the left, Exit session on the right. */
   .tp-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; margin: 0 0 12px; }
+  /* Likes on a shared session (js/track-page.js likeHtml): a round heart with its count, and a pop-out list of who likes. */
+  .tp-like { position: relative; display: inline-flex; align-items: center; gap: 6px; flex: none; }
+  .tp-like[hidden] { display: none; }
+  .tp-like-heart { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--ink); background: #fff; display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+  .tp-like-heart .icon { width: 20px; height: 20px; fill: none; stroke: #e8542a; stroke-width: 2; }
+  .tp-like-heart.is-on { background: #e8542a; border-color: #e8542a; }
+  .tp-like-heart.is-on .icon { fill: #fff; stroke: #fff; }
+  .tp-like-heart:disabled { cursor: default; opacity: .6; }
+  .tp-like-count { height: 40px; min-width: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--hairline-strong, #d9dde6); background: #fff; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .tp-like-count:hover { border-color: var(--ink); }
+  .tp-like-wrap { position: relative; display: inline-flex; }
+  .tp-like-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: min(280px, calc(100vw - 32px)); max-height: 320px; overflow: auto; background: #fff; color: var(--ink); border: 1px solid var(--hairline, #d9dde6); border-radius: 14px; box-shadow: 0 14px 34px rgba(22, 35, 61, .18); padding: 10px; box-sizing: border-box; }
+  .tp-like-pop[hidden] { display: none; }
+  .tp-like-pop h4 { margin: 4px 6px 8px; font-size: 13px; font-weight: 600; color: #5b6578; }
+  .tp-like-who { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 10px; }
+  .tp-like-who:hover { background: #f3f1ea; }
+  .tp-like-who b { display: block; font-size: 14px; font-weight: 600; }
+  .tp-like-who small { display: block; color: #5b6578; font-size: 12px; }
+  .tp-like-av { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .tp-like-note { margin: 6px; font-size: 13px; color: #5b6578; }
+  /* On a phone the buttons are a little smaller so Skip to section keeps its width, and the list is a sheet from the bottom. */
+  @media (max-width: 780px) {
+    .tp-like-heart, .tp-like-count { width: 36px; height: 36px; min-width: 36px; }
+    .tp-like-count { padding: 0 8px; }
+    .tp-like-pop { position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; width: auto; max-height: 60vh; border-radius: 16px; }
+  }
   .tp-skip { display: block; flex: 1 1 auto; min-width: 0; max-width: 340px; margin: 0; }
   .tp-skip .field { min-height: 44px; padding-top: 8px; padding-bottom: 8px; width: 100%; min-width: 0; }
   .tp-exit { flex: none; margin-left: auto; min-height: 44px; white-space: nowrap; }
@@ -1421,7 +1447,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271093" defer></script>
+<script src="js/track-page.js?v=20271095" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

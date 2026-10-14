@@ -8055,6 +8055,7 @@ async function handleTrackSessionSave(request, env) {
   if (rec.type === 'drag' && !rec.street) delete rec.outline;
   rec.id = randomToken().slice(0, 20);
   rec.owner = await ownerKey(email);
+  await env.VOTES.put('track-owner-email:' + rec.id, String(email).toLowerCase());
   rec.carId = String(body.carId);
   rec.createdAt = new Date().toISOString();
   applyTrackEdits(rec, body);
@@ -8307,6 +8308,67 @@ async function handleTrackFavourites(request, env) {
   }
   if (kept.length !== list.length) await env.VOTES.put(key, JSON.stringify(kept));
   return json({ success: true, sessions: out });
+}
+
+// Likes on a shared Track session: one KV key per session (track-likes:<id>) holding who liked it (email, name, when,
+// newest first) and who has already been told, so each member is told once per session. Signed-in members only,
+// on shared sessions only, and not on their own. Names show to signed-in viewers; signed-out viewers see the count.
+var TRACK_LIKES_MAX = 500;
+function trackSharedForLikes(rec) { return !!rec && rec.privacy !== 'private' && !rec.street; }
+async function handleTrackLikes(request, env) {
+  var viewer = await resolveSession(request, env);
+  var viewerEmail = viewer ? String(viewer).toLowerCase() : '';
+  if (request.method === 'GET') {
+    var id = String(new URL(request.url).searchParams.get('id') || '');
+    if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
+    var rec = await getTrackSession(env, id);
+    var mine = !!rec && !!viewerEmail && rec.owner === (await ownerKey(viewerEmail));
+    if (!rec || (!mine && !trackSharedForLikes(rec))) return json({ success: false, message: 'Session not found' }, 404);
+    var store = await getJsonKey(env, 'track-likes:' + id, { likers: [], told: [] });
+    var likers = Array.isArray(store.likers) ? store.likers : [];
+    var out = {
+      success: true, count: likers.length, mine: mine,
+      liked: !!viewerEmail && likers.some(function (l) { return l.email === viewerEmail; }),
+      canLike: !!viewerEmail && !mine && trackSharedForLikes(rec)
+    };
+    if (viewerEmail) out.likers = likers.slice(0, 200).map(function (l) { return { name: l.name, at: l.at, mine: l.email === viewerEmail }; });
+    return json(out);
+  }
+  if (!viewerEmail) return json({ success: false, message: 'Sign in to like sessions' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var pid = String((body && body.id) || '');
+  if (!/^[a-f0-9]{8,40}$/.test(pid)) return json({ success: false, message: 'Session not found' }, 404);
+  var prec = await getTrackSession(env, pid);
+  if (!prec || !trackSharedForLikes(prec)) return json({ success: false, message: 'Session not found' }, 404);
+  if (prec.owner === (await ownerKey(viewerEmail))) return json({ success: false, message: 'You cannot like your own session' }, 400);
+  var on = !!(body && body.on);
+  var key = 'track-likes:' + pid;
+  var stored = await getJsonKey(env, key, { likers: [], told: [] });
+  var list = (Array.isArray(stored.likers) ? stored.likers : []).filter(function (l) { return l.email !== viewerEmail; });
+  var told = Array.isArray(stored.told) ? stored.told : [];
+  var name = publicName(await getProfileRecord(env, viewerEmail)) || displayNameFromEmail(viewerEmail);
+  if (on) list.unshift({ email: viewerEmail, name: name, at: new Date().toISOString() });
+  list = list.slice(0, TRACK_LIKES_MAX);
+  var firstTime = on && told.indexOf(viewerEmail) === -1;
+  if (firstTime) told = told.concat([viewerEmail]).slice(-TRACK_LIKES_MAX);
+  await env.VOTES.put(key, JSON.stringify({ likers: list, told: told }));
+  if (firstTime) await tellSessionOwnerOfLike(env, pid, prec, name);
+  return json({ success: true, liked: on, count: list.length });
+}
+// The owner is told by bell, push and email (the email follows their emails setting, as every member email does).
+// The owner's email is kept apart from the session, under track-owner-email:<id>, because the session only holds a hash.
+async function tellSessionOwnerOfLike(env, id, rec, name) {
+  try {
+    var ownerEmail = await env.VOTES.get('track-owner-email:' + id);
+    if (!ownerEmail) return;
+    var what = (rec.venue || 'your session') + (rec.date ? ', ' + rec.date : '');
+    var link = 'track.html?s=' + id;
+    await addNotification(env, ownerEmail, { type: 'track-like', id: id, link: link, fromName: name, text: 'liked your session at ' + what + '.', createdAt: new Date().toISOString() });
+    await sendMemberEmail(env, ownerEmail, 'Someone liked your Laps session',
+      'Hi,\n\n' + name + ' liked your session at ' + what + ' on Laps by MT3UK.\n\n' + LAPS_SITE_URL + '/' + link + '\n\nLaps by MT3UK');
+    await sendPushToMember(env, ownerEmail, { title: name + ' liked your session', body: rec.venue ? 'At ' + rec.venue : 'Your session got a new like.', url: LAPS_SITE_URL + '/' + link });
+  } catch (e) { console.log('Like alert failed:', e.message); }
 }
 
 // Each time the admin opens a private session: when, which one, whose car.
@@ -10643,6 +10705,28 @@ async function handleTrackAdminUsage(request, env) {
   });
 }
 
+// Gives each session saved before likes its owner's email (track-owner-email:<id>), so a like can reach the owner. It
+// walks the members (subscriber: keys, a page at a time), works out each one's owner key, and writes the email for every
+// session in their index that has none. Admin only; running it again changes nothing already filled in.
+async function handleTrackOwnerEmails(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var cursor = new URL(request.url).searchParams.get('cursor') || undefined;
+  var page = await env.VOTES.list({ prefix: 'subscriber:', limit: 100, cursor: cursor });
+  var filled = 0;
+  for (var i = 0; i < page.keys.length; i++) {
+    var email = page.keys[i].name.slice('subscriber:'.length).toLowerCase();
+    if (!email) continue;
+    var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+    for (var j = 0; j < index.length; j++) {
+      var sid = index[j] && index[j].id;
+      if (!sid || (await env.VOTES.get('track-owner-email:' + sid))) continue;
+      await env.VOTES.put('track-owner-email:' + sid, email);
+      filled++;
+    }
+  }
+  return json({ success: true, filled: filled, done: !!page.list_complete, cursor: page.cursor || null });
+}
+
 async function handleTrackBoardsRebuild(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams;
@@ -12262,7 +12346,7 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/session/car' || url.pathname === '/track/courses' ||
-        url.pathname === '/track/favourites' || url.pathname === '/track/ranks' || url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
+        url.pathname === '/track/favourites' || (url.pathname === '/track/likes' && request.method === 'POST') || url.pathname === '/track/ranks' || url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
@@ -12270,6 +12354,9 @@ export default {
     if (url.pathname === '/track/ranks' && request.method === 'GET') return handleTrackRanks(request, env);
     if (url.pathname === '/track/favourites' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackFavourites(request, env);
+    }
+    if (url.pathname === '/track/likes' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackLikes(request, env);
     }
     if (url.pathname === '/track/sessions' && request.method === 'GET') {
       return handleTrackSessionsList(request, env);
@@ -12358,6 +12445,9 @@ export default {
     }
     if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
       return handleTrackBoardsRebuild(request, env);
+    }
+    if (url.pathname === '/track/admin/owner-emails' && request.method === 'POST') {
+      return handleTrackOwnerEmails(request, env);
     }
     if (url.pathname === '/track/admin/all-sessions' && request.method === 'GET') {
       return handleTrackAdminAllSessions(request, env);

@@ -540,6 +540,23 @@
     loggerNote.textContent = 'Working...';
     step('');
   });
+  // Gives sessions saved before likes their owner's email, so a like can reach the owner, a few members at a time.
+  var ownerBtn = document.getElementById('tk-owner-emails'), ownerNote = document.getElementById('tk-owner-emails-note');
+  if (ownerBtn) ownerBtn.addEventListener('click', function () {
+    var filled = 0;
+    ownerBtn.disabled = true;
+    function step(cursor) {
+      call('POST', '/track/admin/owner-emails' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+        if (!d.ok || !d.success) { ownerNote.textContent = d.message || 'Could not fill in the owners.'; ownerBtn.disabled = false; return; }
+        filled += d.filled || 0;
+        if (d.done) { ownerNote.textContent = 'Done: ' + filled + ' session' + (filled === 1 ? '' : 's') + ' given an owner.'; ownerBtn.disabled = false; return; }
+        ownerNote.textContent = 'Working... ' + filled + ' so far.';
+        step(d.cursor);
+      }).catch(function () { ownerNote.textContent = 'Could not reach the server.'; ownerBtn.disabled = false; });
+    }
+    ownerNote.textContent = 'Working...';
+    step('');
+  });
   // Brings every leaderboard place up to date, a few cars at a time.
   var rebuildBtn = document.getElementById('tk-rebuild'), rebuildNote = document.getElementById('tk-rebuild-note');
   if (rebuildBtn) rebuildBtn.addEventListener('click', function () {

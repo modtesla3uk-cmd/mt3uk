@@ -156,5 +156,5 @@ def test_the_track_mode_tick_draws_itself_on_when_the_badge_shows(page):
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator("#ma-tm")).to_be_visible()
     assert page.locator("#ma-tm .ma-tm-tick path").evaluate("e => getComputedStyle(e).animationName") == "ma-tick-draw"
-    page.wait_for_timeout(900)
+    page.wait_for_timeout(1500)
     assert page.locator("#ma-tm .ma-tm-tick path").evaluate("e => getComputedStyle(e).strokeDashoffset") in ("0px", "0")

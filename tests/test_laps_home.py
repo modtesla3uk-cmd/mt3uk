@@ -293,7 +293,7 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
     page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
                                                          body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
     page.goto("/index.html")
-    expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42, Rich")
+    expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42")
 
 
 
@@ -439,10 +439,15 @@ def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     assert page.evaluate("window.MT3UKExplainer.DEFAULTS.previewLabel") is True
 
 
-def test_the_homepage_promotes_laps_with_a_panel_above_the_tiles(page):
+def test_the_laps_tile_sits_in_a_swipe_row_with_owner_interviews(page):
+    page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/index.html")
-    panel = page.locator("section.lp-promo")
-    expect(panel).to_contain_text("Laps by MT3UK")
-    expect(panel.locator(".lp-promo-ico")).to_have_count(1)
-    expect(panel.locator("[data-laps-fast-line]")).to_have_count(1)
-    expect(panel.get_by_role("link", name="Open Laps")).to_have_attribute("href", "laps.html")
+    row = page.locator(".hp-cat-pair")
+    expect(row).to_have_count(1)
+    expect(row.locator('.hp-cat[data-cat="interviews"]')).to_have_count(1)
+    laps = row.locator('.hp-cat[data-cat="laps"]')
+    expect(laps).to_contain_text("Analyse your laps")
+    # On a phone the row scrolls sideways, so the Laps tile is reached by swiping left.
+    assert page.locator(".hp-cat-pair").evaluate("e => getComputedStyle(e).overflowX") == "auto"
+    laps.scroll_into_view_if_needed()
+    expect(laps).to_be_visible()

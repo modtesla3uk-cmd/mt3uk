@@ -5,7 +5,7 @@
     to be the first.
   - <div data-laps-more></div>: the other tracks, strips and hill climbs with times on Laps (busiest first, at most
     12), leaving out the ones the page already shows with data-laps-venue, each linking to its board.
-  - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Fastest at Thruxton: 1:21.42, Rich", the leader
+  - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Fastest at Thruxton: 1:21.42", the leader
     of the busiest board, in place of its own words (kept when there are no times).
   - <div data-laps-car="<carId>" data-laps-name="<car>"></div>: that car on Laps (My Garage's open car; also
     MT3UKLapsStrip.car(el) to draw or redraw one). With data-laps-mine, the owner's own list (/track/sessions, every
@@ -237,7 +237,7 @@
     document.querySelectorAll('[data-laps-fast-line]').forEach(function (el) {
       var top = boards.slice().sort(function (a, b) { return b.n - a.n; })[0];
       if (!top) return;
-      el.textContent = 'Fastest at ' + top.venue.name + ': ' + result(top) + ', ' + (top.top.owner || 'MT3UK member');
+      el.textContent = 'Fastest at ' + top.venue.name + ': ' + result(top);
     });
     gateAdds(document);
     tagHeads(document);

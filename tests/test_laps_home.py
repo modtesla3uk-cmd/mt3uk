@@ -437,3 +437,12 @@ def test_the_early_preview_label_can_be_hidden_on_the_end_card(page):
     open_home(page, explainer={"previewLabel": False})
     expect(page.locator(".lxe")).to_have_attribute("data-loop", "loop")
     assert page.evaluate("window.MT3UKExplainer.DEFAULTS.previewLabel") is True
+
+
+def test_the_homepage_promotes_laps_with_a_panel_above_the_tiles(page):
+    page.goto("/index.html")
+    panel = page.locator("section.lp-promo")
+    expect(panel).to_contain_text("Laps by MT3UK")
+    expect(panel.locator(".lp-promo-ico")).to_have_count(1)
+    expect(panel.locator("[data-laps-fast-line]")).to_have_count(1)
+    expect(panel.get_by_role("link", name="Open Laps")).to_have_attribute("href", "laps.html")

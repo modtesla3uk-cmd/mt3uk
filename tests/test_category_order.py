@@ -160,11 +160,11 @@ def test_clicking_a_tile_still_opens_it(device_page):
 
 
 def test_track_tiles(page):
-    """Track day guides sum up the guides; Track sessions has its own tile."""
+    """Track day guides sum up the guides; Laps by MT3UK (the Sessions tile) has its own tile."""
     page.goto("/index.html")
     guides = page.locator('.hp-cat[data-cat="track"]')
     assert "Track day guides" in guides.inner_text()
     assert "venues" in guides.inner_text()
     sessions = page.locator('.hp-cat[data-cat="sessions"]')
-    assert sessions.get_attribute("href") == "track.html"
-    assert "leaderboards" in sessions.inner_text()
+    assert sessions.get_attribute("href") == "https://laps.mt3uk.com/laps.html"
+    assert "Laps by MT3UK" in sessions.inner_text()

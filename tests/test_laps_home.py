@@ -320,11 +320,10 @@ def test_the_laps_home_explainer_uses_the_saved_circuit_units_and_words(page):
     expect(wrap).to_have_attribute("data-units", "kph")
     expect(page.locator(".lxe canvas")).to_be_visible()
     toggle = page.locator(".lxe-btn")
-    # The picture waits for a press: Press here starts it and, with sound enabled, the sound.
+    # The picture waits for the play button, which starts it and, with sound enabled, the sound.
     expect(toggle).to_have_attribute("aria-label", "Play video")
-    page.locator(".lxe-go").click()
+    toggle.click()
     expect(toggle).to_have_attribute("aria-label", "Pause video")
-    expect(page.locator(".lxe-go")).to_be_hidden()
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
     toggle.click()
     expect(toggle).to_have_attribute("aria-label", "Play video")
@@ -405,7 +404,9 @@ def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
     open_home(page)
     page.locator(".lxe canvas").scroll_into_view_if_needed()
     orange = """() => { const c = document.querySelector('.lxe canvas'); const x = c.getContext('2d');
-        const k = c.width / 960; const d = x.getImageData(Math.floor(330 * k), Math.floor(388 * k), Math.ceil(300 * k), Math.ceil(36 * k)).data; let n = 0;
+        const z = parseFloat(document.querySelector('[data-laps-explainer]').dataset.zoom) || 1;
+        const k = c.width / 960; const x0 = 480 * (1 - z) + z * 330, y0 = 270 * (1 - z) + z * 388;
+        const d = x.getImageData(Math.floor(x0 * k), Math.floor(y0 * k), Math.ceil(300 * z * k), Math.ceil(36 * z * k)).data; let n = 0;
         for (let i = 0; i < d.length; i += 4) if (d[i] > 180 && d[i + 1] < 130 && d[i + 2] < 100 && d[i + 3] > 200) n++;
         return n; }"""
     page.evaluate("window.MT3UKExplainerHome.seek(16.999)")
@@ -413,10 +414,10 @@ def test_sign_in_to_start_stays_on_the_end_card_when_the_animation_ends(page):
     assert page.evaluate(orange) > 40, "sign in line missing at the end"
 
 
-def test_the_sound_waits_for_its_delay_after_press_here(page):
-    """With a start delay set, Press here starts the animation at once and the sound a little later."""
+def test_the_sound_waits_for_its_delay_after_play(page):
+    """With a start delay set, the play button starts the animation at once and the sound a little later."""
     open_home(page, explainer={"sound": True, "soundDelay": 1})
-    page.locator(".lxe-go").click()
+    page.locator(".lxe-btn").click()
     expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true", timeout=3000)

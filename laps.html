@@ -396,6 +396,10 @@
   .lh-hero .lh-video { max-width: none; margin: 0; background: none; border: 0; padding: 0; box-shadow: none; -webkit-mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); }
   .lh-hero .lh-video [data-laps-explainer], .lh-hero .lh-video canvas { border-radius: 8px; }
   .lh-hero .lh-video-cap { max-width: none; margin: 8px 0 0; text-align: left; color: #b9c0cf; font-size: 0.78rem; line-height: 1.4; }
+  .lh-hero .lxe-bar { padding: 6px 8px; gap: 6px; }
+  .lh-hero .lxe-btn { width: 34px; height: 34px; }
+  .lh-hero .lxe-sound { height: 34px; padding: 0 10px; font-size: 12px; }
+  .lh-hero .lxe-btn svg, .lh-hero .lxe-sound svg { width: 16px; height: 16px; }
   .lh-video { max-width: 760px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline-strong, rgba(20,33,61,.2)); box-shadow: 0 18px 40px rgba(0,0,0,.25); }
   .lh-video img { display: block; width: 100%; height: auto; }
   .lh-video-cap { max-width: 760px; margin: 12px auto 0; font-size: 0.9rem; color: #5a6276; text-align: center; }
@@ -470,7 +474,7 @@
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
     </div>
     <div>
-      <div class="lh-video" data-laps-explainer>
+      <div class="lh-video" data-laps-explainer data-zoom="1.35">
         <img src="images/laps/explainer-poster.jpg" alt="Laps in 17 seconds: a lap drawn on a track, with the words for each scene" width="960" height="540">
       </div>
       <p class="lh-video-cap">Laps in 17 seconds. Shown with example data, not a real session.</p>
@@ -675,7 +679,7 @@
   }
 </script>
 
-<script src="js/laps-explainer.js?v=16" defer></script>
+<script src="js/laps-explainer.js?v=17" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-home.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

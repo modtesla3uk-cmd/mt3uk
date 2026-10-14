@@ -367,10 +367,7 @@
     '.lxe-btn:hover,.lxe-btn:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
     '.lxe-btn svg,.lxe-sound svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
     '.lxe-sound{height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:600 14px ' + FONT + ';cursor:pointer}' +
-    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
-    '.lxe-go{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);height:28px;padding:0 12px;border-radius:14px;border:0;background:' + ORANGE + ';color:#fff;font:700 12px ' + HEAD + ';cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3)}' +
-    '.lxe-go::before{content:"";position:absolute;inset:-8px -10px}' +
-    '.lxe-go:focus-visible{outline:3px solid #fff;outline-offset:3px}.lxe-go[hidden]{display:none}';
+    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}';
   var styled = false;
   function addStyle() {
     if (styled || !document.head) return;
@@ -404,20 +401,12 @@
     soundBtn.type = 'button'; soundBtn.className = 'lxe-sound';
     bar.appendChild(playBtn);
     if (S.sound) bar.appendChild(soundBtn);
-    // On the Laps front page the picture waits for a press: 'Press here' starts the animation and, if sound is enabled, the sound.
-    var go = null;
-    if (opts.clickToPlay) {
-      go = document.createElement('button');
-      go.type = 'button'; go.className = 'lxe-go'; go.textContent = 'Press here';
-      wrap.appendChild(go);
-    }
     wrap.appendChild(canvas); wrap.appendChild(bar); el.appendChild(wrap);
     var ctx = canvas.getContext('2d');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoplay = opts.autoplay !== false && !reduce;
-    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1 };
-    // The first start hides the 'Press here' button for good.
-    function started() { st.started = true; if (go) go.hidden = true; }
+    var st = { t: reduce ? 1.2 : 0, playing: autoplay, last: 0, audio: null, custom: null, gestured: false, soundOn: false, started: false, duck: 1, scene: -1, raf: 0, scale: 1, zoom: parseFloat(el.getAttribute('data-zoom')) > 0 ? parseFloat(el.getAttribute('data-zoom')) : 1 };
+    function started() { st.started = true; }
 
     function sizeCanvas() {
       var w = wrap.clientWidth || W, dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -425,7 +414,9 @@
       st.scale = canvas.width / W;
     }
     function paint() {
-      ctx.setTransform(st.scale, 0, 0, st.scale, 0, 0);
+      // A zoom (data-zoom on the wrapper) enlarges the scene about its middle; the controls are not in the canvas.
+      var z = st.zoom;
+      ctx.setTransform(st.scale * z, 0, 0, st.scale * z, st.scale * W * (1 - z) / 2, st.scale * H * (1 - z) / 2);
       drawFrame(ctx, st.t, S);
     }
     function showControls() {
@@ -502,17 +493,6 @@
       st.soundOn = false;
       st.soundTimer = setTimeout(function () { st.soundTimer = 0; if (st.playing) { st.soundOn = true; syncSound(); showControls(); } }, d * 1000);
     }
-    // Press here: starts the animation, and the sound too when sound is enabled (browsers allow sound only after a press).
-    if (go) {
-      go.addEventListener('click', function () {
-        started();
-        st.gestured = true;
-        if (S.sound) { ensureSound(); if (st.audio && st.audio.ac.state === 'suspended') st.audio.ac.resume(); startSoundLater(); }
-        if (st.t >= TOTAL - 0.01) st.t = 0;
-        st.playing = true;
-        syncSound(); showControls();
-      });
-    }
 
     // On the Laps front page the whole picture is a link to sign in while the end card is showing (the 'Sign in to start' line says so).
     function onEnd() { return sceneIndex(st.t) === SCENES.length - 1; }
@@ -559,8 +539,8 @@
     if (!el) return;
     fetch(API + '/laps/explainer', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: false, clickToPlay: true, link: true }); })
-      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: false, clickToPlay: true, link: true }); });
+      .then(function (d) { window.MT3UKExplainerHome = mount(el, d.settings || {}, { autoplay: false, link: true }); })
+      .catch(function () { window.MT3UKExplainerHome = mount(el, {}, { autoplay: false, link: true }); });
   }
   window.MT3UKExplainer = { mount: mount, merge: merge, soundFadeAt: soundFadeAt, MAPS: MAPS, SCENES: SCENES.map(function (s) { return s.id; }), TEXT: TEXT, DEFAULTS: DEFAULTS, SOUNDS: SOUNDS, PACES: PACES };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -2751,17 +2751,15 @@ def test_the_laps_video_sound_can_wait_a_set_number_of_seconds_before_it_starts(
     assert posted and posted[-1]["soundDelay"] == 3, posted
 
 
-def test_the_laps_video_waits_for_click_to_play_and_then_starts_the_sound_too(page):
-    """Nothing plays on load and a press elsewhere on the page does not start it. Press here starts the animation and,
-    with sound enabled, the sound."""
+def test_the_laps_video_waits_for_play_and_then_starts_the_sound_too(page):
+    """Nothing plays on load and a press elsewhere on the page does not start it. The play button starts the animation
+    and, with sound enabled, the sound."""
     from tests.test_laps_home import open_home
     open_home(page)
-    expect(page.locator(".lxe-go")).to_be_visible()
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
     page.mouse.click(5, 5)
-    expect(page.locator(".lxe-go")).to_be_visible()
     expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Play video")
-    page.locator(".lxe-go").click()
+    page.locator(".lxe-btn").click()
     expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
     expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
 

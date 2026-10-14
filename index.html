@@ -2255,14 +2255,14 @@
   .hp-laps-promo { position: relative; overflow: hidden; }
   .hp-laps-promo > * { position: relative; z-index: 1; }
   .hp-laps-track { position: absolute; right: -6%; top: 50%; transform: translateY(-50%); width: 78%; height: auto; pointer-events: none; z-index: 0; }
-  .hp-laps-track path { fill: none; stroke: #f58a68; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: .3; }
+  .hp-laps-track path { fill: none; stroke: #f58a68; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .18; }
   .hp-laps-top { display: flex; align-items: center; gap: 10px; font-family: "Archivo Expanded", sans-serif; font-weight: 800; font-size: 1.05rem; }
   .hp-laps-ico { width: 24px; height: 24px; flex: none; fill: none; stroke: #f58a68; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .hp-laps-line { font-weight: 600; font-size: .92rem; color: #f5f7fb; }
   .hp-laps-text { font-size: .9rem; line-height: 1.45; color: #d3d8e2; }
   .hp-laps-btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #e8590c; color: #fff; font-weight: 700; font-size: .9rem; }
   @media (max-width: 780px) {
-    .hp-next-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-top: 18px; }
+    .hp-next-row { display: flex; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-top: 18px; }
     .hp-next-row::-webkit-scrollbar { display: none; }
     .hp-next-row > * { flex: 0 0 100%; min-width: 0; max-width: none; margin-top: 0; scroll-snap-align: start; }
   }
@@ -3206,6 +3206,7 @@
           <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span>Laps by MT3UK <span class="early-badge">Early preview</span></span></span><span class="hp-laps-line" data-laps-fast-line>Fastest lap on Laps: see the boards</span><span class="hp-laps-text">Upload your lap timer file to see your laps, compare with the boards and track your Tesla&rsquo;s Track Mode figures.</span><span class="hp-laps-btn">Open Laps</span></a>
         </div>
         <p class="hp-swipe-hint" aria-hidden="true">Swipe left to show Laps</p>
+        <script>(function () { var r = document.querySelector('.hp-next-row'), c = document.getElementById('hp-hero-next'); if (!r) return; function top() { r.scrollLeft = 0; } top(); if (c && 'MutationObserver' in window) new MutationObserver(top).observe(c, { attributes: true, attributeFilter: ['hidden'] }); })();</script>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Add a photo of your car to join MT3UK.</strong> It&rsquo;s free, and you can like, comment and get alerts too.</p>

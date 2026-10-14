@@ -21,3 +21,6 @@
 .ls-head .early-badge { margin-left: 0; }
 .laps-preview-note b { color: #b8421f; }
 .is-preview .icon { width: 16px; height: 16px; }
+
+/* A heading's Join preview button is the same width as My Sessions and Leaderboards on desktop. */
+@media (min-width: 901px) { .page-hero .tp-hero-actions .tp-lb-pill.is-preview, .page-hero .tp-lb-pill.is-preview { min-width: 190px; justify-content: center; } }

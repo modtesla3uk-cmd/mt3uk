@@ -88,8 +88,8 @@
       links.forEach(function (a) {
         a.href = st === 'out' ? 'laps-signin.html' : 'track.html';
         var words = st === 'pending' ? 'You\u2019re on the list' : 'Join the early preview';
-        // In a page heading on a phone the row is tight, so the button says Join preview (its full words stay as the label).
-        var tight = a.closest('.page-hero') && window.matchMedia && window.matchMedia('(max-width: 780px)').matches && st !== 'pending';
+        // In a page heading the row is tight, so the button says Join preview (its full words stay as the label).
+        var tight = a.closest('.page-hero') && st !== 'pending';
         a.innerHTML = SPARK + (tight ? 'Join preview' : words);
         if (tight) a.setAttribute('aria-label', words);
         a.classList.add('is-preview');

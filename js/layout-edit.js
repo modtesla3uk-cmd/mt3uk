@@ -6,6 +6,8 @@
 (function () {
   if (!/[?&]layout=edit(&|$)/.test(location.search)) return;
 
+  // How far up, in px, an item may go: above the frame, into the blue area under the signed-in row.
+  var TOP_MIN = -100;
   var ITEM_SEL = '.back-link, .tp-lb-pill, .tm-pill, h1, .tp-hero-actions, .tp-what, .tm-what';
   var PARA_SEL = ':scope > p';
   var hero, wrap, items = [], sel = null, snap = true, drag = null, gridPx = 8, showGrid = true, gridEl = null;
@@ -17,9 +19,14 @@
   var frameKey = location.pathname + ':' + (innerWidth > 900 ? 'desk' : 'phone');
   var STORE = 'mt3uk-layout-edit:' + frameKey;
 
+  // The heading's own buttons are hidden for a moment while the page settles (the Add a session button is hidden for
+  // 2.5 seconds, leaderboards.html, and only then shown), so the editor waits until they have all appeared before it
+  // takes its items. Otherwise a button that is still hidden is left out and cannot be moved.
+  var SETTLE_MS = 2600;
   function ready(fn) {
-    if (document.readyState !== 'loading') fn();
-    else document.addEventListener('DOMContentLoaded', fn);
+    var go = function () { setTimeout(fn, SETTLE_MS); };
+    if (document.readyState !== 'loading') go();
+    else document.addEventListener('DOMContentLoaded', go);
   }
 
   function load() {
@@ -51,6 +58,8 @@
   function collect() {
     var list = Array.prototype.slice.call(hero.querySelectorAll(ITEM_SEL));
     list = list.concat(Array.prototype.slice.call(wrap.querySelectorAll(PARA_SEL)));
+    // A container with display: contents has no box of its own, so it cannot be placed: its buttons are the items.
+    list = list.filter(function (el) { return getComputedStyle(el).display !== 'contents'; });
     list = list.filter(function (el, i, all) {
       if (!visible(el)) return false;
       // Skip anything that sits inside another item (the title's own icons and buttons).
@@ -202,7 +211,7 @@
     var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
     if (drag.mode === 'move') {
       m.x = Math.max(0, Math.min(W - m.w, snapv(drag.x + dx)));
-      m.y = Math.max(0, Math.min(H - m.h, snapv(drag.y + dy)));
+      m.y = Math.max(TOP_MIN, Math.min(H - m.h, snapv(drag.y + dy)));
     } else {
       m.w = Math.max(40, Math.min(W - m.x, snapv(drag.w + dx)));
       m.h = Math.max(20, Math.min(H - m.y, snapv(drag.h + dy)));
@@ -387,7 +396,7 @@
     if (!d) return;
     e.preventDefault();
     sel.x = Math.max(0, sel.x + d[0] * step);
-    sel.y = Math.max(0, sel.y + d[1] * step);
+    sel.y = Math.max(TOP_MIN, sel.y + d[1] * step);
     apply(sel);
     persist();
   }

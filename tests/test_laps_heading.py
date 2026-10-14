@@ -170,3 +170,12 @@ def test_the_editor_saves_a_phone_layout_for_the_phone_frame(page):
     page.locator('[data-le="site"]').click()
     page.wait_for_function("() => document.querySelector('[data-le=\"site-msg\"]').textContent.startsWith('Saved')")
     assert sent["body"]["frame"] == "phone", sent
+
+
+def test_the_editor_takes_the_leaderboards_action_button_as_an_item(page):
+    """The Add a session button is hidden for a moment while the page settles; the editor waits for it, so it can be moved."""
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/leaderboards.html?layout=edit")
+    page.wait_for_selector("[data-layout-name*='early preview'], [data-layout-name*='Add a session']", timeout=8000)
+    names = page.evaluate("() => [...document.querySelectorAll('[data-layout-name]')].map(e => e.dataset.layoutName)")
+    assert any("early preview" in n or "Add a session" in n for n in names), names

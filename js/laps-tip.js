@@ -14,7 +14,8 @@
     heading: 'Tip: the more you upload, the more the board tells you',
     text: 'Every session you add is kept as your car\'s best for that mix of tyres and conditions, so the filters can compare like with like, and the board shows how you are coming on from day to day. Upload each track day, even the slow ones.'
   };
-  var copy = null, loading = null;
+  // Until the worker's words arrive the built-in words are used, so the bulb can be placed at once.
+  var copy = {}, loading = null;
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function load() {
     if (loading) return loading;
@@ -32,8 +33,8 @@
       '<div class="laps-tip-body laps-tip-pop" id="laps-tip-body" hidden>' + (copy.tipOff ? '' : '<div class="laps-tip-words"><b>' + heading + '</b><p>' + esc(copy.tipText || BUILT_IN.text) + '</p></div>') + '</div></div>';
   }
   function html(plain) {
-    if (plain === 'bulb-fast' && copy) return bulbHtml(true);
-    if (!copy || copy.tipOff) return '';
+    if (plain === 'bulb-fast') return bulbHtml(true);
+    if (copy.tipOff) return '';
     if (plain === 'bulb') return bulbHtml();
     var isClosed = closed();
     return '<div class="card laps-tip' + (isClosed ? ' is-closed' : '') + '" id="laps-tip" role="note">' +
@@ -49,8 +50,15 @@
   function place() {
     var slots = document.querySelectorAll('[data-laps-tip]');
     if (!slots.length) return Promise.resolve();
-    return load().then(function () {
-      // A slot marked data-laps-tip-title takes its bulb button into the page heading (beside the title icon); the box stays here.
+    // Drawn now with the built-in words, so the bulb is where it belongs from the first paint, then drawn again with the
+    // worker's words once they arrive.
+    draw();
+    return load().then(draw);
+  }
+  function draw() {
+    var slots = document.querySelectorAll('[data-laps-tip]');
+    if (!slots.length) return;
+    // A slot marked data-laps-tip-title takes its bulb button into the page heading (beside the title icon); the box stays here.
       document.querySelectorAll('.laps-tip-titlebulb').forEach(function (n) { n.parentNode.removeChild(n); });
       document.querySelectorAll('[data-laps-tip]').forEach(function (el) {
         var mode = el.getAttribute('data-laps-tip');
@@ -59,7 +67,6 @@
         if (title && bulb) { bulb.classList.add('laps-tip-titlebulb'); title.insertBefore(bulb, title.querySelector('.mt3uk-share-dot')); }
         // Sessions: Fastest right now at the top of the bulb's box, and the bulb lit when a leader has changed.
         if (mode === 'bulb-fast' && window.MT3UKLapsPanels) window.MT3UKLapsPanels.fastBulb(bulb, el.querySelector('.laps-tip-pop'));
-      });
     });
   }
   document.addEventListener('click', function (e) {

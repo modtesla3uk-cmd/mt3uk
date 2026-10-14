@@ -9817,7 +9817,7 @@ function cleanLapsHeading(body) {
   LAPS_HEADING_ROLES.forEach(function (r) {
     var p = src[r];
     if (!p || typeof p !== 'object') return;
-    var x = num(p.x, 0, 3000), y = num(p.y, 0, 3000), w = num(p.w, 0, 3000), h = num(p.h, 0, 3000), fs = num(p.fs, 6, 120);
+    var x = num(p.x, 0, 3000), y = num(p.y, -100, 3000), w = num(p.w, 0, 3000), h = num(p.h, 0, 3000), fs = num(p.fs, 6, 120);
     if (x === null || y === null || w === null || h === null || fs === null) return;
     items[r] = { x: x, y: y, w: w, h: h, fs: fs, hide: !!p.hide };
   });

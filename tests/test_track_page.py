@@ -7022,7 +7022,9 @@ def test_the_heading_buttons_are_a_placeholder_while_the_list_loads(page):
     expect(page.locator("#tp-hero-actions")).to_be_visible()
     expect(page.locator("#tp-hero-add")).to_have_class(re.compile("is-wait"))
     assert page.locator("#tp-hero-add").evaluate("e => getComputedStyle(e).pointerEvents") == "none"
-    expect(page.locator("#tp-hero-actions .laps-tip-bulbbtn")).to_be_visible()
+    # The tip's bulb is placed beside the title as soon as its script runs, never in the button row first.
+    expect(page.locator(".page-hero .laps-tip-titlebulb")).to_be_visible()
+    expect(page.locator("#tp-hero-actions .laps-tip-bulbbtn")).to_have_count(0)
     page.evaluate("localStorage.clear()")
     page.add_init_script("localStorage.removeItem('mt3ukMyBuildsSession')")
     page.goto("/track.html")

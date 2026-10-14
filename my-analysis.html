@@ -53,6 +53,8 @@
   .tm-heroes p { order:3; }
   /* Phone: the title first, then Back and My Sessions side by side, with Leaderboards and Add a session under them. */
   @media (max-width:780px) {
+    .tm-heroes { display:flex; flex-direction:column; }
+    .tm-heroes .tm-what { order:4; }
     .tm-heroes h1 { order:1; }
     .tm-heroes .tm-hero-top { order:2; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
     .tm-hero-left, .tm-hero-right { display:contents; }
@@ -147,8 +149,8 @@
   .ma-tm-tick { width: 14px; height: 14px; flex: none; fill: none; stroke: #7ee08a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   @media (max-width:780px) {
     .tm-heroes h1 { font-size: 1.36rem; white-space: nowrap; display: flex; align-items: center; flex-wrap: nowrap; }
-    .tm-heroes h1 .ma-title-icon { width: 0.9em; height: 0.9em; margin-left: 8px; margin-right: 12px; flex: none; }
-    .ma-tm { margin-left: auto; width: calc(50% - 5px); min-height: 44px; padding: 6px 11px 6px 9px; gap: 6px; justify-content: center; text-align: center; font-size: .76rem; line-height: 1.25; white-space: normal; flex: 0 0 auto; min-width: 0; }
+    .tm-heroes h1 .ma-title-icon { width: 1.3em; height: 1.3em; margin-left: 8px; margin-right: 12px; flex: none; }
+    .ma-tm { margin-left: auto; width: calc(50% - 5px); min-height: 44px; padding: 6px 11px 6px 9px; gap: 6px; justify-content: center; text-align: center; font-size: .66rem; line-height: 1.25; white-space: normal; flex: 0 0 auto; min-width: 0; }
     .ma-tm { position: relative; padding-left: 34px; }
     .ma-tm-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; }
     .ma-tm-tick { width: 13px; height: 13px; }

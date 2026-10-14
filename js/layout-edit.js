@@ -291,10 +291,10 @@
     bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:999;background:#16233d;color:#fff;font:13px/1.4 system-ui,sans-serif;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px rgba(0,0,0,.3);max-height:55vh;overflow:auto';
     bar.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
-        '<strong class="le-frame">' + frameLabel() + '</strong>' +
+        '<strong class="le-frame">' + frameLabel() + '</strong> <span data-le="site-msg" style="margin-left:8px;color:#f7c9b9"></span>' +
         '<span><button type="button" data-le="panel" aria-expanded="false">Controls</button> <button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <button type="button" data-le="site">Save to site</button> <button type="button" data-le="site-clear">Clear site layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
       '</div>' +
-      '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong> <span data-le="site-msg" style="margin-left:8px;color:#f7c9b9"></span></div>' +
+      '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong></div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' +
         ['x', 'y', 'w', 'h', 'fs'].map(function (k) {
           var lab = { x: 'X', y: 'Y', w: 'Width', h: 'Height', fs: 'Font size' }[k];

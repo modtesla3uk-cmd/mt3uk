@@ -146,9 +146,10 @@
 
   function apply(m) {
     var s = m.el.style;
-    s.left = m.x + 'px'; s.top = m.y + 'px';
-    s.width = m.w + 'px'; s.height = m.h + 'px';
-    s.fontSize = m.fs + 'px';
+    // Important, so the shared heading rules (which are !important) do not win over the saved positions.
+    s.setProperty('left', m.x + 'px', 'important'); s.setProperty('top', m.y + 'px', 'important');
+    s.setProperty('width', m.w + 'px', 'important'); s.setProperty('height', m.h + 'px', 'important');
+    s.setProperty('font-size', m.fs + 'px', 'important');
     m.el.classList.toggle('layout-edit-sel', sel === m);
     m.el.style.opacity = m.hide ? '0.25' : '';
     if (sel === m) m.el.style.boxShadow = '0 0 0 2px #e8542a';

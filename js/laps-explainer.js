@@ -261,6 +261,13 @@
       ctx.arc(48 + i * 18, 500, 5, 0, Math.PI * 2); ctx.fill();
     });
   }
+  // The shift (data-shift) eases in at the start and out before the end card, so the end card sits in the middle.
+  function shiftAt(t, s) {
+    if (!s) return 0;
+    var a = Math.min(1, Math.max(0, t) / 0.6);
+    var b = Math.min(1, Math.max(0, (SCENES[SCENES.length - 1].t0 - t) / 0.6));
+    return s * Math.min(a, b);
+  }
   function sceneIndex(t) {
     for (var i = 0; i < SCENES.length; i++) if (t >= SCENES[i].t0 && t < SCENES[i].t1) return i;
     return SCENES.length - 1;
@@ -416,7 +423,7 @@
     function paint() {
       // A zoom (data-zoom on the wrapper) enlarges the scene about its middle; the controls are not in the canvas.
       var z = st.zoom;
-      ctx.setTransform(st.scale * z, 0, 0, st.scale * z, st.scale * (W * (1 - z) / 2 + st.shift), st.scale * H * (1 - z) / 2);
+      ctx.setTransform(st.scale * z, 0, 0, st.scale * z, st.scale * (W * (1 - z) / 2 + shiftAt(st.t, st.shift)), st.scale * H * (1 - z) / 2);
       drawFrame(ctx, st.t, S);
     }
     function showControls() {

@@ -7893,7 +7893,7 @@ async function handleTrackAccessAdmin(request, env) {
       if (action === 'approve' && body.notify !== false) {
         try {
           var text = 'Hello,\n\nYou now have early access to Track Sessions on MT3UK. Sign in and open Track Sessions to add your first session: ' + LAPS_SITE_URL + '/track.html\n\nIt is an early preview, so please tell us what works and what does not.';
-          await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail(MY_BUILDS_FROM_EMAIL, e, 'You have early access to Track Sessions', text)));
+          await env.SEND_EMAIL.send(mailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', e, 'You have early access to Track Sessions', text)));
         } catch (err) { /* approved either way */ }
       }
     } else if (action === 'revoke') {

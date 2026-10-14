@@ -13,19 +13,22 @@ def test_hold_and_drag_rearranges_categories(device_page):
     page.goto("/index.html")
     grid = page.locator(".categories-grid.hp-cats")
     grid.scroll_into_view_if_needed()
+    page.locator('.hp-cat[data-cat="garage"]').scroll_into_view_if_needed()
     page.wait_for_timeout(300)
     start = order(page)
     assert start[0] == "addphoto" and start[1] == "garage" and start[-1] == "interviews"
 
-    # Hold the first tile, then drag it over the last one.
+    # Hold the first tile, then drag it over the last one. Press the centre of the
+    # tile: its top-left corner can sit under the sticky site header on a phone.
     first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
     last = page.locator('.hp-cat[data-cat="interviews"]').bounding_box()
-    page.mouse.move(first["x"] + 20, first["y"] + 20)
+    px, py = first["x"] + first["width"] / 2, first["y"] + first["height"] / 2
+    page.mouse.move(px, py)
     page.mouse.down()
     page.wait_for_timeout(500)
     for step in range(1, 11):
-        page.mouse.move(first["x"] + 20 + (last["x"] + last["width"] - 30 - first["x"] - 20) * step / 10,
-                        first["y"] + 20 + (last["y"] + last["height"] / 2 - first["y"] - 20) * step / 10)
+        page.mouse.move(px + (last["x"] + last["width"] - 30 - px) * step / 10,
+                        py + (last["y"] + last["height"] / 2 - py) * step / 10)
         page.wait_for_timeout(30)
     page.mouse.up()
     page.wait_for_timeout(300)

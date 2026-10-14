@@ -2799,3 +2799,64 @@ def test_admin_names_a_street_run_street_run_in_the_member_sessions_panel(page):
     row.locator(".ms-save").click()
     expect(page.locator("#ms-note")).to_contain_text("Renamed to Street run")
     assert renamed == [{"id": "cccc3333", "venue": "Street run"}]
+
+
+def test_admin_can_delete_a_members_session_from_the_member_sessions_panel(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    deleted = []
+    sessions = [
+        {"id": "dddd4444", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layout": "Club", "date": "2026-10-12", "privacy": "shared"},
+        {"id": "eeee5555", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layout": "Club", "date": "2026-10-11", "privacy": "shared"},
+    ]
+
+    def admin_sessions(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": sessions, "views": []}), headers=cors)
+
+    def admin_session(route):
+        body = json.loads(route.request.post_data)
+        if body.get("action") != "delete":
+            route.fulfill(status=400, content_type="application/json", body=json.dumps({"success": False, "message": "unexpected"}), headers=cors)
+            return
+        deleted.append(body["id"])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "deleted": body["id"]}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/sessions**", admin_sessions)
+    page.route("**/track/admin/session?**", admin_session)
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#member-sessions-wrap summary").click()
+    page.fill("#ms-email", "member@example.com")
+    page.locator("#ms-find").click()
+    expect(page.locator("#ms-list tbody tr")).to_have_count(2)
+    page.locator("#ms-list tbody tr").nth(0).locator(".ms-del").click()
+    expect(page.locator("#ms-note")).to_contain_text("Session deleted")
+    expect(page.locator("#ms-list tbody tr")).to_have_count(1)
+    assert deleted == ["dddd4444"]
+
+
+def test_admin_full_access_and_free_limit_panel_gives_full_access_and_sets_the_limit(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"limit": 30, "full": []}
+    posts = []
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body["action"] == "limit":
+                state["limit"] = body["limit"]
+            elif body["action"] == "add":
+                state["full"].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "limit": state["limit"], "full": state["full"]}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#tiers-limit")).to_have_value("30")
+    page.fill("#tiers-add-email", "tester@example.com")
+    page.locator("#tiers-add-form button").click()
+    expect(page.locator("#tiers-full")).to_contain_text("tester@example.com")
+    page.fill("#tiers-limit", "40")
+    page.locator("#tiers-limit-form button").click()
+    expect(page.locator("#tiers-note")).to_contain_text("Free limit saved as 40")
+    assert posts == [{"action": "add", "email": "tester@example.com"}, {"action": "limit", "limit": 40}]

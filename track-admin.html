@@ -106,6 +106,16 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
     </details>
+    <details class="collapsible" id="tiers-wrap">
+      <summary><h3 class="panel-title">Full access and free limit <span class="summary-count" id="tiers-count"></span></h3></summary>
+      <p class="iv-note">The free tier lets a member upload this many Track sessions in total. Deleted sessions still count, and an admin delete gives one back. Members with Full access are not held to the limit. Full access is for testing for now; there are no payments yet.</p>
+      <p class="iv-note" id="tiers-note" role="status"></p>
+      <form class="iv-toolbar" id="tiers-limit-form"><label>Free limit, sessions in total <input type="number" id="tiers-limit" min="0" max="10000" step="1" aria-label="Free limit, sessions in total"></label><button type="submit">Save limit</button></form>
+      <h3 class="sub-head">Full access</h3>
+      <div id="tiers-full"></div>
+      <h3 class="sub-head">Give Full access</h3>
+      <form class="iv-toolbar" id="tiers-add-form"><input type="email" id="tiers-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give Full access</button></form>
+    </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
       <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
@@ -393,12 +403,13 @@
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/laps-offline-admin.js?v=2" defer></script>
 <script src="js/sessions-tree-admin.js?v=1" defer></script>
+<script src="js/tiers-admin.js?v=1" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>
 <script src="js/laps-members-admin.js?v=20271017" defer></script>
 <script src="js/track-lines-admin.js?v=20271021" defer></script>
-<script src="js/track-member-admin.js?v=20261163" defer></script>
+<script src="js/track-member-admin.js?v=20261164" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261251" defer></script>
 <script src="js/all-sessions-admin.js?v=1" defer></script>
 <script src="js/track-admin.js?v=20270134" defer></script>

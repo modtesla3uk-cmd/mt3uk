@@ -7997,6 +7997,52 @@ async function handleSessionsTreeAdmin(request, env) {
   return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
+// Tiers for the Track sessions free tier. One KV key (track-tiers): the number of sessions a member on the free tier
+// may upload in total (deleted sessions still count), and the members with Full access, who are not held to that
+// limit. Full access is for testing for now; paid tiers come later. Managed on the Full access panel of track-admin.html
+// (js/tiers-admin.js, /track/tiers/admin).
+var TRACK_TIERS_KEY = 'track-tiers';
+var TRACK_FREE_LIMIT = 30;
+async function getTrackTiers(env) {
+  var t = await getJsonKey(env, TRACK_TIERS_KEY, {});
+  var limit = parseInt(t.limit, 10);
+  return {
+    limit: limit >= 0 && limit <= 10000 ? limit : TRACK_FREE_LIMIT,
+    full: Array.isArray(t.full) ? t.full.filter(function (x) { return x && x.email; }) : []
+  };
+}
+async function hasTrackFullAccess(env, email) {
+  var e = accessEmail(email);
+  var t = await getTrackTiers(env);
+  return t.full.some(function (x) { return x.email === e; });
+}
+async function handleTrackTiersAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var t = await getTrackTiers(env);
+  if (request.method === 'GET') return json({ success: true, limit: t.limit, full: t.full });
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || '');
+  if (action === 'limit') {
+    var n = parseInt(body.limit, 10);
+    if (!(n >= 0 && n <= 10000)) return json({ success: false, message: 'The limit must be a whole number from 0 to 10,000.' }, 400);
+    t.limit = n;
+  } else if (action === 'add' || action === 'revoke') {
+    var e = accessEmail(body.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!t.full.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        t.full.push({ email: e, name: nm, at: new Date().toISOString() });
+        t.full = t.full.slice(-500);
+      }
+    } else t.full = t.full.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
+  return json({ success: true, limit: t.limit, full: t.full });
+}
+
 async function handleTrackSessionsList(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -8439,6 +8485,13 @@ async function handleTrackAdminSessionRename(request, env) {
   if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
   var rec = await getTrackSession(env, id);
   if (!rec) return json({ success: false, message: 'Session not found' }, 404);
+  // The admin deletes a session for a member: it leaves the member's list, the car's shared list and the boards.
+  if (body.action === 'delete') {
+    await env.VOTES.delete('track-session:' + rec.id);
+    await env.VOTES.delete('track-source:' + rec.id);
+    await putTrackIndexesFor(env, rec.owner, rec, true);
+    return json({ success: true, deleted: rec.id });
+  }
   if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list. Rename the track on the Tracks panel.' }, 400);
   var name = trackText(body.venue, 60);
   if (!name) return json({ success: false, message: 'Enter the track name.' }, 400);
@@ -12333,6 +12386,9 @@ export default {
     }
     if (url.pathname === '/track/admin/new-sessions' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminNewSessions(request, env);
+    }
+    if (url.pathname === '/track/tiers/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackTiersAdmin(request, env);
     }
     if (url.pathname === '/track/admin/session' && request.method === 'POST') {
       return handleTrackAdminSessionRename(request, env);

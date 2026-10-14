@@ -20,6 +20,10 @@
     return fetch(API + '/track/admin/sessions?key=' + encodeURIComponent(key()) + (email ? '&email=' + encodeURIComponent(email) : ''), { cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
+  function del(id) {
+    return fetch(API + '/track/admin/session?key=' + encodeURIComponent(key()), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, action: 'delete' }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
+  }
   function rename(id, venue) {
     return fetch(API + '/track/admin/session?key=' + encodeURIComponent(key()), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, venue: venue }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
@@ -46,14 +50,14 @@
       if (!d.ok) { note(d.message || 'Could not look that up.', 'error'); return; }
       var list = d.sessions || [];
       note(list.length ? list.length + ' session' + (list.length === 1 ? '' : 's') + '.' : 'No sessions for that email.', '');
-      listEl.innerHTML = list.length ? '<table class="iv-table ms-table"><thead><tr><th>Session</th><th>Track name</th><th>Date</th><th>Privacy</th></tr></thead><tbody>' + list.map(function (s) {
+      listEl.innerHTML = list.length ? '<table class="iv-table ms-table"><thead><tr><th>Session</th><th>Track name</th><th>Date</th><th>Privacy</th><th><span class="iv-sub">Delete</span></th></tr></thead><tbody>' + list.map(function (s) {
         // A session at a track we do not list is named by the member, so the admin can put it right here. One at a
         // listed track takes its name from the track list.
         // A street run has no track: it is named "Street run" unless the admin types another name.
         var nameCell = s.venueId
           ? esc(s.venue || '') + '<span class="iv-sub">Listed track</span>'
           : '<div class="ms-rename"><input type="text" class="ms-name" data-id="' + esc(s.id) + '" value="' + esc(s.street ? 'Street run' : (s.venue || '')) + '" maxlength="60" aria-label="' + (s.street ? 'Name for this street run' : 'Track name') + '"><button type="button" class="iv-act ms-save" data-id="' + esc(s.id) + '">Save</button></div>' + (s.street ? '<span class="iv-sub">Street run, admin only</span>' : '');
-        return '<tr data-id="' + esc(s.id) + '"><td><a href="track.html?s=' + esc(s.id) + '" target="_blank" rel="noopener">' + esc((s.venue || 'Session') + (s.layout ? ' ' + s.layout : '')) + '</a></td><td>' + nameCell + '</td><td>' + esc(s.date || '') + '</td><td>' + esc(s.privacy || '') + '</td></tr>';
+        return '<tr data-id="' + esc(s.id) + '"><td><a href="track.html?s=' + esc(s.id) + '" target="_blank" rel="noopener">' + esc((s.venue || 'Session') + (s.layout ? ' ' + s.layout : '')) + '</a></td><td>' + nameCell + '</td><td>' + esc(s.date || '') + '</td><td>' + esc(s.privacy || '') + '</td><td><button type="button" class="iv-act ms-del" data-id="' + esc(s.id) + '">Delete</button></td></tr>';
       }).join('') + '</tbody></table>' : '';
       loadViews();
     });
@@ -72,9 +76,23 @@
       note('Renamed to ' + saved + '. The member sees the new name in their list.', 'ok');
     });
   }
+  function deleteSession(btn) {
+    var id = btn.getAttribute('data-id'), row = btn.closest('tr');
+    if (!window.confirm('Delete this session for the member? It will be removed from their list, their car and the leaderboards. This cannot be undone.')) return;
+    btn.disabled = true;
+    note('Deleting...', '');
+    del(id).then(function (d) {
+      btn.disabled = false;
+      if (!d.ok || !d.success) { note(d.message || 'Could not delete that session.', 'error'); return; }
+      row.parentNode.removeChild(row);
+      note('Session deleted.', 'ok');
+    });
+  }
   listEl.addEventListener('click', function (e) {
     var btn = e.target.closest('.ms-save');
     if (btn) saveName(btn);
+    var delBtn = e.target.closest('.ms-del');
+    if (delBtn) deleteSession(delBtn);
   });
   listEl.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' || !e.target.classList.contains('ms-name')) return;

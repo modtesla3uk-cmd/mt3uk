@@ -471,7 +471,7 @@ a.back-link, .page-hero a.back-link {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 44px; padding: 10px 16px; margin-left: 0;
   background: #ffffff; color: var(--ink);
-  border: 1px solid var(--hairline-strong); border-radius: var(--radius);
+  border: 1px solid var(--hairline-strong); border-radius: 999px;
   font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2;
   text-decoration: none;
   transition: background-color .15s ease, border-color .15s ease;

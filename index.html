@@ -2270,6 +2270,9 @@
     .hp-next-row { max-width: 100%; min-width: 0; box-sizing: border-box; }
     .hp-next-row > .hp-hero-card, .hp-next-row > .hp-laps-promo { width: 100%; box-sizing: border-box; min-width: 0; }
     .hp-next-row { align-items: stretch; }
+    .hp-next-row { flex: 0 0 auto; }
+    .hp-next-row > .hp-hero-card { flex: none; }
+    .hp-next-row > .hp-hero-card .hp-hero-excerpt { display: block; height: auto; max-height: none; overflow: visible; -webkit-line-clamp: unset; }
     .hp-next-row > * { flex: 0 0 100%; min-width: 0; max-width: none; margin-top: 0; scroll-snap-align: start; }
     .hp-next-row > .hp-hero-card { position: relative; }
     .hp-hero .hp-next-row > .hp-hero-card, .hp-hero .hp-next-row > .hp-laps-promo { margin-top: 0; }

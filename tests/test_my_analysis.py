@@ -133,3 +133,18 @@ def test_my_analysis_is_in_the_menu_with_its_icon_after_favourites(page):
     expect(link).to_have_count(1)
     expect(link).to_contain_text("My Analysis")
     expect(link.locator("svg path")).to_have_count(3)
+
+
+def test_the_track_drop_down_leaves_out_drives_which_have_no_time(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0)
+    r = dict(day_session("a2", "10:00", 90.0, 4, date="2026-05-03", venue="Thruxton", venue_id="thruxton"), layoutId="thruxton", layout="Thruxton", carId="car1")
+    fake.index.append(summary(r))
+    drive = dict(summary(day_session("d1", "10:00", None, 0, date="2026-05-02", venue="Indy Drive", venue_id="indy-drive")), type="other", layoutId="", layout="", bestTime=None, carId="car1")
+    fake.index.append(drive)
+    open_page(page, fake, "/my-analysis.html")
+    options = page.locator("#ma-track option").all_text_contents()
+    assert any("Indy" in o for o in options) and any("Thruxton" in o for o in options), options
+    assert not any("Indy Drive" in o for o in options), options
+    expect(page.locator(".ma-table tbody tr")).to_have_count(2)
+    expect(page.locator(".ma-table")).not_to_contain_text("Indy Drive")

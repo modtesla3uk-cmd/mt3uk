@@ -77,9 +77,10 @@
   }
 
   // The sessions the page is about: the car and track picked.
+  // Drives are not analysed here, so they are left out of every figure, the chart and the table.
   function scoped() {
     return state.sessions.filter(function (s) {
-      return (state.car === 'all' || s.carId === state.car) && (state.track === 'all' || trackKey(s) === state.track);
+      return s.type !== 'other' && (state.car === 'all' || s.carId === state.car) && (state.track === 'all' || trackKey(s) === state.track);
     });
   }
   function carName(id) { return state.cars[id] || 'Car'; }
@@ -272,7 +273,8 @@
     var carPick = cars.length > 1 ? '<label class="tm-pick"><span>Car</span><select id="ma-car" class="field"><option value="all"' + (state.car === 'all' ? ' selected' : '') + '>All cars</option>' +
       cars.map(function (id) { return '<option value="' + esc(id) + '"' + (state.car === id ? ' selected' : '') + '>' + esc(carName(id)) + '</option>'; }).join('') + '</select></label>' : '';
     var byKey = {};
-    state.sessions.filter(function (s) { return state.car === 'all' || s.carId === state.car; }).forEach(function (s) {
+    // Only timed sessions are offered (a drive has no time, so it is left out of the drop-down).
+    state.sessions.filter(function (s) { return (state.car === 'all' || s.carId === state.car) && s.type !== 'other' && (timed(s) || s.type === 'drag'); }).forEach(function (s) {
       byKey[trackKey(s)] = byKey[trackKey(s)] || trackOf(s);
     });
     var keys = Object.keys(byKey).sort(function (a, b) { return byKey[a] < byKey[b] ? -1 : 1; });

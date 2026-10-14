@@ -2254,20 +2254,27 @@
     .hp-swipe-hint { display: block; margin: 8px 0 0; font-size: .8rem; color: #d3d8e2; text-align: right; }
     .hp-next-row:has(#hp-hero-next[hidden]) + .hp-swipe-hint { display: none; }
   }
-  .hp-laps-promo { display: flex; flex-direction: column; gap: 6px; max-width: 460px; margin-top: 18px; padding: 14px 16px; border-radius: var(--radius); background: rgba(14, 22, 40, 0.86); color: #fff; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.14); }
-  .hp-laps-promo:hover { border-color: #f58a68; }
+  .hp-laps-promo { display: flex; flex-direction: column; gap: 6px; max-width: 460px; margin-top: 18px; padding: 14px 16px; border-radius: var(--radius); background: #fbf6e9; color: #14322a; text-decoration: none; border: 2px solid #14322a; }
+  .hp-laps-promo:hover { border-color: #e8542a; }
   .hp-laps-promo { position: relative; overflow: hidden; }
   .hp-laps-promo > * { position: relative; z-index: 1; }
   .hp-laps-track { position: absolute; right: -6%; top: 50%; transform: translateY(-50%); width: 78%; height: auto; pointer-events: none; z-index: 0; }
-  .hp-laps-track path { fill: none; stroke: #f58a68; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .18; }
+  .hp-laps-track path { fill: none; stroke: #14322a; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: .14; }
   .hp-laps-top { display: flex; align-items: center; gap: 10px; font-family: "Archivo Expanded", sans-serif; font-weight: 800; font-size: 1.05rem; }
-  .hp-laps-ico { width: 24px; height: 24px; flex: none; fill: none; stroke: #f58a68; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .hp-laps-line { font-weight: 600; font-size: .92rem; color: #f5f7fb; }
-  .hp-laps-text { font-size: .9rem; line-height: 1.45; color: #d3d8e2; }
-  .hp-laps-points { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 4px; font-size: .88rem; line-height: 1.4; color: #d3d8e2; }
+  .hp-laps-top { flex-wrap: wrap; min-width: 0; }
+  .hp-laps-top .early-badge { margin-left: auto; background: #e8542a; color: #fff; white-space: nowrap; }
+  .hp-laps-name { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; min-width: 0; font-size: 1.5em; line-height: 1; }
+  .hp-laps-by { font-family: "IBM Plex Sans", sans-serif; font-size: .5em; font-weight: 600; color: #8a8f88; }
+  .hp-laps-ico { width: 30px; height: 30px; flex: none; color: #14322a; }
+  .hp-laps-text { font-size: .9rem; line-height: 1.45; color: #2f3f3a; }
+  .hp-laps-points { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 4px; font-size: .88rem; line-height: 1.4; color: #14322a; }
   .hp-laps-points span { display: block; position: relative; padding-left: 24px; min-width: 0; }
-  .hp-laps-points svg { position: absolute; left: 0; top: 2px; width: 16px; height: 16px; fill: none; stroke: #f58a68; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .hp-laps-btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #e8590c; color: #fff; font-weight: 700; font-size: .9rem; }
+  .hp-laps-points svg { position: absolute; left: 0; top: 2px; width: 16px; height: 16px; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-laps-points span:nth-child(1) svg { stroke: #1f8a70; }
+  .hp-laps-points span:nth-child(2) svg { stroke: #e0901a; }
+  .hp-laps-points span:nth-child(3) svg { stroke: #7a4fd1; }
+  .hp-laps-points span:nth-child(4) svg { stroke: #d9534f; }
+  .hp-laps-btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #14322a; color: #fbf6e9; font-weight: 700; font-size: .9rem; }
   @media (max-width: 780px) {
     .hp-next-row { display: flex; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-top: 18px; }
     .hp-next-row::-webkit-scrollbar { display: none; }
@@ -3219,7 +3226,7 @@
           <p class="hp-hero-excerpt" id="hp-hero-excerpt">From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.</p>
           <a href="blog-richard.html" class="hp-btn hp-hero-read" id="hp-hero-cta"><span id="hp-hero-cta-text">Read the interview</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
-          <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span>Laps by MT3UK <span class="early-badge">Early preview</span></span></span><span class="hp-laps-line" data-laps-fast-line>Fastest lap on Laps: see the boards</span><span class="hp-laps-text">Upload your lap timer file to compare with the boards.</span><span class="hp-laps-points"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c4-6 6 2 10-4s4-4 8-6"/></svg>Your laps, mapped and measured</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Where you stand on every board</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis across your sessions</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Tesla Track Mode analysis, lap by lap</span></span><span class="hp-laps-btn">Open Laps</span></a>
+          <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="hp-laps-name">Laps <span class="hp-laps-by">by MT3UK</span></span><span class="early-badge">Early preview</span></span><span class="hp-laps-text">Upload your lap timer file to compare with the boards.</span><span class="hp-laps-points"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c4-6 6 2 10-4s4-4 8-6"/></svg>Your laps, mapped and measured</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Where you stand on every board</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis across your sessions</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Tesla Track Mode analysis, lap by lap</span></span><span class="hp-laps-btn">Open Laps</span></a>
         </div>
         <p class="hp-swipe-hint" aria-hidden="true"><svg class="hp-swipe-chev" style="animation-delay:0.5s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0.25s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Swipe left to show Laps</p>
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>

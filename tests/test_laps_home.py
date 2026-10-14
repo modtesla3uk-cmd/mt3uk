@@ -446,7 +446,7 @@ def test_the_laps_promo_sits_beside_the_latest_interview_in_a_row_that_swipes(pa
     expect(row).to_have_count(1)
     promo = row.locator("a.hp-laps-promo")
     expect(promo).to_contain_text("Laps by MT3UK")
-    expect(promo.locator("[data-laps-fast-line]")).to_have_count(1)
+    expect(promo.locator("[data-laps-fast-line]")).to_have_count(0)
     expect(promo.locator(".hp-laps-btn")).to_have_text("Open Laps")
     assert row.evaluate("e => getComputedStyle(e).overflowX") == "auto"
     expect(page.locator(".hp-cat-laps")).to_have_count(0)

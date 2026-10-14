@@ -2266,9 +2266,10 @@
     .hp-next-row::-webkit-scrollbar { display: none; }
     .hp-next-row { max-width: 100%; min-width: 0; box-sizing: border-box; }
     .hp-next-row > .hp-hero-card, .hp-next-row > .hp-laps-promo { width: 100%; box-sizing: border-box; min-width: 0; }
-    .hp-next-row { align-items: flex-start; }
+    .hp-next-row { align-items: stretch; }
     .hp-next-row > * { flex: 0 0 100%; min-width: 0; max-width: none; margin-top: 0; scroll-snap-align: start; }
     .hp-next-row > .hp-hero-card { position: relative; }
+    .hp-hero .hp-next-row > .hp-hero-card, .hp-hero .hp-next-row > .hp-laps-promo { margin-top: 0; }
     .hp-next-row > .hp-hero-card::after { content: ""; position: absolute; right: 16px; top: 50%; width: 10px; height: 10px; border-top: 2px solid #f58a68; border-right: 2px solid #f58a68; transform: translateY(-50%) rotate(45deg); pointer-events: none; }
     .hp-next-row > .hp-laps-promo { padding: 12px 14px; gap: 4px; }
   }
@@ -3210,8 +3211,8 @@
         </div>
           <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span>Laps by MT3UK <span class="early-badge">Early preview</span></span></span><span class="hp-laps-line" data-laps-fast-line>Fastest lap on Laps: see the boards</span><span class="hp-laps-text">Upload your lap timer file to compare with the boards.</span><span class="hp-laps-btn">Open Laps</span></a>
         </div>
-        <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
         <p class="hp-swipe-hint" aria-hidden="true">Swipe left to show Laps</p>
+        <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
         <script>(function () { var r = document.querySelector('.hp-next-row'), c = document.getElementById('hp-hero-next'); if (!r) return; function top() { r.scrollLeft = 0; } top(); if (c && 'MutationObserver' in window) new MutationObserver(top).observe(c, { attributes: true, attributeFilter: ['hidden'] }); })();</script>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>

@@ -27,7 +27,7 @@
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271018">
-<link rel="stylesheet" href="css/laps-heading.css?v=1">
+<link rel="stylesheet" href="css/laps-heading.css?v=2">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
   :root { --ink:#16233d; --ink-2:#223257; --charcoal:#1c1c1c; --paper:#f3f1ea; --steel:#5b6475; --hair:#dcdfe6; --orange:#e8590c; --content-max:1000px; }
@@ -57,7 +57,9 @@
     .tm-heroes { display:flex; flex-direction:column; }
     .page-hero { padding: 14px 0 6px; }
     .tm-heroes h1 { align-items: flex-start; }
-    .tm-heroes .tm-what { order:4; }
+    .tm-heroes .tm-what { order:4; width:100%; max-width:none; align-self:stretch; text-align:left; }
+    .tm-heroes .tm-what summary { text-align:left; }
+    .tm-heroes .tm-what p { max-width:none; margin:4px 0 0; text-align:left; }
     .tm-heroes h1 { order:1; }
     .tm-heroes .tm-hero-top { order:2; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
     .tm-hero-left, .tm-hero-right { display:contents; }

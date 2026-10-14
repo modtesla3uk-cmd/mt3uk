@@ -5546,6 +5546,46 @@
     if (c.pads) parts.push('Pads: ' + c.pads);
     return parts.length ? '<p class="tp-sub" id="tp-car-kit">' + esc(parts.join(' · ')) + '</p>' : '';
   }
+  // The search on a car's page (the same magnifier, panel and results as My Sessions) over that car's shared sessions.
+  function wireCarFind(list) {
+    var box = document.getElementById('tp-find'), from = document.getElementById('tp-find-from'), to = document.getElementById('tp-find-to');
+    var range = document.getElementById('tp-find-range'), datesBtn = document.getElementById('tp-find-dates');
+    var toggle = document.getElementById('tp-find-toggle'), panel = document.getElementById('tp-find-panel');
+    if (!toggle || !panel) return;
+    function redraw() {
+      var res = document.getElementById('tp-find-results'), tracks = document.getElementById('tp-tracks'), clear = document.getElementById('tp-find-clear');
+      if (res) res.innerHTML = findActive() ? findResultsHtml(list, false) : '';
+      if (tracks) tracks.hidden = findActive();
+      if (clear) clear.hidden = !findActive();
+      toggle.classList.toggle('is-on', findOpen || findActive());
+    }
+    toggle.addEventListener('click', function () {
+      findOpen = panel.hidden;
+      panel.hidden = !findOpen;
+      toggle.setAttribute('aria-expanded', findOpen ? 'true' : 'false');
+      if (findOpen && box) box.focus();
+    });
+    if (box) box.addEventListener('input', function () { findText = box.value; redraw(); });
+    if (from) from.addEventListener('change', function () { findFrom = from.value; redraw(); });
+    if (to) to.addEventListener('change', function () { findTo = to.value; redraw(); });
+    if (datesBtn) datesBtn.addEventListener('click', function () {
+      var open = range.hidden;
+      range.hidden = !open; findDates = open;
+      datesBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      datesBtn.classList.toggle('is-on', open || !!(findFrom || findTo));
+      if (open && from) from.focus();
+    });
+    var clearBtn = document.getElementById('tp-find-clear');
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      findText = findFrom = findTo = ''; findDates = false;
+      if (box) box.value = ''; if (from) from.value = ''; if (to) to.value = '';
+      if (range) range.hidden = true;
+      if (datesBtn) { datesBtn.classList.remove('is-on'); datesBtn.setAttribute('aria-expanded', 'false'); }
+      redraw();
+      if (box) box.focus();
+    });
+    if (findActive()) redraw();
+  }
   function showCar(carId) {
     loading();
     var V = window.MT3UKVehicles, my = routeSeq;
@@ -5554,12 +5594,25 @@
       var d = r[0];
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + (d.mine ? '<a class="chip tp-others" href="track.html" data-go="" aria-label="What I see" title="What I see: back to my sessions">' + icon('eye') + '</a>' : shareDot('Share this build')) + '</div></div>';
+      // The same parts as My Sessions: the vehicle box (read only here), the Sessions row with its tools, the filters and
+      // the list. Owners get the banner and an eye that goes back to their own sessions; visitors get neither.
+      var carName = [c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' \u00b7 ');
+      var box = '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc(carName) + '</p></div></div>';
+      // Back and Add a session sit in the heading, as on My Sessions (Back moves up with moveViewBack; Add is the owner's).
+      var fm = { cars: [c], sessions: d.sessions };
+      var h = back('Track sessions', '') + '<div class="tp-section tp-vehicles"><div class="tp-vbox">' + box + '</div>' + carKitHtml(c) + '</div>';
       if (d.mine) { currentCar = carId; h += '<div class="tp-publicbar" role="note">' + icon('eye') + '<span><b>Public view.</b> This is what other members see. Only the sessions you share are listed, and nothing here can be edited.</span></div>'; }
-      h += d.sessions.length ? '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId, true) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      var seeBack = d.mine ? '<a class="chip tp-others" href="track.html" aria-label="What I see" title="What I see">' + icon('eye') + '</a>' : '';
+      h += '<div class="tp-section"><div class="tp-head tp-list-head"><div class="tp-head-title"><h2>Sessions</h2></div><div class="tp-head-side">' + findToggleHtml(fm) + refreshChip() + unitsChip() + seeBack + (d.mine ? '' : shareDot('Share this build')) + '</div></div>';
+      h += findPanelHtml(fm).replace('Search all vehicles: track, date, wet...', 'Search this vehicle: track, date, wet...').replace('Searches all your vehicles', 'Searches this vehicle') + '<div id="tp-find-results"></div>';
+      h += d.sessions.length ? '<div id="tp-tracks">' + trackToolsHtml(d.sessions) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(d.sessions, carId, true) + '</div></div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      h += '</div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
       wireTrackToggles();
+      heroAddCar = d.mine ? carId : null;
+      heroAdd();
+      wireCarFind(d.sessions);
       wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'Laps build') + ' | Laps by MT3UK', campaign: 'track_build',
         text: (c.name || 'This build') + '’s track sessions on Laps by MT3UK' });
     }).catch(function () { failed('That build could not be loaded.'); });

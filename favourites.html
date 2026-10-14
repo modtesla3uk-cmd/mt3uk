@@ -418,41 +418,59 @@
 <main data-no-share>
 <section class="page-hero tp-dark-hero fav-hero">
   <div class="wrap">
-    <h1>Favourites</h1>
     <div class="tp-hero-top"><a href="track.html" class="back-link" aria-label="Back to Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="fav-tools">
-      <a class="fav-pill" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>My Sessions</a>
-      <a class="fav-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
-      <a class="fav-pill" href="my-analysis.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis</a>
+    <div class="tp-hero-row">
+      <h1>Favourites<svg class="icon fav-title-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2-4.5-4.4 6.2-.9z"/></svg></h1>
+      <div class="fav-tools">
+        <a href="my-analysis.html" class="tp-lb-pill"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis</a>
+        <a href="leaderboards.html" class="tp-lb-pill"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
+        <a href="track.html" class="tp-lb-pill"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a>
+      </div>
     </div>
-    <p>The Track sessions you have starred, grouped by type. Press a session to open it, or its star to take it off.</p>
+    <p class="fav-intro">The Track sessions you have starred, grouped by type. Press a session to open it, or its star to take it off.</p>
   </div>
 </section>
 <style>
   .fav-hero { background:#16233d; border-bottom:0; }
-  .fav-hero h1 { color:#fff; margin:0 0 12px; }
-  .fav-hero p { color:#d3d8e2; }
-  .fav-hero .back-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border-radius:999px; border:1px solid #fff; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; }
-  .fav-tools { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; }
-  .fav-pill { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 16px; border-radius:999px; background:#fff; color:var(--ink); font-weight:600; text-decoration:none; border:1px solid #fff; }
-  .fav-pill .icon { width:20px; height:20px; fill:none; stroke:var(--orange); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .fav-pill:hover { background:#eef1f6; }
-  @media (max-width: 900px) {
-    .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; align-items:center; }
-    .fav-hero h1 { grid-column:1 / -1; margin:0 0 6px; }
-    .fav-tools { display:contents; }
-    .fav-hero .tp-hero-top { margin:0; }
-    .fav-hero .back-link, .fav-pill { width:100%; min-height:52px; justify-content:center; box-sizing:border-box; font-size:1rem; }
-    .fav-hero p { grid-column:1 / -1; margin:12px 0 0; }
-  }
+  .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; row-gap:0; align-items:center; }
+  .fav-hero .tp-hero-row { display:flex; align-items:center; justify-content:space-between; gap:16px; grid-column:1 / -1; grid-row:1; margin:0; }
+  .fav-hero h1 { color:#fff; margin:0; display:flex; align-items:center; }
+  .fav-hero .fav-title-star { flex:none; width:0.85em; height:0.85em; margin-left:10px; color:#f58a68; fill:none; stroke:#f58a68; stroke-width:2; }
+  .fav-hero .tp-hero-top { grid-column:1; grid-row:2; justify-self:start; width:max-content; margin:14px 0 0; }
+  .fav-hero .back-link { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:190px; min-height:52px; padding:0 22px; border-radius:999px; background:#fff; border:1px solid #fff; color:var(--ink); font-weight:600; font-size:1rem; text-decoration:none; box-sizing:border-box; }
+  .fav-hero .back-link .icon { width:20px; height:20px; color:var(--orange); stroke:var(--orange); fill:none; stroke-width:2; }
+  .fav-tools { display:flex; gap:10px; }
+  /* Desktop: placed at the revised positions for a 1000 x 280 px heading (from the top left of the heading box). */
   @media (min-width: 901px) {
-    .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; align-items:center; }
-    .fav-hero h1 { grid-column:1 / -1; grid-row:1; justify-self:start; }
-    .fav-hero .tp-hero-top { grid-column:1; grid-row:2; justify-self:start; }
-    .fav-tools { grid-column:2; grid-row:2; justify-self:end; margin:0; }
-    .fav-hero p { grid-column:1 / -1; grid-row:3; margin:12px 0 0; }
-    .fav-pill { min-height:52px; min-width:190px; padding:0 26px; font-size:1.02rem; }
-    .fav-hero .back-link { width:190px; justify-content:center; }
+    .fav-hero .wrap { position: relative !important; display: block !important; height: 280px !important; }
+    .fav-hero .tp-hero-row, .fav-hero .tp-hero-top, .fav-hero .fav-tools { display: contents !important; }
+    .fav-hero h1, .fav-hero .back-link, .fav-hero .fav-tools .tp-lb-pill, .fav-hero .fav-intro {
+      position: absolute !important; margin: 0 !important; box-sizing: border-box !important;
+    }
+    .fav-hero h1 { left: 0; top: 20px; width: 320px; height: 52px; font-size: 36px; }
+    .fav-hero .back-link { left: 0; top: 100px; width: 190px; height: 44px; font-size: 16px; min-width: 0; }
+    .fav-hero .fav-tools .tp-lb-pill { min-width: 0 !important; min-height: 0 !important; height: 52px; width: 190px; font-size: 16px; padding: 0 16px; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(1) { left: 572px; top: 24px; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(2) { left: 768px; top: 24px; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(3) { left: 768px; top: 84px; }
+    .fav-hero .fav-intro { left: 0; top: 170px; width: 640px; max-width: none !important; height: 60px; font-size: 16px; }
+  }
+  .fav-hero .tp-lb-pill { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:52px; min-width:190px; padding:0 22px; border-radius:999px; background:#fff; color:var(--ink); font-weight:700; font-size:1rem; text-decoration:none; box-sizing:border-box; white-space:nowrap; }
+  .fav-hero .tp-lb-pill:hover { background:#eef1f6; color:var(--ink); }
+  .fav-hero .tp-lb-pill .icon { width:20px; height:20px; color:#e8542a; stroke:#e8542a; fill:none; stroke-width:2; }
+  .fav-hero .fav-intro { grid-column:1 / -1; grid-row:3; color:#d3d8e2; margin:14px 0 0; max-width:62ch; text-align:left; justify-self:start; }
+  /* Phone: Back and My Sessions on the first row, Leaderboards and My Analysis on the second. */
+  @media (max-width: 900px) {
+    .fav-hero .wrap { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+    .fav-hero .tp-hero-row { display:contents; }
+    .fav-hero h1 { grid-column:1 / -1; grid-row:1; margin:0 0 6px; font-size:clamp(1.6rem, 7vw, 2.1rem); }
+    .fav-hero .tp-hero-top { grid-column:1; grid-row:2; margin:0; width:auto; justify-self:stretch; }
+    .fav-tools { display:contents; }
+    .fav-hero .back-link, .fav-hero .tp-lb-pill { width:100%; min-width:0; min-height:52px; height:52px; margin:0; padding:0 10px; font-size:0.98rem; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(3) { grid-column:2; grid-row:2; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(2) { grid-column:1; grid-row:3; }
+    .fav-hero .fav-tools .tp-lb-pill:nth-child(1) { grid-column:2; grid-row:3; }
+    .fav-hero .fav-intro { grid-column:1 / -1; grid-row:4; margin:14px 0 0; }
   }
 </style>
 <div class="wrap fav-wrap">
@@ -612,5 +630,6 @@
 <script src="js/messenger.js?v=3" defer></script>
 <script src="js/search.js" defer></script>
 
+<script src="js/layout-edit.js?v=1"></script>
 </body>
 </html>

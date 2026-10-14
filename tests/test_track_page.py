@@ -960,8 +960,9 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     # It starts shut, just the bulb, beside Add a session.
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
-    # On desktop, as on a phone, it sits on the button row, just left of Add a session.
-    assert page.locator(".lb-hero h1 .laps-tip-titlebulb").count() == 1 and k["y"] < a["y"], (k, a)
+    # On desktop, as on a phone, it sits in the heading beside the title.
+    h = page.locator(".lb-hero h1").bounding_box()
+    assert page.locator(".lb-hero h1 .laps-tip-titlebulb").count() == 1 and h["y"] <= k["y"] <= h["y"] + h["height"], (k, h, a)
     bulb.click()
     expect(bulb).to_have_attribute("aria-expanded", "true")
     expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")
@@ -1618,14 +1619,15 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
     m, a = mine.bounding_box(), add.bounding_box()
-    # On desktop My Sessions sits at the right above Add a session, the two sharing a right edge; Back is at the left.
+    # On desktop My Sessions and Add a session sit side by side at the right, the same height; Back is at the left.
     assert m["height"] >= 50 and a["height"] >= 40, (m, a)
-    assert a["y"] >= m["y"] + m["height"] - 2 and abs((a["x"] + a["width"]) - (m["x"] + m["width"])) < 2, (m, a)
+    assert a["x"] >= m["x"] + m["width"] and abs(a["y"] - m["y"]) < 2, (m, a)
     assert page.locator("#lb-page-back").inner_text().strip() == "Back"
-    assert page.locator(".page-hero h1").bounding_box()["y"] < m["y"]
+    t = page.locator(".page-hero h1").bounding_box()
+    assert abs((t["y"] + t["height"] / 2) - (m["y"] + m["height"] / 2)) < 30, (t, m)
     assert page.locator(".page-hero").bounding_box()["height"] < 230
     back = page.locator("#lb-page-back").bounding_box()
-    assert abs(m["y"] + m["height"] / 2 - (back["y"] + back["height"] / 2)) < 4
+    assert back["x"] + back["width"] <= m["x"] and back["y"] >= t["y"] + t["height"] - 2, (back, m, t)
     expect(page.locator(".lb-hero h1 .mt3uk-share-dot")).to_be_visible()
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1$"))

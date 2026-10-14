@@ -235,7 +235,7 @@ def test_the_leaderboard_invites_members_without_early_access_to_join(page):
     sees Join the early preview (to Sessions and its request form) and a note on what the preview is."""
     answer_with_access(page, "none")
     page.goto("/leaderboards.html")
-    expect(page.locator("#lb-add-session")).to_have_text("Join the early preview")
+    expect(page.locator("#lb-add-session")).to_have_text("Join preview")
     expect(page.locator("#lb-add-session")).to_have_attribute("href", "track.html")
     expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
 
@@ -251,15 +251,15 @@ def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_height_of_
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/leaderboards.html?type=track")
     join = page.locator("#lb-add-session")
-    expect(join).to_have_text("Join the early preview")
+    expect(join).to_have_text("Join preview")
     expect(join).to_have_attribute("href", "laps-signin.html")
     expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
     mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
-    # On desktop My Sessions sits at the right with Join the early preview under it, the same height; the What is the
-    # Leaderboard? fold is at the left of My Sessions.
+    # On desktop My Sessions sits at the right with Join preview beside it on the same row, the same height; the What is
+    # the Leaderboard? fold sits under them at the right.
     what = page.locator("#lb-what summary").bounding_box()
-    assert j["y"] >= mine["y"] + mine["height"] - 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
-    assert what["x"] + what["width"] <= mine["x"], (mine, what, j)
+    assert j["x"] >= mine["x"] + mine["width"] and abs(j["y"] - mine["y"]) <= 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
+    assert what["y"] >= mine["y"] + mine["height"] - 2 and what["x"] >= mine["x"] - 2, (mine, what, j)
     assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
     page.locator("#lb-what summary").click()
     expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)

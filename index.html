@@ -2260,9 +2260,9 @@
   .hp-laps-promo > * { position: relative; z-index: 1; }
   .hp-laps-track { position: absolute; right: -4%; top: 76%; transform: translateY(-50%); width: 50%; height: auto; pointer-events: none; z-index: 2; }
   @media (prefers-reduced-motion: reduce) { .hp-laps-dot, .hp-laps-promo > .hp-laps-timer { display: none; } .hp-laps-promo > .hp-laps-timer.is-done { animation: none; } }
-  .hp-laps-promo > .hp-laps-timer { position: absolute; right: 12px; bottom: 12px; z-index: 3; font-family: "IBM Plex Sans", sans-serif; font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #14322a; background: rgba(251, 246, 233, 0.92); border: 1px solid #14322a; border-radius: 6px; padding: 2px 7px; pointer-events: none; }
-  @keyframes hp-timer-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1.15); } }
-  .hp-laps-promo > .hp-laps-timer.is-done { animation: hp-timer-pulse 0.6s ease-in-out 3 both; }
+  .hp-laps-promo > .hp-laps-timer { position: absolute; right: 12px; bottom: 12px; z-index: 3; font-family: "IBM Plex Sans", sans-serif; font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #14322a; background: none; border: 0; padding: 0; text-shadow: 0 0 3px #fbf6e9, 0 0 3px #fbf6e9; pointer-events: none; }
+  @keyframes hp-timer-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  .hp-laps-promo > .hp-laps-timer.is-done { animation: hp-timer-pulse 0.6s ease-in-out 1; }
   .hp-laps-track .hp-laps-sf { stroke: #14322a; stroke-width: 4px; stroke-linecap: butt; opacity: .9; }
   .hp-laps-track .hp-laps-hit { fill: none; stroke: transparent; stroke-width: 22px; opacity: 1; pointer-events: stroke; cursor: pointer; }
   .hp-laps-track path { fill: none; stroke: #14322a; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; opacity: .14; }
@@ -3239,7 +3239,7 @@
   if (!hit || !timer) return;
   var RATE = 5;
   var END = 11000 * RATE;
-  var elapsed = 0, last = null, raf = 0, running = false, paused = false;
+  var elapsed = 0, last = null, raf = 0, running = false;
   function fmt(ms) {
     var t = Math.floor(ms / 100);
     var s = Math.floor(t / 10) % 60;
@@ -3253,13 +3253,20 @@
     if (running) raf = requestAnimationFrame(frame);
   }
   function start() { if (running) return; running = true; last = null; raf = requestAnimationFrame(frame); }
-  function stop() { running = false; cancelAnimationFrame(raf); last = null; }
+  function restart() {
+    track.setCurrentTime(0);
+    running = false; cancelAnimationFrame(raf);
+    elapsed = 0; last = null;
+    timer.classList.remove('is-done');
+    void timer.offsetWidth;
+    timer.textContent = fmt(0);
+    start();
+  }
   start();
   hit.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    paused = !paused;
-    if (paused) { track.pauseAnimations(); stop(); } else { track.unpauseAnimations(); start(); }
+    restart();
   });
 })();</script>
         </div>

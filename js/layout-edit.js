@@ -86,7 +86,7 @@
 
     measured.forEach(function (m) {
       var p = (saved.items && saved.items[m.name]) || m;
-      m.x = p.x; m.y = p.y; m.w = p.w; m.h = p.h; m.fs = p.fs;
+      m.x = p.x; m.y = p.y; m.w = p.w; m.h = p.h; m.fs = p.fs; m.hide = !!p.hide;
       var el = m.el;
       el.dataset.layoutName = m.name;
       el.style.position = 'absolute';
@@ -126,6 +126,7 @@
     s.width = m.w + 'px'; s.height = m.h + 'px';
     s.fontSize = m.fs + 'px';
     m.el.classList.toggle('layout-edit-sel', sel === m);
+    m.el.style.opacity = m.hide ? '0.25' : '';
     if (sel === m) m.el.style.boxShadow = '0 0 0 2px #e8542a';
     else m.el.style.boxShadow = '';
   }
@@ -185,7 +186,7 @@
   function persist() {
     var data = { H: parseInt(wrap.style.height, 10), items: {} };
     items.forEach(function (m) {
-      data.items[m.name] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs };
+      data.items[m.name] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs, hide: !!m.hide };
     });
     save(data);
     fill();
@@ -206,7 +207,7 @@
     bar.innerHTML =
       '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
         '<strong class="le-frame">' + frameLabel() + '</strong>' +
-        '<span><button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
+        '<span><button type="button" data-le="grid">Grid: on</button> <select data-le="gridsize" style="font:inherit;border-radius:6px;padding:4px;background:#0f1729;color:#fff;border:1px solid #2c3856"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select> <button type="button" data-le="hide" disabled>Hide: no</button> <button type="button" data-le="snap">Snap: on</button> <button type="button" data-le="reset">Reset</button> <button type="button" data-le="copy">Copy layout</button> <a href="' + location.pathname + '" style="color:#fff">Exit editing</a></span>' +
       '</div>' +
       '<div style="margin-top:8px"><strong data-le="name">Tap or drag a button</strong></div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' +
@@ -236,6 +237,12 @@
         apply(sel);
         persist();
       });
+    });
+    bar.querySelector('[data-le="hide"]').addEventListener('click', function () {
+      if (!sel) return;
+      sel.hide = !sel.hide;
+      apply(sel);
+      persist();
     });
     bar.querySelector('[data-le="snap"]').addEventListener('click', function () {
       snap = !snap;
@@ -273,9 +280,13 @@
       inputs[k].value = sel ? sel[k] : '';
     });
     inputs.H.value = parseInt(wrap.style.height, 10) || '';
+    var hideBtn = bar.querySelector('[data-le="hide"]');
+    hideBtn.disabled = !sel;
+    hideBtn.textContent = 'Hide: ' + (sel && sel.hide ? 'yes' : 'no');
     var lines = ['/* ' + location.pathname + ', ' + frameLabel().toLowerCase() + '. Positions are px from the top left of the heading. */'];
     items.forEach(function (m) {
-      lines.push('/* ' + m.name + ' */ left: ' + m.x + 'px; top: ' + m.y + 'px; width: ' + m.w + 'px; height: ' + m.h + 'px; font-size: ' + m.fs + 'px;');
+      if (m.hide) lines.push('/* ' + m.name + ' */ display: none;');
+      else lines.push('/* ' + m.name + ' */ left: ' + m.x + 'px; top: ' + m.y + 'px; width: ' + m.w + 'px; height: ' + m.h + 'px; font-size: ' + m.fs + 'px;');
     });
     lines.push('/* heading height: ' + parseInt(wrap.style.height, 10) + 'px */');
     out.value = lines.join('\n');

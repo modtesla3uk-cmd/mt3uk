@@ -854,9 +854,11 @@
       box.hidden = false;
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+      var cap = (d.allowance && d.allowance.cap) || 20, pct = Math.max(0, Math.min(100, Math.round(100 * d.balance / cap)));
+      var bar = '<div role="img" aria-label="' + d.balance + ' of ' + cap + ' sessions left" style="height:8px;background:#e2e5ec;border-radius:999px;margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:#e8542a"></span></div>';
       box.innerHTML = d.balance > 0
-        ? '<b>' + d.balance + ' session' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get 10 more on ' + when + ', up to 20 at once.'
-        : '<b>You have used your free sessions for now.</b> You can still open all your sessions. New sessions come back on ' + when + ', or ask MT3UK for more. ' +
+        ? '<b>' + d.balance + ' session' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get ' + (d.allowance && d.allowance.monthly || 10) + ' more on ' + when + ', up to ' + cap + ' at once.' + bar
+        : '<b>You have used your free sessions for now.</b> You can still open all your sessions. New sessions come back on ' + when + ', or ask MT3UK for more. ' + bar +
           '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more sessions</button></div>';
       var ask = document.getElementById('tp-ask-more');
       if (ask) ask.addEventListener('click', function () {

@@ -2247,8 +2247,8 @@
   .hp-next-row { display: contents; }
   .hp-swipe-hint { display: none; }
   .hp-swipe-chev { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; fill: none; stroke: #e8590c; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-  @keyframes hp-swipe-pulse { 0% { opacity: .35; transform: translateX(0); } 50% { opacity: 1; transform: translateX(-4px); } 100% { opacity: 1; transform: translateX(0); } }
-  @media (max-width: 780px) { .hp-swipe-chev { animation: hp-swipe-pulse 2s ease-in-out 1 both; } }
+  @keyframes hp-swipe-fade { 0% { opacity: 0; } 100% { opacity: 1; } }
+  @media (max-width: 780px) { .hp-swipe-chev { animation: hp-swipe-fade 0.8s ease-out 1 both; } }
   @media (max-width: 780px) and (prefers-reduced-motion: reduce) { .hp-swipe-chev { animation: none; } }
   @media (max-width: 780px) {
     .hp-swipe-hint { display: block; margin: 8px 0 0; font-size: .8rem; color: #d3d8e2; text-align: right; }
@@ -3221,7 +3221,7 @@
         </div>
           <a href="laps.html" class="hp-laps-promo" data-laps><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M-0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 Z" vector-effect="non-scaling-stroke"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg><span>Laps by MT3UK <span class="early-badge">Early preview</span></span></span><span class="hp-laps-line" data-laps-fast-line>Fastest lap on Laps: see the boards</span><span class="hp-laps-text">Upload your lap timer file to compare with the boards.</span><span class="hp-laps-points"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c4-6 6 2 10-4s4-4 8-6"/></svg>Your laps, mapped and measured</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Where you stand on every board</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis across your sessions</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Tesla Track Mode analysis, lap by lap</span></span><span class="hp-laps-btn">Open Laps</span></a>
         </div>
-        <p class="hp-swipe-hint" aria-hidden="true"><svg class="hp-swipe-chev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Swipe left to show Laps</p>
+        <p class="hp-swipe-hint" aria-hidden="true"><svg class="hp-swipe-chev" style="animation-delay:0s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0.25s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0.5s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Swipe left to show Laps</p>
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
         <script>(function () { var r = document.querySelector('.hp-next-row'), c = document.getElementById('hp-hero-next'); if (!r) return; function top() { r.scrollLeft = 0; } top(); if (c && 'MutationObserver' in window) new MutationObserver(top).observe(c, { attributes: true, attributeFilter: ['hidden'] }); })();</script>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>

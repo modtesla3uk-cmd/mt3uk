@@ -14,9 +14,8 @@
       ring = document.createElement('span');
       ring.id = 'tp-quota-ring';
       ring.className = 'tp-quota-ring';
-      var dot = h1.querySelector('.mt3uk-share-dot');
-      h1.insertBefore(ring, dot || null);
     }
+    placeRing(h1, ring);
     ring.hidden = false;
     var deg = 100 * used / cap, c = 2 * Math.PI * 9;
     ring.setAttribute('role', 'img');
@@ -32,6 +31,21 @@
     st.textContent = '.tp-quota-ring { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 9px 3px 5px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; vertical-align: middle; }' +
       '.tp-quota-ring[hidden] { display: none; }';
     document.head.appendChild(st);
+  }
+  // The ring sits straight after the tip's light bulb in the title (or before the share icon while there is no bulb).
+  // The bulb can be added after the ring, so the title is watched and the ring moved back after the bulb if needed.
+  function placeRing(h1, ring) {
+    var bulb = h1.querySelector('.laps-tip-titlebulb');
+    if (bulb) {
+      if (ring.previousElementSibling !== bulb) bulb.parentNode.insertBefore(ring, bulb.nextSibling);
+    } else {
+      var dot = h1.querySelector('.mt3uk-share-dot');
+      if (ring.parentNode !== h1 || (dot && ring.nextElementSibling !== dot)) h1.insertBefore(ring, dot || null);
+    }
+    if (!h1._ringWatch) {
+      h1._ringWatch = new MutationObserver(function () { var r = document.getElementById('tp-quota-ring'); if (r && !r.hidden) placeRing(h1, r); });
+      h1._ringWatch.observe(h1, { childList: true });
+    }
   }
   window.MT3UKQuotaRing = { draw: draw };
 })();

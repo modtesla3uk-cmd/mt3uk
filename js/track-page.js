@@ -2079,6 +2079,8 @@
       '<div id="tp-mapping"></div><p class="tp-status" id="tp-status" role="status"></p></div>' +
       '<div id="tp-result"></div></div>';
     app.innerHTML = h;
+    // The free-plan balance, so the member sees how many sessions this save will use before they save.
+    drawQuota();
     var input = document.getElementById('tp-file'), drop = document.getElementById('tp-drop');
     input.addEventListener('change', function () { if (input.files.length) readFiles(input.files); });
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });

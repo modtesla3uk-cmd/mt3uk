@@ -7530,3 +7530,12 @@ def test_the_add_view_heading_buttons_use_the_shared_slots_like_the_list(page):
     expect(page.locator("#tp-home")).to_be_attached()
     assert page.locator(".lh-hero .tp-back").evaluate("e => e.classList.contains('lh-back')")
     assert page.locator("#tp-home").evaluate("e => e.classList.contains('lh-s3') && e.classList.contains('lh-pill')")
+
+
+def test_the_add_page_shows_the_free_plan_balance_before_a_session_is_saved(page):
+    """The Add page says how many free sessions are left, so a member knows what the save will use."""
+    fake = FakeWorker(earlier=False)
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 6, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake, path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
+    expect(page.locator("#tp-quota")).to_contain_text("6 sessions left on your free plan")
+    expect(page.locator("#tp-quota")).to_contain_text("1 November")

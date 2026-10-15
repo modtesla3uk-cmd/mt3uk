@@ -132,6 +132,15 @@
         sub: row.getAttribute('data-sub') || 'Joined on Laps'
       });
     });
+    // A member has asked for more free days (the Free tier panel).
+    document.querySelectorAll('#tiers-requests [data-req]').forEach(function (btn) {
+      var row = btn.closest('tr'), cell = row ? row.querySelector('td') : null;
+      items.push({
+        id: 'more-days:' + btn.getAttribute('data-req'), group: 'More days requested', section: 'tiers', el: row, img: '',
+        title: (cell ? cell.textContent.trim() : '') || btn.getAttribute('data-topup') || 'A member',
+        sub: 'Asked for more free days on Laps'
+      });
+    });
     // Early access requests and new-track requests wait in their own panels.
     document.querySelectorAll('#ac-pending [data-approve]').forEach(function (btn) {
       var row = btn.closest('tr'), email = btn.getAttribute('data-approve');
@@ -272,7 +281,7 @@
   });
 
   var bellTimer = null;
-  ['ns-list', 'lsu-list', 'ac-pending', 'tk-requests', 'ln-list'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
+  ['ns-list', 'lsu-list', 'ac-pending', 'tk-requests', 'ln-list', 'tiers-requests'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
     new MutationObserver(function () {
       clearTimeout(bellTimer);
       bellTimer = setTimeout(renderBell, 100);

@@ -18,7 +18,7 @@
     st.textContent =
       '.tp-quota-ring { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 9px 3px 5px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; vertical-align: middle; }' +
       '.tp-quota-ring[hidden] { display: none; }' +
-      '.tier-lock-tag { display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #e2e5ec; color: #16233d; font: 600 11px/1.2 var(--font-body, system-ui); vertical-align: middle; white-space: nowrap; }' +
+      '.tier-lock-tag { display: inline-flex; align-items: center; margin-left: 8px; padding: 3px 9px; border-radius: 999px; background: #e8542a; color: #fff; font: 700 11px/1.2 var(--font-body, system-ui); vertical-align: middle; white-space: nowrap; }' +
       '.is-tier-locked { opacity: .55; filter: grayscale(1); cursor: pointer !important; }' +
       '.tier-lock-host { position: relative !important; }' +
       '.tier-lock-cover { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; align-content: center; gap: 8px; padding: 14px; text-align: center; background: rgba(243,241,234,.88); border-radius: inherit; font: 500 13px/1.4 var(--font-body, system-ui); color: #16233d; }' +

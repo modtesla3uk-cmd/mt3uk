@@ -1440,8 +1440,8 @@
       // Members on the free tier who asked for more sessions, until the admin tops them up on track-admin.html.
       var more = r[6] && r[6].requests ? r[6].requests : [];
       more.forEach(function (x) {
-        items.push({ id: 'more-sessions:' + x.id, group: 'More sessions requested', href: 'track-admin.html#tiers-wrap', img: '',
-          title: x.name || x.email || 'A member', sub: 'Asked for more Track sessions on the free plan' });
+        items.push({ id: 'more-sessions:' + x.id, group: 'More days requested', href: 'track-admin.html#tiers-wrap', img: '',
+          title: x.name || x.email || 'A member', sub: 'Asked for more free days on Laps' });
       });
       var access = r[0] && r[0].pending ? r[0].pending : [];
       access.forEach(function (p) {

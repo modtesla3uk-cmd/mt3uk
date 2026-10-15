@@ -366,9 +366,9 @@
   }
 
   /* ---------- LAPS FRONT PAGE ---------- */
-  .lh-hero { background: var(--ink); color: #fff; padding: 48px 0 52px; }
+  .lh-hero { background: var(--ink); color: #fff; padding: 72px 0 52px; }
   .lh-hero .wrap { display: grid; gap: 28px; align-items: center; }
-  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1fr 1.05fr; } }
+  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1fr 1.05fr; align-items: start; } }
   .lh-badge { display: table; margin-bottom: 14px; }
   .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
   .lh-hero h1 { color: #fff; font-size: clamp(1.9rem, 5vw, 2.9rem); margin-bottom: 14px; }
@@ -377,10 +377,19 @@
   .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
   .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
+  .lh-free { margin-top: 18px; max-width: 560px; }
+  @media (min-width: 900px) { .lh-free { margin-top: 0; max-width: none; } }
+  .lh-free h2 { font-size: 1.4rem; margin: 0 0 8px; color: #fff; }
+  .lh-free-lead { font-size: 1.1rem; color: #dfe5f1; margin: 0 0 12px; }
+  .lh-free-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .lh-free-list li { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: var(--radius, 10px); background: rgba(255,255,255,.08); color: #fff; font-size: 1.05rem; }
+  .lh-free-list .icon { flex: 0 0 22px; width: 22px; height: 22px; fill: none; stroke: #ff8a5c; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .lh-free-note { font-size: 1rem; color: #aeb7cb; margin: 12px 0 0; }
+  .lh-free-btn { margin-top: 14px; }
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
   .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 12px; max-width: 34em; }
   .lh-evs b { color: #fff; }
-  @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; }  }
+  @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
   /* The Laps video: a muted loop with a pause button, in the hero beside the words (it stacks under them on a phone). */
   /* On a phone the video comes straight after the buttons, so it fits on the first screen; the notes go under it. */
   @media (max-width: 780px) {
@@ -389,7 +398,9 @@
     .lh-hero .wrap > div:first-child > h1 { order: 1; }
     .lh-hero .wrap > div:first-child > p:first-of-type { order: 2; }
     .lh-hero .wrap > div:first-child > #lh-actions { order: 3; }
-    .lh-hero .wrap > div:nth-child(2) { order: 4; }
+    .lh-hero .wrap > .lh-free { order: 7; }
+    .lh-hero .wrap > div:first-child > .lh-video { order: 8; }
+    .lh-hero .wrap > div:first-child > .lh-video-cap { order: 9; }
     .lh-hero .wrap > div:first-child > .lh-evs { order: 5; }
     .lh-hero .wrap > div:first-child > #lh-note { order: 6; }
   }
@@ -469,46 +480,45 @@
   <div class="wrap">
     <div>
       <h1>Every lap, mapped and measured.</h1>
-      <p>Upload the file from your lap timer and see every lap drawn on the track, where you gained and lost time, and how each change to your car moved your times.</p>
+      <p>Upload files from your lap timer and see every lap on the track, where you gained and lost time, and how each change moved your times.</p>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
       </div>
-      <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche, Polestar, BMW and more. Pick its make and model, no photo needed.</p>
-      <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
+      <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche and more.</p>
+      <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
+        <div class="lh-video" data-laps-explainer data-zoom="1.15" data-shift="70">
+          <img src="images/laps/explainer-poster.jpg" alt="Laps in 17 seconds: a lap drawn on a track, with the words for each scene" width="960" height="540">
+        </div>
+        <p class="lh-video-cap">Laps in 17 seconds. Shown with example data, not a real session.</p>
     </div>
-    <div>
-      <div class="lh-video" data-laps-explainer data-zoom="1.15" data-shift="70">
-        <img src="images/laps/explainer-poster.jpg" alt="Laps in 17 seconds: a lap drawn on a track, with the words for each scene" width="960" height="540">
+      <div class="lh-free" id="free">
+        <h2>Free to access</h2>
+        <p class="lh-free-lead">Every member starts on Free access, whatever EV you drive.</p>
+        <ul class="lh-free-list">
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg><span>Your laps on the map, with your speed through every corner</span></li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19c4-10 12-10 16 0"/><path d="M4 15c4-6 12-6 16 0" stroke-dasharray="3 3"/></svg><span>Compare your best lap with the next one</span></li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Leaderboards at every track, with your place on each</span></li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span>Share any session with a link</span></li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>A monthly top-up of sessions</span></li>
+        </ul>
+        <p class="lh-free-note">Need more sessions? Ask us. What is included may change, so check back.</p>
+        <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
-      <p class="lh-video-cap">Laps in 17 seconds. Shown with example data, not a real session.</p>
-    </div>
   </div>
 </section>
 <main data-no-share>
-  <section class="lh-sec" id="what" data-panel="what">
-    <div class="wrap">
-      <h2>What Laps does</h2>
-      <p class="lh-lead">Everything is worked out from the file your lap timer already makes.</p>
-      <div class="lh-grid lh-4">
-        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M12 7v5l3 2"/><path d="M3 4v5h5"/></svg><h3>Laps found for you</h3><p>Your laps, sectors and corners, ready as soon as the file is read. No lines to draw at a track we already know.</p></div>
-        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19c4-10 12-10 16 0"/><path d="M4 15c4-6 12-6 16 0" stroke-dasharray="3 3"/></svg><h3>Compare any two laps</h3><p>Play two laps side by side on the map and see, corner by corner, where the time went.</p></div>
-        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><h3>See what your mods did</h3><p>Your times sit beside the mods list in My Garage, so you can see what each change was worth.</p></div>
-        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><h3>Leaderboards at every track</h3><p>Share a session and your fastest goes on that track&rsquo;s board, with the tyres, the conditions and your mods.</p></div>
-      </div>
-    </div>
-  </section>
   <section class="lh-sec" id="timers" data-panel="timers">
     <div class="wrap">
       <h2>Works with your lap timer</h2>
-      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
+      <p class="lh-lead">Export the session from your timer or app and upload the files. Most phone lap timer apps work too.</p>
       <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
     </div>
   </section>
   <section class="lh-sec" id="trackmode" data-panel="trackmode">
     <div class="wrap">
       <h2>Tesla Track Mode, analysed</h2>
-      <p class="lh-lead">Save the telemetry from Track Mode to a USB drive and add the file. Laps reads the laps and the car&rsquo;s own data together, so you see what the car was doing, not only where it was.</p>
+      <p class="lh-lead">Save Track Mode data to a USB drive and upload the files. Laps reads your laps and the car&rsquo;s own data together.</p>
       <div class="lh-grid lh-3">
         <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M8 11l-1 3h3l-1 3"/></svg><h3>Charge used</h3><p>Points of charge used over the session and each lap.</p></div>
         <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg><h3>Power</h3><p>Power out and regen, lined up with where you were on the track.</p></div>
@@ -526,16 +536,6 @@
       <p class="lh-lead">The quickest shared time at the busiest tracks and strips.</p>
       <div class="lh-fast" id="lh-fast" data-lh-fast><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
       <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
-    </div>
-  </section>
-  <section class="lh-sec" id="days" data-panel="days">
-    <div class="wrap">
-      <h2>Every kind of day</h2>
-      <p class="lh-lead">Choose what you were doing and Laps times it the right way.</p>
-      <div class="lh-grid lh-3">
-        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15c0-6 4-10 8-10s8 4 8 10-4 4-8 4-8 2-8-4z"/></svg><h3>Track days</h3><p>Every lap and sector timed, your best lap picked out, and any two laps ready to compare.</p></div>
-                <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16"/><path d="M4 6h10l4 6-4 6"/></svg><h3>Drag runs</h3><p>0 to 30, 0 to 60, 60 to 100, eighth mile and quarter mile, for every launch.</p></div>
-      </div>
     </div>
   </section>
 </main>

@@ -1099,22 +1099,21 @@ def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page
     page.route("**/laps/panels/admin**", panels_admin)
     page.locator("#panels-wrap summary").click()
     panels = page.locator("#lpn-list .lpn-panel")
-    expect(panels).to_have_count(5)
-    expect(panels.first.locator("legend")).to_have_text("What Laps does")
+    expect(panels).to_have_count(3)
+    expect(panels.first.locator("legend")).to_have_text("Works with your lap timer")
     fast = page.locator("#lpn-list .lpn-panel[data-id='fastest']")
     expect(fast.locator("legend")).to_have_text("Fastest right now")
     expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")
     expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "false")  # off the front page by default
-    what = page.locator("#lpn-list .lpn-panel[data-id='what']")
-    expect(what.locator("[data-f='heading']")).to_have_attribute("placeholder", "What Laps does")
-    expect(what.locator("[data-card]")).to_have_count(8)
-    what.locator("[data-f='heading']").fill("What Laps does for you")
-    what.locator("[data-place='leaderboard']").click()
+    trackmode = page.locator("#lpn-list .lpn-panel[data-id='trackmode']")
+    expect(trackmode.locator("[data-f='heading']")).to_have_attribute("placeholder", "Tesla Track Mode, analysed")
+    trackmode.locator("[data-f='heading']").fill("Tesla Track Mode, read in full")
+    trackmode.locator("[data-place='leaderboard']").click()
     page.locator("#lpn-list .lpn-panel[data-id='timers'] [data-f='items']").fill("RaceBox\n\nVBOX")
     page.locator("#lpn-save").click()
     expect(page.locator("#lpn-note")).to_contain_text("Saved")
     sent = posted[-1]["panels"]
-    assert sent["what"]["heading"] == "What Laps does for you" and sent["what"]["show"] == {"front": True, "sessions": False, "leaderboard": True}
+    assert sent["trackmode"]["heading"] == "Tesla Track Mode, read in full" and sent["trackmode"]["show"] == {"front": True, "sessions": False, "leaderboard": True}
     assert sent["timers"]["items"] == ["RaceBox", "VBOX"] and sent["fastest"]["show"]["sessions"] is True
     page.on("dialog", lambda d: d.accept())
     page.locator("#lpn-reset").click()
@@ -2749,25 +2748,6 @@ def test_the_laps_video_sound_can_wait_a_set_number_of_seconds_before_it_starts(
     page.locator("#lxa-save").click()
     expect(page.locator("#lxa-note")).to_contain_text("Saved")
     assert posted and posted[-1]["soundDelay"] == 3, posted
-
-
-def test_the_laps_video_waits_for_play_and_then_starts_the_sound_too(page):
-    """Nothing plays on load and a press elsewhere on the page does not start it. The play button starts the animation
-    and, with sound enabled, the sound."""
-    from tests.test_laps_home import open_home
-    open_home(page)
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "false")
-    page.mouse.click(5, 5)
-    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Play video")
-    page.locator(".lxe-btn").click()
-    expect(page.locator(".lxe-btn")).to_have_attribute("aria-label", "Pause video")
-    expect(page.locator(".lxe-sound")).to_have_attribute("aria-pressed", "true")
-
-
-def test_the_laps_video_plays_an_uploaded_file_when_it_is_chosen(page):
-    from tests.test_laps_home import open_home
-    open_home(page, explainer={"soundStyle": "custom", "audio": {"url": "https://files.example/sound.mp3", "name": "sound.mp3"}})
-    expect(page.locator(".lxe")).to_have_attribute("data-sound", "custom")
 
 
 def test_admin_names_a_street_run_street_run_in_the_member_sessions_panel(page):

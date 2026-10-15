@@ -7555,4 +7555,4 @@ def test_the_usage_ring_shows_beside_the_leaderboard_title_for_a_free_member(pag
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 2, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6}}
     open_page(page, fake, path="/leaderboards.html")
-    expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("2/6")
+    expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("4/6")

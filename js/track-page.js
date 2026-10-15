@@ -373,11 +373,13 @@
   // the same button in the same place (round on a phone). Moved whenever the view is drawn.
   var heroTitle = document.querySelector('.page-hero .tp-hero-row h1');
   var heroTitleDefault = heroTitle ? heroTitle.innerHTML : '';
+  // The ? button that opens What are Sessions? stays by the title on a session too (it is redrawn with the name).
+  var heroQuestion = heroTitle && heroTitle.querySelector('.tp-what-q') ? heroTitle.querySelector('.tp-what-q').outerHTML : '';
   // A session's name and small trophy go in the navy heading, as the Leaderboard heading has its trophy; any other view puts its own title back.
   function setHeroTitle(name, href) {
     if (!heroTitle) return;
     var title = href ? '<a class="tp-title-link" href="' + esc(href) + '">' + esc(name) + '</a>' : esc(name);
-    heroTitle.innerHTML = name ? title + '<svg class="icon tp-title-trophy" viewBox="0 0 24 24" aria-hidden="true">' + ICON.trophy + '</svg>' : heroTitleDefault;
+    heroTitle.innerHTML = name ? title + '<svg class="icon tp-title-trophy" viewBox="0 0 24 24" aria-hidden="true">' + ICON.trophy + '</svg>' + heroQuestion : heroTitleDefault;
   }
   // The leaderboard a session is on, as an address (the same form as the Since card's links), or '' when it has none.
   function boardHref(s) {

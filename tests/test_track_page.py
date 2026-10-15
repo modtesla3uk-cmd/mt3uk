@@ -1590,7 +1590,8 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     expect(fold).not_to_have_attribute("open", re.compile(".*"))
     expect(fold.locator("summary")).to_have_text("What is the Leaderboard?")
     expect(fold.locator("p")).not_to_be_visible()
-    fold.locator("summary").click()
+    # On desktop the line is behind the ? button by the title, which opens it (js/laps-heading-what.js).
+    page.locator(".lh-title .tp-what-q").first.click()
     expect(fold.locator("p")).to_be_visible()
     expect(fold.locator("p")).to_contain_text("Real times from EVs on tracks, drag strips and hill climbs")
     # Refresh on the list: fetches the page's own script again and reloads on the same view.
@@ -1687,6 +1688,23 @@ def test_what_are_sessions_is_open_until_a_car_is_added(page):
     expect(what).to_have_attribute("open", "")
     expect(what.locator(".tp-what-list li")).to_have_count(5)
     expect(what).to_contain_text("Tyres and brake pads")
+
+
+def test_what_are_sessions_opens_from_the_question_mark_on_a_session_page_on_desktop(page):
+    """On a session page (desktop) What are Sessions? is behind the ? button by the title, not a line under the heading."""
+    fake = FakeWorker()
+    fake.sessions["own1"] = dict(day_session("own1", "10:00", 95.0, 4), carId="car1")
+    open_page(page, fake, path="/track.html?s=own1")
+    page.set_viewport_size({"width": 1280, "height": 900})
+    question = page.locator(".page-hero .lh-title .tp-what-q")
+    expect(question).to_be_visible()
+    fold = page.locator(".page-hero .tp-what")
+    assert fold.locator("> summary").evaluate("e => getComputedStyle(e).display") == "none"
+    expect(fold).not_to_be_visible()
+    question.click()
+    expect(fold).to_have_js_property("open", True)
+    expect(fold.locator(".tp-what-list li")).to_have_count(5)
+    expect(fold).to_be_visible()
 
 
 LAPS_COUNTS = {"success": True, "counts": {"track-board:thruxton:main": 4, "drag-board:santa-pod": 2},
@@ -7558,17 +7576,14 @@ def test_the_usage_ring_shows_beside_the_leaderboard_title_for_a_free_member(pag
     expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("4/6")
 
 
-def test_a_free_member_sees_my_analysis_greyed_out_with_an_unlock_hint(page):
-    """On the free tier My Analysis is greyed out with an Unlock hint, and pressing it shows the placeholder, not the page."""
+def test_my_analysis_stays_open_for_a_free_member(page):
+    """On the free tier My Analysis is not locked: it opens, and shows the greyed example with its own note."""
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6}}
     open_page(page, fake, path="/track.html")
     analysis = page.locator('.page-hero [data-btn="my-analysis"]')
-    expect(analysis).to_have_class(re.compile("is-tier-locked"))
-    expect(analysis.locator(".tier-lock-tag")).to_contain_text("Unlock")
-    analysis.click()
-    expect(page.locator("#tier-lock-toast")).to_contain_text("Subscriptions are coming soon")
-    assert "my-analysis.html" not in page.url
+    expect(analysis).not_to_have_class(re.compile("is-tier-locked"))
+    expect(analysis).to_have_attribute("href", "my-analysis.html")
 
 
 def test_a_member_on_full_access_is_not_locked_out(page):

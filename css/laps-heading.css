@@ -94,3 +94,48 @@
   .lh-hero .lh-title .tp-what-q { display: none; }
 }
 
+
+/* A session page (track.html?s=...) on desktop: its What are Sessions? line is behind the ? button by the title, as on
+   the other heading pages. Shut, the line is hidden; open, it drops from the ? button as a panel over the page
+   (js/laps-heading-what.js toggles it). Phone has its own rules in track.html. */
+@media (min-width: 901px) {
+  body[data-tp-view="session"] .lh-hero .lh-title .tp-what-q {
+    display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 12px; width: 36px; height: 36px;
+    padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none;
+  }
+  body[data-tp-view="session"] .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  body[data-tp-view="session"] .lh-hero .lh-fold > summary { display: none !important; }
+  body[data-tp-view="session"] .lh-hero .lh-fold:not([open]) { display: none !important; }
+  body[data-tp-view="session"] .lh-hero > .wrap { position: relative; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open].lh-fold {
+    display: block !important; position: absolute !important; top: 76px !important; left: 0 !important; right: auto !important; width: min(640px, 100%) !important;
+    z-index: 60; margin: 0 !important; padding: 16px 18px; background: #22324f; color: #d3d8e2; text-align: left;
+    border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] .tp-what-body { max-width: none; margin: 0; padding: 0; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] p { margin: 0 0 8px; max-width: none; color: #d3d8e2 !important; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] li { color: #d3d8e2 !important; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] b, body[data-tp-view="session"] .lh-hero .lh-fold[open] strong { color: #fff !important; }
+}
+
+/* The same on phone: the ? button sits after the title and the What are Sessions? box drops under the heading as a light
+   panel (the session page's own phone rules are gated on the My Sessions button, which a session page shows). */
+@media (max-width: 900px) {
+  body[data-tp-view="session"] .lh-hero .lh-title .tp-what-q {
+    display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 10px; width: 36px; height: 36px;
+    padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none;
+  }
+  body[data-tp-view="session"] .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  body[data-tp-view="session"] .lh-hero .lh-fold > summary { display: none !important; }
+  body[data-tp-view="session"] .lh-hero .lh-fold:not([open]) { display: none !important; }
+  body[data-tp-view="session"] .lh-hero > .wrap { position: relative; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open].lh-fold {
+    display: block !important; position: absolute !important; top: 58px !important; left: 16px !important; right: 16px !important; width: auto !important;
+    z-index: 30; margin: 0 !important; padding: 14px 16px; background: #f7f5ef; color: #14213d; text-align: left;
+    border: 1px solid #d9d5ca; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.28);
+  }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] .tp-what-body { max-width: none; margin: 0; padding: 0; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] p, body[data-tp-view="session"] .lh-hero .lh-fold[open] li { color: #14213d !important; max-width: none; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] p { margin: 0 0 8px; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] b, body[data-tp-view="session"] .lh-hero .lh-fold[open] strong { color: #14213d !important; }
+}

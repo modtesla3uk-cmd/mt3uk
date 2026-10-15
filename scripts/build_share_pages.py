@@ -81,18 +81,15 @@ def lap_time(seconds) -> str:
 
 
 def best_line(bests: list) -> tuple:
-    """The quickest kind of result to lead with: a lap, else a run, else a
-    quarter mile. Returns (text, session id) or ("", "")."""
+    """The quickest kind of result to lead with: a lap, else a quarter mile.
+    Sprint and hill climb runs are left out: these pages are public and
+    cannot show them only to members let into sprints. Returns (text, session
+    id) or ("", "")."""
     laps = [b for b in bests or [] if b.get("type") == "track" and b.get("bestTime")]
-    runs = [b for b in bests or [] if b.get("type") == "sprint" and b.get("bestTime")]
     drags = [b for b in bests or [] if b.get("type") == "drag" and b.get("quarter")]
     if laps:
         b = min(laps, key=lambda x: x["bestTime"])
         return f"Fastest lap at {b.get('venue', '')}: {lap_time(b['bestTime'])}", b.get("id", "")
-    if runs:
-        b = min(runs, key=lambda x: x["bestTime"])
-        where = b.get("venue", "") + (", " + b["layout"] if b.get("layout") and b["layout"] != b.get("venue") else "")
-        return f"Best run at {where}: {lap_time(b['bestTime'])}", b.get("id", "")
     if drags:
         b = min(drags, key=lambda x: x["quarter"])
         return f"Quarter mile at {b.get('venue', '')}: {float(b['quarter']):.2f} s", b.get("id", "")

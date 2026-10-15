@@ -36,7 +36,8 @@ def test_the_fastest_lap_leads_the_description_and_links_to_the_session():
 
 
 def test_a_run_or_a_quarter_mile_when_there_is_no_lap():
-    assert builder.best_line([{"type": "sprint", "venue": "Lydden Hill", "layout": "B19", "id": "s3", "bestTime": 52.07}]) == ("Best run at Lydden Hill, B19: 52.07 s", "s3")
+    # Sprint runs are left out of public pages (sprints and hill climbs are gated).
+    assert builder.best_line([{"type": "sprint", "venue": "Lydden Hill", "layout": "B19", "id": "s3", "bestTime": 52.07}]) == ("", "")
     assert builder.best_line([{"type": "drag", "venue": "Santa Pod", "id": "s4", "quarter": 11.84}]) == ("Quarter mile at Santa Pod: 11.84 s", "s4")
     assert builder.best_line([]) == ("", "")
 

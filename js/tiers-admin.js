@@ -53,7 +53,7 @@
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
-        '<td><button type="button" class="iv-act" data-topup="' + esc(a.email) + '" data-req="' + esc(a.id) + '">Add 3 days</button> <button type="button" class="secondary iv-act" data-done="' + esc(a.id) + '">Done</button></td></tr>';
+        '<td><button type="button" class="iv-act" data-topup="' + esc(a.email) + '" data-req="' + esc(a.id) + '">Add 1 day</button> <button type="button" class="secondary iv-act" data-done="' + esc(a.id) + '">Done</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">No requests waiting.</p>';
     if (members) drawMembers();
   }
@@ -104,7 +104,7 @@
       return;
     }
     var tu = e.target.closest('[data-topup]');
-    if (tu) { act({ action: 'topup', email: tu.getAttribute('data-topup'), days: 3 }, 'Added 3 days. The request is marked done.'); return; }
+    if (tu) { act({ action: 'topup', email: tu.getAttribute('data-topup'), days: 1 }, 'Added 1 day. The request is marked done.'); return; }
     var dn = e.target.closest('[data-done]');
     if (dn) { act({ action: 'requestdone', id: dn.getAttribute('data-done') }, 'Marked done.'); return; }
     var g = e.target.closest('[data-give]');

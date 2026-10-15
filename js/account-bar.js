@@ -386,7 +386,7 @@
     setTimeout(autoPush, 1500);
     if (signedIn) {
       // The button's own CSS uses !important, so it's removed rather than hidden.
-      document.querySelectorAll('.nav-link-mobile').forEach(function (link) { link.remove(); });
+      document.querySelectorAll('.nav-link-mobile:not(.nav-signout)').forEach(function (link) { link.remove(); });
     }
 
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();

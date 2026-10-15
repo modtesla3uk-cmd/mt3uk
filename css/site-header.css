@@ -566,3 +566,7 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 .tp-loading-slow { font-size: 0.85rem; }
 /* The Laps menu's Notifications entry is for a phone; on a desktop the bell is in the header. */
 @media (min-width: 781px) { .nav-bell-drawer { display: none; } }
+/* Sign out in the menu: a button in the same look as the menu's other buttons (.nav-link-mobile). */
+.nav-signout { align-items: center; gap: 10px; width: calc(100% - 32px); font: inherit; cursor: pointer; }
+.nav-signout[hidden] { display: none; }
+.nav-signout .icon { width: 20px; height: 20px; }

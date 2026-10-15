@@ -21,7 +21,24 @@
   var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5', 'Hyundai Ioniq 6', 'Porsche Taycan'];
   // Short names for the filter chips.
   var MODEL_SHORT = { 'Hyundai Ioniq 5': 'Ioniq 5', 'Hyundai Ioniq 6': 'Ioniq 6', 'Hyundai Ioniq 5 N': 'Ioniq 5 N', 'Hyundai Ioniq 6 N': 'Ioniq 6 N', 'Porsche Taycan': 'Taycan' };
-  var TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint', 'sprint'], ['hill', 'Hill climb', 'sprint']];
+  var ALL_TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint', 'sprint'], ['hill', 'Hill climb', 'sprint']];
+  // Sprints and hill climbs are gated while they are tested (the worker says whether this viewer may use them). The
+  // answer is kept for the page, so the tabs are right from the first draw.
+  var sprintsOpen = false;
+  try { sprintsOpen = sessionStorage.getItem('mt3ukSprintsOpen') === '1'; } catch (e) { /* storage blocked */ }
+  var TYPES = ALL_TYPES;
+  function setSprintsOpen(open) {
+    sprintsOpen = !!open;
+    TYPES = sprintsOpen ? ALL_TYPES : ALL_TYPES.filter(function (x) { return x[0] !== 'sprint' && x[0] !== 'hill'; });
+    try { sessionStorage.setItem('mt3ukSprintsOpen', sprintsOpen ? '1' : '0'); } catch (e) { /* storage blocked */ }
+  }
+  setSprintsOpen(sprintsOpen);
+  function kindsFetch() {
+    var tok = signedInToken();
+    return fetch(API + '/track/kinds/access', { cache: 'no-store', headers: tok ? { 'X-Session-Token': tok } : {} })
+      .then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) { setSprintsOpen(!!(d && d.success && d.open)); return sprintsOpen; })
+      .catch(function () { return sprintsOpen; });
+  }
   // What each kind of board is called in "All ..." links and buttons.
   var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };
   var ICON = {
@@ -173,11 +190,12 @@
       var el = document.getElementById('lb-loading');
       if (el) el.insertAdjacentHTML('beforeend', '<p class="tp-loading-slow">This is taking a little longer than usual.</p>');
     }, window.MT3UK_SLOW_MS || 8000);
-    load().then(function () {
+    load().then(function () { return kindsFetch(); }).then(function () {
       if (p.get('board')) return showBoard('track', p.get('board'));
       if (p.get('drag')) return showBoard('drag', p.get('drag'));
-      if (p.get('sprint')) return showBoard('sprint', p.get('sprint'));
-      showList(p.get('type') || 'track');
+      if (p.get('sprint') && sprintsOpen) return showBoard('sprint', p.get('sprint'));
+      var wanted = p.get('type') || 'track';
+      showList(TYPES.some(function (x) { return x[0] === wanted; }) ? wanted : 'track');
     }).catch(function () {
       var o = window.MT3UKOffline, off = o && o.isOffline && o.isOffline();
       app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + (off ? 'This leaderboard is not on this device. Offline mode keeps the leaderboards for one circuit: choose it in Profile, while you are online.' : 'The leaderboards could not be loaded. Check your connection and try again.') + '</p></div>';

@@ -2904,3 +2904,30 @@ def test_admin_finds_a_members_sessions_by_name_and_lists_matches(page):
     page.locator("#ms-matches .ms-pick").nth(1).click()
     expect(page.locator("#ms-note")).to_contain_text("No sessions for that email")
     assert "sam.lee%40example.com" in looked_up
+
+
+def test_admin_sprints_and_hill_climbs_panel_sets_the_gate_and_adds_testers(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"mode": "off", "testers": []}
+    posts = []
+
+    def kinds(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body["action"] == "mode":
+                state["mode"] = body["mode"]
+            elif body["action"] == "add":
+                state["testers"].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/kinds/admin**", kinds)
+    page.locator("#kinds-wrap summary").click()
+    expect(page.locator("[data-kmode='off']")).to_have_attribute("aria-pressed", "true")
+    page.locator("[data-kmode='testers']").click()
+    expect(page.locator("[data-kmode='testers']")).to_have_attribute("aria-pressed", "true")
+    page.fill("#kinds-add-email", "john@example.com")
+    page.locator("#kinds-add-form button").click()
+    expect(page.locator("#kinds-testers")).to_contain_text("john@example.com")
+    assert posts == [{"action": "mode", "mode": "testers"}, {"action": "add", "email": "john@example.com"}]

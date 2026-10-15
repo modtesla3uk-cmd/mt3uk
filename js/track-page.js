@@ -31,8 +31,19 @@
     var v = s.venueId && venues && (venues.venues || venues).filter(function (x) { return x.id === s.venueId; })[0];
     return !!v && T.isHill(v);
   }
+  // Sprints and hill climbs are gated while they are tested (the worker says whether this member may use them). The
+  // answer is kept for the page, so the choices are right from the first draw.
+  var sprintsOpen = false;
+  try { sprintsOpen = sessionStorage.getItem('mt3ukSprintsOpen') === '1'; } catch (e) { /* storage blocked */ }
+  function kindsFetch() {
+    return api('GET', '/track/kinds/access').then(function (d) {
+      sprintsOpen = !!(d && d.success && d.open);
+      try { sessionStorage.setItem('mt3ukSprintsOpen', sprintsOpen ? '1' : '0'); } catch (e) { /* storage blocked */ }
+      return sprintsOpen;
+    }).catch(function () { return sprintsOpen; });
+  }
   function typeChips(s, hill) {
-    return TYPES.map(function (t) {
+    return TYPES.filter(function (t) { return sprintsOpen || s.type === 'sprint' || (t[0] !== 'sprint' && t[0] !== 'hill'); }).map(function (t) {
       var on = t[0] === 'hill' ? s.type === 'sprint' && hill : t[0] === 'sprint' ? s.type === 'sprint' && !hill : s.type === t[0];
       return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>';
     }).join('');
@@ -909,7 +920,8 @@
   function showHome() {
     loading();
     var my = routeSeq;
-    return Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
+    // The gate for sprints and hill climbs is read before the list is drawn, so its groups are right from the first draw.
+    return Promise.all([getMine(), getLibrary(), getCopy(), kindsFetch()]).then(function (r) {
       if (stale(my)) return;
       var m = r[0], c = r[2] || {};
       if (m && m.gate) return showGate();
@@ -1273,7 +1285,9 @@
       return drives.filter(function (d) { return !placed[d.id] && rows.some(function (x) { return x.date === d.date; }); })
         .map(function (d) { placed[d.id] = true; return d; });
     }
+    // Sprints and hill climbs are shown only while the gate is open for this member.
     var kinds = ['track', 'sprint', 'hill', 'drag'].filter(function (kd) {
+      if ((kd === 'sprint' || kd === 'hill') && !sprintsOpen) return false;
       return here.some(function (x) { return sessionKindOf(x) === kd; });
     }).map(function (kd) {
       var mineK = here.filter(function (x) { return sessionKindOf(x) === kd; }), kk = tkey + '#' + kd;

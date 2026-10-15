@@ -113,6 +113,8 @@ class FakeWorker:
             status, data = 403, {"success": False, "needsAccess": True}
         elif path == "/laps/offline/access" and req.method == "GET":
             data = {"success": True, "access": getattr(self, "offline_access", True)}
+        elif path == "/track/kinds/access" and req.method == "GET":
+            data = {"success": True, "open": getattr(self, "kinds_open", True)}
         elif path == "/track/tiers/request" and req.method == "POST":
             self.asked = getattr(self, "asked", 0) + 1
             data = {"success": True, "message": "Thanks. MT3UK has been asked for more sessions and will be in touch."}
@@ -1592,7 +1594,7 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     expect(fold.locator("p")).not_to_be_visible()
     fold.locator("summary").click()
     expect(fold.locator("p")).to_be_visible()
-    expect(fold.locator("p")).to_contain_text("Real times from EVs on tracks, drag strips and hill climbs")
+    expect(fold.locator("p")).to_contain_text("Real times from EVs on tracks and drag strips")
     # Refresh on the list: fetches the page's own script again and reloads on the same view.
     expect(page.locator(".tp-board-card").first).to_be_visible()
     seen = []
@@ -7518,3 +7520,14 @@ def test_the_add_page_blocks_a_save_the_free_plan_cannot_cover(page):
     expect(page.locator("#tp-quota-save")).to_contain_text("but you have 0 left")
     page.locator("#tp-save").click()
     expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("You need 1 session")
+
+
+def test_sprints_and_hill_climbs_are_hidden_from_members_while_the_gate_is_shut(page):
+    fake = FakeWorker()
+    fake.kinds_open = False
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("[data-type] .chip", has_text="Track day")).to_have_count(1)
+    expect(page.locator("[data-type] .chip", has_text="Sprint")).to_have_count(0)
+    expect(page.locator("[data-type] .chip", has_text="Hill climb")).to_have_count(0)

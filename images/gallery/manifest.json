@@ -1,7 +1,7 @@
 [
   {
     "file": "photo--by-lord-hughes-chen.jpg",
-    "name": "Lord Hughes-Chen",
+    "name": "LHughes-Chen",
     "added": "2026-10-15",
     "group": "photo--by-lord-hughes-chen.jpg"
   },
@@ -186,7 +186,7 @@
   {
     "file": "test-caption--by-rhc-lord.jpg",
     "caption": "TEST CAPTION",
-    "name": "LHC",
+    "name": "LHughes-Chen",
     "votable": false,
     "reel": false,
     "color": "White",

@@ -38,8 +38,8 @@ def test_signed_out_visitors_are_asked_to_sign_in(page):
     assert rows.nth(1).get_attribute("href") == "leaderboards.html?drag=santa-pod"
     # Seen once: laps.mt3uk.com/ opens Sessions in this browser from now on.
     assert page.evaluate("localStorage.getItem('mt3ukLapsIntroSeen')") == "1"
-    # The Laps logo leads to Sessions, where Play intro brings this page back.
-    assert page.locator("header .laps-logo").get_attribute("href") == "track.html"
+    # The Laps logo leads to the intro page, unless the member has asked not to see it (see the next test).
+    assert page.locator("header .laps-logo").get_attribute("href") == "laps.html"
 
 
 def test_signed_in_members_go_straight_to_adding_a_session(page):
@@ -336,3 +336,20 @@ def test_the_laps_promo_sits_beside_the_latest_interview_in_a_row_that_swipes(pa
     assert promo.evaluate("e => e.tagName") == "DIV"
     assert row.evaluate("e => getComputedStyle(e).overflowX") == "auto"
     expect(page.locator(".hp-cat-laps")).to_have_count(0)
+
+
+def test_the_laps_logo_opens_the_intro_until_dont_show_next_time_is_ticked(page):
+    """The logo goes to the intro page by default. Ticking Don't show this next time on the intro sends the logo to
+    Sessions, and it stays that way on the next visit until the box is unticked."""
+    page.route("**/*", lambda route: route.abort() if "workers.dev" in route.request.url else route.continue_())
+    page.goto("/laps.html")
+    expect(page.locator("header .laps-logo")).to_have_attribute("href", "laps.html")
+    page.locator("#lh-skip").check()
+    expect(page.locator("header .laps-logo")).to_have_attribute("href", "track.html")
+    expect(page.locator("footer .laps-logo")).to_have_attribute("href", "track.html")
+    page.goto("/track.html")
+    expect(page.locator("header .laps-logo")).to_have_attribute("href", "track.html")
+    page.goto("/laps.html")
+    expect(page.locator("#lh-skip")).to_be_checked()
+    page.locator("#lh-skip").uncheck()
+    expect(page.locator("header .laps-logo")).to_have_attribute("href", "laps.html")

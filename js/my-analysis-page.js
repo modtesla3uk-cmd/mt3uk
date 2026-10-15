@@ -350,7 +350,12 @@
   // what a paid plan includes instead. Full access and the switch being off see the page as before.
   fetch(API + '/track/tiers/access', H).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (t) {
     if (t && t.success && t.applies && !t.full) {
-      app.innerHTML = '<div class="tm-card"><h2>My Analysis is a paid tool</h2><p>It brings every session together: tyres, pads, weather and what each change did, across all your cars. On your free plan you can still open each session on its own, with its map, laps and speed.</p><p><a class="tm-pill" href="track.html">Back to Sessions</a></p></div>';
+      // An example of a paid analysis, greyed out so it is clear it is not the member's own. Nothing of theirs is shown.
+      app.innerHTML = '<div class="tm-card ma-example-note"><h2>This is an example</h2>' +
+        '<p><b>Track Mode data analysis is a paid feature.</b> It turns the figures your car records into lap times, corner by corner, grip and what each change did, for every session. This is an example, not your data. Unlock to see your own sessions here.</p>' +
+        '<button type="button" class="tm-pill tm-pill-accent" data-ma-unlock>Unlock</button> <span class="tm-sub" data-ma-note hidden>Subscriptions are coming soon. Nothing is charged yet.</span></div>' +
+        '<div class="ma-example" aria-label="Example, not your data"><img src="images/track-preview/analysis-example.png" alt="An example session analysis, not a member\'s own data" loading="lazy"></div>';
+      app.querySelector('[data-ma-unlock]').addEventListener('click', function () { var n = app.querySelector('[data-ma-note]'); if (n) n.hidden = false; });
       return;
     }
     loadAnalysis();

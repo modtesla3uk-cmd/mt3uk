@@ -263,7 +263,7 @@
   }
   // The place is shown as the board shows a row: the medal circle, the member's name, car and date, and the time,
   // with the medals 1st platinum, 2nd gold, 3rd silver, 4th bronze.
-  var MEDALS = ['', 'platinum', 'gold', 'silver'];
+  var MEDALS = ['', 'gold', 'silver', 'bronze'];
   function rankCount(type, venueId, layoutId) {
     var key = boardKey(type, venueId, layoutId), r = myRanks[key];
     if (!r) { loadRank(type, venueId, layoutId); return 'Finding your place...'; }

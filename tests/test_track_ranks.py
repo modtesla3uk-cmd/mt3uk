@@ -93,12 +93,12 @@ def test_someone_elses_session_has_add_a_session_that_opens_the_add_page(page):
 
 
 def test_a_session_in_the_top_three_shows_its_medal_in_the_rank_line(page):
-    """A session that holds a top-three place shows its medal (Platinum, Gold or Silver) before the place."""
+    """A session that holds a top-three place shows its medal (Gold, Silver or Bronze) before the place."""
     fake = FakeWorker()
     fake.ranks = {"new1": {"onBoard": True, "place": 1, "of": 6, "board": "Thruxton, Main", "tab": "Track days"}}
     save_thruxton_with_a_member_board(page, fake)
     line = page.locator(".tp-rank-line")
-    expect(line.locator(".tp-medal")).to_have_text("Platinum")
+    expect(line.locator(".tp-medal")).to_have_text("Gold")
     expect(line).to_contain_text("1st of 6 on")
 
 
@@ -111,4 +111,4 @@ def test_the_favourites_page_shows_each_sessions_place_and_medal(page):
     open_page(page, fake, "/favourites.html")
     row = page.locator("#fav-app .fav-row").first
     expect(row.locator(".fav-rank")).to_contain_text("2nd of 7 on Thruxton, Main")
-    expect(row.locator(".fav-medal")).to_have_text("Gold")
+    expect(row.locator(".fav-medal")).to_have_text("Silver")

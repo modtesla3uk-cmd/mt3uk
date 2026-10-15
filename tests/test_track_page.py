@@ -3040,7 +3040,7 @@ def test_the_main_list_has_no_sort_when_there_is_only_one_track(page):
 
 
 def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
-    """1st Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on, on the
+    """1st Gold, 2nd Silver, 3rd Bronze, then 4th, 5th and so on, on the
     session that holds the car's place. A private session has none."""
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100),
@@ -3059,16 +3059,16 @@ def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
     badge = lambda sid: page.locator('#tp-sess-list .tp-row[data-sid="%s"] .tp-rank' % sid)
     # The trophies show on each track's own page.
     into_track(page, "Thruxton")
-    expect(badge("a1")).to_have_text("Platinum 1st")
+    expect(badge("a1")).to_have_text("Gold 1st")
     expect(badge("a1")).to_have_class(re.compile(r"tp-rank-1"))
     # Only the session holding the place; none on a private one.
     expect(badge("a2")).to_have_count(0)
     page.locator(".tp-back").click()
     into_track(page, "Cadwell Park")
-    expect(badge("c1")).to_have_text("Gold 2nd")
+    expect(badge("c1")).to_have_text("Silver 2nd")
     page.locator(".tp-back").click()
     into_track(page, "Donington Park")
-    expect(badge("d1")).to_have_text("Silver 3rd")
+    expect(badge("d1")).to_have_text("Bronze 3rd")
     page.locator(".tp-back").click()
     into_track(page, "Oulton Park")
     expect(badge("e1")).to_have_text("11th")
@@ -3085,7 +3085,7 @@ def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
     page.locator('#tp-sess-list .tp-row[data-sid="a1"]').click()
     # The rank line under the session heading carries the medal and the place (the trophy slot went with the old layout).
     expect(page.locator(".tp-rank-line")).to_contain_text("1st of 2")
-    expect(page.locator(".tp-rank-line .tp-medal")).to_contain_text("Platinum")
+    expect(page.locator(".tp-rank-line .tp-medal")).to_contain_text("Gold")
 
 
 def test_a_car_not_on_the_board_gets_no_trophy(page):
@@ -7347,7 +7347,7 @@ def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_my_place_o
     page.locator("#lb-sort").select_option("sessions")
     card = page.locator(".lb-layout", has_text="Thruxton").first
     expect(card).to_contain_text("of 3 cars")
-    expect(card.locator(".lb-pos.lb-medal-gold")).to_have_text("2")
+    expect(card.locator(".lb-pos.lb-medal-silver")).to_have_text("2")
     # The member's own board row is shown with its name, as on the board, not a bare number.
     expect(card.locator(".lb-podium li")).to_have_count(1)
     expect(card.locator(".lb-podium .lb-who b")).to_have_text("X")

@@ -11,7 +11,7 @@
   var GROUPS = [['track', 'Track days'], ['sprint', 'Sprints'], ['hill', 'Hill climbs'], ['drag', 'Drag strips'], ['drive', 'Drives']];
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>';
   var state = { list: [], filter: 'all', ranks: {} };
-  var TIERS = { 1: 'Platinum', 2: 'Gold', 3: 'Silver' };
+  var TIERS = { 1: 'Gold', 2: 'Silver', 3: 'Bronze' };
   function ordinal(n) { var t = n % 100, u = n % 10; return n + (t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th'); }
   // The session's place on its leaderboard, or why it is not on one (GET /track/ranks), as on the Sessions list.
   function rankHtml(id) {

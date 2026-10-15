@@ -1412,8 +1412,8 @@
     });
   }
   // Where the car sits on the leaderboard: a trophy on the session that holds
-  // its place. 1st is Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on.
-  var TIERS = { 1: 'Platinum', 2: 'Gold', 3: 'Silver' };
+  // its place. 1st is Gold, 2nd Silver, 3rd Bronze, then 4th, 5th and so on.
+  var TIERS = { 1: 'Gold', 2: 'Silver', 3: 'Bronze' };
   function ordinal(n) {
     var t = n % 100, u = n % 10;
     return n + (t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th');
@@ -4242,7 +4242,7 @@
       if (el.classList.contains('tp-rank-line')) {
         // The track's name in the line opens its leaderboard, as the heading's does, when the session is on a board.
         var href = el.getAttribute('data-board-href');
-        // Places 1 to 3 carry their medal (Platinum, Gold, Silver) in a chip before the place.
+        // Places 1 to 3 carry their medal (Gold, Silver, Bronze) in a chip before the place.
         var medal = r.onBoard && r.place <= 3 ? '<em class="tp-medal tp-rank-' + r.place + '">' + icon('trophy') + TIERS[r.place] + '</em> ' : '';
         var words = r.onBoard && href ? medal + ordinal(r.place) + ' of ' + r.of + ' on <a class="tp-title-link" href="' + esc(href) + '">' + esc(r.board) + '</a>' : esc(rankWords(r));
         // Compare with what was written last time: the browser rewrites the markup it stores, so comparing the HTML would never match.

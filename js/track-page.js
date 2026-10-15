@@ -912,7 +912,7 @@
       var colour = d.balance <= 3 ? '#d9534f' : d.balance <= cap / 2 ? '#e0a100' : '#1f8a70';
       var bar = '<div role="img" aria-label="' + d.balance + ' of ' + cap + ' days left" style="height:8px;background:#e2e5ec;border-radius:999px;margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
       box.innerHTML = d.balance > 0
-        ? '<b>' + d.balance + ' day' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + ', up to ' + cap + ' at once.' + bar + '<p class="tp-small" style="margin:6px 0 0">A day is a driving date. Sessions on a day already used are free.</p>'
+        ? '<b>' + d.balance + ' of ' + cap + ' free days available.</b> Each day is a driving date, used up when you save a session on it. Sessions on a day already used are free. You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + '.' + bar
         : '<b>You have used your free days for now.</b> You can still open all your sessions. New days come back on ' + when + ', or ask MT3UK for more. ' + bar +
           '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more days</button></div>';
       var ask = document.getElementById('tp-ask-more');
@@ -3265,6 +3265,8 @@
   }
   function saveSession(btn) {
     var a = add, s = a.session;
+    // The free days this save uses, shown once it has saved.
+    a.savedDays = daysToUse(a).days;
     // The file's name, kept with the session so the member can tell which file it was.
     if (!s.venueId && a.venueName) s.venueName = a.venueName;
     if (a.pendingCourse) s.pendingCourse = a.pendingCourse;
@@ -3308,7 +3310,7 @@
       mine = null; counts = null;
       // Kept on this device: the list says so, and shows what is waiting.
       if (d.queued) { justSaved = { batch: d.batch || 1, queued: d.queued === true ? 1 : d.queued, ids: d.ids || [], skipped: d.skipped || [] }; go('', false, true); return; }
-      if (d.batch) { justSaved = { batch: d.batch, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
+      if (d.batch) { justSaved = { batch: d.batch, days: a.savedDays, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
       justSaved = { files: (a.files || []).length || 1 };
       // A changed session was edited in place of its own page, so that page is redrawn in the same history entry.
       if (a.replaceId) { go('s=' + d.session.id, false, true); return; }
@@ -3840,11 +3842,12 @@
   var LW = 'Lap';
   // Set when a session has just been saved, so the page it opens on says so once.
   var justSaved = null;
-  // After saving: how many sessions this used, and how many are left (from the state read before the save).
+  // After saving: how many free days this used, and how many are left (from the state read before the save).
   function savedUseLine(j) {
     if (!freePlanLimits() || !j) return '';
-    var used = j.batch || 1, left = Math.max(0, quotaNow.balance - used);
-    return '<p class="tp-small" style="margin:6px 0 0">' + used + ' session' + (used === 1 ? '' : 's') + ' used on your free plan. ' + left + ' left.</p>';
+    var used = j.days == null ? 0 : j.days, left = Math.max(0, quotaNow.balance - used);
+    var sess = j.batch || 1;
+    return '<p class="tp-small" style="margin:6px 0 0"><b>' + used + ' day' + (used === 1 ? '' : 's') + ' used</b> on your free plan (' + sess + ' session' + (sess === 1 ? '' : 's') + '). <b>' + left + ' left</b>.</p>';
   }
   function savedHtml(j) {
     if (j.queued) {

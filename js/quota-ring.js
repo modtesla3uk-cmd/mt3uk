@@ -48,7 +48,7 @@
     var h1 = document.querySelector('.page-hero .lh-title');
     var ring = document.getElementById('tp-quota-ring');
     if (!h1 || !free) { if (ring) ring.hidden = true; return; }
-    var cap = (d.allowance && d.allowance.cap) || 6, used = Math.max(0, cap - d.balance);
+    var cap = d.total || (d.allowance && d.allowance.cap) || 6, used = Math.max(0, cap - d.balance);
     var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';
     if (!ring) {
       ring = document.createElement('span');

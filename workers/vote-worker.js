@@ -8059,13 +8059,15 @@ function trackNextTopUp(d) { return new Date(Date.UTC(d.getUTCFullYear(), d.getU
 // Days, not sessions: a driving date costs one day the first time a member saves a session on it. Further sessions
 // (or files) on a date already counted are free. The record: { balance (days left), month, days: { 'YYYY-MM-DD': sessions
 // on that date } }. A record from before days (no days field) keeps its balance, up to the cap.
+// The total is the cap plus the days an admin has granted (extra): a granted day raises the total as well as the balance.
 async function trackQuotaState(env, owner, allowance, now) {
   var q = await getJsonKey(env, 'track-quota:' + owner, null);
   var m = trackMonthIndex(now);
-  if (!q || typeof q.balance !== 'number') return { balance: allowance.start, month: m, days: {}, fresh: true };
-  var balance = q.days === undefined ? Math.min(allowance.cap, q.balance) : q.balance;
-  if (q.month < m) balance = Math.min(allowance.cap, balance + (m - q.month) * allowance.monthly);
-  return { balance: balance, month: m, days: q.days && typeof q.days === 'object' ? q.days : {}, fresh: false };
+  if (!q || typeof q.balance !== 'number') return { balance: allowance.start, month: m, days: {}, extra: 0, total: allowance.cap, fresh: true };
+  var extra = typeof q.extra === 'number' ? q.extra : 0, total = allowance.cap + extra;
+  var balance = q.days === undefined ? Math.min(total, q.balance) : q.balance;
+  if (q.month < m) balance = Math.min(total, balance + (m - q.month) * allowance.monthly);
+  return { balance: balance, month: m, days: q.days && typeof q.days === 'object' ? q.days : {}, extra: extra, total: total, fresh: false };
 }
 async function trackUploadGate(env, email, owner, day) {
   var t = await getTrackTiers(env), tier = await trackTierFor(env, email);
@@ -8078,7 +8080,7 @@ async function trackUploadGate(env, email, owner, day) {
 async function trackQuotaWrite(env, owner, q, day, newDay) {
   var days = Object.assign({}, q.days);
   if (day) days[day] = (days[day] || 0) + 1;
-  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: Math.max(0, q.balance - (newDay ? 1 : 0)), month: q.month, days: days }));
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: Math.max(0, q.balance - (newDay ? 1 : 0)), month: q.month, days: days, extra: q.extra }));
 }
 // A session on a day goes. When the last session on that day goes, the day comes back (up to the cap). Applies to a
 // member's own delete and an admin's delete alike.
@@ -8088,12 +8090,12 @@ async function trackQuotaRefund(env, owner, day) {
   var days = Object.assign({}, q.days);
   var balance = q.balance;
   days[day] -= 1;
-  if (days[day] <= 0) { delete days[day]; balance = Math.min(t.allowance.cap, balance + 1); }
-  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: balance, month: q.month, days: days }));
+  if (days[day] <= 0) { delete days[day]; balance = Math.min(q.total, balance + 1); }
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: balance, month: q.month, days: days, extra: q.extra }));
 }
-// The admin adds days to a member's balance.
+// The admin grants days: they go into the balance and raise the total by the same amount.
 async function trackAddDays(env, owner, q, n) {
-  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: q.balance + n, month: q.month, days: q.days }));
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: q.balance + n, month: q.month, days: q.days, extra: q.extra + n }));
 }
 // A free member asks MT3UK for more sessions. One open request per member; the admin is emailed and sees it on the bell.
 var TRACK_QUOTA_REQUESTS_KEY = 'track-quota-requests';
@@ -8119,7 +8121,7 @@ async function handleTrackTiersAccess(request, env) {
   var r = await trackTierFor(env, email), now = new Date();
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
+  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -8161,6 +8163,11 @@ async function handleTrackTiersAdmin(request, env) {
     if (!(n >= 1 && n <= 1000)) return json({ success: false, message: 'Add between 1 and 1,000 days.' }, 400);
     var towner = await ownerKey(te), tq = await trackQuotaState(env, towner, t.allowance, new Date());
     await trackAddDays(env, towner, tq, n);
+    // Tell the member: a bell notification, a push where they have one, and an email (sent unless their emails are off).
+    var nowLeft = tq.balance + n, dayWord = n === 1 ? 'day' : 'days';
+    await addNotification(env, towner, { type: 'track-days', link: 'track.html', text: 'added ' + n + ' free ' + dayWord + ' to your Laps account. You have ' + nowLeft + ' left.', createdAt: new Date().toISOString() });
+    await sendPushToMember(env, towner, { title: 'Free ' + dayWord + ' added', body: 'MT3UK has added ' + n + ' free ' + dayWord + ' to your Laps account.', url: '/track.html' });
+    await sendMemberEmail(env, towner, 'MT3UK has added free days to your Laps account', 'MT3UK has added ' + n + ' free ' + dayWord + ' to your Laps account. You have ' + nowLeft + ' left.\n\nSee them on Laps:\n\n' + LAPS_SITE_URL + '/track.html');
     var reqs = await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, []);
     reqs.forEach(function (x) { if (x.email === te) x.done = true; });
     await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(reqs));

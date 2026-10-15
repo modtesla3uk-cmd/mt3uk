@@ -912,7 +912,7 @@
       box.style.fontSize = '0.88rem';
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-      var cap = (d.allowance && d.allowance.cap) || 6;
+      var cap = d.total || (d.allowance && d.allowance.cap) || 6;
       // The bar fills as days are used. Green while less than half are used, amber from half used, red when 1 or none is left.
       var used = Math.max(0, cap - d.balance), pct = Math.max(0, Math.min(100, Math.round(100 * used / cap)));
       var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';

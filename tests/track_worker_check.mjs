@@ -1961,10 +1961,22 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-11-01T09:00:00Z'));
   ok(q.balance === 3, 'on the 1st the balance tops up by the monthly 3');
   q = await mod.trackQuotaState(envD, owner, allow, new Date('2027-03-01T09:00:00Z'));
-  ok(q.balance === 6, 'the balance holds at the cap of 6');
+  ok(q.balance === 7 && q.total === 7, 'the balance holds at the total: the cap of 6 plus the 1 day granted (7)');
   kvD.set('track-quota:old1', JSON.stringify({ balance: 9, month: 2026 * 12 + 9 }));
   const old = await mod.trackQuotaState(envD, 'old1', allow, new Date('2026-10-20T09:00:00Z'));
   ok(old.balance === 6, 'a balance kept from sessions is capped at 6 days');
+}
+
+// Adding a day tells the member: a bell notification, and an email sent to them.
+{
+  const kvT = new Map(), sent = [];
+  const envT = { ADMIN_KEY: 'k9', VOTES: { get: async k => kvT.get(k) ?? null, put: async (k, v) => kvT.set(k, v), delete: async k => kvT.delete(k) }, SEND_EMAIL: { send: async m => { sent.push(m); } } };
+  kvT.set('track-tiers', JSON.stringify({ mode: 'all', allowance: { start: 3, monthly: 3, cap: 6 } }));
+  const r = await mod.handleTrackTiersAdmin(new Request('https://w.test/track/tiers/admin?key=k9', { method: 'POST', body: JSON.stringify({ action: 'topup', email: 'member9@example.com', days: 1 }) }), envT);
+  const body = await r.json();
+  const notes = [...kvT.entries()].filter(([k]) => k.indexOf('notif') !== -1).map(([, v]) => v).join(' ');
+  ok(body.success && /added 1 free day/.test(notes), 'adding a day leaves the member a bell notification');
+  ok(sent.length === 1, 'adding a day emails the member');
 }
 
 // Leaving the site clears everything.

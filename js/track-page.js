@@ -939,7 +939,7 @@
           '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more days</button></div>';
       // The banner can be folded to its heading line; the choice is kept in this browser.
       var open = localStorage.getItem('mt3ukQuotaOpen') !== 'closed';
-      box.innerHTML = '<div class="tp-quota-head"><b>Free days</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
+      box.innerHTML = '<div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
       var tog = document.getElementById('tp-quota-toggle');
       if (tog) tog.addEventListener('click', function () {
         var isOpen = box.querySelector('#tp-quota-body').hidden;

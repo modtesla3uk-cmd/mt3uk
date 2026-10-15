@@ -898,25 +898,56 @@
     status('This needs ' + u.days + ' day' + (u.days === 1 ? '' : 's') + ', but you have ' + quotaNow.balance + ' left on your free plan. Take some files out, or ask MT3UK for more.', 'error');
     return true;
   }
+  // The usage ring beside the page title (the heading stays the same height): days used, in the same colours as the bar.
+  function drawQuotaRing(d, cap, used, colour) {
+    var h1 = document.querySelector('.page-hero .lh-title');
+    var ring = document.getElementById('tp-quota-ring');
+    if (!h1 || !d || !d.applies || d.full) { if (ring) ring.hidden = true; return; }
+    if (!ring) {
+      ring = document.createElement('span');
+      ring.id = 'tp-quota-ring';
+      ring.className = 'tp-quota-ring';
+      var dot = h1.querySelector('.mt3uk-share-dot');
+      h1.insertBefore(ring, dot || null);
+    }
+    ring.hidden = false;
+    var deg = 100 * used / cap, c = 2 * Math.PI * 9;
+    ring.setAttribute('role', 'img');
+    ring.setAttribute('aria-label', d.balance + ' of ' + cap + ' free days available');
+    ring.title = d.balance + ' of ' + cap + ' free days available';
+    ring.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" stroke="' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + d.balance + '/' + cap + '</span>';
+  }
   function drawQuota() {
     var box = document.getElementById('tp-quota');
     if (!box) { box = document.createElement('div'); box.id = 'tp-quota'; box.className = 'card tp-quota'; box.setAttribute('role', 'status'); app.insertBefore(box, app.firstChild); }
     box.hidden = true;
     quotaFetch().then(function (d) {
-      if (!d || !d.success || !d.applies) return;
+      if (!d || !d.success || !d.applies) { drawQuotaRing(null); return; }
       box.hidden = false;
       box.style.fontSize = '0.88rem';
-      if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
+      if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
       var cap = (d.allowance && d.allowance.cap) || 6;
       // The bar fills as days are used. Green while less than half are used, amber from half used, red when 1 or none is left.
       var used = Math.max(0, cap - d.balance), pct = Math.max(0, Math.min(100, Math.round(100 * used / cap)));
       var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';
+      drawQuotaRing(d, cap, used, colour);
       var bar = '<div role="img" aria-label="' + used + ' of ' + cap + ' days used" style="height:5px;background:#e2e5ec;border-radius:999px;margin:6px 0 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
-      box.innerHTML = d.balance > 0
+      var text = d.balance > 0
         ? '<b>' + d.balance + ' of ' + cap + ' free days available.</b> Each day is a driving date, used up when you save a session on it. Sessions on a day already used are free. You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + '.' + bar
         : '<b>You have used your free days for now.</b> You can still open all your sessions. New days come back on ' + when + ', or ask MT3UK for more. ' + bar +
           '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more days</button></div>';
+      // The banner can be folded to its heading line; the choice is kept in this browser.
+      var open = localStorage.getItem('mt3ukQuotaOpen') !== 'closed';
+      box.innerHTML = '<div class="tp-quota-head"><b>Free days</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
+      var tog = document.getElementById('tp-quota-toggle');
+      if (tog) tog.addEventListener('click', function () {
+        var isOpen = box.querySelector('#tp-quota-body').hidden;
+        box.querySelector('#tp-quota-body').hidden = !isOpen;
+        tog.textContent = isOpen ? 'Hide' : 'Show';
+        tog.setAttribute('aria-expanded', String(isOpen));
+        try { localStorage.setItem('mt3ukQuotaOpen', isOpen ? 'open' : 'closed'); } catch (e) { /* not kept */ }
+      });
       var ask = document.getElementById('tp-ask-more');
       if (ask) ask.addEventListener('click', function () {
         ask.disabled = true;

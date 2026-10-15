@@ -1196,6 +1196,11 @@
   .page-hero .laps-tip-titlebulb .laps-tip-bulb { width: 18px; height: 18px; color: inherit; }
   .page-hero .laps-tip-titlebulb:hover, .page-hero .laps-tip-titlebulb[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
   /* Phone: What is...? opens from a ? button beside the share button, as a light box; Back shows its word again. */
+  /* The free-plan usage ring beside the title (js/track-page.js drawQuotaRing), and the banner's fold button. */
+  .tp-quota-ring { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 9px 3px 5px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; color: #fff; font: 600 13px/1 var(--font-body); white-space: nowrap; vertical-align: middle; }
+  .tp-quota-ring[hidden] { display: none; }
+  .tp-quota-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tp-quota-toggle { border: 1px solid var(--hairline-strong); background: #fff; color: var(--steel); border-radius: 999px; padding: 4px 12px; font: 600 12px/1 var(--font-body); cursor: pointer; }
   .tp-what-q { display: none; }
   @media (max-width: 900px) {
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { position: relative; }
@@ -1450,7 +1455,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
-<script src="js/track-page.js?v=20271119" defer></script>
+<script src="js/track-page.js?v=20271120" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271014" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

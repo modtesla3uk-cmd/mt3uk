@@ -7556,3 +7556,23 @@ def test_the_usage_ring_shows_beside_the_leaderboard_title_for_a_free_member(pag
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 2, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6}}
     open_page(page, fake, path="/leaderboards.html")
     expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("4/6")
+
+
+def test_a_free_member_sees_my_analysis_greyed_out_with_an_unlock_hint(page):
+    """On the free tier My Analysis is greyed out with an Unlock hint, and pressing it shows the placeholder, not the page."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6}}
+    open_page(page, fake, path="/track.html")
+    analysis = page.locator('.page-hero [data-btn="my-analysis"]')
+    expect(analysis).to_have_class(re.compile("is-tier-locked"))
+    expect(analysis.locator(".tier-lock-tag")).to_contain_text("Unlock")
+    analysis.click()
+    expect(page.locator("#tier-lock-toast")).to_contain_text("Subscriptions are coming soon")
+    assert "my-analysis.html" not in page.url
+
+
+def test_a_member_on_full_access_is_not_locked_out(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": True, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake, path="/track.html")
+    expect(page.locator('.page-hero [data-btn="my-analysis"]')).not_to_have_class(re.compile("is-tier-locked"))

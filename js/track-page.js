@@ -920,9 +920,11 @@
     if (!box) { box = document.createElement('div'); box.id = 'tp-quota'; box.className = 'card tp-quota'; box.setAttribute('role', 'status'); app.insertBefore(box, app.firstChild); }
     box.hidden = true;
     quotaFetch().then(function (d) {
-      if (!d || !d.success || !d.applies) { drawQuotaRing(null); return; }
+      // Paid and Full access members see their status; the free tier's balance shows only while it applies to them.
+      if (!d || !d.success || (!d.applies && !d.full)) { drawQuotaRing(null); return; }
       box.hidden = false;
       box.style.fontSize = '0.88rem';
+      if (d.paid) { box.innerHTML = '<b>Paid plan</b> Every tool is open to you, and uploads are not limited.'; drawQuotaRing(d); return; }
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
       var cap = d.total || (d.allowance && d.allowance.cap) || 6;

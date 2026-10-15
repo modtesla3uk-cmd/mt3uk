@@ -10,7 +10,7 @@
   var noteEl = document.getElementById('tiers-note'), countEl = document.getElementById('tiers-count');
   var testersEl = document.getElementById('tiers-testers'), fullEl = document.getElementById('tiers-full');
   var membersEl = document.getElementById('tiers-members'), findEl = document.getElementById('tiers-find');
-  var reqEl = document.getElementById('tiers-requests');
+  var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
   var state = null, members = null;
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
@@ -50,6 +50,10 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="full" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has Full access yet.</p>';
+    paidEl.innerHTML = (state.paid || []).length ? '<table class="iv-table"><tbody>' + state.paid.map(function (a) {
+      return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
+        '<td><button type="button" class="danger iv-act" data-revoke="paid" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on the paid plan yet.</p>';
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
@@ -125,6 +129,13 @@
     var input = document.getElementById('tiers-tester-email'), email = input.value.trim();
     if (!email) return;
     act({ action: 'add', list: 'testers', email: email }, 'Added as a tester.');
+    input.value = '';
+  });
+  document.getElementById('tiers-paid-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('tiers-paid-email'), email = input.value.trim();
+    if (!email) return;
+    act({ action: 'add', list: 'paid', email: email }, 'Added to the paid plan.');
     input.value = '';
   });
   document.getElementById('tiers-full-form').addEventListener('submit', function (e) {

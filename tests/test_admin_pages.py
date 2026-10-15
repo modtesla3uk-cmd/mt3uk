@@ -2931,3 +2931,26 @@ def test_admin_sprints_and_hill_climbs_panel_sets_the_gate_and_adds_testers(page
     page.locator("#kinds-add-form button").click()
     expect(page.locator("#kinds-testers")).to_contain_text("john@example.com")
     assert posts == [{"action": "mode", "mode": "testers"}, {"action": "add", "email": "john@example.com"}]
+
+
+def test_admin_paid_plan_list_adds_and_takes_away_a_paid_member(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"limit": 30, "mode": "off", "allowance": {"start": 10, "monthly": 10, "cap": 20}, "testers": [], "full": [], "paid": [], "requests": []}
+    posts = []
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "add":
+                state[body["list"]].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#tiers-paid")).to_contain_text("Nobody is on the paid plan yet")
+    page.fill("#tiers-paid-email", "paid@example.com")
+    page.locator("#tiers-paid-form button").click()
+    expect(page.locator("#tiers-paid")).to_contain_text("paid@example.com")
+    assert {"action": "add", "list": "paid", "email": "paid@example.com"} in posts

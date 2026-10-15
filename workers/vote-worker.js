@@ -8098,15 +8098,20 @@ async function getTrackTiers(env) {
     mode: TRACK_TIER_MODES.indexOf(t.mode) !== -1 ? t.mode : 'off',
     allowance: { start: tierNumber(al.start, TRACK_ALLOWANCE.start), monthly: tierNumber(al.monthly, TRACK_ALLOWANCE.monthly), cap: tierNumber(al.cap, TRACK_ALLOWANCE.cap) },
     testers: cleanTierList(t.testers),
-    full: cleanTierList(t.full)
+    full: cleanTierList(t.full),
+    paid: cleanTierList(t.paid)
   };
 }
-// What one member sees: whether the free tier applies to them, and whether they have Full access.
+// What one member sees. Paid members and Full access members are not held to the free tier (no limit, nothing locked);
+// everyone else is on the free tier, which applies while the switch is on for them. `full` is true for either, so every
+// check that asks "is this member unlimited" reads the same flag; `paid` says which one they are, for the label.
 async function trackTierFor(env, email) {
   var t = await getTrackTiers(env), e = accessEmail(email);
   var tester = t.testers.some(function (x) { return x.email === e; });
-  var full = t.full.some(function (x) { return x.email === e; });
-  return { mode: t.mode, applies: t.mode === 'all' || (t.mode === 'testers' && tester), tester: tester, full: full, allowance: t.allowance };
+  var paid = t.paid.some(function (x) { return x.email === e; });
+  var fullAccess = t.full.some(function (x) { return x.email === e; });
+  var unlimited = paid || fullAccess;
+  return { mode: t.mode, applies: !unlimited && (t.mode === 'all' || (t.mode === 'testers' && tester)), tester: tester, full: unlimited, paid: paid, allowance: t.allowance };
 }
 // The allowance a free member has left. Each member has one balance (track-quota:<owner>): it starts at `start`, gets
 // `monthly` more on the 1st of each month up to `cap`, goes down by one for each new session, and goes up by one when an
@@ -8179,13 +8184,13 @@ async function handleTrackTiersAccess(request, env) {
   var r = await trackTierFor(env, email), now = new Date();
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
   if (request.method === 'GET') {
-    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full };
+    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid };
     reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
     return json(reply);
@@ -8202,7 +8207,7 @@ async function handleTrackTiersAdmin(request, env) {
     if (a.cap < a.start) return json({ success: false, message: 'The cap cannot be less than the starting allowance.' }, 400);
     t.allowance = a;
   } else if (action === 'add' || action === 'revoke') {
-    var list = body.list === 'full' ? 'full' : body.list === 'testers' ? 'testers' : '';
+    var list = body.list === 'full' ? 'full' : body.list === 'testers' ? 'testers' : body.list === 'paid' ? 'paid' : '';
     if (!list) return json({ success: false, message: 'Choose the testers or Full access list.' }, 400);
     var e = accessEmail(body.email);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
@@ -8237,7 +8242,7 @@ async function handleTrackTiersAdmin(request, env) {
     return json({ success: true });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
-  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full });
+  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid });
 }
 
 async function handleTrackSessionsList(request, env) {

@@ -7607,3 +7607,11 @@ def test_sprints_and_hill_climbs_are_hidden_from_members_while_the_gate_is_shut(
     expect(page.locator("[data-type] .chip", has_text="Track day")).to_have_count(1)
     expect(page.locator("[data-type] .chip", has_text="Sprint")).to_have_count(0)
     expect(page.locator("[data-type] .chip", has_text="Hill climb")).to_have_count(0)
+
+
+def test_a_paid_member_sees_the_paid_plan_and_no_limit(page):
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": False, "full": True, "paid": True, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota")).to_contain_text("Paid plan")
+    expect(page.locator("#tp-quota")).not_to_contain_text("used your free sessions")

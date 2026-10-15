@@ -3794,6 +3794,8 @@
     if (boardOpen) { h += '</div>'; boardOpen = false; }
     justSaved = null;
     app.innerHTML = h;
+    // The owner's free-plan balance, as on the Add page and the Sessions list (not shown to anyone looking at a shared session).
+    if (s.mine && !s.local) drawQuota();
     wireSkip(s);
     markFavs();
     markLikes(s);

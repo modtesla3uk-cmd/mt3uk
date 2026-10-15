@@ -905,13 +905,14 @@
     quotaFetch().then(function (d) {
       if (!d || !d.success || !d.applies) return;
       box.hidden = false;
+      box.style.fontSize = '0.88rem';
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
       var cap = (d.allowance && d.allowance.cap) || 6;
       // The bar fills as days are used. Green while less than half are used, amber from half used, red when 1 or none is left.
       var used = Math.max(0, cap - d.balance), pct = Math.max(0, Math.min(100, Math.round(100 * used / cap)));
       var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';
-      var bar = '<div role="img" aria-label="' + used + ' of ' + cap + ' days used" style="height:8px;background:#e2e5ec;border-radius:999px;margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
+      var bar = '<div role="img" aria-label="' + used + ' of ' + cap + ' days used" style="height:5px;background:#e2e5ec;border-radius:999px;margin:6px 0 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
       box.innerHTML = d.balance > 0
         ? '<b>' + d.balance + ' of ' + cap + ' free days available.</b> Each day is a driving date, used up when you save a session on it. Sessions on a day already used are free. You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + '.' + bar
         : '<b>You have used your free days for now.</b> You can still open all your sessions. New days come back on ' + when + ', or ask MT3UK for more. ' + bar +

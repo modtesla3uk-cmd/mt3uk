@@ -28,9 +28,9 @@
   var stateP = null;
   function kept(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function keep(k, v) { try { if (v) sessionStorage.setItem(k, v); } catch (e) {} }
+  // Asked on every page load, not kept as 'yes': a browser tab that saw the preview before Laps was opened to all
+  // would otherwise keep showing it (js/laps-early-label.js reads the same answer).
   function previewOn() {
-    var k = kept('mt3ukLapsPreview');
-    if (k) return Promise.resolve(k === 'yes');
     return fetch(API + '/laps/signin', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       var on = !(d && d.preview === false);
       keep('mt3ukLapsPreview', on ? 'yes' : 'no');

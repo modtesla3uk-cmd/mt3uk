@@ -32,3 +32,11 @@ def test_while_it_is_a_preview_the_labels_stay(page, base_url):
     page.goto("/laps.html")
     expect(page.locator(".laps-logo-early")).to_have_text("Early preview")
     expect(page.locator("#lh-note")).to_contain_text("early preview")
+
+
+def test_a_tab_that_saw_the_preview_before_does_not_keep_the_labels(page, base_url):
+    # A stored answer from before Laps was opened to all must not keep the labels or the strip's preview tag.
+    page.add_init_script("try { sessionStorage.setItem('mt3ukLapsPreview', 'yes'); } catch (e) {}")
+    answer_preview(page, False)
+    page.goto("/index.html")
+    expect(page.locator(".early-badge")).to_have_count(0)

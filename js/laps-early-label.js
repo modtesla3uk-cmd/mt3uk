@@ -1,14 +1,12 @@
 // The early preview labels (the "Early preview" under the Laps logo and in its aria label, the badge on the Sessions
 // card of the homepage, and the Laps front page note) come off once Laps is open to all members. /laps/signin says
 // whether it is still a preview (preview: false once it is open). The answer is kept for the browser session, under
-// the same key as js/laps-strip.js, so a page that opens after the first does not wait for it. The labels stay until
-// the answer says Laps is open, so nothing changes for a preview.
+// the same key as js/laps-strip.js. The labels stay until the answer says Laps is open, so nothing changes for a preview.
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var KEY = 'mt3ukLapsPreview';
   var PREVIEW = /early preview/i;
 
-  function kept() { try { return sessionStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
   function keep(v) { try { sessionStorage.setItem(KEY, v); } catch (e) { /* storage blocked */ } }
 
   // Takes the labels off a node and everything under it.
@@ -36,8 +34,8 @@
     }
   }
 
-  if (kept() === 'no') { open(); return; }
-  if (kept() === 'yes') return;
+  // Asked on every page load. A stored 'yes' is not trusted (a tab that saw the preview before Laps opened to all would
+  // keep the labels), so the answer is only read back to be written again.
   fetch(API + '/laps/signin', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) {

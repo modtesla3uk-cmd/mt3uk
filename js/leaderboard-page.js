@@ -856,4 +856,12 @@
   }
 
   route();
+  // The free-tier usage ring beside the title (js/quota-ring.js), for a signed-in member on a free tier.
+  var ringToken = signedInToken();
+  if (ringToken) {
+    fetch(API + '/track/tiers/access', { cache: 'no-store', headers: { 'X-Session-Token': ringToken } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d); })
+      .catch(function () { /* no ring without an answer */ });
+  }
 })();

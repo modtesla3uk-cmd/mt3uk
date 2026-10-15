@@ -898,24 +898,9 @@
     status('This needs ' + u.days + ' day' + (u.days === 1 ? '' : 's') + ', but you have ' + quotaNow.balance + ' left on your free plan. Take some files out, or ask MT3UK for more.', 'error');
     return true;
   }
-  // The usage ring beside the page title (the heading stays the same height): days used, in the same colours as the bar.
-  function drawQuotaRing(d, cap, used, colour) {
-    var h1 = document.querySelector('.page-hero .lh-title');
-    var ring = document.getElementById('tp-quota-ring');
-    if (!h1 || !d || !d.applies || d.full) { if (ring) ring.hidden = true; return; }
-    if (!ring) {
-      ring = document.createElement('span');
-      ring.id = 'tp-quota-ring';
-      ring.className = 'tp-quota-ring';
-      var dot = h1.querySelector('.mt3uk-share-dot');
-      h1.insertBefore(ring, dot || null);
-    }
-    ring.hidden = false;
-    var deg = 100 * used / cap, c = 2 * Math.PI * 9;
-    ring.setAttribute('role', 'img');
-    ring.setAttribute('aria-label', d.balance + ' of ' + cap + ' free days available');
-    ring.title = d.balance + ' of ' + cap + ' free days available';
-    ring.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" stroke="' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + d.balance + '/' + cap + '</span>';
+  // The usage ring beside the page title is drawn by js/quota-ring.js, shared with the Leaderboard.
+  function drawQuotaRing(d) {
+    if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d);
   }
   function drawQuota() {
     var box = document.getElementById('tp-quota');
@@ -931,7 +916,7 @@
       // The bar fills as days are used. Green while less than half are used, amber from half used, red when 1 or none is left.
       var used = Math.max(0, cap - d.balance), pct = Math.max(0, Math.min(100, Math.round(100 * used / cap)));
       var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';
-      drawQuotaRing(d, cap, used, colour);
+      drawQuotaRing(d);
       var bar = '<div role="img" aria-label="' + used + ' of ' + cap + ' days used" style="height:5px;background:#e2e5ec;border-radius:999px;margin:6px 0 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
       var text = d.balance > 0
         ? '<b>' + d.balance + ' of ' + cap + ' free days available.</b> Each day is a driving date, used up when you save a session on it. Sessions on a day already used are free. You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + '.' + bar

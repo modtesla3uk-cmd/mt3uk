@@ -7548,3 +7548,11 @@ def test_a_members_own_session_shows_the_free_plan_balance(page):
     save_thruxton_with_a_member_board(page, fake)
     page.goto("/track.html?s=new1")
     expect(page.locator("#tp-quota")).to_contain_text("5 of 6 free days available")
+
+
+def test_the_usage_ring_shows_beside_the_leaderboard_title_for_a_free_member(page):
+    """The free-tier usage ring is on the Leaderboard too, beside its title, as on the Sessions pages."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 2, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6}}
+    open_page(page, fake, path="/leaderboards.html")
+    expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("2/6")

@@ -1917,6 +1917,56 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(!kvB.has('site-buttons'), 'reset with no name takes every button back to default');
 }
 
+// The free tier counts days: a driving date costs one day the first time it is saved on; more sessions on that date are
+// free; the day comes back when its last session goes; the balance tops up on the 1st and holds at the cap.
+{
+  const kvD = new Map();
+  const envD = { VOTES: { get: async k => kvD.get(k) ?? null, put: async (k, v) => kvD.set(k, v), delete: async k => kvD.delete(k) } };
+  kvD.set('track-tiers', JSON.stringify({ mode: 'all', allowance: { start: 3, monthly: 3, cap: 6 } }));
+  const allow = { start: 3, monthly: 3, cap: 6 };
+  const owner = 'ownerd1', email = 'd@example.com';
+  const q0 = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-14T10:00:00Z'));
+  ok(q0.balance === 3 && q0.fresh, 'a new free member starts with 3 days');
+  let g = await mod.trackUploadGate(envD, email, owner, '2026-10-14');
+  ok(g.ok && g.counted && g.newDay === true, 'the first session on a date uses a new day');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-14');
+  ok(g.ok && g.newDay === false, 'a second session on the same date is free');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  let q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-14T11:00:00Z'));
+  ok(q.balance === 2 && q.days['2026-10-14'] === 2, 'two sessions on one date use one day: balance 2, that date counted twice');
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-15');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-15T11:00:00Z'));
+  ok(q.balance === 1, 'a session on a new date uses another day');
+  await mod.trackQuotaRefund(envD, owner, '2026-10-14');
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-15T11:00:00Z'));
+  ok(q.balance === 1 && q.days['2026-10-14'] === 1, 'removing one session on a date keeps the day');
+  await mod.trackQuotaRefund(envD, owner, '2026-10-14');
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-15T11:00:00Z'));
+  ok(q.balance === 2 && !('2026-10-14' in q.days), 'removing the last session on a date gives the day back');
+  await mod.trackAddDays(envD, owner, q, 1);
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-15T11:00:00Z'));
+  ok(q.balance === 3, 'the admin can add days');
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-16');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-17');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-18');
+  await mod.trackQuotaWrite(envD, owner, g.state, g.day, g.newDay);
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-19');
+  ok(!g.ok && /free days/.test(g.message), 'with no days left a new date is refused, with the day wording');
+  g = await mod.trackUploadGate(envD, email, owner, '2026-10-16');
+  ok(g.ok && g.newDay === false, 'a date already counted still saves with no days left');
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2026-11-01T09:00:00Z'));
+  ok(q.balance === 3, 'on the 1st the balance tops up by the monthly 3');
+  q = await mod.trackQuotaState(envD, owner, allow, new Date('2027-03-01T09:00:00Z'));
+  ok(q.balance === 6, 'the balance holds at the cap of 6');
+  kvD.set('track-quota:old1', JSON.stringify({ balance: 9, month: 2026 * 12 + 9 }));
+  const old = await mod.trackQuotaState(envD, 'old1', allow, new Date('2026-10-20T09:00:00Z'));
+  ok(old.balance === 6, 'a balance kept from sessions is capped at 6 days');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

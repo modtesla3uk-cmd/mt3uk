@@ -7470,7 +7470,7 @@ def test_the_free_plan_balance_shows_only_while_the_switch_is_on(page):
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 7, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake)
-    expect(page.locator("#tp-quota")).to_contain_text("7 sessions left on your free plan")
+    expect(page.locator("#tp-quota")).to_contain_text("7 days left on your free plan")
     expect(page.locator("#tp-quota")).to_contain_text("1 November")
 
 
@@ -7478,7 +7478,7 @@ def test_a_member_with_no_sessions_left_is_told_when_they_come_back(page):
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake)
-    expect(page.locator("#tp-quota")).to_contain_text("You have used your free sessions for now")
+    expect(page.locator("#tp-quota")).to_contain_text("You have used your free days for now")
     expect(page.locator("#tp-quota")).to_contain_text("ask MT3UK for more")
 
 
@@ -7507,7 +7507,7 @@ def test_the_add_page_says_how_many_sessions_a_save_uses_and_how_many_are_left(p
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
-    expect(page.locator("#tp-quota-save")).to_contain_text("This will use 1 session")
+    expect(page.locator("#tp-quota-save")).to_contain_text("This saves 1 session on 1 day")
     expect(page.locator("#tp-quota-save")).to_contain_text("You have 6 left, so 5 will be left after saving")
 
 
@@ -7519,7 +7519,7 @@ def test_the_add_page_blocks_a_save_the_free_plan_cannot_cover(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-quota-save")).to_contain_text("but you have 0 left")
     page.locator("#tp-save").click()
-    expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("You need 1 session")
+    expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("This needs 1 day")
 
 
 def test_the_add_view_heading_buttons_use_the_shared_slots_like_the_list(page):
@@ -7533,18 +7533,18 @@ def test_the_add_view_heading_buttons_use_the_shared_slots_like_the_list(page):
 
 
 def test_the_add_page_shows_the_free_plan_balance_before_a_session_is_saved(page):
-    """The Add page says how many free sessions are left, so a member knows what the save will use."""
+    """The Add page says how many free days are left, so a member knows what the save will use."""
     fake = FakeWorker(earlier=False)
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 6, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake, path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
-    expect(page.locator("#tp-quota")).to_contain_text("6 sessions left on your free plan")
+    expect(page.locator("#tp-quota")).to_contain_text("6 days left on your free plan")
     expect(page.locator("#tp-quota")).to_contain_text("1 November")
 
 
 def test_a_members_own_session_shows_the_free_plan_balance(page):
-    """The owner's own session says how many free sessions are left, as the Add page and the Sessions list do."""
+    """The owner's own session says how many free days are left, as the Add page and the Sessions list do."""
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 5, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     save_thruxton_with_a_member_board(page, fake)
     page.goto("/track.html?s=new1")
-    expect(page.locator("#tp-quota")).to_contain_text("5 sessions left on your free plan")
+    expect(page.locator("#tp-quota")).to_contain_text("5 days left on your free plan")

@@ -854,34 +854,48 @@
   function quotaFetch() {
     return api('GET', '/track/tiers/access').then(function (d) { quotaNow = d && d.success ? d : null; return d; });
   }
-  function sessionsToUse(a) {
-    return Math.max(1, (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length);
+  // The days a save uses: each driving date that is not already counted costs one day. Sessions on the same date
+  // (or files of one date) share a day. With no date known, one day is assumed.
+  function daysToUse(a) {
+    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; });
+    var counted = (quotaNow && quotaNow.counted) || [], dates = {};
+    items.forEach(function (x) {
+      var d = x.rd.startedAt ? T.ukDate(x.rd.startedAt) : (x.rd.fileDate || '');
+      if (d) dates[d] = true;
+    });
+    var keys = Object.keys(dates);
+    var fresh = keys.length ? keys.filter(function (d) { return counted.indexOf(d) === -1; }).length : 1;
+    return { sessions: Math.max(1, items.length), days: fresh, dates: keys.length };
   }
   function freePlanLimits() { return !!(quotaNow && quotaNow.applies && !quotaNow.full); }
-  // Before saving: how many sessions this uses, and how many are left. Blocks the save when there are not enough.
+  // Before saving: how many sessions this saves, and how many free days it uses. Blocks the save when there are not enough.
   function quotaSaveNote(a) {
     var btn = document.getElementById('tp-save');
     if (!btn) return;
     quotaFetch().then(function (d) {
       if (!freePlanLimits()) return;
-      var n = sessionsToUse(a), left = d.balance;
+      var u = daysToUse(a), left = d.balance, S = u.sessions, D = u.days;
       var note = document.createElement('p');
       note.id = 'tp-quota-save';
       note.className = 'tp-small';
       note.setAttribute('role', 'status');
-      note.style.cssText = 'margin:8px 0 0;color:' + (left < n ? '#b3261e' : '#4a5366');
-      note.textContent = left < n
-        ? 'This needs ' + n + ' session' + (n === 1 ? '' : 's') + ', but you have ' + left + ' left on your free plan. Take some files out, or ask MT3UK for more.'
-        : 'This will use ' + n + ' session' + (n === 1 ? '' : 's') + '. You have ' + left + ' left, so ' + (left - n) + ' will be left after saving.';
+      note.style.cssText = 'margin:8px 0 0;color:' + (left < D ? '#b3261e' : '#4a5366');
+      var sess = S + ' session' + (S === 1 ? '' : 's');
+      var dd = D + ' day' + (D === 1 ? '' : 's');
+      note.textContent = left < D
+        ? 'This needs ' + dd + ', but you have ' + left + ' left on your free plan. Take some files out, or ask MT3UK for more.'
+        : D === 0
+          ? 'This saves ' + sess + ' on a day you have already used, so it uses no days.'
+          : 'This saves ' + sess + ' on ' + dd + '. You have ' + left + ' left, so ' + (left - D) + ' will be left after saving.';
       btn.parentNode.insertBefore(note, btn);
     }).catch(function () {});
   }
   // Blocks a save the free plan cannot cover. Returns true when it blocked.
   function quotaBlocks(a) {
     if (!freePlanLimits()) return false;
-    var n = sessionsToUse(a);
-    if (quotaNow.balance >= n) return false;
-    status('You need ' + n + ' session' + (n === 1 ? '' : 's') + ' for this, but you have ' + quotaNow.balance + ' left on your free plan. Take some files out, or ask MT3UK for more.', 'error');
+    var u = daysToUse(a);
+    if (quotaNow.balance >= u.days) return false;
+    status('This needs ' + u.days + ' day' + (u.days === 1 ? '' : 's') + ', but you have ' + quotaNow.balance + ' left on your free plan. Take some files out, or ask MT3UK for more.', 'error');
     return true;
   }
   function drawQuota() {
@@ -893,14 +907,14 @@
       box.hidden = false;
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-      var cap = (d.allowance && d.allowance.cap) || 20, pct = Math.max(0, Math.min(100, Math.round(100 * d.balance / cap)));
+      var cap = (d.allowance && d.allowance.cap) || 6, pct = Math.max(0, Math.min(100, Math.round(100 * d.balance / cap)));
       // Green while there is plenty, yellow as it runs down, red when 3 or fewer are left.
       var colour = d.balance <= 3 ? '#d9534f' : d.balance <= cap / 2 ? '#e0a100' : '#1f8a70';
-      var bar = '<div role="img" aria-label="' + d.balance + ' of ' + cap + ' sessions left" style="height:8px;background:#e2e5ec;border-radius:999px;margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
+      var bar = '<div role="img" aria-label="' + d.balance + ' of ' + cap + ' days left" style="height:8px;background:#e2e5ec;border-radius:999px;margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:' + pct + '%;background:' + colour + '"></span></div>';
       box.innerHTML = d.balance > 0
-        ? '<b>' + d.balance + ' session' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get ' + (d.allowance && d.allowance.monthly || 10) + ' more on ' + when + ', up to ' + cap + ' at once.' + bar
-        : '<b>You have used your free sessions for now.</b> You can still open all your sessions. New sessions come back on ' + when + ', or ask MT3UK for more. ' + bar +
-          '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more sessions</button></div>';
+        ? '<b>' + d.balance + ' day' + (d.balance === 1 ? '' : 's') + ' left on your free plan.</b> You get ' + (d.allowance && d.allowance.monthly || 3) + ' more on ' + when + ', up to ' + cap + ' at once.' + bar + '<p class="tp-small" style="margin:6px 0 0">A day is a driving date. Sessions on a day already used are free.</p>'
+        : '<b>You have used your free days for now.</b> You can still open all your sessions. New days come back on ' + when + ', or ask MT3UK for more. ' + bar +
+          '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more days</button></div>';
       var ask = document.getElementById('tp-ask-more');
       if (ask) ask.addEventListener('click', function () {
         ask.disabled = true;

@@ -8030,7 +8030,7 @@ async function handleSessionsTreeAdmin(request, env) {
 // anything while the switch is off.
 var TRACK_TIERS_KEY = 'track-tiers';
 var TRACK_TIER_MODES = ['off', 'testers', 'all'];
-var TRACK_ALLOWANCE = { start: 10, monthly: 10, cap: 20 };
+var TRACK_ALLOWANCE = { start: 3, monthly: 3, cap: 6 };
 function cleanTierList(x) { return Array.isArray(x) ? x.filter(function (y) { return y && y.email; }) : []; }
 function tierNumber(v, d) { var n = parseInt(v, 10); return n >= 0 && n <= 1000 ? n : d; }
 async function getTrackTiers(env) {
@@ -8056,27 +8056,44 @@ async function trackTierFor(env, email) {
 // that is already saved is a duplicate and does not count.
 function trackMonthIndex(d) { return d.getUTCFullYear() * 12 + d.getUTCMonth(); }
 function trackNextTopUp(d) { return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).toISOString(); }
+// Days, not sessions: a driving date costs one day the first time a member saves a session on it. Further sessions
+// (or files) on a date already counted are free. The record: { balance (days left), month, days: { 'YYYY-MM-DD': sessions
+// on that date } }. A record from before days (no days field) keeps its balance, up to the cap.
 async function trackQuotaState(env, owner, allowance, now) {
   var q = await getJsonKey(env, 'track-quota:' + owner, null);
   var m = trackMonthIndex(now);
-  if (!q || typeof q.balance !== 'number') return { balance: allowance.start, month: m, fresh: true };
-  if (q.month < m) q = { balance: Math.min(allowance.cap, q.balance + (m - q.month) * allowance.monthly), month: m };
-  return { balance: q.balance, month: q.month, fresh: false };
+  if (!q || typeof q.balance !== 'number') return { balance: allowance.start, month: m, days: {}, fresh: true };
+  var balance = q.days === undefined ? Math.min(allowance.cap, q.balance) : q.balance;
+  if (q.month < m) balance = Math.min(allowance.cap, balance + (m - q.month) * allowance.monthly);
+  return { balance: balance, month: m, days: q.days && typeof q.days === 'object' ? q.days : {}, fresh: false };
 }
-async function trackUploadGate(env, email, owner) {
+async function trackUploadGate(env, email, owner, day) {
   var t = await getTrackTiers(env), tier = await trackTierFor(env, email);
   if (!tier.applies || tier.full) return { counted: false, ok: true };
   var now = new Date(), q = await trackQuotaState(env, owner, t.allowance, now);
-  if (q.balance > 0) return { counted: true, ok: true, state: q };
-  return { counted: false, ok: false, message: 'You have used your free sessions for now. You can still open all your sessions. New sessions come back on the 1st of next month, or ask MT3UK for more.', nextTopUp: trackNextTopUp(now) };
+  if (q.days[day]) return { counted: true, ok: true, state: q, day: day, newDay: false };
+  if (q.balance > 0) return { counted: true, ok: true, state: q, day: day, newDay: true };
+  return { counted: false, ok: false, message: 'You have used your free days for now. You can still open all your sessions. New days come back on the 1st of next month, or ask MT3UK for more.', nextTopUp: trackNextTopUp(now) };
 }
-async function trackQuotaWrite(env, owner, q, change) {
-  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: Math.max(0, q.balance + change), month: q.month }));
+async function trackQuotaWrite(env, owner, q, day, newDay) {
+  var days = Object.assign({}, q.days);
+  if (day) days[day] = (days[day] || 0) + 1;
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: Math.max(0, q.balance - (newDay ? 1 : 0)), month: q.month, days: days }));
 }
-async function trackQuotaRefund(env, owner) {
+// A session on a day goes. When the last session on that day goes, the day comes back (up to the cap). Applies to a
+// member's own delete and an admin's delete alike.
+async function trackQuotaRefund(env, owner, day) {
   var t = await getTrackTiers(env), q = await trackQuotaState(env, owner, t.allowance, new Date());
-  if (q.fresh) return;
-  await trackQuotaWrite(env, owner, q, Math.min(1, Math.max(0, t.allowance.cap - q.balance)));
+  if (q.fresh || !day || !q.days[day]) return;
+  var days = Object.assign({}, q.days);
+  var balance = q.balance;
+  days[day] -= 1;
+  if (days[day] <= 0) { delete days[day]; balance = Math.min(t.allowance.cap, balance + 1); }
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: balance, month: q.month, days: days }));
+}
+// The admin adds days to a member's balance.
+async function trackAddDays(env, owner, q, n) {
+  await env.VOTES.put('track-quota:' + owner, JSON.stringify({ balance: q.balance + n, month: q.month, days: q.days }));
 }
 // A free member asks MT3UK for more sessions. One open request per member; the admin is emailed and sees it on the bell.
 var TRACK_QUOTA_REQUESTS_KEY = 'track-quota-requests';
@@ -8091,10 +8108,10 @@ async function handleTrackQuotaRequest(request, env) {
   var at = new Date().toISOString();
   list.push({ id: randomToken().slice(0, 12), email: e, name: name, at: at, done: false });
   await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(list.slice(-100)));
-  var subject = 'More Track sessions asked for' + (name ? ': ' + name : '');
-  var text = (name || e) + ' has used their free Track sessions and asked for more. Top them up on the Free tier and Full access panel of track-admin.html: ' + MY_BUILDS_SITE_URL + '/track-admin.html#tiers-wrap';
+  var subject = 'More Track days asked for' + (name ? ': ' + name : '');
+  var text = (name || e) + ' has used their free Track days and asked for more. Top them up on the Free tier and Full access panel of track-admin.html: ' + MY_BUILDS_SITE_URL + '/track-admin.html#tiers-wrap';
   try { await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#tiers-wrap'); } catch (er) { /* the request is kept even if the email fails */ }
-  return json({ success: true, message: 'Thanks. MT3UK has been asked for more sessions and will be in touch.' });
+  return json({ success: true, message: 'Thanks. MT3UK has been asked for more days and will be in touch.' });
 }
 async function handleTrackTiersAccess(request, env) {
   var email = await resolveSession(request, env);
@@ -8102,7 +8119,7 @@ async function handleTrackTiersAccess(request, env) {
   var r = await trackTierFor(env, email), now = new Date();
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, balance: q.balance, nextTopUp: trackNextTopUp(now) });
+  return json({ success: true, applies: r.applies, full: r.full, allowance: r.allowance, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -8139,11 +8156,11 @@ async function handleTrackTiersAdmin(request, env) {
     } else t[list] = t[list].filter(function (x) { return x.email !== e; });
   } else if (action === 'topup') {
     // The admin adds sessions to a member's balance (a request is marked done).
-    var te = accessEmail(body.email), n = parseInt(body.sessions, 10);
+    var te = accessEmail(body.email), n = parseInt(body.days != null ? body.days : body.sessions, 10);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(te)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
-    if (!(n >= 1 && n <= 1000)) return json({ success: false, message: 'Add between 1 and 1,000 sessions.' }, 400);
+    if (!(n >= 1 && n <= 1000)) return json({ success: false, message: 'Add between 1 and 1,000 days.' }, 400);
     var towner = await ownerKey(te), tq = await trackQuotaState(env, towner, t.allowance, new Date());
-    await trackQuotaWrite(env, towner, tq, n);
+    await trackAddDays(env, towner, tq, n);
     var reqs = await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, []);
     reqs.forEach(function (x) { if (x.email === te) x.done = true; });
     await env.VOTES.put(TRACK_QUOTA_REQUESTS_KEY, JSON.stringify(reqs));
@@ -8231,10 +8248,10 @@ async function handleTrackSessionSave(request, env) {
     var twin = mine.filter(function (s) { return s.carId === rec.carId && s.type === rec.type && s.date === rec.date && (s.time || '') === (rec.time || '') && sameTrackResult(s, rec); })[0];
     if (twin) return json({ success: false, duplicate: true, session: twin, message: 'You already have this session: ' + (twin.venue || 'the same place') + ', ' + twin.date + (twin.time ? ' at ' + twin.time : '') + '. Open it from your list instead.' }, 409);
   }
-  var gate = await trackUploadGate(env, email, rec.owner);
+  var gate = await trackUploadGate(env, email, rec.owner, String(rec.date || ''));
   if (!gate.ok) return json({ success: false, limited: true, message: gate.message, nextTopUp: gate.nextTopUp }, 403);
   if (!(await putTrackSession(env, rec))) return tooBig;
-  if (gate.counted) await trackQuotaWrite(env, rec.owner, gate.state, -1);
+  if (gate.counted) await trackQuotaWrite(env, rec.owner, gate.state, gate.day, gate.newDay);
   await putTrackIndexes(env, email, rec);
   await markHillTrack(env, rec, library);
   await noteNewTrackSession(env, email, rec, record);
@@ -8610,7 +8627,7 @@ async function handleTrackAdminSessionRename(request, env) {
     await env.VOTES.delete('track-session:' + rec.id);
     await env.VOTES.delete('track-source:' + rec.id);
     await putTrackIndexesFor(env, rec.owner, rec, true);
-    await trackQuotaRefund(env, rec.owner);
+    await trackQuotaRefund(env, rec.owner, String(rec.date || ''));
     return json({ success: true, deleted: rec.id });
   }
   if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list. Rename the track on the Tracks panel.' }, 400);
@@ -9151,6 +9168,7 @@ async function handleTrackSessionDelete(request, env) {
   await env.VOTES.delete('track-session:' + got.rec.id);
   await env.VOTES.delete('track-source:' + got.rec.id);
   await putTrackIndexes(env, got.email, got.rec, true);
+  await trackQuotaRefund(env, got.rec.owner, String(got.rec.date || ''));
   return json({ success: true });
 }
 

@@ -161,6 +161,15 @@
     ] },
     'ls-separate': { t: 'Laps has its own sign-in page and emails', p: 'On (the default): Laps shows its own sign-in page and sends Laps-branded emails. Off: the Laps sign-in page passes visitors on to the MT3UK sign-in and the MT3UK emails are sent. Either way the emailed link comes back to laps.mt3uk.com.' },
     'ls-mt3uk-too': { t: 'New Laps sign-ups become MT3UK members too', p: 'On (the default): joining on Laps makes a full MT3UK member. Off: joining on Laps makes a Laps-only account, which can sign in on Laps but not on mt3uk.com. If that person joins on mt3uk.com later they become a full member.' },
+    'tiers-wrap': { t: 'Free tier and Full access', p: 'The free tier limits how many Track sessions a member can upload: each starts with a balance, gets a monthly top-up up to a cap, and loses one for each new session. Members with Full access are not held to it. Nothing shows to members while the switch is Off.', i: [
+      ['Off, Testers only, Everyone', 'Off shows members nothing. Testers only applies the free tier to the people on the testers list. Everyone applies it to all members.'],
+      ['Allowance', 'Start is the balance a new free member gets. Monthly top-up is added on the 1st of each month. Cap is the most a member can hold.'],
+      ['More sessions asked for', 'Members who used up their sessions and asked for more. Add 10 tops the member up and marks the request done. Done marks it done without adding sessions.'],
+    ] },
+    'kinds-wrap': { t: 'Sprints and hill climbs', p: 'Sprints and hill climbs are hidden from everyone while they are tested. Testers can save, view and see them, including existing sessions. Nothing shows to members while the switch is Off.', i: [
+      ['Off, Testers only, Everyone', 'Off hides them from everyone. Testers only shows them to the people on the testers list. Everyone opens them to all members.'],
+      ['Add tester', 'Type a member\'s email, or find them by name, to let them use sprints and hill climbs. No email is sent.'],
+    ] },
     'tree-wrap': { t: 'Sessions split by kind', p: 'Which members see the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives.', i: [
       ['Open to all members', 'On: every member sees the split. Off: only the people on the invited list do.'],
       ['Give access', 'Type a member\'s email to invite them. They see the split the next time they open Sessions.'],

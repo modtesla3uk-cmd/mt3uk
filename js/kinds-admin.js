@@ -95,6 +95,6 @@
     act({ action: 'add', email: email }, 'Added as a tester.');
     input.value = '';
   });
-  document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
-  if (key()) load();
+  // Read when the panel is opened (or refreshed while it is open), not on every page load.
+  document.addEventListener('mt3uk-admin-refresh', function () { if (key() && wrap.open) load(); });
 })();

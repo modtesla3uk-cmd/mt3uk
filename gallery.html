@@ -1221,7 +1221,7 @@
         }).join('') + '</ul>' + (carData.mine ? '<p class="laps-preview-note" data-laps-preview hidden></p>' : '') + '<div class="ls-actions"><a class="btn btn-secondary btn-sm lightbox-car-track-all" href="track.html?car=' + encodeURIComponent(carData.carId) + '" data-laps>All shared sessions</a>' +
           (carData.mine ? addBtn : '<a class="btn btn-ghost btn-sm" href="https://laps.mt3uk.com/laps.html" data-laps>What is Laps?</a>') + '</div>';
       } else {
-        trackBox.innerHTML = carData.mine ? head + '<p class="ls-empty">No shared times for this car yet. Upload your lap timer file from a track day, sprint or drag strip and it shows here.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + addBtn + '</div>' : '';
+        trackBox.innerHTML = carData.mine ? head + '<p class="ls-empty">No shared times for this car yet. Upload your lap timer file from a track day or drag strip and it shows here.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + addBtn + '</div>' : '';
       }
       if (window.MT3UKLapsStrip) { window.MT3UKLapsStrip.gateAdds(trackBox); window.MT3UKLapsStrip.tagHeads(trackBox); }
       if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();

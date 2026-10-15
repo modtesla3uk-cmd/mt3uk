@@ -106,6 +106,22 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
     </details>
+    <details class="collapsible" id="kinds-wrap">
+      <summary><h3 class="panel-title">Sprints and hill climbs <span class="summary-count" id="kinds-count"></span></h3></summary>
+      <p class="iv-note">Sprints and hill climbs are being tested, so they are hidden from everyone. Testers can save, view and see them, including existing ones. Nothing shows to members while this is Off.</p>
+      <p class="iv-note" id="kinds-note" role="status"></p>
+      <h3 class="sub-head">Switch</h3>
+      <div class="iv-toolbar" role="radiogroup" aria-label="Sprints and hill climbs switch">
+        <button type="button" class="secondary" data-kmode="off" aria-pressed="false">Off</button>
+        <button type="button" class="secondary" data-kmode="testers" aria-pressed="false">Testers only</button>
+        <button type="button" class="secondary" data-kmode="all" aria-pressed="false">Everyone</button>
+      </div>
+      <h3 class="sub-head">Testers</h3>
+      <div id="kinds-testers"></div>
+      <div class="iv-toolbar"><input type="search" id="kinds-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="kinds-load">Show members</button></div>
+      <div id="kinds-members"></div>
+      <form class="iv-toolbar" id="kinds-add-form"><input type="email" id="kinds-add-email" placeholder="Member's email" aria-label="Tester's email" autocomplete="off"><button type="submit">Add tester</button></form>
+    </details>
     <details class="collapsible" id="tiers-wrap">
       <summary><h3 class="panel-title">Free tier and Full access <span class="summary-count" id="tiers-count"></span></h3></summary>
       <p class="iv-note">The free tier limits how many days a member can upload Track sessions on. A day is a driving date: several sessions on one date use one day. Testers see it while it is on for testers only; everyone sees it when it is on for everyone. Members with Full access are not held to the limit. Nothing shows to members while this is off.</p>
@@ -425,6 +441,7 @@
 <script src="js/laps-offline-admin.js?v=2" defer></script>
 <script src="js/sessions-tree-admin.js?v=1" defer></script>
 <script src="js/tiers-admin.js?v=5" defer></script>
+<script src="js/kinds-admin.js?v=1" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>

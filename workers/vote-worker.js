@@ -8022,6 +8022,64 @@ async function handleSessionsTreeAdmin(request, env) {
   return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
+// Sprints and hill climbs are gated while they are being tested: one KV key (track-kinds) with the switch (off,
+// testers only, or everyone) and the testers. Off hides them from everyone; a tester can save, view and see them.
+// Managed on the Sprints and hill climbs panel of track-admin.html (js/kinds-admin.js, /track/kinds/admin).
+var TRACK_KINDS_KEY = 'track-kinds';
+var TRACK_KIND_MODES = ['off', 'testers', 'all'];
+async function getTrackKinds(env) {
+  var t = await getJsonKey(env, TRACK_KINDS_KEY, {});
+  return {
+    mode: TRACK_KIND_MODES.indexOf(t.mode) !== -1 ? t.mode : 'off',
+    testers: Array.isArray(t.testers) ? t.testers.filter(function (x) { return x && x.email; }) : []
+  };
+}
+// Whether this viewer may use sprints and hill climbs (saving, viewing and seeing them).
+async function sprintsOpenFor(env, email) {
+  if (!email) return false;
+  var t = await getTrackKinds(env), e = accessEmail(email);
+  return t.mode === 'all' || (t.mode === 'testers' && t.testers.some(function (x) { return x.email === e; }));
+}
+async function sprintsOpenForRequest(request, env) {
+  var email = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : '';
+  return sprintsOpenFor(env, email || '');
+}
+function isSprintRec(rec) { return !!rec && rec.type === 'sprint'; }
+async function handleTrackKindsAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  return json({ success: true, open: await sprintsOpenFor(env, email) });
+}
+async function handleTrackKindsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var t = await getTrackKinds(env);
+  if (request.method === 'GET') {
+    var reply = { success: true, mode: t.mode, testers: t.testers };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
+    return json(reply);
+  }
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || '');
+  if (action === 'mode') {
+    if (TRACK_KIND_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Unknown mode' }, 400);
+    t.mode = body.mode;
+  } else if (action === 'add' || action === 'revoke') {
+    var e = accessEmail(body.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!t.testers.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        t.testers.push({ email: e, name: nm, at: new Date().toISOString() });
+        t.testers = t.testers.slice(-200);
+      }
+    } else t.testers = t.testers.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(TRACK_KINDS_KEY, JSON.stringify(t));
+  return json({ success: true, mode: t.mode, testers: t.testers });
+}
+
 // Track sessions tiers. One KV key (track-tiers): the switch (off, testers only, or everyone), the testers (members
 // who see the free tier while it is on for testers only), the members with Full access (not held to the limit), and
 // the allowance: a new free member starts with `start` sessions, gets `monthly` more on the 1st of each month, and can
@@ -8185,7 +8243,10 @@ async function handleTrackTiersAdmin(request, env) {
 async function handleTrackSessionsList(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
-  return json({ success: true, sessions: await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []) });
+  var mine = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+  // A member who may not use sprints and hill climbs does not see their own, until the gate is opened to them.
+  if (!(await sprintsOpenFor(env, email))) mine = mine.filter(function (s) { return s.type !== 'sprint'; });
+  return json({ success: true, sessions: mine });
 }
 
 // A hill climb saved at a track the list has as a plain sprint: the track is marked as a hill climb, which moves its
@@ -8255,6 +8316,7 @@ async function handleTrackSessionSave(request, env) {
     var twin = mine.filter(function (s) { return s.carId === rec.carId && s.type === rec.type && s.date === rec.date && (s.time || '') === (rec.time || '') && sameTrackResult(s, rec); })[0];
     if (twin) return json({ success: false, duplicate: true, session: twin, message: 'You already have this session: ' + (twin.venue || 'the same place') + ', ' + twin.date + (twin.time ? ' at ' + twin.time : '') + '. Open it from your list instead.' }, 409);
   }
+  if (isSprintRec(rec) && !(await sprintsOpenFor(env, email))) return json({ success: false, message: 'Sprints and hill climbs are not open yet.' }, 403);
   var gate = await trackUploadGate(env, email, rec.owner, String(rec.date || ''));
   if (!gate.ok) return json({ success: false, limited: true, message: gate.message, nextTopUp: gate.nextTopUp }, 403);
   if (!(await putTrackSession(env, rec))) return tooBig;
@@ -8426,6 +8488,9 @@ async function handleTrackSessionGet(request, env) {
   if (!rec) return json({ success: false, message: 'Session not found' }, 404);
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var mine = !!viewer && rec.owner === (await ownerKey(viewer));
+  if (isSprintRec(rec) && !(await sprintsOpenFor(env, viewer)) && !(await isAdminViewerToken(env, request.headers.get('X-Admin-Viewer')))) {
+    return json({ success: false, message: 'Session not found' }, 404);
+  }
   // The admin can open a private session, read only and without the member's
   // notes. Every such view is logged (see logTrackAdminView).
   var adminView = false;
@@ -9180,6 +9245,7 @@ async function handleTrackSessionDelete(request, env) {
 }
 
 async function handleTrackPublic(request, env) {
+  var kindsOpen = await sprintsOpenForRequest(request, env);
   var carId = String(new URL(request.url).searchParams.get('car') || '');
   if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId)) return json({ success: false, message: 'car is required' }, 400);
   var record = await getCarRecord(env, carId);
@@ -9191,7 +9257,7 @@ async function handleTrackPublic(request, env) {
     success: true,
     car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details, await getVehicleDrives(env)), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', weight: (details && details.weight) || '', pads: carPadsText(details), photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
     mine: !!viewer && viewer === ownerEmail,
-    sessions: await getJsonKey(env, 'track-public:' + carId, [])
+    sessions: kindsOpen ? await getJsonKey(env, 'track-public:' + carId, []) : (await getJsonKey(env, 'track-public:' + carId, [])).filter(function (s) { return s.type !== 'sprint'; })
   });
   res.headers.set('Cache-Control', 'private, max-age=60');
   return res;
@@ -9255,6 +9321,7 @@ async function trackBestsForCar(env, carId) {
 }
 
 async function handleTrackBoard(request, env, drag) {
+  if (drag === 'sprint' && !(await sprintsOpenForRequest(request, env))) return json({ success: false, message: 'Not found' }, 404);
   var params = new URL(request.url).searchParams;
   var venue = trackId(params.get('venue')), layout = trackId(params.get('layout'));
   if (!venue || (drag !== true && !layout)) return json({ success: false, message: 'venue is required' }, 400);
@@ -12654,6 +12721,12 @@ export default {
     }
     if (url.pathname === '/track/tiers/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackTiersAdmin(request, env);
+    }
+    if (url.pathname === '/track/kinds/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackKindsAdmin(request, env);
+    }
+    if (url.pathname === '/track/kinds/access' && request.method === 'GET') {
+      return handleTrackKindsAccess(request, env);
     }
     if (url.pathname === '/track/tiers/request' && request.method === 'POST') {
       return handleTrackQuotaRequest(request, env);

@@ -105,6 +105,11 @@
       ['Send the reminder', 'The bell item and push go to each of them, after a confirm. Later presses only reach members who have joined since.'],
       ['Also send it by email', 'Emails it too. Members who have turned emails off are skipped.']
     ] },
+    'fbposts-wrap': { t: 'Facebook posts', p: 'Ready-to-paste posts for the MT3UK Facebook group, written from what is on the site now: this week\'s Build of the Week, upcoming events, the latest owner interviews and the fastest lap on Laps. Facebook does not let a site post into a group, so you copy each one and paste it in yourself.', i: [
+      ['The post box', 'The words can be changed before you copy. The link at the end carries a Facebook tag, so visitors from the group show in your analytics and see a welcome on the homepage.'],
+      ['Copy post', 'Copies exactly what is in the box. Paste it into the group, and Facebook turns the link into a picture card.'],
+      ['Refresh', 'Reads the site again, for example after a new event is published or the winner changes.']
+    ] },
     'bc-test-btn': { t: 'Send test', p: 'Emails this title and message to the one address typed in, marked [Test], using the way chosen in the drop-down. Nothing is saved or sent to anyone else.' },
 
     // ---------------------------------------------------------------- admin.html: owner interviews

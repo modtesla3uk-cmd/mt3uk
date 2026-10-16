@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20271043">
+<link rel="stylesheet" href="css/admin-page.css?v=20271060">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -162,8 +162,9 @@
         <p class="iv-note">The link, the 6-digit code and how long they last follow the opening line. Blank keeps the built-in words.</p>
       </div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="ls-save">Save</button></div>
-      <h4 class="ls-sub">Laps members</h4>
-      <p class="iv-note">Laps-only accounts, newest first: people who joined on Laps while MT3UK membership was switched off (full MT3UK members are on the Subscribers panel of admin.html). <b>Remove</b> signs them out everywhere, deletes their cars, sessions and settings, takes them off the early access and New Laps sign-ups lists, and, with the switch on, emails them that they are unsubscribed with a link to subscribe again.</p>
+      <h4 class="ls-sub">Laps members <span class="summary-count" id="lm-count"></span></h4>
+      <p class="iv-note">Everyone on Laps in one list, newest first: Laps-only accounts (joined on Laps while MT3UK membership was switched off) and MT3UK members who are on the early access lists or joined on Laps, with their early access status and number of sessions. <b>Remove</b> is for Laps-only accounts: it signs them out everywhere, deletes their cars, sessions and settings, takes them off the early access and New Laps sign-ups lists, and, with the switch on, emails them that they are unsubscribed with a link to subscribe again. MT3UK members are removed on the Subscribers panel of admin.html.</p>
+      <div class="iv-toolbar"><button type="button" class="chip is-on" data-lm-filter="all">Everyone</button><button type="button" class="chip" data-lm-filter="mt3uk">MT3UK members</button><button type="button" class="chip" data-lm-filter="laps">Laps only</button><input type="search" id="lm-find" placeholder="Find a name or email" aria-label="Find a name or email" autocomplete="off"></div>
       <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="lm-email" aria-checked="true"><span class="tk-track"></span><span>Email them when removed</span></button></div>
       <p class="iv-note" id="lm-note" role="status"></p>
       <div id="lm-list"></div>
@@ -427,7 +428,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20271023"></script>
 <script src="js/admin-subnav.js?v=20271040" defer></script>
-<script src="js/admin-help.js?v=20271046" defer></script>
+<script src="js/admin-help.js?v=20271060" defer></script>
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/admin-toast.js?v=1" defer></script>
@@ -442,7 +443,7 @@
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>
-<script src="js/laps-members-admin.js?v=20271017" defer></script>
+<script src="js/laps-members-admin.js?v=20271060" defer></script>
 <script src="js/track-lines-admin.js?v=20271021" defer></script>
 <script src="js/track-member-admin.js?v=20261165" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261251" defer></script>

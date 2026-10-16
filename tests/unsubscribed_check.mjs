@@ -63,18 +63,27 @@ const members = async (method = 'GET', body, key = 'secret') => {
   const r = await worker.fetch(new Request('https://w.test/laps/members/admin?key=' + key, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }), env, { waitUntil() {} });
   return { status: r.status, body: await r.json().catch(() => ({})) };
 };
+const ownerHash = async e => { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mt3uk-owner:' + e.toLowerCase())); return [...new Uint8Array(d).slice(0, 8)].map(b => b.toString(16).padStart(2, '0')).join(''); };
 const P = 'pat@example.com', R = 'rae@example.com', M = 'member@example.com';
 kv.set('laps-account:' + P, JSON.stringify({ since: '2026-10-01T10:00:00Z' }));
 kv.set('laps-account:' + R, JSON.stringify({ since: '2026-10-05T10:00:00Z' }));
 kv.set('profile:' + P, JSON.stringify({ firstName: 'Pat', lastName: 'Lee' }));
 kv.set('subscriber:' + M, '[]');
+kv.set('track-index:' + await ownerHash(M), JSON.stringify([{ id: 's1' }, { id: 's2' }]));
+kv.set('track-index:deadbeefdeadbeef', JSON.stringify([{ id: 's3' }]));
 kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: P }, { email: 'other@example.com' }], pending: [{ email: R }] }));
 kv.set('laps-signups', JSON.stringify([{ email: P, name: 'Pat Lee', account: 'laps' }, { email: R, name: 'Rae', account: 'laps' }, { email: M, name: 'Em', account: 'mt3uk' }]));
 
 let m = await members('GET', undefined, 'wrong');
 ok(m.status === 401, 'the Laps members list needs the admin key');
 m = await members();
-ok(m.body.success && m.body.members.length === 2 && m.body.members[0].email === R && m.body.members[1].name === 'Pat Lee', 'it lists the Laps-only accounts, newest first, with names');
+const byEmail = list => Object.fromEntries(list.map(x => [x.email, x]));
+let rowsNow = byEmail(m.body.members);
+ok(m.body.success && m.body.members.length === 3 && m.body.members[0].email === R && m.body.members[1].email === P, 'it lists everyone on Laps, newest first: both Laps-only accounts and the MT3UK member from the sign-ups list');
+ok(rowsNow[P].name === 'Pat Lee' && rowsNow[P].account === 'laps' && rowsNow[P].early === 'approved' && rowsNow[R].early === 'waiting' && rowsNow[M].account === 'mt3uk' && rowsNow[M].early === '', 'each row says the account, the early access status and the name');
+ok(rowsNow[M].sessions === 2 && rowsNow[P].sessions === 0, 'and how many sessions they have saved');
+ok(!rowsNow['other@example.com'], 'an address on the early access list that is no longer a member is left out');
+ok(m.body.unlisted === 1, 'people with sessions who are on no list are counted (1)');
 const before = emails.length;
 m = await members('POST', { remove: M });
 ok(m.status === 400 && /Subscribers panel/.test(m.body.message) && emails.length === before, 'a full MT3UK member is refused (removed on the Subscribers panel)');
@@ -83,7 +92,7 @@ ok(m.status === 404, 'an address with no Laps account is refused');
 
 const stampBefore = kv.get('admin-alert-stamp');
 m = await members('POST', { remove: P, notify: true });
-ok(m.body.success && m.body.emailed === true && m.body.members.length === 1 && m.body.members[0].email === R, 'removing one account emails them and leaves the other');
+ok(m.body.success && m.body.emailed === true && m.body.members.length === 2 && !m.body.members.some(x => x.email === P) && m.body.members.some(x => x.email === R), 'removing one account emails them and leaves the others');
 ok(emails.length === before + 1 && /Laps by MT3UK/.test(text(emails[emails.length - 1])) && /To: pat@example\.com/.test(text(emails[emails.length - 1])) && /laps-signin\.html#si-join/.test(text(emails[emails.length - 1])), 'the Laps email goes with a link to subscribe again');
 ok(!kv.has('laps-account:' + P) && !kv.has('profile:' + P) && Number(kv.get('session-version:' + P)) >= 1, 'their account and settings go and their sign-ins end');
 let access = JSON.parse(kv.get('track-access'));
@@ -93,7 +102,7 @@ ok(!ups.some(x => x.email === P) && ups.length === 2, 'they come off the New Lap
 ok(kv.get('admin-alert-stamp') !== stampBefore, 'the admin bells are told to catch up');
 
 m = await members('POST', { remove: R, notify: false });
-ok(m.body.success && m.body.emailed === false && emails.length === before + 1 && m.body.members.length === 0, 'with the switch off nobody is emailed');
+ok(m.body.success && m.body.emailed === false && emails.length === before + 1 && m.body.members.length === 1 && m.body.members[0].email === M, 'with the switch off nobody is emailed (the MT3UK member is still listed)');
 access = JSON.parse(kv.get('track-access'));
 ok(access.pending.length === 0, 'a waiting early access request is taken off too');
 

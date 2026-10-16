@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20271042">
+<link rel="stylesheet" href="css/admin-page.css?v=20271060">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -315,6 +315,13 @@
         <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
         <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
       </div>
+    </details>
+    <details class="collapsible" id="fbposts-wrap">
+      <summary><h3 class="panel-title">Facebook posts</h3></summary>
+      <p class="iv-note">Ready-to-paste posts for the MT3UK Facebook group: this week's Build of the Week, upcoming events, the latest owner interviews and the fastest lap on Laps. Each links to a page with its own preview picture and is tagged so visitors from Facebook show in your analytics (and see a welcome on the homepage). Change the words if you like, press <b>Copy post</b>, then paste it into the group.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="fbp-refresh">Refresh</button><a class="iv-act" href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener">Open the Facebook group</a></div>
+      <p class="iv-note" id="fbp-note" role="status"></p>
+      <div id="fbp-list"></div>
     </details>
     </div>
   </section>
@@ -2498,7 +2505,7 @@
 })();
 </script>
 <script src="js/admin-subnav.js?v=20271040" defer></script>
-<script src="js/admin-help.js?v=20271045" defer></script>
+<script src="js/admin-help.js?v=20271060" defer></script>
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/admin-toast.js?v=1" defer></script>
@@ -2513,5 +2520,6 @@
 <script src="js/track-share-card.js?v=20261185"></script>
 <script src="js/track-share-admin.js?v=20261106" defer></script>
 <script src="js/feedback-admin.js?v=1" defer></script>
+<script src="js/facebook-posts-admin.js?v=20271020" defer></script>
 </body>
 </html>

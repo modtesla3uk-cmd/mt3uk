@@ -7490,7 +7490,7 @@ def test_the_free_plan_balance_shows_only_while_the_switch_is_on(page):
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake)
-    expect(page.locator("#tp-quota")).to_contain_text("4 of 6 free days available")
+    expect(page.locator("#tp-quota")).to_contain_text("4 of 6 free days left")
     expect(page.locator("#tp-quota")).to_contain_text("1 November")
 
 
@@ -7557,7 +7557,7 @@ def test_the_add_page_shows_the_free_plan_balance_before_a_session_is_saved(page
     fake = FakeWorker(earlier=False)
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 6, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake, path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
-    expect(page.locator("#tp-quota")).to_contain_text("6 of 6 free days available")
+    expect(page.locator("#tp-quota")).to_contain_text("6 of 6 free days left")
     expect(page.locator("#tp-quota")).to_contain_text("1 November")
 
 
@@ -7567,7 +7567,7 @@ def test_a_members_own_session_shows_the_free_plan_balance(page):
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 5, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     save_thruxton_with_a_member_board(page, fake)
     page.goto("/track.html?s=new1")
-    expect(page.locator("#tp-quota")).to_contain_text("5 of 6 free days available")
+    expect(page.locator("#tp-quota")).to_contain_text("5 of 6 free days left")
 
 
 def test_the_usage_ring_shows_beside_the_leaderboard_title_for_a_free_member(page):

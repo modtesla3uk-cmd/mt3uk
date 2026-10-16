@@ -133,9 +133,9 @@ const slow = JSON.parse(JSON.stringify(session)); slow.bestTime = 101.5;
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: slow, privacy: 'board' }, 'tok-a');
 const id2 = r.body.session.id;
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
-ok(r.body.entries.length === 2 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && Math.abs(r.body.entries[1].time - 101.5) < 0.01 && r.body.entries.every(e => e.carId === 'cara1' && e.sessions === 2), 'one row for each session that places: the fastest first, then the slower one, each with how many sessions the car has here');
+ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[0].carId === 'cara1' && r.body.entries[0].sessions === 2, 'one row per member: their fastest session on the board, with how many sessions the car has here');
 r = await call('GET', '/track/counts');
-ok(r.body.counts['track-board:thruxton:main'] === 2, 'the track list counts the board\'s rows: one for each session that places (the car has two)');
+ok(r.body.counts['track-board:thruxton:main'] === 1, 'the track list counts the board\'s members: one row per member, however many sessions they have placed');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');
@@ -674,7 +674,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok([s1, s2, s3, s4].every(x => x.status === 200), 'four sessions with tyres saved');
   let b = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries;
   const e = b.find(x => x.carId === 'cara1');
-  ok(b.filter(x => x.carId === 'cara1').length === 4 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
+  ok(b.filter(x => x.carId === 'cara1').length === 1 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
   ok(e.bests.length === 3 && e.bests[0].time === 99 && e.bests.map(x => x.conditions + ':' + x.tyreMake).join() === 'Dry:Michelin,Dry:Kumho,Wet:Kumho', 'a best for each mix of conditions and tyres: ' + JSON.stringify(e.bests.map(x => [x.conditions, x.tyreMake, x.time])));
   ok(e.bests.every(x => x.sessionId && x.date), 'each best opens its session');
   {

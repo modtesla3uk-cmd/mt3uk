@@ -7619,6 +7619,21 @@ async function isAdminViewerToken(env, token) {
   return !!(record && record.expires > Date.now() && record.k === (await adminKeyStamp(env)));
 }
 
+// A board shows each member once: their fastest place on it, whichever of their cars or sessions it came from. The board
+// keeps every car's places (so a session can be taken off and the member's next fastest shows), and only this view is
+// cut down. Entries from before the member key was kept are grouped by their owner's name.
+function oneRowPerMember(entries) {
+  var best = {}, order = [];
+  (Array.isArray(entries) ? entries : []).forEach(function (e) {
+    var who = e.member || 'name:' + (e.owner || e.carId || '');
+    var t = e.time || e.quarter || Infinity;
+    if (!best[who]) { best[who] = e; order.push(who); return; }
+    var cur = best[who];
+    if (t < (cur.time || cur.quarter || Infinity)) best[who] = e;
+  });
+  return order.map(function (k) { return best[k]; }).sort(function (a, b) { return (a.time || a.quarter || Infinity) - (b.time || b.quarter || Infinity); });
+}
+
 // Rebuilds this car's place on one board from its shared sessions.
 async function refreshTrackBoard(env, boardKey, carId) {
   if (!boardKey) return;
@@ -7640,6 +7655,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
       carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '', sessions: here.length,
       car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || (details && details.make ? '' : modelInName(record && record.name)), version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
+      member: ownerEmail ? await ownerKey(ownerEmail) : '',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
       drive: mine.drive || carDrive(details, await getVehicleDrives(env)),
       mods: trackBoardMods(record, details),
@@ -7660,13 +7676,14 @@ async function refreshTrackBoard(env, boardKey, carId) {
   await env.VOTES.put(boardKey, JSON.stringify(board));
   // The sessions on each board, for the list of tracks (one key): one for each row, which is one session that places.
   var counts = await getJsonKey(env, 'track-board-counts', {});
-  var total = board.length;
+  var rows = oneRowPerMember(board);
+  var total = rows.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
   // The top five on each board, so the track list can show them (one key). Places past five are on the board itself.
   var leaders = await getJsonKey(env, 'track-board-leaders', {});
-  if (board.length) {
-    leaders[boardKey] = board.slice(0, 5).map(function (e) {
+  if (rows.length) {
+    leaders[boardKey] = rows.slice(0, 5).map(function (e) {
       var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
       if (e.make) l.make = e.make;
       if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }
@@ -9333,7 +9350,7 @@ async function handleTrackBoard(request, env, drag) {
   var venue = trackId(params.get('venue')), layout = trackId(params.get('layout'));
   if (!venue || (drag !== true && !layout)) return json({ success: false, message: 'venue is required' }, 400);
   var key = drag === 'sprint' ? 'sprint-board:' + venue + ':' + layout : drag ? 'drag-board:' + venue : 'track-board:' + venue + ':' + layout;
-  var res = json({ success: true, entries: await getJsonKey(env, key, []) });
+  var res = json({ success: true, entries: oneRowPerMember(await getJsonKey(env, key, [])) });
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
 }

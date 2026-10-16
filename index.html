@@ -2138,9 +2138,6 @@
   /* Share MT3UK: the top right corner of the first screen, lined up with
      the content edge. js/share.js puts the button in it. */
   .hero.hp-hero { position: relative; }
-  .hp-share-corner { position: absolute; z-index: 3; top: 12px; right: max(16px, calc((100% - var(--content-max, 1000px)) / 2)); display: flex; color: #ffffff; }
-  .hp-share-corner .mt3uk-share-dot { margin: 0; top: 0; float: none; width: 36px; height: 36px; opacity: 1; background: rgba(14, 22, 40, 0.45); border-color: rgba(255, 255, 255, 0.6); }
-  .hp-share-corner .mt3uk-share-dot svg { width: 16px; height: 16px; }
   @media (max-width: 780px) { .hp-share-corner { top: 8px; } .hp-share-corner .mt3uk-share-dot { width: 32px; height: 32px; } }
   .hp-scroll-cue {
     position: absolute; left: 50%; bottom: 10px; z-index: 3;
@@ -3228,7 +3225,6 @@
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
               <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
-              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
           <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
@@ -3296,7 +3292,6 @@
 </header>
 
 <section class="hero hp-hero" id="hp-hero" data-no-share>
-  <div class="hp-share-corner" data-share-page="MT3UK" aria-label="Share MT3UK"></div>
   <div class="wrap">
     <div class="hero-grid">
       <div>
@@ -7006,7 +7001,7 @@
     });
   })();
 </script>
-<script src="js/shop-home-cards.js?v=3" defer></script>
-<script src="js/home-layout.js?v=1" defer></script>
+<script src="js/shop-home-cards.js?v=4" defer></script>
+<script src="js/home-layout.js?v=2" defer></script>
 </body>
 </html>

@@ -15,11 +15,16 @@
     if (text != null) e.textContent = text;
     return e;
   }
+  // Where each Shop product sits on shop.html, for an item with no link of its own (so the card goes to the item, not the top).
+  var SHOP_ANCHORS = { 'master-cylinder-brace': 'brace', 'evoffer-sport-seats': 'evoffer', 'merch': 'merch' };
   function shopLink(url, id) {
     var u = String(url || '');
-    if (!/^https:\/\//.test(u)) return u || 'shop.html';
-    var sep = u.indexOf('?') === -1 ? '?' : '&';
-    return u + sep + 'utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=' + encodeURIComponent(id || 'offer') + '_order';
+    if (/^https:\/\//.test(u)) {
+      var sep = u.indexOf('?') === -1 ? '?' : '&';
+      return u + sep + 'utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=' + encodeURIComponent(id || 'offer') + '_order';
+    }
+    if (u) return u;
+    return 'shop.html#' + (SHOP_ANCHORS[id] || id || 'offers');
   }
   function dateText(iso) {
     var d = new Date(iso + 'T12:00:00');

@@ -112,7 +112,7 @@
         drag.el.style.width = Math.max(120, snap(drag.ow + dx)) + 'px';
       } else {
         drag.el.style.left = Math.max(0, snap(drag.ox + dx)) + 'px';
-        drag.el.style.top = Math.max(0, snap(drag.oy + dy)) + 'px';
+        drag.el.style.top = Math.max(-200, snap(drag.oy + dy)) + 'px';
       }
     });
     cols.addEventListener('pointerup', function () { drag = null; });

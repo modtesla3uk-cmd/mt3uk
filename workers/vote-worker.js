@@ -11699,6 +11699,8 @@ async function handleMyBuildsCarUpdate(request, env) {
   }
 
   await saveCarRecord(env, record);
+  // The board rows carry the car's name, make and model, so the car's rows on each board are rebuilt when they change.
+  if (body && (typeof body.name === 'string' || hasModel)) await refreshCarBoards(env, realCarId);
   await triggerManifestRebuild(env);
 
   var carOut = Object.assign({}, record);

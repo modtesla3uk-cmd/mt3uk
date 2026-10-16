@@ -136,6 +136,13 @@ r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[0].carId === 'cara1' && r.body.entries[0].sessions === 2, 'one row per member: their fastest session on the board, with how many sessions the car has here');
 r = await call('GET', '/track/counts');
 ok(r.body.counts['track-board:thruxton:main'] === 1, 'the track list counts the board\'s members: one row per member, however many sessions they have placed');
+// Renaming the car in My Garage updates its rows on the boards at once (the rows carry the car's name).
+kv.set('member-cars:' + A, JSON.stringify(['cara1']));
+r = await call('PUT', '/my-builds/car', { carId: 'cara1', name: 'Arctic Renamed' }, 'tok-a');
+r = await call('GET', '/track/board?venue=thruxton&layout=main');
+ok(r.body.entries.length === 1 && r.body.entries[0].carId === 'cara1' && r.body.entries[0].car === 'Arctic Renamed', 'a car rename shows on its board row at once');
+r = await call('GET', '/track/counts');
+ok(r.body.leaders && r.body.leaders['track-board:thruxton:main'] && r.body.leaders['track-board:thruxton:main'][0].car === 'Arctic Renamed', 'the track list leader shows the new car name');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');

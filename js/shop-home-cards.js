@@ -26,8 +26,22 @@
     return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  // Today's date on the viewer's own clock, as YYYY-MM-DD.
+  function localToday() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function liveOffer(offer) {
+    // The worker sends the offer only while it is switched on; its dates are checked here.
+    if (!offer) return null;
+    var today = localToday();
+    if (offer.start && today < offer.start) return null;
+    if (offer.end && today > offer.end) return null;
+    return offer;
+  }
+
   function offerCard(data) {
-    var offer = data.offer;
+    var offer = liveOffer(data.offer);
     if (!offer && !data.placeholder) return null;
     var card = el('article', 'hp-card hp-offer-card');
     if (!offer) {

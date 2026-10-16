@@ -11,7 +11,11 @@
   var listEl = document.getElementById('shop-products'), itemsEl = document.getElementById('shop-o-items');
   var onBtn = document.getElementById('shop-offer-on');
   var state = null, products = [];
-  var today = new Date().toISOString().slice(0, 10);
+  // Today's date on the admin's own clock, as YYYY-MM-DD.
+  function localToday() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -56,6 +60,7 @@
     itemsEl.innerHTML = products.length ? products.map(function (p) {
       return '<label class="iv-note" style="display:block"><input type="checkbox" class="shop-pick" value="' + esc(p.id) + '"' + (picked.indexOf(p.id) !== -1 ? ' checked' : '') + '> ' + esc(p.name) + '</label>';
     }).join('') : '<p class="empty">Add a product to the Shop list first.</p>';
+    var today = localToday();
     var live = !!offer.on && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end);
     countEl.textContent = live ? 'offer showing' : (offer.on ? 'offer not in its dates' : 'no offer');
   }

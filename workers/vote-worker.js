@@ -9831,13 +9831,13 @@ async function handleHomeLayoutAdmin(request, env) {
 }
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
-  var today = new Date().toISOString().slice(0, 10);
-  var live = shopOfferLive(home.offer, today) ? home.offer : null;
+  // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
+  var live = home.offer && home.offer.on ? home.offer : null;
   var res = json({
     success: true,
     highlights: home.highlights || [],
     placeholder: home.placeholder || '',
-    offer: live ? { heading: live.heading, percent: live.percent, text: live.text, end: live.end, items: live.items } : null
+    offer: live ? { heading: live.heading, percent: live.percent, text: live.text, start: live.start, end: live.end, items: live.items } : null
   });
   res.headers.set('Cache-Control', 'public, max-age=120');
   return res;
@@ -9846,7 +9846,7 @@ async function handleShopHomeAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var products = await getJsonKey(env, SHOP_PRODUCTS_KEY, null);
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
-  if (request.method === 'GET') return json({ success: true, products: products, home: home, today: new Date().toISOString().slice(0, 10) });
+  if (request.method === 'GET') return json({ success: true, products: products, home: home });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   if (body && Array.isArray(body.products)) {

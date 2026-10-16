@@ -147,3 +147,15 @@ def test_the_homepage_editor_moves_a_card_and_saves_the_layout(page):
     expect(page.locator("#hl-bar .hl-msg")).to_contain_text("Saved")
     assert posts and posts[-1]["layout"]["desk"]["items"]["latest"]["x"] > 0
     assert set(posts[-1]["layout"]["desk"]["items"]) == {"latest", "laps", "next", "join", "offer", "shop"}
+
+
+def test_admin_page_editors_section_links_each_page_editor_on_each_address(page):
+    open_admin(page, "admin.html")
+    section = page.locator("#grp-editors")
+    expect(section).to_be_visible()
+    links = section.locator("a")
+    assert links.count() == 8
+    hrefs = links.evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert "https://mt3uk.com/track.html?layout=edit" in hrefs
+    assert "https://laps.mt3uk.com/leaderboards.html?layout=edit" in hrefs
+    assert "https://test.laps.mt3uk.com/index.html?layout=edit" in hrefs

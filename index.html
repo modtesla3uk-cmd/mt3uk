@@ -2116,6 +2116,20 @@
   .hp-announce { display: block; background: #c8431d; color: #ffffff; text-align: center; font-family: var(--font-body); font-size: 0.82rem; font-weight: 500; line-height: 1.4; padding: 10px 16px; text-decoration: none; }
   .hp-announce:hover { background: #a93814; color: #ffffff; }
   .hp-announce[hidden] { display: none; }
+  /* Welcome strip for visitors who arrive from a link shared in Facebook (utm_source=facebook, or Facebook's own fbclid). */
+  .hp-fb { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; padding: 12px 56px 12px 16px; background: #16233d; color: #f3f1ea; font-family: var(--font-body); font-size: 0.92rem; line-height: 1.4; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+  .hp-fb[hidden] { display: none; }
+  .hp-fb p { margin: 0; }
+  .hp-fb strong { color: #ffffff; }
+  .hp-fb-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .hp-fb-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: var(--radius-pill, 999px); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; font-size: 0.88rem; font-weight: 600; text-decoration: none; }
+  .hp-fb-btn:hover { border-color: #ffffff; color: #ffffff; }
+  .hp-fb-btn.hp-fb-primary { background: #e8542a; border-color: #e8542a; }
+  .hp-fb-btn.hp-fb-primary:hover { background: #d24a22; border-color: #d24a22; }
+  .hp-fb-close { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: rgba(243, 241, 234, 0.75); cursor: pointer; }
+  .hp-fb-close:hover { color: #ffffff; }
+  .hp-fb-close .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  @media (max-width: 780px) { .hp-fb { flex-direction: column; padding: 12px 52px 14px 16px; text-align: center; } .hp-fb-actions { width: 100%; } .hp-fb-btn { flex: 1 1 140px; } }
 
   .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-color: #16233d; background-position: center; background-size: cover; background-image: linear-gradient(rgba(14, 22, 40, 0.2), rgba(14, 22, 40, 0.88) 70%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
   .hp-hero > .wrap { width: 100%; }
@@ -3114,6 +3128,36 @@
 
 <a href="#owner-interviews" class="hp-announce" id="hp-announce" hidden></a>
 
+<div class="hp-fb" id="hp-fb" role="region" aria-label="Welcome from the MT3UK Facebook group" hidden>
+  <p><strong>Welcome from the MT3UK Facebook group.</strong> Here&rsquo;s where to start:</p>
+  <div class="hp-fb-actions">
+    <a class="hp-fb-btn hp-fb-primary" href="my-builds.html#add-photo">Add your photo</a>
+    <a class="hp-fb-btn" href="#vote-frame">Vote for Build of the Week</a>
+    <a class="hp-fb-btn" href="gallery.html">See the builds</a>
+  </div>
+  <button type="button" class="hp-fb-close" id="hp-fb-close" aria-label="Close this welcome"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+<script>
+  // Shown only to someone who arrived from Facebook: a link tagged utm_source=facebook (or fb), or carrying the fbclid
+  // Facebook adds itself. Closing it keeps it shut for the rest of the visit.
+  (function () {
+    var bar = document.getElementById('hp-fb');
+    if (!bar) return;
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    var from = /^(facebook|fb)/i.test(q.get('utm_source') || '') || q.has('fbclid');
+    var closed = false;
+    try { closed = sessionStorage.getItem('mt3ukFbWelcomeClosed') === '1'; } catch (e) {}
+    if (!from || closed) return;
+    bar.hidden = false;
+    document.getElementById('hp-fb-close').addEventListener('click', function () {
+      bar.hidden = true;
+      try { sessionStorage.setItem('mt3ukFbWelcomeClosed', '1'); } catch (e) {}
+      window.dispatchEvent(new Event('resize'));
+    });
+  })();
+</script>
+
 <header>
   <nav>
     <div class="nav-center">
@@ -3321,7 +3365,7 @@
       // measure again whenever it or the header changes size.
       if (window.ResizeObserver) {
         var ro = new ResizeObserver(sizeHero);
-        ['hp-announce'].forEach(function (id) { var el = document.getElementById(id); if (el) ro.observe(el); });
+        ['hp-announce', 'hp-fb'].forEach(function (id) { var el = document.getElementById(id); if (el) ro.observe(el); });
         var head = document.querySelector('header');
         if (head) ro.observe(head);
       }

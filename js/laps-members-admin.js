@@ -1,9 +1,11 @@
 /*
-  track-admin.html, Sign-in and sign-up panel: the Laps members list, the Laps-only accounts (joined on Laps while
-  MT3UK membership was switched off) from the worker's /laps/members/admin (admin key; it lists laps-account: keys with
-  list(), fine for an admin route). Remove signs the person out everywhere, deletes what Laps held about them, takes
-  them off the early access and New Laps sign-ups lists and, with the Email them switch on, emails them that they are
-  unsubscribed with a link to subscribe again. Full MT3UK members are removed on the Subscribers panel of admin.html.
+  track-admin.html, Sign-in and sign-up panel: the Laps members list, everyone on Laps from the worker's
+  /laps/members/admin (admin key; it lists laps-account: and track-index: keys with list(), fine for an admin route):
+  the Laps-only accounts (joined on Laps while MT3UK membership was switched off) and the MT3UK members on the early
+  access lists or the New Laps sign-ups list, with account, early access and sessions, filtered and searched here.
+  Remove (Laps-only accounts) signs the person out everywhere, deletes what Laps held about them, takes them off the
+  early access and New Laps sign-ups lists and, with the Email them switch on, emails them that they are unsubscribed
+  with a link to subscribe again. MT3UK members are removed on the Subscribers panel of admin.html.
 */
 (function () {
   var wrap = document.getElementById('signin-wrap');
@@ -11,7 +13,8 @@
   if (!wrap || !listEl) return;
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var noteEl = document.getElementById('lm-note'), emailSw = document.getElementById('lm-email');
-  var loaded = false;
+  var loaded = false, all = [], unlisted = 0, filter = 'all';
+  var countEl = document.getElementById('lm-count'), findEl = document.getElementById('lm-find');
   function key() {
     var input = document.getElementById('admin-key');
     return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
@@ -29,21 +32,44 @@
     return fetch(API + '/laps/members/admin?key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function draw(members) {
-    if (!members.length) { listEl.innerHTML = '<p class="empty">No Laps-only accounts.</p>'; return; }
-    listEl.innerHTML = '<table class="iv-table lm-table"><thead><tr><th>Member</th><th>Joined</th><th></th></tr></thead><tbody>' + members.map(function (m) {
+  var EARLY = { approved: 'Approved', waiting: 'Waiting' };
+  function shown() {
+    var q = (findEl.value || '').trim().toLowerCase();
+    return all.filter(function (m) {
+      if (filter !== 'all' && (m.account || 'laps') !== filter) return false;
+      return !q || (m.email + ' ' + (m.name || '')).toLowerCase().indexOf(q) !== -1;
+    });
+  }
+  function draw() {
+    var rows = shown();
+    countEl.textContent = all.length ? '(' + (rows.length === all.length ? all.length : rows.length + ' of ' + all.length) + ')' : '';
+    var extra = unlisted ? '<p class="iv-note">' + unlisted + ' more ' + (unlisted === 1 ? 'person has' : 'people have') + ' saved sessions but ' + (unlisted === 1 ? 'is' : 'are') + ' on none of these lists. Press <b>Add current testers</b> on the Early access panel to list them.</p>' : '';
+    if (!rows.length) { listEl.innerHTML = '<p class="empty">' + (all.length ? 'Nobody matches.' : 'Nobody on Laps yet.') + '</p>' + extra; return; }
+    listEl.innerHTML = '<div class="lm-scroll"><table class="iv-table lm-table"><thead><tr><th>Member</th><th>Account</th><th>Early access</th><th>Sessions</th><th>Joined</th><th></th></tr></thead><tbody>' + rows.map(function (m) {
+      var laps = (m.account || 'laps') === 'laps';
       return '<tr data-member="' + esc(m.email) + '"><td>' + esc(m.name || m.email) + (m.name ? '<span class="iv-sub">' + esc(m.email) + '</span>' : '') + '</td>' +
+        '<td>' + (laps ? 'Laps only' : 'MT3UK member') + '</td>' +
+        '<td>' + esc(EARLY[m.early] || 'Not listed') + '</td>' +
+        '<td>' + esc(m.sessions || 0) + '</td>' +
         '<td>' + esc(nice(m.since)) + '</td>' +
-        '<td><button type="button" class="secondary iv-act lm-remove" data-email="' + esc(m.email) + '">Remove</button></td></tr>';
-    }).join('') + '</tbody></table>';
+        '<td>' + (laps ? '<button type="button" class="secondary iv-act lm-remove" data-email="' + esc(m.email) + '">Remove</button>' : '<a class="iv-act" href="admin.html#subscribers-wrap">Subscribers panel</a>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' + extra;
   }
   function load() {
     if (!key()) return;
     call('GET').then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'Could not load the Laps members.', true); return; }
-      loaded = true; note(''); draw(d.members || []);
+      loaded = true; note(''); all = d.members || []; unlisted = d.unlisted || 0; draw();
     }).catch(function () { note('Could not reach the server.', true); });
   }
+  wrap.querySelectorAll('[data-lm-filter]').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      filter = chip.getAttribute('data-lm-filter');
+      wrap.querySelectorAll('[data-lm-filter]').forEach(function (c) { c.classList.toggle('is-on', c === chip); });
+      draw();
+    });
+  });
+  findEl.addEventListener('input', draw);
   emailSw.addEventListener('click', function () { emailSw.setAttribute('aria-checked', String(!emailOn())); });
   listEl.addEventListener('click', function (e) {
     var btn = e.target.closest('.lm-remove');
@@ -54,7 +80,7 @@
     btn.disabled = true;
     call('POST', { remove: email, notify: tell }).then(function (d) {
       if (!d.ok || !d.success) { btn.disabled = false; note(d.message || 'Could not remove that account.', true); return; }
-      draw(d.members || []);
+      all = d.members || []; unlisted = d.unlisted || 0; draw();
       note('Removed ' + email + (d.emailed ? ' and emailed them.' : (tell ? '. They were not emailed (emails off, or they had no account).' : ', without an email.')));
       document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
       document.dispatchEvent(new CustomEvent('mt3uk-bell-refresh'));

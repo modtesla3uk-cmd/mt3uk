@@ -21,7 +21,7 @@ GROUPS = [
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap", "feedback-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap", "passkey-nudge-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-sharing", "Sharing links", ["home-share-wrap"]),
+    ("grp-sharing", "Sharing links", ["home-share-wrap", "fbposts-wrap"]),
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
@@ -2560,7 +2560,11 @@ def test_removing_a_subscriber_can_email_them_or_not(page):
 def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email(page):
     """The Laps members list on the Sign-in and sign-up panel of track-admin.html shows the Laps-only accounts; Remove
     asks the worker to remove one (notify false when the Email them switch is off) and the list redraws."""
-    members = [{"email": "pat@example.com", "name": "Pat Lee", "since": "2026-10-01T10:00:00Z"}, {"email": "rae@example.com", "name": "", "since": "2026-10-05T10:00:00Z"}]
+    members = [
+        {"email": "pat@example.com", "name": "Pat Lee", "since": "2026-10-01T10:00:00Z", "account": "laps", "early": "approved", "sessions": 3},
+        {"email": "rae@example.com", "name": "", "since": "2026-10-05T10:00:00Z", "account": "laps", "early": "", "sessions": 0},
+        {"email": "sam@example.com", "name": "Sam Ng", "since": "2026-10-03T10:00:00Z", "account": "mt3uk", "early": "waiting", "sessions": 1},
+    ]
     posts, messages = [], []
 
     def api(route):
@@ -2570,9 +2574,9 @@ def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email
             sent = json.loads(req.post_data)
             posts.append(sent)
             members[:] = [m for m in members if m["email"] != sent["remove"]]
-            body = {"success": True, "emailed": sent["notify"], "members": members}
+            body = {"success": True, "emailed": sent["notify"], "members": members, "unlisted": 2}
         elif path == "/laps/members/admin":
-            body = {"success": True, "members": members}
+            body = {"success": True, "members": members, "unlisted": 2}
         else:
             body = {"success": True}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
@@ -2580,17 +2584,30 @@ def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
     page.goto("/track-admin.html")
     page.locator("#signin-wrap > summary").click()
-    expect(page.locator("#lm-list tbody tr")).to_have_count(2)
+    expect(page.locator("#lm-list tbody tr")).to_have_count(3)
     expect(page.locator("#lm-list")).to_contain_text("Pat Lee")
+    expect(page.locator("#lm-list")).to_contain_text("2 more people have saved sessions")
+    expect(page.locator("#lm-count")).to_have_text("(3)")
+    # An MT3UK member has no Remove here, only a pointer to the Subscribers panel.
+    expect(page.locator('tr[data-member="sam@example.com"] .lm-remove')).to_have_count(0)
+    expect(page.locator('tr[data-member="sam@example.com"]')).to_contain_text("Waiting")
+    page.locator('[data-lm-filter="mt3uk"]').click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
+    page.locator('[data-lm-filter="laps"]').click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(2)
+    page.locator('[data-lm-filter="all"]').click()
+    page.locator("#lm-find").fill("pat")
+    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
+    page.locator("#lm-find").fill("")
     expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "true")
     page.on("dialog", lambda d: (messages.append(d.message), d.accept()))
     page.locator('.lm-remove[data-email="pat@example.com"]').click()
-    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
+    expect(page.locator("#lm-list tbody tr")).to_have_count(2)
     assert posts[0] == {"remove": "pat@example.com", "notify": True} and "emailed to say they are unsubscribed" in messages[0]
     page.locator("#lm-email").click()
     expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "false")
     page.locator('.lm-remove[data-email="rae@example.com"]').click()
-    expect(page.locator("#lm-list")).to_contain_text("No Laps-only accounts")
+    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
     assert posts[1] == {"remove": "rae@example.com", "notify": False} and "without an email" in messages[1]
 
 

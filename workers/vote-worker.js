@@ -6414,25 +6414,54 @@ async function handleLapsSigninPublic(request, env) {
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
 }
-// The Laps members list on the Sign-in and sign-up panel of track-admin.html: the Laps-only accounts (KV
-// laps-account:, joined on Laps while MT3UK membership was switched off), with Remove. list() is fine, this is an
+// The Laps members list on the Sign-in and sign-up panel of track-admin.html: everyone on Laps (the Laps-only accounts,
+// KV laps-account:, joined on Laps while MT3UK membership was switched off, and the MT3UK members on the early access
+// or New Laps sign-ups lists), with Remove for the Laps-only ones. list() is fine, this is an
 // admin route. Remove does what leaving does (their cars, sessions, sign-ins, early access and New Laps sign-ups
 // entry), and emails them that they are unsubscribed, with a link to subscribe again, unless notify is false. A full
 // MT3UK member is refused: they are removed on the Subscribers panel of admin.html.
 async function lapsMembersList(env) {
-  var out = [], cursor;
+  // Everyone on Laps in one list: the Laps-only accounts, plus every MT3UK member who is on the early access lists
+  // (approved or waiting) or the New Laps sign-ups list. Session lists are keyed by a hash of the email, so people
+  // with sessions who are on none of those lists cannot be named: they are counted (unlisted).
+  var rows = {}, cursor;
+  function row(email) { return rows[email] || (rows[email] = { email: email, name: '', since: '', account: '', early: '', sessions: 0 }); }
   do {
     var page = await env.VOTES.list({ prefix: 'laps-account:', cursor: cursor, limit: 1000 });
-    for (var i = 0; i < page.keys.length && out.length < 2000; i++) {
+    for (var i = 0; i < page.keys.length && Object.keys(rows).length < 2000; i++) {
       var email = page.keys[i].name.slice('laps-account:'.length);
       var rec = await getJsonKey(env, page.keys[i].name, {});
-      var profile = await getProfileRecord(env, email);
-      out.push({ email: email, name: [profile.firstName, profile.lastName].filter(Boolean).join(' '), since: rec.since || '' });
+      var r = row(email); r.account = 'laps'; r.since = rec.since || '';
     }
     cursor = page.list_complete ? null : page.cursor;
-  } while (cursor && out.length < 2000);
-  out.sort(function (a, b) { return String(b.since).localeCompare(String(a.since)); });
-  return out;
+  } while (cursor && Object.keys(rows).length < 2000);
+  var acc = await getTrackAccess(env);
+  var signups = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
+  acc.allowed.forEach(function (x) { var r = row(accessEmail(x.email)); r.early = 'approved'; r.name = r.name || x.name || ''; r.since = r.since || x.at || ''; });
+  acc.pending.forEach(function (x) { var r = row(accessEmail(x.email)); r.early = 'waiting'; r.name = r.name || x.name || ''; r.since = r.since || x.at || ''; });
+  signups.forEach(function (x) { var r = row(accessEmail(x.email)); r.name = r.name || x.name || ''; r.since = r.since || x.at || ''; });
+  var known = {}, out = [], emails = Object.keys(rows);
+  for (var j = 0; j < emails.length && out.length < 2000; j++) {
+    var e = emails[j], m = rows[e];
+    if (m.account !== 'laps') {
+      if ((await env.VOTES.get('subscriber:' + e)) === null) continue; // gone since: not a member any more
+      m.account = 'mt3uk';
+    }
+    var profile = await getProfileRecord(env, e);
+    m.name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || m.name;
+    var hash = await ownerKey(e);
+    known[hash] = true;
+    m.sessions = (await getJsonKey(env, 'track-index:' + hash, [])).length;
+    out.push(m);
+  }
+  out.sort(function (x, y) { return String(y.since).localeCompare(String(x.since)); });
+  var unlisted = 0, c2;
+  do {
+    var p2 = await env.VOTES.list({ prefix: 'track-index:', cursor: c2, limit: 1000 });
+    p2.keys.forEach(function (k) { if (!known[k.name.slice('track-index:'.length)]) unlisted++; });
+    c2 = p2.list_complete ? null : p2.cursor;
+  } while (c2);
+  return { members: out, unlisted: unlisted };
 }
 async function handleLapsMembersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -6447,9 +6476,11 @@ async function handleLapsMembersAdmin(request, env) {
     await deleteMemberAccount(env, email);
     var emailed = body.notify === false ? false : await sendUnsubscribedEmail(env, email, plan, true, true);
     await bumpAdminStamp(env);
-    return json({ success: true, emailed: emailed, members: await lapsMembersList(env) });
+    var left = await lapsMembersList(env);
+    return json({ success: true, emailed: emailed, members: left.members, unlisted: left.unlisted });
   }
-  return json({ success: true, members: await lapsMembersList(env) });
+  var all = await lapsMembersList(env);
+  return json({ success: true, members: all.members, unlisted: all.unlisted });
 }
 
 async function handleLapsSigninAdmin(request, env) {

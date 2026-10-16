@@ -727,3 +727,11 @@ h3.sub-head[id], .tk-fold { scroll-margin-top: calc(var(--nav-h, 64px) + 70px); 
 .snd-row small { grid-column: 1 / -1; color: var(--muted, #5b6470); }
 .snd-row output { min-width: 3.5em; text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 780px) { .snd-row { grid-template-columns: 1fr auto; } .snd-row input { grid-column: 1 / -1; } }
+/* Laps members: the six-column table scrolls sideways inside its box on a phone instead of widening the page. */
+.lm-scroll { overflow-x: auto; max-width: 100%; }
+.lm-table td, .lm-table th { white-space: nowrap; }
+
+/* Facebook posts: one card per post, with the words in an editable box. */
+.fbp-card { margin: 0 0 18px; padding: 14px; border: 1px solid var(--hairline, #d9d6cc); border-radius: var(--radius, 10px); background: #fff; }
+.fbp-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.fbp-text { width: 100%; box-sizing: border-box; min-height: 120px; padding: 10px 12px; border: 1px solid var(--hairline-strong, #b9b6ab); border-radius: var(--radius-sm, 8px); font: inherit; line-height: 1.45; }

@@ -8,9 +8,8 @@
   var wrap = document.getElementById('kinds-wrap');
   if (!wrap) return;
   var noteEl = document.getElementById('kinds-note'), countEl = document.getElementById('kinds-count');
-  var testersEl = document.getElementById('kinds-testers'), membersEl = document.getElementById('kinds-members');
-  var findEl = document.getElementById('kinds-find');
-  var state = null, members = null;
+  var testersEl = document.getElementById('kinds-testers');
+  var state = null;
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
   function key() {
@@ -37,18 +36,6 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">No testers yet.</p>';
-    if (members) drawMembers();
-  }
-  function drawMembers() {
-    var q = findEl.value.trim().toLowerCase();
-    var rows = members.filter(function (m) { return !q || m.email.indexOf(q) !== -1 || (m.name || '').toLowerCase().indexOf(q) !== -1; });
-    if (!rows.length) { membersEl.innerHTML = '<p class="empty">No member matches.</p>'; return; }
-    var shown = rows.slice(0, 50);
-    membersEl.innerHTML = '<table class="iv-table"><tbody>' + shown.map(function (m) {
-      var tester = has(state.testers, m.email);
-      return '<tr><td>' + esc(m.name ? m.name + ' ' : '') + '<span class="iv-sub">' + esc(m.email) + '</span></td>' +
-        '<td>' + (tester ? '<button type="button" class="danger iv-act" data-revoke="' + esc(m.email) + '">Take away</button>' : '<button type="button" class="iv-act" data-give="' + esc(m.email) + '">Add as tester</button>') + '</td></tr>';
-    }).join('') + '</tbody></table>';
   }
   function load() {
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
@@ -57,16 +44,23 @@
       state = d; note(''); draw();
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
+  // The member list is the shared finder (js/member-finder.js): by nickname, name or email, with Show members and Close list.
   function loadMembers() {
-    if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
-    membersEl.innerHTML = '<p class="empty">Loading...</p>';
-    call('GET', undefined, '&members=1').then(function (d) {
-      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); membersEl.innerHTML = ''; return; }
-      state = d; members = d.members || []; note(''); draw();
-    }).catch(function () { note('Could not reach the server.', 'error'); membersEl.innerHTML = ''; });
+    return call('GET', undefined, '&members=1').then(function (d) {
+      if (!d.ok || !d.success) throw new Error(d.message || 'Could not load the members.');
+      return d.members || [];
+    });
+  }
+  function mountFinder() {
+    if (!window.MT3UKMemberFinder) return;
+    window.MT3UKMemberFinder.mount(document.getElementById('kinds-members-host'), {
+      load: loadMembers,
+      action: { label: 'Add as tester', run: function (m) { return act({ action: 'add', email: m.email }, 'Added as a tester.'); } },
+      note: function (m) { return state && has(state.testers, m.email) ? '(already a tester)' : ''; }
+    });
   }
   function act(body, done) {
-    call('POST', body).then(function (d) {
+    return call('POST', body).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); return; }
       state = Object.assign({}, state, d); draw(); note(done || '');
     }).catch(function () { note('Could not reach the server.', 'error'); });
@@ -86,15 +80,7 @@
     var r = e.target.closest('[data-revoke]');
     if (r && window.confirm('Take this member off the testers list?')) act({ action: 'revoke', email: r.getAttribute('data-revoke') }, 'Removed.');
   });
-  document.getElementById('kinds-load').addEventListener('click', loadMembers);
-  findEl.addEventListener('input', function () { if (members) drawMembers(); });
-  document.getElementById('kinds-add-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('kinds-add-email'), email = input.value.trim();
-    if (!email) return;
-    act({ action: 'add', email: email }, 'Added as a tester.');
-    input.value = '';
-  });
+  mountFinder();
   // Read when the panel is opened (or refreshed while it is open), not on every page load.
   document.addEventListener('mt3uk-admin-refresh', function () { if (key() && wrap.open) load(); });
 })();

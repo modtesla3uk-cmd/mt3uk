@@ -9,8 +9,8 @@
   if (!wrap) return;
   var allowEl = document.getElementById('of-allowed'), noteEl = document.getElementById('of-note');
   var openBtn = document.getElementById('of-open'), countEl = document.getElementById('offline-count');
-  var state = null, members = null;
-  var findEl = document.getElementById('of-find'), memEl = document.getElementById('of-members'), meBtn = document.getElementById('of-me');
+  var state = null;
+  var meBtn = document.getElementById('of-me');
   var myEmail = '';
   try { myEmail = (localStorage.getItem('mt3ukMyBuildsEmail') || '').toLowerCase(); } catch (e) { /* storage blocked */ }
 
@@ -38,10 +38,6 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has been given access yet.</p>';
-    if (members) {
-      members.forEach(function (m) { m.access = s.open || s.allowed.some(function (a) { return a.email === m.email; }); });
-      drawMembers();
-    }
     meBtn.hidden = !myEmail;
     if (myEmail) {
       var has = s.open || s.allowed.some(function (a) { return a.email === myEmail; });
@@ -49,26 +45,23 @@
       meBtn.setAttribute('data-me', has ? 'revoke' : 'add');
     }
   }
-  function drawMembers() {
-    var q = findEl.value.trim().toLowerCase();
-    var rows = members.filter(function (m) { return !q || m.email.indexOf(q) !== -1 || (m.name || '').toLowerCase().indexOf(q) !== -1; });
-    if (!rows.length) { memEl.innerHTML = '<p class="empty">No Laps member matches.</p>'; return; }
-    var shown = rows.slice(0, 50);
-    memEl.innerHTML = '<table class="iv-table"><tbody>' + shown.map(function (m) {
-      var you = m.email === myEmail ? ' <b>(you)</b>' : '';
-      return '<tr><td>' + esc(m.name ? m.name + ' ' : '') + '<span class="iv-sub">' + esc(m.email) + you + (m.account === 'laps' ? ', Laps only' : '') + '</span></td>' +
-        '<td>' + (state.open ? 'Open to all' : m.access ? 'Has access' : '') + '</td>' +
-        '<td>' + (m.access && !state.open ? '<button type="button" class="danger iv-act" data-revoke="' + esc(m.email) + '">Take away</button>' : !m.access ? '<button type="button" class="iv-act" data-give="' + esc(m.email) + '">Give access</button>' : '') + '</td></tr>';
-    }).join('') + '</tbody></table>' + (rows.length > shown.length ? '<p class="iv-note">Showing the first ' + shown.length + ' of ' + rows.length + '. Type more to narrow it down.</p>' : '');
-  }
+  // The member list is the shared finder (js/member-finder.js): by nickname, name or email, with Show members and Close list.
   function loadMembers() {
-    if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
-    memEl.innerHTML = '<p class="empty">Loading...</p>';
-    call('GET', undefined, '&members=1').then(function (d) {
-      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); memEl.innerHTML = ''; return; }
-      state = d; members = d.members || []; note(''); draw();
-    }).catch(function () { note('Could not reach the server.', 'error'); memEl.innerHTML = ''; });
+    return call('GET', undefined, '&members=1').then(function (d) {
+      if (!d.ok || !d.success) throw new Error(d.message || 'Could not load the members.');
+      return d.members || [];
+    });
   }
+  function mountFinder() {
+    if (!window.MT3UKMemberFinder) return;
+    window.MT3UKMemberFinder.mount(document.getElementById('of-members-host'), {
+      load: loadMembers,
+      placeholder: 'Find a Laps member by nickname, name or email',
+      action: { label: 'Give access', run: function (m) { return act({ action: 'add', email: m.email }, 'Access given. They see Offline mode the next time they open Laps (no email sent).'); } },
+      note: function (m) { return state ? (state.open ? '(open to all)' : m.email === myEmail ? '(you)' : has(m.email) ? '(has access)' : '') : ''; }
+    });
+  }
+  function has(email) { return state.allowed.some(function (a) { return a.email === email; }); }
   function load() {
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
     call('GET').then(function (d) {
@@ -77,7 +70,7 @@
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   function act(body, done) {
-    call('POST', body).then(function (d) {
+    return call('POST', body).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); return; }
       state = d; draw(); note(done || '');
     }).catch(function () { note('Could not reach the server.', 'error'); });
@@ -88,8 +81,7 @@
     if (g) { act({ action: 'add', email: g.getAttribute('data-give') }, 'Access given. They see Offline mode the next time they open Laps (no email sent).'); return; }
     if (r && window.confirm('Take Offline mode away from this member? If they already switched it on it stays on for them.')) act({ action: 'revoke', email: r.getAttribute('data-revoke') }, 'Access removed.');
   });
-  document.getElementById('of-load').addEventListener('click', loadMembers);
-  findEl.addEventListener('input', function () { if (members) drawMembers(); });
+  mountFinder();
   meBtn.addEventListener('click', function () {
     var give = meBtn.getAttribute('data-me') !== 'revoke';
     act({ action: give ? 'add' : 'revoke', email: myEmail }, give ? 'You now have Offline mode on your own account.' : 'Taken away from your own account. Reload Laps to see it go.');
@@ -98,13 +90,6 @@
     var on = openBtn.getAttribute('aria-checked') !== 'true';
     if (on && !window.confirm('Offer Offline mode to every member? Every signed-in member on Laps will see its icon, the offer and the footer link.')) return;
     act({ action: 'open', open: on }, on ? 'Open to all members.' : 'Back to approved members only.');
-  });
-  document.getElementById('of-add-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('of-add-email'), email = input.value.trim();
-    if (!email) return;
-    act({ action: 'add', email: email }, 'Added. They will see Offline mode the next time they open Laps (no email sent).');
-    input.value = '';
   });
   document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
   if (key()) load();

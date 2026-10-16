@@ -7943,11 +7943,13 @@ async function lapsOfflineMembers(env, a) {
   }
   await scan('subscriber:', 'mt3uk');
   await scan('laps-account:', 'laps');
-  var list = Object.keys(out).map(function (k) {
+  // The nickname comes from each member's profile (admin route, so one read per member is fine).
+  var list = await Promise.all(Object.keys(out).map(async function (k) {
     var m = out[k];
     m.access = a.open || a.allowed.some(function (x) { return x.email === m.email; });
+    m.nickname = (await getProfileRecord(env, m.email)).nickname || '';
     return m;
-  });
+  }));
   list.sort(function (x, y) { return (x.name || x.email).toLowerCase() < (y.name || y.email).toLowerCase() ? -1 : 1; });
   return list.slice(0, 3000);
 }

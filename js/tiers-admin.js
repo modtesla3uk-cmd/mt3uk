@@ -1,7 +1,8 @@
 /*
   track-admin.html, Free tier and Full access panel. The switch (off, testers only, everyone), the allowance (start,
-  monthly top-up, cap), the testers and the members with Full access. One KV key (track-tiers) kept by the worker
-  (/track/tiers/admin). Nothing shows to members while the switch is off.
+  monthly top-up, cap), the testers, the members with Full access and the paid plan. One KV key (track-tiers) kept by
+  the worker (/track/tiers/admin). Nothing shows to members while the switch is off. Each list of members is found
+  with the shared finder (js/member-finder.js): by nickname, name or email, with Show members and Close list.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -9,9 +10,8 @@
   if (!wrap) return;
   var noteEl = document.getElementById('tiers-note'), countEl = document.getElementById('tiers-count');
   var testersEl = document.getElementById('tiers-testers'), fullEl = document.getElementById('tiers-full');
-  var membersEl = document.getElementById('tiers-members'), findEl = document.getElementById('tiers-find');
   var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
-  var state = null, members = null;
+  var state = null;
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
   function key() {
@@ -30,7 +30,7 @@
     var d = new Date(iso);
     return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
-  function has(list, email) { return list.some(function (x) { return x.email === email; }); }
+  function has(list, email) { return (list || []).some(function (x) { return x.email === email; }); }
   function draw() {
     countEl.textContent = MODE_WORDS[state.mode] || '';
     Array.prototype.forEach.call(wrap.querySelectorAll('[data-mode]'), function (b) {
@@ -59,18 +59,6 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="iv-act" data-topup="' + esc(a.email) + '" data-req="' + esc(a.id) + '">Add 1 day</button> <button type="button" class="secondary iv-act" data-done="' + esc(a.id) + '">Done</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">No requests waiting.</p>';
-    if (members) drawMembers();
-  }
-  function drawMembers() {
-    var q = findEl.value.trim().toLowerCase();
-    var rows = members.filter(function (m) { return !q || m.email.indexOf(q) !== -1 || (m.name || '').toLowerCase().indexOf(q) !== -1; });
-    if (!rows.length) { membersEl.innerHTML = '<p class="empty">No member matches.</p>'; return; }
-    var shown = rows.slice(0, 50);
-    membersEl.innerHTML = '<table class="iv-table"><tbody>' + shown.map(function (m) {
-      var tester = has(state.testers, m.email);
-      return '<tr><td>' + esc(m.name ? m.name + ' ' : '') + '<span class="iv-sub">' + esc(m.email) + '</span></td><td>' + (tester ? 'Tester' : '') + '</td>' +
-        '<td>' + (tester ? '<button type="button" class="danger iv-act" data-revoke="testers" data-email="' + esc(m.email) + '">Take away</button>' : '<button type="button" class="iv-act" data-give="testers" data-email="' + esc(m.email) + '">Add as tester</button>') + '</td></tr>';
-    }).join('') + '</tbody></table>' + (rows.length > shown.length ? '<p class="iv-note">Showing the first ' + shown.length + ' of ' + rows.length + '. Type more to narrow it down.</p>' : '');
   }
   function load() {
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
@@ -79,16 +67,15 @@
       state = d; note(''); draw();
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
+  // The member list for the finder: the worker reads it on request (members=1).
   function loadMembers() {
-    if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
-    membersEl.innerHTML = '<p class="empty">Loading...</p>';
-    call('GET', undefined, '&members=1').then(function (d) {
-      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); membersEl.innerHTML = ''; return; }
-      state = d; members = d.members || []; note(''); draw();
-    }).catch(function () { note('Could not reach the server.', 'error'); membersEl.innerHTML = ''; });
+    return call('GET', undefined, '&members=1').then(function (d) {
+      if (!d.ok || !d.success) throw new Error(d.message || 'Could not load the members.');
+      return d.members || [];
+    });
   }
   function act(body, done) {
-    call('POST', body).then(function (d) {
+    return call('POST', body).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); return; }
       state = Object.assign({}, state, d); draw(); note(done || '');
       if (body.action === 'topup' || body.action === 'requestdone') {
@@ -111,61 +98,37 @@
     if (tu) { act({ action: 'topup', email: tu.getAttribute('data-topup'), days: 1 }, 'Added 1 day. The request is marked done.'); return; }
     var dn = e.target.closest('[data-done]');
     if (dn) { act({ action: 'requestdone', id: dn.getAttribute('data-done') }, 'Marked done.'); return; }
-    var g = e.target.closest('[data-give]');
-    if (g) { act({ action: 'add', list: g.getAttribute('data-give'), email: g.getAttribute('data-email') }, 'Added as a tester.'); return; }
     var r = e.target.closest('[data-revoke]');
-    if (r && window.confirm('Take this member off the ' + (r.getAttribute('data-revoke') === 'full' ? 'Full access' : 'testers') + ' list?')) {
+    if (r && window.confirm('Take this member off the ' + ({ full: 'Full access', paid: 'paid plan' }[r.getAttribute('data-revoke')] || 'testers') + ' list?')) {
       act({ action: 'revoke', list: r.getAttribute('data-revoke'), email: r.getAttribute('data-email') }, 'Removed.');
     }
   });
-  document.getElementById('tiers-load').addEventListener('click', loadMembers);
-  findEl.addEventListener('input', function () { if (members) drawMembers(); });
   document.getElementById('tiers-allowance-form').addEventListener('submit', function (e) {
     e.preventDefault();
     act({ action: 'allowance', start: parseInt(document.getElementById('tiers-start').value, 10), monthly: parseInt(document.getElementById('tiers-monthly').value, 10), cap: parseInt(document.getElementById('tiers-cap').value, 10) }, 'Allowance saved.');
   });
-  document.getElementById('tiers-tester-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('tiers-tester-email'), email = input.value.trim();
-    if (!email) return;
-    act({ action: 'add', list: 'testers', email: email }, 'Added as a tester.');
-    input.value = '';
-  });
-  // A name or part of an email is looked up in the member list (as Find a member does) and must match one member.
-  function resolve(text, then) {
-    var q = text.trim().toLowerCase();
-    if (q.indexOf('@') !== -1) { then(q); return; }
-    function pick() {
-      var hits = members.filter(function (m) { return (m.name || '').toLowerCase().indexOf(q) !== -1 || m.email.indexOf(q) !== -1; });
-      if (!hits.length) { note('No member matches "' + text.trim() + '".', 'error'); return; }
-      if (hits.length > 1) { note(hits.length + ' members match "' + text.trim() + '". Type more of the name or the email.', 'error'); return; }
-      then(hits[0].email);
-    }
-    if (members) { pick(); return; }
-    note('Looking up members...', '');
-    call('GET', undefined, '&members=1').then(function (d) {
-      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); return; }
-      members = d.members || []; pick();
-    }).catch(function () { note('Could not reach the server.', 'error'); });
+
+  // The three member lists: each finds a member by nickname, name or email and gives the access with its button.
+  function giveButton(list, label, done) {
+    return { label: label, run: function (m) { return act({ action: 'add', list: list, email: m.email }, done); } };
   }
-  document.getElementById('tiers-paid-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('tiers-paid-email');
-    if (!input.value.trim()) return;
-    resolve(input.value, function (email) {
-      act({ action: 'add', list: 'paid', email: email }, 'Added to the paid plan.');
-      input.value = '';
+  if (window.MT3UKMemberFinder) {
+    window.MT3UKMemberFinder.mount(document.getElementById('tiers-find-host'), {
+      load: loadMembers,
+      action: giveButton('testers', 'Add as tester', 'Added as a tester.'),
+      note: function (m) { return state && has(state.testers, m.email) ? '(already a tester)' : ''; }
     });
-  });
-  document.getElementById('tiers-full-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('tiers-full-email');
-    if (!input.value.trim()) return;
-    resolve(input.value, function (email) {
-      act({ action: 'add', list: 'full', email: email }, 'Full access given. No email is sent.');
-      input.value = '';
+    window.MT3UKMemberFinder.mount(document.getElementById('tiers-full-host'), {
+      load: loadMembers,
+      action: giveButton('full', 'Give Full access', 'Full access given. No email is sent.'),
+      note: function (m) { return state && has(state.full, m.email) ? '(has Full access)' : ''; }
     });
-  });
+    window.MT3UKMemberFinder.mount(document.getElementById('tiers-paid-host'), {
+      load: loadMembers,
+      action: giveButton('paid', 'Add to paid plan', 'Added to the paid plan.'),
+      note: function (m) { return state && has(state.paid, m.email) ? '(on the paid plan)' : ''; }
+    });
+  }
   document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
   if (key()) load();
 })();

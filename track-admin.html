@@ -86,11 +86,9 @@
       <h3 class="sub-head">Approved members</h3>
       <div id="of-allowed"></div>
       <h3 class="sub-head">Find a Laps member</h3>
-      <p class="iv-note">Everyone who can sign in to Laps. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in to Laps in this browser, so you can test adding and taking away on it: while you are signed in, the list decides for you too.</p>
-      <div class="iv-toolbar"><input type="search" id="of-find" placeholder="Name or email" aria-label="Find a Laps member" autocomplete="off"><button type="button" class="secondary" id="of-load">Show Laps members</button><button type="button" class="secondary" id="of-me" hidden>Add me</button></div>
-      <div id="of-members"></div>
-      <h3 class="sub-head">Add someone</h3>
-      <form class="iv-toolbar" id="of-add-form"><input type="email" id="of-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+      <p class="iv-note">Everyone who can sign in to Laps. Type a nickname, name or email, then press Show members to find them, and give access or take it away. Your own account is marked "you" when you are signed in to Laps in this browser, so you can test adding and taking away on it: while you are signed in, the list decides for you too.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="of-me" hidden>Add me</button></div>
+      <div id="of-members-host"></div>
     </details>
     <details class="collapsible" id="tree-wrap">
       <summary><h3 class="panel-title">Sessions split by kind <span class="summary-count" id="tree-count"></span></h3></summary>
@@ -100,11 +98,9 @@
       <h3 class="sub-head">Invited members</h3>
       <div id="st-allowed"></div>
       <h3 class="sub-head">Find a member</h3>
-      <p class="iv-note">Everyone who can sign in. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in in this browser, so you can test adding and taking away on it.</p>
-      <div class="iv-toolbar"><input type="search" id="st-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="st-load">Show members</button><button type="button" class="secondary" id="st-me" hidden>Add me</button></div>
-      <div id="st-members"></div>
-      <h3 class="sub-head">Add someone</h3>
-      <form class="iv-toolbar" id="st-add-form"><input type="email" id="st-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+      <p class="iv-note">Everyone who can sign in. Type a nickname, name or email, then press Show members to find them, and give access or take it away. Your own account is marked "you" when you are signed in in this browser, so you can test adding and taking away on it.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="st-me" hidden>Add me</button></div>
+      <div id="st-members-host"></div>
     </details>
     <details class="collapsible" id="kinds-wrap">
       <summary><h3 class="panel-title">Sprints and hill climbs <span class="summary-count" id="kinds-count"></span></h3></summary>
@@ -118,9 +114,7 @@
       </div>
       <h3 class="sub-head">Testers</h3>
       <div id="kinds-testers"></div>
-      <div class="iv-toolbar"><input type="search" id="kinds-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="kinds-load">Show members</button></div>
-      <div id="kinds-members"></div>
-      <form class="iv-toolbar" id="kinds-add-form"><input type="email" id="kinds-add-email" placeholder="Member's email" aria-label="Tester's email" autocomplete="off"><button type="submit">Add tester</button></form>
+      <div id="kinds-members-host"></div>
     </details>
     <details class="collapsible" id="tiers-wrap">
       <summary><h3 class="panel-title">Free tier and Full access <span class="summary-count" id="tiers-count"></span></h3></summary>
@@ -143,18 +137,16 @@
       <p class="iv-note">Free members who have used their sessions and asked MT3UK for more. Add sessions to their balance, or mark the request done.</p>
       <div id="tiers-requests"></div>
       <h3 class="sub-head">Testers</h3>
-      <p class="iv-note">Testers see the free tier while the switch is on for testers only. Find a member by name or email, then give access.</p>
+      <p class="iv-note">Testers see the free tier while the switch is on for testers only. Find a member by nickname, name or email, then give access.</p>
       <div id="tiers-testers"></div>
-      <div class="iv-toolbar"><input type="search" id="tiers-find" placeholder="Name or email" aria-label="Find a member" autocomplete="off"><button type="button" class="secondary" id="tiers-load">Show members</button></div>
-      <div id="tiers-members"></div>
-      <form class="iv-toolbar" id="tiers-tester-form"><input type="email" id="tiers-tester-email" placeholder="Member's email" aria-label="Tester's email" autocomplete="off"><button type="submit">Add tester</button></form>
+      <div id="tiers-find-host"></div>
       <h3 class="sub-head">Full access</h3>
       <div id="tiers-full"></div>
-      <form class="iv-toolbar" id="tiers-full-form"><input type="search" id="tiers-full-email" placeholder="Name or email" aria-label="Find a member for Full access" autocomplete="off"><button type="submit">Give Full access</button></form>
+      <div id="tiers-full-host"></div>
       <h3 class="sub-head">Paid plan</h3>
       <p class="iv-note">Paid members have no session limit and every tool is open to them. There are no payments yet: you set who is on the paid plan here.</p>
       <div id="tiers-paid"></div>
-      <form class="iv-toolbar" id="tiers-paid-form"><input type="search" id="tiers-paid-email" placeholder="Name or email" aria-label="Find a member for the paid plan" autocomplete="off"><button type="submit">Add to paid plan</button></form>
+      <div id="tiers-paid-host"></div>
     </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
@@ -442,10 +434,11 @@
 <script src="js/track-parse.js?v=20271039" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
-<script src="js/laps-offline-admin.js?v=2" defer></script>
-<script src="js/sessions-tree-admin.js?v=1" defer></script>
-<script src="js/tiers-admin.js?v=6" defer></script>
-<script src="js/kinds-admin.js?v=1" defer></script>
+<script src="js/member-finder.js?v=1" defer></script>
+<script src="js/laps-offline-admin.js?v=3" defer></script>
+<script src="js/sessions-tree-admin.js?v=2" defer></script>
+<script src="js/tiers-admin.js?v=8" defer></script>
+<script src="js/kinds-admin.js?v=2" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>

@@ -466,7 +466,10 @@ def test_admin_offline_mode_panel_gives_access_to_members_and_opens_to_all(page)
                 state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
             elif body["action"] == "revoke":
                 state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
-        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+        data = dict(state, success=True)
+        if "members=1" in route.request.url:
+            data["members"] = [{"email": "new@example.com", "name": "New Person", "nickname": "newbie", "account": "mt3uk", "access": False}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
     open_admin(page, "track-admin.html")
     page.route("**/laps/offline/admin**", offline)
     page.reload()
@@ -474,8 +477,9 @@ def test_admin_offline_mode_panel_gives_access_to_members_and_opens_to_all(page)
     expect(page.locator("#offline-count")).to_have_text("1 approved")
     page.locator("#offline-wrap summary").click()
     expect(page.locator("#of-allowed")).to_contain_text("old@example.com")
-    page.fill("#of-add-email", "new@example.com")
-    page.get_by_role("button", name="Give access").click()
+    page.locator("#of-members-host .mf-show").click()
+    page.locator("#of-members-host .mf-find").fill("newbie")
+    page.locator("#of-members-host .mf-go").click()
     expect(page.locator("#of-allowed")).to_contain_text("new@example.com")
     expect(page.locator("#offline-count")).to_have_text("2 approved")
     page.once("dialog", lambda d: d.accept())
@@ -505,15 +509,19 @@ def test_admin_sessions_split_by_kind_panel_invites_members_and_opens_to_all(pag
                 state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
             elif body["action"] == "revoke":
                 state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
-        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+        data = dict(state, success=True)
+        if "members=1" in route.request.url:
+            data["members"] = [{"email": "new@example.com", "name": "New Person", "nickname": "newbie", "account": "mt3uk", "access": False}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
     open_admin(page, "track-admin.html")
     page.route("**/sessions-tree/admin**", tree)
     page.reload()
     expect(page.locator("#tree-count")).to_have_text("1 approved")
     page.locator("#tree-wrap summary").click()
     expect(page.locator("#st-allowed")).to_contain_text("old@example.com")
-    page.fill("#st-add-email", "new@example.com")
-    page.get_by_role("button", name="Give access").click()
+    page.locator("#st-members-host .mf-show").click()
+    page.locator("#st-members-host .mf-find").fill("newbie")
+    page.locator("#st-members-host .mf-go").click()
     expect(page.locator("#st-allowed")).to_contain_text("new@example.com")
     expect(page.locator("#tree-count")).to_have_text("2 approved")
     page.once("dialog", lambda d: d.accept())
@@ -554,19 +562,18 @@ def test_admin_offline_mode_panel_finds_laps_members_and_can_add_the_admins_own_
     page.locator("#offline-wrap summary").click()
     # The admin's own account has a button of its own.
     expect(page.locator("#of-me")).to_have_text("Add me (admin@example.com)")
-    page.get_by_role("button", name="Show Laps members").click()
-    rows = page.locator("#of-members tbody tr")
+    page.locator("#of-members-host .mf-show").click()
+    rows = page.locator("#of-members-host .mf-rows tbody tr")
     expect(rows).to_have_count(3)
-    expect(page.locator("#of-members")).to_contain_text("(you)")
-    expect(page.locator("#of-members")).to_contain_text("Laps only")
+    expect(page.locator("#of-members-host .mf-rows")).to_contain_text("(you)")
     # Type to narrow it down, then give access.
-    page.fill("#of-find", "ann")
+    page.locator("#of-members-host .mf-find").fill("ann")
     expect(rows).to_have_count(1)
     rows.first.get_by_role("button", name="Give access").click()
     expect(page.locator("#of-allowed")).to_contain_text("ann@example.com")
-    expect(rows.first).to_contain_text("Has access")
+    expect(rows.first).to_contain_text("(has access)")
     # Testing on the admin's own account: add, then take away.
-    page.fill("#of-find", "")
+    page.locator("#of-members-host .mf-find").fill("")
     page.locator("#of-me").click()
     expect(page.locator("#of-allowed")).to_contain_text("admin@example.com")
     expect(page.locator("#of-me")).to_have_text("Take me away (admin@example.com)")
@@ -2814,9 +2821,14 @@ def test_admin_can_delete_a_members_session_from_the_member_sessions_panel(page)
     assert deleted == ["dddd4444"]
 
 
-def test_admin_free_tier_panel_sets_the_switch_the_allowance_and_full_access(page):
+def test_free_tier_panel_finds_members_by_nickname_name_or_email_and_closes_the_list(page):
     cors = {"Access-Control-Allow-Origin": "*"}
-    state = {"mode": "off", "allowance": {"start": 10, "monthly": 10, "cap": 20}, "testers": [], "full": []}
+    members = [
+        {"email": "rhc@example.com", "name": "Richard Hughes-Chen", "nickname": "Rich", "account": "mt3uk", "access": False},
+        {"email": "sam.jones@example.com", "name": "Sam Jones", "nickname": "", "account": "mt3uk", "access": False},
+        {"email": "sam.lee@example.com", "name": "Sam Lee", "nickname": "", "account": "mt3uk", "access": False},
+    ]
+    state = {"mode": "off", "allowance": {"start": 10, "monthly": 10, "cap": 20}, "testers": [], "full": [], "paid": [], "requests": []}
     posts = []
 
     def tiers(route):
@@ -2829,65 +2841,44 @@ def test_admin_free_tier_panel_sets_the_switch_the_allowance_and_full_access(pag
                 state["allowance"] = {"start": body["start"], "monthly": body["monthly"], "cap": body["cap"]}
             elif body["action"] == "add":
                 state[body["list"]].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+        reply = dict(state, success=True)
+        if "members=1" in route.request.url:
+            reply["members"] = members
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(reply), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/track/tiers/admin**", tiers)
     page.locator("#tiers-wrap summary").click()
     expect(page.locator("#tiers-start")).to_have_value("10")
-    expect(page.locator("[data-mode='off']")).to_have_attribute("aria-pressed", "true")
     page.locator("[data-mode='testers']").click()
     expect(page.locator("[data-mode='testers']")).to_have_attribute("aria-pressed", "true")
-    page.fill("#tiers-tester-email", "tester@example.com")
-    page.locator("#tiers-tester-form button").click()
-    expect(page.locator("#tiers-testers")).to_contain_text("tester@example.com")
-    page.fill("#tiers-full-email", "full@example.com")
-    page.locator("#tiers-full-form button").click()
-    expect(page.locator("#tiers-full")).to_contain_text("full@example.com")
-    page.fill("#tiers-cap", "25")
+    page.fill("#tiers-start", "12")
     page.locator("#tiers-allowance-form button").click()
     expect(page.locator("#tiers-note")).to_contain_text("Allowance saved")
+    # The Full access list is closed until Show members is pressed, so the panel stays short.
+    full = page.locator("#tiers-full-host")
+    expect(full.locator(".mf-list")).to_be_hidden()
+    full.locator(".mf-show").click()
+    expect(full.locator(".mf-list")).to_be_visible()
+    expect(full.locator(".mf-rows tbody tr")).to_have_count(3)
+    # A nickname, a name part or an email narrows the list.
+    full.locator(".mf-find").fill("rich")
+    expect(full.locator(".mf-rows tbody tr")).to_have_count(1)
+    expect(full.locator(".mf-rows")).to_contain_text("Richard Hughes-Chen")
+    full.locator(".mf-find").fill("Sam")
+    expect(full.locator(".mf-rows tbody tr")).to_have_count(2)
+    full.locator(".mf-find").fill("hughes")
+    full.locator(".mf-go").click()
+    expect(page.locator("#tiers-note")).to_contain_text("Full access given")
+    expect(page.locator("#tiers-full")).to_contain_text("rhc@example.com")
+    # Close list folds the list away again.
+    full.locator(".mf-close").click()
+    expect(full.locator(".mf-list")).to_be_hidden()
     assert posts == [
         {"action": "mode", "mode": "testers"},
-        {"action": "add", "list": "testers", "email": "tester@example.com"},
-        {"action": "add", "list": "full", "email": "full@example.com"},
-        {"action": "allowance", "start": 10, "monthly": 10, "cap": 25},
+        {"action": "allowance", "start": 12, "monthly": 10, "cap": 20},
+        {"action": "add", "list": "full", "email": "rhc@example.com"},
     ]
-
-
-def test_full_access_and_paid_plan_take_a_name_as_well_as_an_email(page):
-    cors = {"Access-Control-Allow-Origin": "*"}
-    members = [
-        {"email": "rhc@example.com", "name": "Richard Hughes-Chen", "account": "mt3uk", "access": False},
-        {"email": "sam.jones@example.com", "name": "Sam Jones", "account": "mt3uk", "access": False},
-        {"email": "sam.lee@example.com", "name": "Sam Lee", "account": "mt3uk", "access": False},
-    ]
-    posts = []
-
-    def tiers(route):
-        if route.request.method == "POST":
-            posts.append(json.loads(route.request.post_data))
-            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "mode": "off", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": []}), headers=cors)
-            return
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "mode": "off", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "members": members}), headers=cors)
-
-    open_admin(page, "track-admin.html")
-    page.route("**/track/tiers/admin**", tiers)
-    page.locator("#tiers-wrap summary").click()
-    # A name that matches one member is looked up and given Full access by its email.
-    page.fill("#tiers-full-email", "Hughes")
-    page.locator("#tiers-full-form button").click()
-    expect(page.locator("#tiers-note")).to_contain_text("Full access given")
-    # A name that matches two members is not given to either: the note asks for more of it.
-    page.fill("#tiers-paid-email", "Sam")
-    page.locator("#tiers-paid-form button").click()
-    expect(page.locator("#tiers-note")).to_contain_text("2 members match")
-    assert posts == [{"action": "add", "list": "full", "email": "rhc@example.com"}]
-    # A full email is used as it is, without a lookup.
-    page.fill("#tiers-paid-email", "sam.lee@example.com")
-    page.locator("#tiers-paid-form button").click()
-    expect(page.locator("#tiers-note")).to_contain_text("Added to the paid plan")
-    assert posts[-1] == {"action": "add", "list": "paid", "email": "sam.lee@example.com"}
 
 
 def test_admin_finds_a_members_sessions_by_name_and_lists_matches(page):
@@ -2934,7 +2925,10 @@ def test_admin_sprints_and_hill_climbs_panel_sets_the_gate_and_adds_testers(page
                 state["mode"] = body["mode"]
             elif body["action"] == "add":
                 state["testers"].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+        data = {"success": True, **state}
+        if "members=1" in route.request.url:
+            data["members"] = [{"email": "john@example.com", "name": "John Smith", "nickname": "", "account": "mt3uk", "access": False}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/track/kinds/admin**", kinds)
@@ -2942,8 +2936,9 @@ def test_admin_sprints_and_hill_climbs_panel_sets_the_gate_and_adds_testers(page
     expect(page.locator("[data-kmode='off']")).to_have_attribute("aria-pressed", "true")
     page.locator("[data-kmode='testers']").click()
     expect(page.locator("[data-kmode='testers']")).to_have_attribute("aria-pressed", "true")
-    page.fill("#kinds-add-email", "john@example.com")
-    page.locator("#kinds-add-form button").click()
+    page.locator("#kinds-members-host .mf-show").click()
+    page.locator("#kinds-members-host .mf-find").fill("john")
+    page.locator("#kinds-members-host .mf-go").click()
     expect(page.locator("#kinds-testers")).to_contain_text("john@example.com")
     assert posts == [{"action": "mode", "mode": "testers"}, {"action": "add", "email": "john@example.com"}]
 
@@ -2959,13 +2954,17 @@ def test_admin_paid_plan_list_adds_and_takes_away_a_paid_member(page):
             posts.append(body)
             if body.get("action") == "add":
                 state[body["list"]].append({"email": body["email"], "name": "", "at": "2026-10-14T09:00:00Z"})
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+        data = {"success": True, **state}
+        if "members=1" in route.request.url:
+            data["members"] = [{"email": "paid@example.com", "name": "Pat Paid", "nickname": "", "account": "mt3uk", "access": False}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/track/tiers/admin**", tiers)
     page.locator("#tiers-wrap summary").click()
     expect(page.locator("#tiers-paid")).to_contain_text("Nobody is on the paid plan yet")
-    page.fill("#tiers-paid-email", "paid@example.com")
-    page.locator("#tiers-paid-form button").click()
+    page.locator("#tiers-paid-host .mf-show").click()
+    page.locator("#tiers-paid-host .mf-find").fill("pat")
+    page.locator("#tiers-paid-host .mf-go").click()
     expect(page.locator("#tiers-paid")).to_contain_text("paid@example.com")
     assert {"action": "add", "list": "paid", "email": "paid@example.com"} in posts

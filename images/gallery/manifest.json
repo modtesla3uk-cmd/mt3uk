@@ -2,6 +2,9 @@
   {
     "file": "photo--by-helen-little-3.jpg",
     "name": "Helen Little",
+    "mods": [
+      "Wheels: Haloblk, White"
+    ],
     "votable": false,
     "reel": false,
     "color": "White",
@@ -11,6 +14,9 @@
   {
     "file": "photo--by-helen-little-2.jpg",
     "name": "Helen Little",
+    "mods": [
+      "Wheels: Haloblk, White"
+    ],
     "votable": false,
     "reel": false,
     "color": "White",
@@ -20,6 +26,9 @@
   {
     "file": "photo--by-helen-little.jpg",
     "name": "Helen Little",
+    "mods": [
+      "Wheels: Haloblk, White"
+    ],
     "votable": false,
     "color": "White",
     "added": "2026-10-16",

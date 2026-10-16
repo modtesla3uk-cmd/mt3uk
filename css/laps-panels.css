@@ -54,3 +54,10 @@
 .laps-tip-pop.laps-tip-pop:has(> .laps-tip-x) { padding-right: 58px; }
 .laps-tip-pop > .laps-tip-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: inherit; cursor: pointer; }
 .laps-tip-pop > .laps-tip-x .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+/* The close X on the What are Sessions? and What is the Leaderboard? panels: shown while the panel is open. */
+.tp-what { position: relative; }
+.tp-what > .tp-what-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(22,35,61,.08); color: inherit; cursor: pointer; }
+.tp-what > .tp-what-x .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.tp-what:not([open]) > .tp-what-x { display: none; }
+.tp-what[open] > .tp-what-body { padding-right: 52px; }
+

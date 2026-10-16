@@ -84,5 +84,10 @@
     if (tip.classList.contains('laps-tip-bulbmode')) return;
     try { if (open) localStorage.setItem(KEY, 'closed'); else localStorage.removeItem(KEY); } catch (e2) {}
   });
+  // The X on the What are Sessions? and What is the Leaderboard? panels shuts the panel.
+  document.addEventListener('click', function (e) {
+    var x = e.target.closest && e.target.closest('.tp-what-x');
+    if (x && x.closest('details')) x.closest('details').open = false;
+  });
   window.MT3UKLapsTip = { place: place, BUILT_IN: BUILT_IN };
 })();

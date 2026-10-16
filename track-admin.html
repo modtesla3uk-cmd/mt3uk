@@ -455,7 +455,9 @@
 <script src="js/track-new-sessions-admin.js?v=20261251" defer></script>
 <script src="js/all-sessions-admin.js?v=1" defer></script>
 <script src="js/track-admin.js?v=20270134" defer></script>
-<script src="js/laps-logo.js?v=1"></script>
+<style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
+<script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>
+<script src="js/laps-logo.js?v=2"></script>
 <script src="js/track-share-card.js?v=20261185"></script>
 <script src="js/track-share-admin.js?v=20261106" defer></script>
 <script src="js/track-copy-admin.js?v=20270220" defer></script>

@@ -77,6 +77,7 @@
     id = known(id || current());
     if (id === 'timer') return id;
     [].forEach.call(document.querySelectorAll('.laps-logo-mark'), function (svg) { svg.innerHTML = inner(id, 'currentColor'); svg.setAttribute('data-logo', id); });
+    document.documentElement.classList.remove('laps-logo-pending');
     var icons = [].slice.call(document.querySelectorAll('link[rel="icon"]')), svgLink = icons.filter(function (l) { return /svg/.test(l.type || ''); })[0];
     if (!svgLink) { svgLink = document.createElement('link'); svgLink.rel = 'icon'; svgLink.type = 'image/svg+xml'; document.head.appendChild(svgLink); }
     icons.forEach(function (l) { if (l !== svgLink) l.remove(); });

@@ -622,7 +622,9 @@
 </header></template>
 <script src="js/laps-shared.js?v=20270201"></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/laps-logo.js?v=1" defer></script>
+<style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
+<script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>
+<script src="js/laps-logo.js?v=2" defer></script>
 
 <section class="page-hero" data-no-share>
   <div class="wrap">

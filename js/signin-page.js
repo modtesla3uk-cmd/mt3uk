@@ -68,6 +68,16 @@
       // name), which they can change in their Profile.
       if (joinName && !read(FIRST_NAME_KEY)) write(FIRST_NAME_KEY, joinName);
       try { localStorage.removeItem(JOIN_NAME_KEY); } catch (e) {}
+      // A new member who joins on Laps is welcomed on the Laps intro page, not sent on to Profile.
+      if (joined && SITE === 'laps') {
+        try {
+          localStorage.removeItem(NEXT_KEY);
+          var note = ($('si-welcome') && !$('si-welcome').hidden) ? $('si-welcome').textContent : '';
+          if (note) localStorage.setItem('mt3ukLapsWelcomeNote', note);
+        } catch (e) {}
+        location.replace('laps.html?welcome=1');
+        return;
+      }
       if (goToPendingNext()) return;
       showSignedIn();
       if (window.mt3ukAskNickname) window.mt3ukAskNickname();

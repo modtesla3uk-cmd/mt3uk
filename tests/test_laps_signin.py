@@ -101,7 +101,10 @@ def test_joining_laps_in_early_preview_says_so_and_welcomes_onto_the_list(page):
     # The emailed link of a new Laps member: welcome onto the list, and no nickname prompt (the worker made one).
     state["session"] = {"success": True, "session": "sess-2", "email": "new@example.com", "joined": "mt3uk", "access": "pending"}
     page.goto(LAPS + "/laps-signin.html?token=abc")
-    expect(page.locator("#si-welcome")).to_have_text("Welcome to Laps! You\u2019re on the early access list, and we\u2019ll email you as soon as you\u2019re in.")
+    # A new Laps member is welcomed on the Laps intro page, which keeps the early access line.
+    page.wait_for_url("**/laps.html?welcome=1")
+    expect(page.locator("#lh-welcome")).to_be_visible()
+    expect(page.locator("#lh-welcome-note")).to_have_text("Welcome to Laps! You\u2019re on the early access list, and we\u2019ll email you as soon as you\u2019re in.")
     assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
 
 

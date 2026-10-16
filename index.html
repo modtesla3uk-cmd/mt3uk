@@ -9,7 +9,7 @@
   // Play intro shows it again.
   if (location.hostname === 'laps.mt3uk.com') {
     var lapsGo = '/laps.html';
-    try { if (localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')) lapsGo = '/track.html'; } catch (e) {}
+    try { if (localStorage.getItem('mt3ukLapsSkipIntro') === '1') lapsGo = '/track.html'; } catch (e) {}
     location.replace(lapsGo + location.search + location.hash);
   }
 </script>

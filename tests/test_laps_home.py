@@ -54,21 +54,27 @@ def test_the_homepage_sends_laps_visitors_to_the_laps_front_page():
     html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
     head = html[:html.index("</head>")]
     assert "location.hostname === 'laps.mt3uk.com'" in head and "/laps.html" in head
-    # Signed in, or seen it before: straight to Sessions.
-    assert "localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')" in head and "'/track.html'" in head
+    # The intro is the front page; a member who ticked Don't show this next time goes to Sessions.
+    assert "localStorage.getItem('mt3ukLapsSkipIntro') === '1'" in head and "'/track.html'" in head
 
 
-def test_the_redirect_from_the_laps_address_goes_on_to_sessions_once_seen(page):
-    # laps.mt3uk.com/ is redirected to laps.html?start. The first time, the front page shows, without ?start.
+def test_the_redirect_from_the_laps_address_goes_on_to_sessions_only_when_dont_show_is_ticked(page):
+    # laps.mt3uk.com/ is redirected to laps.html?start. The front page shows, without ?start, unless the member chose
+    # Don't show this next time.
     page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
                                                          body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
     page.goto("/laps.html?start&utm_source=x#what")
     expect(page.locator("#lh-start")).to_have_text("Sign in to start")
     assert page.evaluate("location.search + location.hash") == "?utm_source=x#what"
-    # Seen before: on to Sessions, keeping the rest of the address.
+    # Signed in does not skip the intro any more. With Don't show this next time ticked, on to Sessions.
+    page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 'x')")
     page.goto("/laps.html?start")
-    page.wait_for_url("**/track.html")
+    expect(page.locator("#lh-start")).to_be_visible()
+    page.evaluate("localStorage.setItem('mt3ukLapsSkipIntro', '1')")
+    page.goto("/laps.html?start&utm_source=x")
+    page.wait_for_url("**/track.html?utm_source=x")
     # Opened any other way (Play intro, a shared section), it stays.
+    page.evaluate("localStorage.removeItem('mt3ukLapsSkipIntro')")
     page.goto("/laps.html")
     expect(page.locator("#lh-start")).to_be_visible()
     assert page.url.endswith("/laps.html")
@@ -353,3 +359,15 @@ def test_the_laps_logo_opens_the_intro_until_dont_show_next_time_is_ticked(page)
     expect(page.locator("#lh-skip")).to_be_checked()
     page.locator("#lh-skip").uncheck()
     expect(page.locator("header .laps-logo")).to_have_attribute("href", "laps.html")
+
+
+def test_a_new_member_is_welcomed_by_name_with_a_guide_on_the_intro_page(page):
+    page.route("**/*", lambda route: route.abort() if "workers.dev" in route.request.url else route.continue_())
+    page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsFirstName', 'Richard HC'); } catch (e) {}")
+    page.goto("/laps.html?welcome=1")
+    expect(page.locator("#lh-welcome")).to_be_visible()
+    expect(page.locator("#lh-welcome-title")).to_have_text("Welcome, Richard")
+    expect(page.locator(".lh-welcome-steps li")).to_have_count(4)
+    assert "welcome" not in page.url
+    page.locator("#lh-welcome-close").click()
+    expect(page.locator("#lh-welcome")).to_be_hidden()

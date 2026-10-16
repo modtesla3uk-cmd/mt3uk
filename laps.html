@@ -14,7 +14,7 @@
     q.delete('start');
     var rest = (q.toString() ? '?' + q : '') + location.hash;
     var go = false;
-    try { go = !!(localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')); } catch (e) {}
+    try { go = localStorage.getItem('mt3ukLapsSkipIntro') === '1'; } catch (e) {}
     if (go) location.replace('/track.html' + rest);
     else history.replaceState(null, '', location.pathname + rest);
   })();
@@ -386,6 +386,13 @@
   .lh-free-list .icon { flex: 0 0 22px; width: 22px; height: 22px; fill: none; stroke: #ff8a5c; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .lh-free-note { font-size: 1rem; color: #aeb7cb; margin: 12px 0 0; }
   .lh-free-btn { margin-top: 14px; }
+  .lh-welcome { position: fixed; inset: 0; background: rgba(12,20,38,.6); display: grid; place-items: center; padding: 16px; z-index: 400; }
+  .lh-welcome[hidden] { display: none; }
+  .lh-welcome-card { background: #fff; color: var(--ink); border-radius: var(--radius); padding: 26px 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 18px 40px rgba(0,0,0,.25); }
+  .lh-welcome-card h2 { margin: 0 0 6px; font-size: 1.5rem; }
+  .lh-welcome-card .lh-lead { color: #3d4659; margin: 0 0 14px; }
+  .lh-welcome-steps { margin: 0 0 18px; padding-left: 22px; display: grid; gap: 10px; line-height: 1.45; }
+  .lh-welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .lh-skip-row { text-align: center; padding: 8px 16px 32px; font-size: 0.95rem; color: #3d4659; }
   .lh-skip-row input { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
@@ -543,10 +550,29 @@
       <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
     </div>
   </section>
+  <div class="lh-welcome" id="lh-welcome" role="dialog" aria-modal="true" aria-labelledby="lh-welcome-title" hidden>
+    <div class="lh-welcome-card">
+      <h2 id="lh-welcome-title">Welcome<span id="lh-welcome-name"></span></h2>
+      <p class="lh-lead" id="lh-welcome-note" hidden></p>
+      <p class="lh-lead">Here is how Laps works, in four steps.</p>
+      <ol class="lh-welcome-steps">
+        <li><b>Export your sessions.</b> Export the session from your lap timer, or save Track Mode data from your Tesla to a USB drive.</li>
+        <li><b>Add a session.</b> Upload the file on Sessions and choose your car.</li>
+        <li><b>See every lap.</b> Laps draws each lap on the map, with the times and where you gained or lost time.</li>
+        <li><b>Share it.</b> Share a session to put your fastest time on that track&rsquo;s leaderboard.</li>
+      </ol>
+      <div class="lh-welcome-actions">
+        <a class="btn btn-accent" id="lh-welcome-add" href="track.html?add=1">Add your first session</a>
+        <button type="button" class="btn btn-secondary" id="lh-welcome-close">Not now</button>
+      </div>
+    </div>
+  </div>
   <div class="lh-skip-row">
     <label><input type="checkbox" id="lh-skip"> Don&rsquo;t show this next time. Laps will open on Sessions.</label>
   </div>
 </main>
+<script>(function(){var box=document.getElementById('lh-welcome');if(!box)return;var q=new URLSearchParams(location.search);if(!q.has('welcome'))return;q.delete('welcome');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);var first='';try{first=(localStorage.getItem('mt3ukMyBuildsFirstName')||'').trim().split(/\s+/)[0]||'';}catch(e){}var nm=document.getElementById('lh-welcome-name');if(nm&&first)nm.textContent=', '+first;var note='';try{note=localStorage.getItem('mt3ukLapsWelcomeNote')||'';localStorage.removeItem('mt3ukLapsWelcomeNote');}catch(e){}var nt=document.getElementById('lh-welcome-note');if(nt&&note){nt.textContent=note;nt.hidden=false;}box.hidden=false;document.getElementById('lh-welcome-close').addEventListener('click',function(){box.hidden=true;});})();</script>
+
 <script>(function(){var box=document.getElementById('lh-skip');if(!box)return;try{box.checked=localStorage.getItem('mt3ukLapsSkipIntro')==='1';}catch(e){}box.addEventListener('change',function(){try{if(box.checked){localStorage.setItem('mt3ukLapsSkipIntro','1');}else{localStorage.removeItem('mt3ukLapsSkipIntro');}}catch(e){}document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href',box.checked?'track.html':'laps.html');});});})();</script>
 
 

@@ -2855,6 +2855,41 @@ def test_admin_free_tier_panel_sets_the_switch_the_allowance_and_full_access(pag
     ]
 
 
+def test_full_access_and_paid_plan_take_a_name_as_well_as_an_email(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    members = [
+        {"email": "rhc@example.com", "name": "Richard Hughes-Chen", "account": "mt3uk", "access": False},
+        {"email": "sam.jones@example.com", "name": "Sam Jones", "account": "mt3uk", "access": False},
+        {"email": "sam.lee@example.com", "name": "Sam Lee", "account": "mt3uk", "access": False},
+    ]
+    posts = []
+
+    def tiers(route):
+        if route.request.method == "POST":
+            posts.append(json.loads(route.request.post_data))
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "mode": "off", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": []}), headers=cors)
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "mode": "off", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "members": members}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    # A name that matches one member is looked up and given Full access by its email.
+    page.fill("#tiers-full-email", "Hughes")
+    page.locator("#tiers-full-form button").click()
+    expect(page.locator("#tiers-note")).to_contain_text("Full access given")
+    # A name that matches two members is not given to either: the note asks for more of it.
+    page.fill("#tiers-paid-email", "Sam")
+    page.locator("#tiers-paid-form button").click()
+    expect(page.locator("#tiers-note")).to_contain_text("2 members match")
+    assert posts == [{"action": "add", "list": "full", "email": "rhc@example.com"}]
+    # A full email is used as it is, without a lookup.
+    page.fill("#tiers-paid-email", "sam.lee@example.com")
+    page.locator("#tiers-paid-form button").click()
+    expect(page.locator("#tiers-note")).to_contain_text("Added to the paid plan")
+    assert posts[-1] == {"action": "add", "list": "paid", "email": "sam.lee@example.com"}
+
+
 def test_admin_finds_a_members_sessions_by_name_and_lists_matches(page):
     cors = {"Access-Control-Allow-Origin": "*"}
     members = [

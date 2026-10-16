@@ -131,19 +131,40 @@
     act({ action: 'add', list: 'testers', email: email }, 'Added as a tester.');
     input.value = '';
   });
+  // A name or part of an email is looked up in the member list (as Find a member does) and must match one member.
+  function resolve(text, then) {
+    var q = text.trim().toLowerCase();
+    if (q.indexOf('@') !== -1) { then(q); return; }
+    function pick() {
+      var hits = members.filter(function (m) { return (m.name || '').toLowerCase().indexOf(q) !== -1 || m.email.indexOf(q) !== -1; });
+      if (!hits.length) { note('No member matches "' + text.trim() + '".', 'error'); return; }
+      if (hits.length > 1) { note(hits.length + ' members match "' + text.trim() + '". Type more of the name or the email.', 'error'); return; }
+      then(hits[0].email);
+    }
+    if (members) { pick(); return; }
+    note('Looking up members...', '');
+    call('GET', undefined, '&members=1').then(function (d) {
+      if (!d.ok || !d.success) { note(d.message || 'Could not load the members.', 'error'); return; }
+      members = d.members || []; pick();
+    }).catch(function () { note('Could not reach the server.', 'error'); });
+  }
   document.getElementById('tiers-paid-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    var input = document.getElementById('tiers-paid-email'), email = input.value.trim();
-    if (!email) return;
-    act({ action: 'add', list: 'paid', email: email }, 'Added to the paid plan.');
-    input.value = '';
+    var input = document.getElementById('tiers-paid-email');
+    if (!input.value.trim()) return;
+    resolve(input.value, function (email) {
+      act({ action: 'add', list: 'paid', email: email }, 'Added to the paid plan.');
+      input.value = '';
+    });
   });
   document.getElementById('tiers-full-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    var input = document.getElementById('tiers-full-email'), email = input.value.trim();
-    if (!email) return;
-    act({ action: 'add', list: 'full', email: email }, 'Full access given. No email is sent.');
-    input.value = '';
+    var input = document.getElementById('tiers-full-email');
+    if (!input.value.trim()) return;
+    resolve(input.value, function (email) {
+      act({ action: 'add', list: 'full', email: email }, 'Full access given. No email is sent.');
+      input.value = '';
+    });
   });
   document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
   if (key()) load();

@@ -87,7 +87,10 @@
   // The X on the What are Sessions? and What is the Leaderboard? panels shuts the panel.
   document.addEventListener('click', function (e) {
     var x = e.target.closest && e.target.closest('.tp-what-x');
-    if (x && x.closest('details')) x.closest('details').open = false;
+    if (!x || !x.closest('details')) return;
+    x.closest('details').open = false;
+    // Remembered for this page, so the panel stays shut on the next visit (js/track-page.js opens it for new members).
+    try { localStorage.setItem('mt3ukWhatShut-' + location.pathname, '1'); } catch (e2) { /* storage blocked */ }
   });
   window.MT3UKLapsTip = { place: place, BUILT_IN: BUILT_IN };
 })();

@@ -989,7 +989,10 @@
       if (m) drawQuota();
       // A member with no car yet sees What are Sessions? open, so they see what Laps does. Once a car is added it closes.
       var what = document.querySelector('.page-hero .tp-what');
-      if (what && m) what.open = !(m.cars || []).length;
+      // Shut with its X once, it stays shut on this page (js/laps-tip.js).
+      var whatShut = false;
+      try { whatShut = localStorage.getItem('mt3ukWhatShut-' + location.pathname) === '1'; } catch (e) { /* storage blocked */ }
+      if (what && m) what.open = !(m.cars || []).length && !whatShut;
       if (m && m.cars && m.cars.length) { drawNews(); drawSince(m); }
       // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
       if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);

@@ -108,7 +108,7 @@ class FakeWorker:
             member = getattr(self, "member", None)
             status, data = (200, dict(member, success=True)) if member else (404, {"success": False, "message": "Not found"})
         elif path == "/my-builds":
-            data = {"success": True, "cars": [CAR] + list(getattr(self, "extra_cars", []))}
+            data = {"success": True, "cars": ([] if getattr(self, "no_cars", False) else [CAR]) + list(getattr(self, "extra_cars", []))}
         elif path == "/track/sessions" and req.method == "GET" and self.access != "approved":
             status, data = 403, {"success": False, "needsAccess": True}
         elif path == "/laps/offline/access" and req.method == "GET":
@@ -7632,3 +7632,19 @@ def test_the_upload_tip_box_has_a_close_x_at_the_top_right(page):
     x.click()
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     expect(bulb).to_have_attribute("aria-expanded", "false")
+
+
+def test_the_what_panel_stays_shut_once_its_x_is_pressed(page):
+    """A member with no car sees What are Sessions? open. Shutting it with its X keeps it shut after a refresh."""
+    fake = FakeWorker()
+    fake.no_cars = True
+    open_page(page, fake, "/track.html", signed_in=True)
+    panel = page.locator(".page-hero details.tp-what")
+    expect(panel).to_have_js_property("open", True)
+    page.locator(".page-hero .tp-what-x").click()
+    expect(panel).to_have_js_property("open", False)
+    page.reload()
+    page.wait_for_load_state("load")
+    expect(page.locator(".page-hero details.tp-what")).to_have_count(1)
+    page.wait_for_timeout(800)
+    expect(panel).to_have_js_property("open", False)

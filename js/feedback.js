@@ -41,9 +41,10 @@
     dialog.hidden = true;
     dialog.innerHTML = '<form class="fb-card" id="fb-form" role="dialog" aria-modal="true" aria-labelledby="fb-title">' +
       '<button type="button" class="fb-x" id="fb-x" aria-label="Close">&times;</button>' +
-      '<h2 id="fb-title">Give feedback</h2>' +
-      '<p class="fb-hint">Tell us what happened. We read every one.</p>' +
+      '<h2 id="fb-title">Provide Feedback</h2>' +
+      '<p class="fb-hint">Helps improve the platform</p>' +
       '<label for="fb-nick">Nickname</label><input type="text" id="fb-nick" maxlength="40" required autocomplete="nickname">' +
+      '<p class="fb-hint" id="fb-nick-hint">Your nickname from your profile. To change it, edit it in Profile.</p>' +
       '<label for="fb-msg">What happened?</label><textarea id="fb-msg" maxlength="1000" required></textarea>' +
       '<label for="fb-shot">Screenshot (optional)</label><input type="file" id="fb-shot" accept="image/png,image/jpeg,image/webp">' +
       '<label for="fb-email">Email (optional)</label><input type="email" id="fb-email" autocomplete="email">' +
@@ -90,12 +91,16 @@
   function prefill() {
     var nick = document.getElementById('fb-nick');
     nick.value = '';
+    nick.readOnly = false;
+    document.getElementById('fb-nick-hint').hidden = true;
     if (!token()) return;
     fetch(API + '/profile', { headers: { 'X-Session-Token': token() }, cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (!d || !d.success || nick.value) return;
         nick.value = d.nickname || [d.firstName, d.lastName].filter(Boolean).join(' ').slice(0, 40);
+        // A signed-in member's nickname is their own, so it is not edited here (change it in Profile).
+        if (nick.value) { nick.readOnly = true; document.getElementById('fb-nick-hint').hidden = false; }
       }).catch(function () { /* the member types it */ });
   }
 

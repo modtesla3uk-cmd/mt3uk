@@ -23,7 +23,7 @@ def test_give_feedback_from_the_menu_sends_the_nickname_message_and_email(page):
     link.click()
     dialog = page.locator("#fb-dialog")
     expect(dialog).to_be_visible()
-    expect(page.locator("#fb-title")).to_have_text("Give feedback")
+    expect(page.locator("#fb-title")).to_have_text("Provide Feedback")
     page.fill("#fb-nick", "Richard HC")
     page.fill("#fb-msg", "The Sessions box will not close on my phone.")
     page.fill("#fb-email", "member@example.com")
@@ -52,3 +52,17 @@ def test_the_feedback_form_needs_a_nickname_and_a_message_and_takes_no_email(pag
     page.click("#fb-send")
     expect(page.locator("#fb-note")).to_contain_text("few words")
     assert not sent
+
+
+def test_a_signed_in_members_nickname_is_read_only_in_the_feedback_form(page):
+    open_page(page, FakeWorker(), "/track.html", signed_in=True)
+    page.route("**/profile", lambda route: route.fulfill(
+        status=200, body=json.dumps({"success": True, "nickname": "RHughes-Chen", "firstName": "Richard", "lastName": "Hughes-Chen"}),
+        headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}))
+    link = page.get_by_role("link", name="Give feedback").first
+    if not link.is_visible():
+        page.locator("#hamburger").click()
+    link.click()
+    expect(page.locator("#fb-nick")).to_have_value("RHughes-Chen")
+    expect(page.locator("#fb-nick")).to_have_js_property("readOnly", True)
+    expect(page.locator("#fb-nick-hint")).to_be_visible()

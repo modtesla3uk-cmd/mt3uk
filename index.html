@@ -2534,7 +2534,9 @@
   /* About: the facts box only as tall as its rows. */
   .specs { align-self: start; }
 </style>
-<script src="js/laps-early-label.js?v=2" defer></script>
+<style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
+<script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
+<script src="js/laps-early-label.js?v=3" defer></script>
 </head>
 <body>
 <!-- MT3UK intro: plays on the first visit on each phone or computer (not in the installed app). The logo arrives, then a welcome screen says what's here (Join free, Look around). "Play intro" on the first screen plays it again. -->

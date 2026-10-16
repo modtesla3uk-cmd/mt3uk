@@ -41,6 +41,8 @@
     .then(function (d) {
       if (!d || typeof d.preview !== 'boolean') return;
       keep(d.preview ? 'yes' : 'no');
+      // Remembered for the next page load, so the labels are hidden before the page paints (the snippet in each page's head).
+      try { if (d.preview) localStorage.removeItem('mt3ukLapsOpen'); else localStorage.setItem('mt3ukLapsOpen', '1'); } catch (e) { /* storage blocked */ }
       if (!d.preview) open();
     })
     .catch(function () { /* no answer: the labels stay */ });

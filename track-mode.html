@@ -130,7 +130,9 @@
 
   #navlinks a { text-decoration: none; }
 </style>
-<script src="js/laps-early-label.js?v=2" defer></script>
+<style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
+<script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
+<script src="js/laps-early-label.js?v=3" defer></script>
 </head>
 <body data-no-share>
 <header>

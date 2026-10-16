@@ -40,3 +40,22 @@ def test_a_tab_that_saw_the_preview_before_does_not_keep_the_labels(page, base_u
     answer_preview(page, False)
     page.goto("/index.html")
     expect(page.locator(".early-badge")).to_have_count(0)
+
+
+def test_once_laps_is_open_the_labels_are_hidden_before_the_page_paints(page, base_url):
+    """A browser that has seen Laps open hides the labels before the sign-in check answers, so they do not flash
+    on every refresh. The check is still made, and it clears the flag if the preview comes back."""
+    page.add_init_script("try { localStorage.setItem('mt3ukLapsOpen', '1'); } catch (e) {}")
+    page.route("**/laps/signin*", lambda route: route.fulfill(
+        status=200, body=json.dumps({"success": True, "preview": False}),
+        headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}))
+    page.goto("/index.html", wait_until="domcontentloaded")
+    assert page.evaluate("getComputedStyle(document.querySelector('.early-badge')).display") == "none"
+
+
+def test_a_returning_preview_clears_the_open_flag(page, base_url):
+    page.add_init_script("try { localStorage.setItem('mt3ukLapsOpen', '1'); } catch (e) {}")
+    answer_preview(page, True)
+    page.goto("/laps.html")
+    expect(page.locator(".laps-logo-early")).to_have_text("Early preview")
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOpen')") is None

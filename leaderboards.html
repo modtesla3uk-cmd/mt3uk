@@ -635,7 +635,9 @@
   }
 </style>
 
-<script src="js/laps-early-label.js?v=2" defer></script>
+<style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
+<script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
+<script src="js/laps-early-label.js?v=3" defer></script>
 <script>(function(){try{var q=new URLSearchParams(location.search);q.delete('layout');q.delete('look');if(q.toString()){document.documentElement.className+=' view-open';}}catch(e){}})();</script>
 <style>.view-open .page-hero .back-link:not(.tp-back):not(.tp-home){display:none!important}</style>
 </head>

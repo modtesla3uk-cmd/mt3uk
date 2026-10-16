@@ -324,7 +324,7 @@
   a.mb-upload-toggle-btn { text-decoration: none; }
   /* My Sessions and Leaderboards: two buttons at the right of the Add vehicle row (Laps pages, data-laps). My
      Sessions is faded until the member has a session; Leaderboards never is. */
-  .mb-track-links { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .mb-track-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-left: auto; }
   .mb-track-item { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
   .mb-track-item .icon { width: 16px; height: 16px; color: var(--orange); }
   .mb-track-item.is-quiet { opacity: 0.55; }
@@ -1053,7 +1053,9 @@
     outline-offset: 2px;
   }
 </style>
-<script src="js/laps-early-label.js?v=2" defer></script>
+<style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
+<script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
+<script src="js/laps-early-label.js?v=3" defer></script>
 </head>
 <body>
 

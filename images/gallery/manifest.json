@@ -38,12 +38,6 @@
     "group": "photo--by-helen-little-3.jpg"
   },
   {
-    "file": "photo--by-lord-hughes-chen.jpg",
-    "name": "LHughes-Chen",
-    "added": "2026-10-15",
-    "group": "photo--by-lord-hughes-chen.jpg"
-  },
-  {
     "file": "photo-4.jpg",
     "caption": "PHOTO 4",
     "name": "RichardHC",
@@ -220,16 +214,6 @@
     "color": "White",
     "added": "2026-10-02",
     "group": "photo--by-matthew-king.jpeg"
-  },
-  {
-    "file": "test-caption--by-rhc-lord.jpg",
-    "caption": "TEST CAPTION",
-    "name": "LHughes-Chen",
-    "votable": false,
-    "reel": false,
-    "color": "White",
-    "added": "2026-10-01",
-    "group": "test-caption--by-rhc-lord.jpg"
   },
   {
     "file": "track-prepared-model-3-performance--by-john-chambers.jpg",

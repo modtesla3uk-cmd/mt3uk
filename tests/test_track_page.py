@@ -7615,3 +7615,20 @@ def test_a_paid_member_sees_the_paid_plan_and_no_limit(page):
     open_page(page, fake)
     expect(page.locator("#tp-quota")).to_contain_text("Paid plan")
     expect(page.locator("#tp-quota")).not_to_contain_text("used your free sessions")
+
+
+def test_the_upload_tip_box_has_a_close_x_at_the_top_right(page):
+    """Opening the bulb's box shows an X in its top right corner, and the X shuts the box."""
+    fake = FakeWorker()
+    open_page(page, fake, "/track.html", signed_in=True)
+    tip = page.locator(".page-hero #laps-tip")
+    bulb = page.locator(".page-hero .laps-tip-titlebulb")
+    bulb.click()
+    expect(tip.locator(".laps-tip-body")).to_be_visible()
+    x = tip.locator(".laps-tip-x")
+    expect(x).to_be_visible()
+    body, xb = tip.locator(".laps-tip-body").bounding_box(), x.bounding_box()
+    assert xb["x"] + xb["width"] >= body["x"] + body["width"] - 12 and xb["y"] <= body["y"] + 12, (xb, body)
+    x.click()
+    expect(tip.locator(".laps-tip-body")).to_be_hidden()
+    expect(bulb).to_have_attribute("aria-expanded", "false")

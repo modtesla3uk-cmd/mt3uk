@@ -26,11 +26,14 @@
   // plain: without the Add a session button (Sessions has its own right above).
   var BULB = '<svg class="icon laps-tip-bulb" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg>';
   // fast: Sessions' bulb, which also carries Fastest right now (js/laps-panels.js), so it stays when the tip is off.
+  // The close button at the top right of the bulb's box: the same toggle as the bulb, so it shuts the box.
+  var CLOSE = '<button type="button" class="laps-tip-x" data-laps-tip-toggle aria-controls="laps-tip-body" aria-label="Close">' +
+    '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
   function bulbHtml(fast) {
     var heading = esc(copy.tipOff ? 'Fastest right now' : (copy.tipHeading || BUILT_IN.heading));
     return '<div class="laps-tip laps-tip-bulbmode is-closed" id="laps-tip" role="note">' +
       '<button type="button" class="laps-tip-bulbbtn" data-laps-tip-toggle aria-expanded="false" aria-controls="laps-tip-body" aria-label="' + heading + '" title="Tip">' + BULB + '</button>' +
-      '<div class="laps-tip-body laps-tip-pop" id="laps-tip-body" hidden>' + (copy.tipOff ? '' : '<div class="laps-tip-words"><b>' + heading + '</b><p>' + esc(copy.tipText || BUILT_IN.text) + '</p></div>') + '</div></div>';
+      '<div class="laps-tip-body laps-tip-pop" id="laps-tip-body" hidden>' + CLOSE + (copy.tipOff ? '' : '<div class="laps-tip-words"><b>' + heading + '</b><p>' + esc(copy.tipText || BUILT_IN.text) + '</p></div>') + '</div></div>';
   }
   function html(plain) {
     if (plain === 'bulb-fast') return bulbHtml(true);
@@ -75,6 +78,8 @@
     // The bulb may sit in the heading now, so the box is found by the id the button controls.
     var body = document.getElementById(b.getAttribute('aria-controls') || 'laps-tip-body'), tip = body.closest('.laps-tip'), open = tip.classList.toggle('is-closed');
     body.hidden = open;
+    // The bulb (and the title's bulb) report the box's state, whichever control was pressed, the bulb or the X.
+    document.querySelectorAll('[data-laps-tip-toggle][aria-expanded][aria-controls="' + body.id + '"]').forEach(function (t) { t.setAttribute('aria-expanded', String(!open)); });
     b.setAttribute('aria-expanded', String(!open));
     if (tip.classList.contains('laps-tip-bulbmode')) return;
     try { if (open) localStorage.setItem(KEY, 'closed'); else localStorage.removeItem(KEY); } catch (e2) {}

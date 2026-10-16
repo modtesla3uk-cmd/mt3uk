@@ -50,3 +50,7 @@
 .lh-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.7rem; font-weight: 700; vertical-align: 1px; }
 .laps-tip-bulbbtn.is-lit { position: relative; background: #ffd27a !important; color: #16233d !important; border-color: #ffd27a !important; box-shadow: 0 0 0 4px rgba(255,210,122,.25), 0 0 18px rgba(255,210,122,.55); }
 .laps-tip-bulbbtn.is-lit::after { content: ''; position: absolute; top: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); border: 2px solid #16233d; }
+/* The close button at the top right of the bulb's box (js/laps-tip.js). */
+.laps-tip-pop.laps-tip-pop:has(> .laps-tip-x) { padding-right: 58px; }
+.laps-tip-pop > .laps-tip-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: inherit; cursor: pointer; }
+.laps-tip-pop > .laps-tip-x .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }

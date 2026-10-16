@@ -1,5 +1,28 @@
 [
   {
+    "file": "photo--by-helen-little-3.jpg",
+    "name": "Helen Little",
+    "votable": false,
+    "color": "White",
+    "added": "2026-10-16",
+    "group": "photo--by-helen-little-3.jpg"
+  },
+  {
+    "file": "photo--by-helen-little-2.jpg",
+    "name": "Helen Little",
+    "votable": false,
+    "color": "White",
+    "added": "2026-10-16",
+    "group": "photo--by-helen-little-3.jpg"
+  },
+  {
+    "file": "photo--by-helen-little.jpg",
+    "name": "Helen Little",
+    "color": "White",
+    "added": "2026-10-16",
+    "group": "photo--by-helen-little-3.jpg"
+  },
+  {
     "file": "photo--by-lord-hughes-chen.jpg",
     "name": "LHughes-Chen",
     "added": "2026-10-15",

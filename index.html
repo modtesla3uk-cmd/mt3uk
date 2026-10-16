@@ -2547,6 +2547,35 @@
   @media (min-width: 901px) { .hp-play-intro { left: auto; right: max(16px, calc((100% - var(--content-max, 1000px)) / 2 + 24px)); } }
   /* About: the facts box only as tall as its rows. */
   .specs { align-self: start; }
+  /* The Offers card and the Shop card (js/shop-home-cards.js), beside each other under the hero's first card. */
+  .hp-shop-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .hp-shop-cards[hidden] { display: none; }
+  .hp-card { background: #f5f2ea; color: #14213d; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .hp-shop-card { background: #16233d; color: #ffffff; }
+  .hp-shop-card .hp-card-title { color: #ffffff; }
+  .hp-card-tag { align-self: flex-start; background: #e8542a; color: #ffffff; font-weight: 700; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; }
+  .hp-card-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
+  .hp-card-text, .hp-card-note { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+  .hp-card-list { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.5; }
+  .hp-card-list a { color: inherit; font-weight: 700; }
+  .hp-card-link { margin-top: auto; color: #f2a48c; font-weight: 700; }
+  @media (max-width: 600px) { .hp-shop-cards { grid-template-columns: 1fr; } }
+  /* The hero's cards on desktop, as the approved layout: the Latest interview and Laps on the left, and on the right the
+     Next interview, Add a photo, then the Offers card and the Shop card at the bottom, level with the bottom of Laps.
+     On phone the wrappers are transparent, so the phone layout is unchanged. */
+  .hp-cols, .hp-col-right { display: contents; }
+  @media (min-width: 901px) {
+    .hp-hero .hero-grid > div:first-child { width: 100%; max-width: 1000px; justify-self: stretch; grid-template-columns: minmax(0, 1fr); }
+    .hp-hero .hp-cols { display: grid; width: 100%; justify-self: stretch; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; align-items: stretch; }
+    .hp-cols > .hp-next-row { display: contents; }
+    .hp-cols .hp-hero-card, .hp-cols .hp-laps-promo { grid-column: 1; max-width: none; margin-top: 0; }
+    .hp-cols .hp-hero-card { grid-row: 1; }
+    .hp-cols .hp-laps-promo { grid-row: 2; }
+    .hp-col-right { display: flex; flex-direction: column; gap: 16px; grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
+    .hp-col-right > .hp-hero-next, .hp-col-right > .hp-join { max-width: none; margin-top: 0; }
+    .hp-col-right > .hp-shop-cards { margin-top: auto; grid-template-columns: minmax(0, 1fr); }
+    .hp-cols > .hp-swipe-hint { display: none; }
+  }
 </style>
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
 <script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
@@ -3271,6 +3300,7 @@
   <div class="wrap">
     <div class="hero-grid">
       <div>
+        <div class="hp-cols">
         <div class="hp-next-row">
         <div class="hp-hero-card">
           <span class="hp-hero-tag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/></svg><span id="hp-hero-eyebrow">Latest interview</span></span>
@@ -3282,9 +3312,9 @@
           <div class="hp-laps-promo"><svg class="hp-laps-track" viewBox="-1 -0.7 2 1.4" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M0.450 0.100 C0.550 0.175 0.767 0.333 0.750 0.400 C0.733 0.467 0.492 0.508 0.350 0.500 C0.208 0.492 0.033 0.358 -0.100 0.350 C-0.233 0.342 -0.333 0.483 -0.450 0.450 C-0.567 0.417 -0.758 0.242 -0.800 0.150 C-0.842 0.058 -0.742 -0.000 -0.700 -0.100 C-0.658 -0.200 -0.650 -0.383 -0.550 -0.450 C-0.450 -0.517 -0.233 -0.517 -0.100 -0.500 C0.033 -0.483 0.208 -0.425 0.250 -0.350 C0.292 -0.275 0.117 -0.125 0.150 -0.050 C0.183 0.025 0.350 0.025 0.450 0.100 Z" vector-effect="non-scaling-stroke"/><line class="hp-laps-sf" x1="0.504" y1="0.028" x2="0.396" y2="0.172" vector-effect="non-scaling-stroke"/><circle class="hp-laps-dot" cx="-0.100" cy="0.350" r="0.04" fill="#e8542a"/><circle class="hp-laps-dot" cx="0.121" cy="0.425" r="0.04" fill="#2f6fd6"/></svg><span class="hp-laps-top"><svg class="hp-laps-ico" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="hp-laps-name">Laps <span class="hp-laps-by">by MT3UK</span></span><span class="early-badge">Early preview</span></span><span class="hp-laps-text">Upload your lap timer file to compare with the boards.</span><span class="hp-laps-points"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c4-6 6 2 10-4s4-4 8-6"/></svg>Your laps, mapped and measured</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Where you stand on every board</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis across your sessions</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Tesla Track Mode analysis, lap by lap</span></span><a href="laps.html" class="hp-laps-btn" data-laps>Open Laps</a></div>
         </div>
         <p class="hp-swipe-hint" aria-hidden="true"><svg class="hp-swipe-chev" style="animation-delay:0.5s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0.25s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><svg class="hp-swipe-chev" style="animation-delay:0s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Swipe left to show Laps</p>
+        <div class="hp-col-right">
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
         <script>(function () { var r = document.querySelector('.hp-next-row'), c = document.getElementById('hp-hero-next'); if (!r) return; function top() { r.scrollLeft = 0; } top(); if (c && 'MutationObserver' in window) new MutationObserver(top).observe(c, { attributes: true, attributeFilter: ['hidden'] }); })();</script>
-        <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Add a photo of your car to join MT3UK.</strong> It&rsquo;s free, and you can like, comment and get alerts too.</p>
           <div class="hp-join-actions" id="hp-join-actions">
@@ -3333,6 +3363,10 @@
             box.hidden = false;
           })();
         </script>
+        <div class="hp-shop-cards" id="hp-shop-cards" hidden></div>
+        </div>
+        </div>
+        <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-stats">
           <div><strong class="member-count"></strong><span>Members</span></div>
           <div><strong id="hp-stat-builds"></strong><span>Builds in the gallery</span></div>
@@ -6972,5 +7006,7 @@
     });
   })();
 </script>
+<script src="js/shop-home-cards.js?v=1" defer></script>
+<script src="js/home-layout.js?v=1" defer></script>
 </body>
 </html>

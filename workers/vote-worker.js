@@ -9738,6 +9738,128 @@ function cleanLapsNews(body, old) {
   out.id = same && old.id ? old.id : (text ? String(Date.now()) : '');
   return out;
 }
+// The Shop list and the homepage's Offers and Shop cards (admin.html, Shop panel). One KV key for the product list the admin
+// keeps (the file data/shop-products.json is the starting list), and one for the cards: the highlights, the offer and the
+// placeholder shown while there is no offer. An offer keeps a copy of the items it lists, so the card never looks them up.
+var SHOP_PRODUCTS_KEY = 'shop-products';
+var SHOP_HOME_KEY = 'shop-home';
+function shopUrl(u) {
+  var s = String(u || '').trim();
+  return /^(https:\/\/|shop\.html)/.test(s) ? s.slice(0, 300) : '';
+}
+function shopDate(v) {
+  var s = String(v || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+}
+function shopId(v) {
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+function cleanShopProducts(list) {
+  return (Array.isArray(list) ? list : []).map(function (p) {
+    var id = shopId((p && (p.id || p.name)) || ''), name = String((p && p.name) || '').trim().slice(0, 120);
+    if (!id || !name) return null;
+    return { id: id, name: name, price: String(p.price || '').trim().slice(0, 20), url: shopUrl(p.url), line: String(p.line || '').trim().slice(0, 160) };
+  }).filter(Boolean).slice(0, 300);
+}
+function cleanShopOffer(o) {
+  if (!o || typeof o !== 'object') return null;
+  var items = (Array.isArray(o.items) ? o.items : []).map(function (it) {
+    var id = shopId(it && (it.id || it.name)), name = String((it && it.name) || '').trim().slice(0, 120);
+    return id && name ? { id: id, name: name, price: String(it.price || '').trim().slice(0, 20), url: shopUrl(it.url) } : null;
+  }).filter(Boolean).slice(0, 20);
+  return {
+    on: !!o.on,
+    heading: String(o.heading || '').trim().slice(0, 80),
+    percent: Math.max(0, Math.min(100, parseInt(o.percent, 10) || 0)),
+    text: String(o.text || '').trim().slice(0, 240),
+    start: shopDate(o.start),
+    end: shopDate(o.end),
+    items: items
+  };
+}
+function cleanShopHome(h, old) {
+  var src = h && typeof h === 'object' ? h : {};
+  var base = old && typeof old === 'object' ? old : {};
+  return {
+    highlights: Array.isArray(src.highlights) ? src.highlights.map(function (x) { return String(x || '').trim().slice(0, 140); }).filter(Boolean).slice(0, 12) : (base.highlights || []),
+    placeholder: 'placeholder' in src ? String(src.placeholder || '').trim().slice(0, 240) : (base.placeholder || ''),
+    offer: 'offer' in src ? cleanShopOffer(src.offer) : (base.offer || null)
+  };
+}
+// The offer is live only while it is switched on and today is inside its dates (UK date, read as the day in ISO form).
+function shopOfferLive(offer, today) {
+  return !!offer && offer.on && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end);
+}
+// The homepage hero's layout on desktop, placed by hand in the editor (index.html?layout=edit). One KV key: the frame's
+// height and each card's left, top, width and text size (zoom), in pixels and as a number. Phone keeps its own layout.
+var HOME_LAYOUT_KEY = 'home-layout';
+var HOME_LAYOUT_ITEMS = ['latest', 'laps', 'next', 'join', 'offer', 'shop'];
+function cleanHomeLayout(l) {
+  var out = { desk: null };
+  var d = l && l.desk;
+  if (!d || typeof d !== 'object') return out;
+  var H = Math.max(200, Math.min(2000, Math.round(Number(d.H) || 0)));
+  var items = {};
+  HOME_LAYOUT_ITEMS.forEach(function (id) {
+    var p = d.items && d.items[id];
+    if (!p || typeof p !== 'object') return;
+    items[id] = {
+      x: Math.max(-200, Math.min(2000, Math.round(Number(p.x) || 0))),
+      y: Math.max(-200, Math.min(2000, Math.round(Number(p.y) || 0))),
+      w: Math.max(120, Math.min(1200, Math.round(Number(p.w) || 300))),
+      z: Math.max(0.5, Math.min(2, Math.round((Number(p.z) || 1) * 100) / 100))
+    };
+  });
+  if (H) out.desk = { H: H, items: items };
+  return out;
+}
+async function handleHomeLayoutPublic(env) {
+  var l = await getJsonKey(env, HOME_LAYOUT_KEY, {});
+  var res = json({ success: true, layout: l && l.desk ? l : { desk: null } });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleHomeLayoutAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, layout: await getJsonKey(env, HOME_LAYOUT_KEY, { desk: null }) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var layout = cleanHomeLayout(body && body.layout);
+  if (!layout.desk) { await env.VOTES.delete(HOME_LAYOUT_KEY); return json({ success: true, layout: { desk: null } }); }
+  await env.VOTES.put(HOME_LAYOUT_KEY, JSON.stringify(layout));
+  return json({ success: true, layout: layout });
+}
+async function handleShopHomePublic(env) {
+  var home = await getJsonKey(env, SHOP_HOME_KEY, {});
+  var today = new Date().toISOString().slice(0, 10);
+  var live = shopOfferLive(home.offer, today) ? home.offer : null;
+  var res = json({
+    success: true,
+    highlights: home.highlights || [],
+    placeholder: home.placeholder || '',
+    offer: live ? { heading: live.heading, percent: live.percent, text: live.text, end: live.end, items: live.items } : null
+  });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleShopHomeAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var products = await getJsonKey(env, SHOP_PRODUCTS_KEY, null);
+  var home = await getJsonKey(env, SHOP_HOME_KEY, {});
+  if (request.method === 'GET') return json({ success: true, products: products, home: home, today: new Date().toISOString().slice(0, 10) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && Array.isArray(body.products)) {
+    products = cleanShopProducts(body.products);
+    await env.VOTES.put(SHOP_PRODUCTS_KEY, JSON.stringify(products));
+  }
+  if (body && body.home && typeof body.home === 'object') {
+    home = cleanShopHome(body.home, home);
+    await env.VOTES.put(SHOP_HOME_KEY, JSON.stringify(home));
+  }
+  return json({ success: true, products: products, home: home });
+}
+
 async function handleLapsNewsPublic(request, env) {
   var n = await getJsonKey(env, LAPS_NEWS_KEY, {});
   var res = json({ success: true, news: n && n.on && n.text ? { id: n.id, text: n.text, link: n.link, linkText: n.linkText } : null });
@@ -12986,6 +13108,10 @@ export default {
     if (url.pathname === '/admin/daily-summary' && request.method === 'POST') {
       return handleAdminDailySummary(request, env);
     }
+    if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
+    if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
+    if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);
+    if (url.pathname === '/shop/home/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopHomeAdmin(request, env);
     if (url.pathname === '/laps/news' && request.method === 'GET') {
       return handleLapsNewsPublic(request, env);
     }

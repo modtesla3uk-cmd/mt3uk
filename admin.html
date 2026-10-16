@@ -296,6 +296,43 @@
     </div>
   </section>
 
+  <section class="admin-group" id="grp-shop" aria-labelledby="grp-shop-h">
+    <div class="group-head"><h2 id="grp-shop-h">Shop</h2><p>The Shop list, and the Offers card and Shop card on the homepage.</p></div>
+    <details class="collapsible" id="shop-cards-wrap">
+      <summary><h3 class="panel-title">Offers card and Shop card <span class="summary-count" id="shop-cards-count"></span></h3></summary>
+      <p class="iv-note">The Shop list holds every product an offer can pick. Add products here as they are added to the Shop. The Offers card shows the offer while it is switched on and today is between its start and end dates; after that, the placeholder text shows instead (or nothing, if it is blank). The Shop card lists the highlights below.</p>
+      <p class="iv-note" id="shop-note" role="status"></p>
+      <h3 class="sub-head">Shop list</h3>
+      <div id="shop-products"></div>
+      <form class="iv-toolbar" id="shop-product-form">
+        <input type="text" id="shop-p-name" placeholder="Product name" aria-label="Product name" autocomplete="off">
+        <input type="text" id="shop-p-price" placeholder="Price" aria-label="Price" autocomplete="off" style="width:90px">
+        <input type="url" id="shop-p-url" placeholder="Link (https://, or shop.html#...)" aria-label="Link" autocomplete="off">
+        <input type="text" id="shop-p-line" placeholder="One line about it" aria-label="One line about it" autocomplete="off">
+        <button type="submit">Add to the Shop list</button>
+      </form>
+      <h3 class="sub-head">Offer</h3>
+      <div class="iv-toolbar">
+        <button type="button" class="tk-switch" id="shop-offer-on" role="switch" aria-checked="false"><span class="tk-track"></span><span>Show the offer</span></button>
+      </div>
+      <form class="iv-toolbar" id="shop-offer-form">
+        <input type="text" id="shop-o-heading" placeholder="Heading, e.g. October offers" aria-label="Offer heading" autocomplete="off">
+        <input type="number" id="shop-o-percent" min="0" max="100" placeholder="%" aria-label="Percent off" style="width:80px">
+        <label class="iv-note">From <input type="date" id="shop-o-start" aria-label="Offer starts"></label>
+        <label class="iv-note">to <input type="date" id="shop-o-end" aria-label="Offer ends"></label>
+      </form>
+      <div class="iv-toolbar"><textarea id="shop-o-text" rows="2" placeholder="The offer in a line or two" aria-label="Offer text" style="width:100%"></textarea></div>
+      <p class="iv-note">Items in this offer (pick from the Shop list):</p>
+      <div id="shop-o-items"></div>
+      <h3 class="sub-head">Placeholder</h3>
+      <p class="iv-note">Shown in the Offers card when there is no live offer (for example after the end date). Leave blank to hide the card.</p>
+      <div class="iv-toolbar"><textarea id="shop-placeholder" rows="2" placeholder="Coming soon: more offers in the Shop" aria-label="Placeholder text" style="width:100%"></textarea></div>
+      <h3 class="sub-head">Shop card highlights</h3>
+      <p class="iv-note">One highlight per line, shown as text on the Shop card.</p>
+      <div class="iv-toolbar"><textarea id="shop-highlights" rows="5" aria-label="Shop card highlights" style="width:100%"></textarea></div>
+      <div class="iv-toolbar"><button type="button" id="shop-save">Save the offer and cards</button></div>
+    </details>
+  </section>
   <section class="admin-group" id="grp-sharing" aria-labelledby="grp-sharing-h">
     <div class="group-head"><h2 id="grp-sharing-h">Sharing links</h2><p>The picture a shared link shows in WhatsApp, Facebook and the rest, for the homepage. The Track sessions link picture is on the Track admin page.</p></div>
     <div class="panel-wrap">
@@ -2508,6 +2545,7 @@
 <script src="js/admin-help.js?v=20271060" defer></script>
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
+<script src="js/shop-home-admin.js?v=1" defer></script>
 <script src="js/admin-toast.js?v=1" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/nickname-fill-admin.js?v=20270212" defer></script>

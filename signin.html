@@ -421,6 +421,7 @@
       <a href="index.html#faq" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg>FAQs</a>
       <div class="nav-item">
         <a href="contact.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Contact</a>
+        <a href="#feedback" class="nav-link" data-feedback-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Give feedback</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
@@ -449,6 +450,7 @@
       <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
     </button>
   </nav>
+<script>(function(){document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-feedback-open]');if(!b)return;e.preventDefault();if(window.MT3UKFeedback){window.MT3UKFeedback.open();return;}if(window.MT3UKFeedbackLoading)return;window.MT3UKFeedbackLoading=true;var s=document.createElement('script');s.src='js/feedback.js?v=1';s.onload=function(){window.MT3UKFeedback&&window.MT3UKFeedback.open();};document.head.appendChild(s);});})();</script>
 </header>
 
 <section class="page-hero">

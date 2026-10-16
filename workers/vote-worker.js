@@ -6653,6 +6653,69 @@ async function noteLapsSignup(env, email, first, last, made, waiting) {
     await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#signin-wrap');
   } catch (err) { /* the account is made either way */ }
 }
+// Feedback from members (the menu's Give feedback form): a short message, a nickname, an optional email address and an
+// optional screenshot. The latest FEEDBACK_MAX are kept in one KV key; a screenshot is kept in the gallery bucket under
+// feedback/ and is only ever read through the admin route. Each one emails MT3UK and shows on the Reports group of admin.html.
+var FEEDBACK_KEY = 'feedback-list', FEEDBACK_MAX = 100, FEEDBACK_SHOT_MAX = 1500000;
+var FEEDBACK_SHOT_TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
+async function handleFeedbackSubmit(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var message = String((body && body.message) || '').replace(/[\u0000-\u0008\u000b-\u001f]/g, ' ').trim();
+  var nickname = String((body && body.nickname) || '').replace(/[\u0000-\u001f<>]/g, ' ').trim();
+  var email = accessEmail((body && body.email) || '');
+  var page = String((body && body.page) || '').slice(0, 300);
+  if (message.length < 5) return json({ success: false, message: 'Tell us what happened (a few words at least).' }, 400);
+  if (message.length > 1000) return json({ success: false, message: 'Please keep it under 1,000 characters.' }, 400);
+  if (!nickname || nickname.length > 40) return json({ success: false, message: 'Add a nickname (up to 40 characters).' }, 400);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'That email address does not look right.' }, 400);
+  var id = crypto.randomUUID().replace(/-/g, '').slice(0, 16), at = new Date().toISOString();
+  var shotKey = '';
+  var shot = String((body && body.shot) || '');
+  if (shot) {
+    var m = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(shot);
+    if (!m) return json({ success: false, message: 'The screenshot must be a PNG, JPEG or WebP picture.' }, 400);
+    var bytes = Uint8Array.from(atob(m[2]), function (c) { return c.charCodeAt(0); });
+    if (bytes.length > FEEDBACK_SHOT_MAX) return json({ success: false, message: 'The screenshot is too big. Try a smaller picture.' }, 400);
+    shotKey = 'feedback/' + id + '.' + FEEDBACK_SHOT_TYPES[m[1]];
+    await env.GALLERY_BUCKET.put(shotKey, bytes, { httpMetadata: { contentType: m[1] } });
+  }
+  var entry = { id: id, at: at, nickname: nickname, email: email, message: message, page: page, shotKey: shotKey };
+  var list = await getJsonKey(env, FEEDBACK_KEY, []);
+  list = [entry].concat(list).slice(0, FEEDBACK_MAX);
+  await env.VOTES.put(FEEDBACK_KEY, JSON.stringify(list));
+  var subject = 'Feedback from ' + nickname;
+  var text = nickname + (email ? ' (' + email + ')' : ' (no email given)') + ' sent feedback' + (page ? ' from ' + page : '') + ':\n\n' + message +
+    (shotKey ? '\n\nA screenshot is attached on the Feedback panel.' : '') +
+    '\n\nFeedback on admin.html:\n' + MY_BUILDS_SITE_URL + '/admin.html#feedback-wrap';
+  await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/admin.html#feedback-wrap');
+  return json({ success: true, message: 'Thanks. We have your feedback and will look at it.' });
+}
+async function handleFeedbackAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var url = new URL(request.url);
+  var list = await getJsonKey(env, FEEDBACK_KEY, []);
+  if (request.method === 'GET' && url.searchParams.get('shot')) {
+    var want = list.filter(function (x) { return x.id === url.searchParams.get('shot') && x.shotKey; })[0];
+    var obj = want ? await env.GALLERY_BUCKET.get(want.shotKey) : null;
+    if (!obj) return new Response('Not found', { status: 404 });
+    return new Response(obj.body, { headers: { 'Content-Type': obj.httpMetadata && obj.httpMetadata.contentType || 'image/png', 'Cache-Control': 'private, no-store' } });
+  }
+  if (request.method === 'GET') return json({ success: true, feedback: list.map(function (x) { return { id: x.id, at: x.at, nickname: x.nickname, email: x.email, message: x.message, page: x.page, hasShot: !!x.shotKey }; }) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var c = String((body && body.clear) || '');
+  if (!c) return json({ success: false, message: 'Say which feedback to clear.' }, 400);
+  var kept = [];
+  for (var i = 0; i < list.length; i++) {
+    var x = list[i];
+    if (c === 'all' || x.id === c) { if (x.shotKey) await env.GALLERY_BUCKET.delete(x.shotKey); }
+    else kept.push(x);
+  }
+  await env.VOTES.put(FEEDBACK_KEY, JSON.stringify(kept));
+  await bumpAdminStamp(env);
+  return json({ success: true, feedback: kept.length });
+}
 async function handleLapsSignupsAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var list = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
@@ -12644,6 +12707,8 @@ export default {
     if (url.pathname === '/laps/signin' && request.method === 'GET') {
       return handleLapsSigninPublic(request, env);
     }
+    if (url.pathname === '/feedback' && request.method === 'POST') return handleFeedbackSubmit(request, env);
+    if (url.pathname === '/feedback/admin' && (request.method === 'GET' || request.method === 'POST')) return handleFeedbackAdmin(request, env);
     if (url.pathname === '/laps/signups/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSignupsAdmin(request, env);
     }

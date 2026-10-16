@@ -166,6 +166,7 @@
       ['Allowance', 'Start is the balance a new free member gets. Monthly top-up is added on the 1st of each month. Cap is the most a member can hold.'],
       ['More sessions asked for', 'Members who used up their sessions and asked for more. Add 10 tops the member up and marks the request done. Done marks it done without adding sessions.'],
     ] },
+    'feedback-wrap': { t: 'Feedback from members', p: 'What members send from the menu (Give feedback): a message, their nickname, an optional email address and an optional screenshot. Each one is emailed to you and counted on the bell. Clear takes one off the list.', i: [] },
     'kinds-wrap': { t: 'Sprints and hill climbs', p: 'Sprints and hill climbs are hidden from everyone while they are tested. Testers can save, view and see them, including existing sessions. Nothing shows to members while the switch is Off.', i: [
       ['Off, Testers only, Everyone', 'Off hides them from everyone. Testers only shows them to the people on the testers list. Everyone opens them to all members.'],
       ['Add tester', 'Type a member\'s email, or find them by name, to let them use sprints and hill climbs. No email is sent.'],

@@ -126,6 +126,15 @@
       <div id="local-reported-list"></div>
     </details>
     </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="feedback-wrap">
+      <summary><h3 class="panel-title">Feedback from members <span class="summary-count" id="feedback-count"></span></h3></summary>
+      <p class="card-meta">What members send from the menu (Give feedback). Their email is only there if they gave one. Clear takes one off the list.</p>
+      <p class="iv-note" id="feedback-note"></p>
+      <div id="feedback-list"></div>
+      <button type="button" class="secondary" id="feedback-clear-all" hidden>Clear all feedback</button>
+    </details>
+    </div>
   </section>
 
   <section class="admin-group" id="grp-members" aria-labelledby="grp-members-h">
@@ -1416,7 +1425,7 @@
     function get(path) {
       return fetch(API + path + '?key=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     }
-    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin'), get('/my-builds/admin/garage-gallery'), get('/track/admin/new-sessions'), get('/laps/signups/admin'), get('/track/tiers/admin')]).then(function (r) {
+    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin'), get('/my-builds/admin/garage-gallery'), get('/track/admin/new-sessions'), get('/laps/signups/admin'), get('/track/tiers/admin'), get('/feedback/admin')]).then(function (r) {
       var items = [];
       // Sessions members have saved, until cleared on the New sessions panel of track-admin.html.
       var fresh = r[4] && r[4].sessions ? r[4].sessions : [];
@@ -1429,6 +1438,11 @@
       (r[5] && r[5].signups ? r[5].signups : []).filter(function (x) { return !x.waiting; }).forEach(function (x) {
         items.push({ id: 'laps-signup:' + x.email, group: 'New Laps sign-ups', href: 'track-admin.html#signin-wrap', img: '',
           title: x.name || x.email, sub: 'Joined on Laps' + (x.account === 'laps' ? ', Laps-only account' : ', MT3UK member too') });
+      });
+      // Feedback from members, until cleared on the Feedback panel of the Reports group.
+      (r[7] && r[7].feedback ? r[7].feedback : []).forEach(function (f) {
+        items.push({ id: 'feedback:' + f.id, group: 'Feedback from members', href: 'admin.html#feedback-wrap', img: '',
+          title: f.nickname + (f.page ? ' on ' + f.page.replace(/^https?:\/\/[^/]+/, '') : ''), sub: String(f.message || '').slice(0, 120) });
       });
       var garageWrap = document.getElementById('garage-asks-wrap');
       var asks = r[3] && r[3].pending ? r[3].pending : [];
@@ -2498,5 +2512,6 @@
 <script src="js/laps-logo.js?v=2"></script>
 <script src="js/track-share-card.js?v=20261185"></script>
 <script src="js/track-share-admin.js?v=20261106" defer></script>
+<script src="js/feedback-admin.js?v=1" defer></script>
 </body>
 </html>

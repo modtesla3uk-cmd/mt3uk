@@ -49,7 +49,8 @@ jobs:
         run: |
           # Added to the files themselves, not by the worker: pages are served straight from the asset store, so the
           # worker never sees them. Every page of the test copy shows it, the live site never has it.
-          find workers/test/site -name '*.html' -print0 | xargs -0 sed -i 's#</body>#<div id="mt3uk-test-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:\#e8572a;color:\#fff;font:700 13px/1.4 system-ui,sans-serif;text-align:center;padding:6px 10px;box-shadow:0 -2px 8px rgba(0,0,0,.2)">This is the Test Site for Laps</div>\n</body>#'
+          # The banner sits at the top of the page, above the header, as a normal block (not fixed), so nothing covers it.
+          find workers/test/site -name '*.html' -print0 | xargs -0 sed -i 's#<body\([^>]*\)>#<body\1>\n<div id="mt3uk-test-banner" style="position:relative;z-index:2147483000;background:\#e8572a;color:\#fff;font:700 13px/1.4 system-ui,sans-serif;text-align:center;padding:6px 10px">This is the Test Site for Laps</div>#'
           echo "Pages with the banner: $(grep -rl 'Test Site for Laps' workers/test/site --include='*.html' | wc -l)"
 
       - name: Add the test-only panel to the test copy of the admin page

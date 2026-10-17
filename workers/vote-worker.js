@@ -8204,6 +8204,8 @@ async function handleTrackKindsAdmin(request, env) {
 // anything while the switch is off.
 var TRACK_TIERS_KEY = 'track-tiers';
 var TRACK_TIER_MODES = ['off', 'testers', 'all'];
+// Laps Pro subscriptions (Subscribe and Unlock send members to PayPal): off, for the testers list only, or for everyone.
+var SUBSCRIPTION_MODES = ['off', 'testers', 'all'];
 var TRACK_ALLOWANCE = { start: 3, monthly: 3, cap: 6 };
 function cleanTierList(x) { return Array.isArray(x) ? x.filter(function (y) { return y && y.email; }) : []; }
 function tierNumber(v, d) { var n = parseInt(v, 10); return n >= 0 && n <= 1000 ? n : d; }
@@ -8216,7 +8218,8 @@ async function getTrackTiers(env) {
     testers: cleanTierList(t.testers),
     full: cleanTierList(t.full),
     paid: cleanTierList(t.paid),
-    trialOpen: t.trialOpen === true
+    trialOpen: t.trialOpen === true,
+    subscriptions: SUBSCRIPTION_MODES.indexOf(t.subscriptions) !== -1 ? t.subscriptions : 'off'
   };
 }
 // What one member sees. Paid members and Full access members are not held to the free tier (no limit, nothing locked);
@@ -8277,6 +8280,11 @@ var PAYPAL_STATUS_EVENTS = { 'BILLING.SUBSCRIPTION.ACTIVATED': 'ACTIVE', 'BILLIN
 function paypalConfigured(env) { return !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET && env.PAYPAL_PLAN_ID); }
 function paypalBase(env) { return env.PAYPAL_API || PAYPAL_DEFAULT_API; }
 function lapsProSubKey(email) { return 'laps-pro-sub:' + accessEmail(email); }
+// Whether this member may subscribe: everyone, the testers list only, or nobody.
+function subscriptionsOpenFor(t, email) {
+  if (t.subscriptions === 'all') return true;
+  return t.subscriptions === 'testers' && t.testers.some(function (x) { return x.email === accessEmail(email); });
+}
 async function lapsProSubscriptionStatus(env, email) {
   var r = await getJsonKey(env, lapsProSubKey(email), null);
   return r && r.status ? r.status : '';
@@ -8298,6 +8306,7 @@ async function handleLapsProSubscribe(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   if (!paypalConfigured(env)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
+  if (!subscriptionsOpenFor(await getTrackTiers(env), email)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
   var e = accessEmail(email);
   if ((await lapsProSubscriptionStatus(env, e)) === 'ACTIVE') return json({ success: false, message: 'You already have Laps Pro.' }, 400);
   var sub = await paypalApi(env, 'POST', '/v1/billing/subscriptions', {
@@ -8460,17 +8469,17 @@ async function handleTrackTiersAccess(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var r = await trackTierFor(env, email), now = new Date();
-  var trialOpen = (await getTrackTiers(env)).trialOpen;
+  var tiersNow = await getTrackTiers(env), trialOpen = tiersNow.trialOpen;
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
   var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: LAPS_PRO_TRIAL_DAYS };
-  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: paypalConfigured(env), subscribed: r.subscribed === true });
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: paypalConfigured(env) && subscriptionsOpenFor(tiersNow, email), subscribed: r.subscribed === true });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
   if (request.method === 'GET') {
-    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen };
+    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions };
     reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
     reply.trials = await lapsProTrialList(env);
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
@@ -8485,6 +8494,10 @@ async function handleTrackTiersAdmin(request, env) {
   } else if (action === 'trial') {
     // The Laps Pro trial offer: off until the admin switches it on.
     t.trialOpen = body.on === true;
+  } else if (action === 'subscriptions') {
+    // Laps Pro subscriptions: off, the testers list only, or everyone.
+    if (SUBSCRIPTION_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Unknown mode' }, 400);
+    t.subscriptions = body.mode;
   } else if (action === 'trial-add') {
     // Starts a member's trial now, for testers. A member who has had a trial already is refused until it is removed.
     var tae = accessEmail(body.email);
@@ -8548,7 +8561,7 @@ async function handleTrackTiersAdmin(request, env) {
     return json({ success: true });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
-  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen });
+  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions });
 }
 
 async function handleTrackSessionsList(request, env) {

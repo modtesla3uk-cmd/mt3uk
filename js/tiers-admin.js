@@ -13,6 +13,18 @@
   var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
   var trialsEl = document.getElementById('tiers-trials'), trialsCountEl = document.getElementById('tiers-trials-count');
   var state = null;
+  // The Laps Pro subscriptions switch: On or Off, saved at once.
+  Array.prototype.forEach.call(document.querySelectorAll('#tiers-subs-wrap [data-subs]'), function (b) {
+    b.addEventListener('click', function () {
+      var mode = b.getAttribute('data-subs');
+      call('POST', { action: 'subscriptions', mode: mode }).then(function (d) {
+        if (!d.ok || !d.success) { note(d.message || 'Could not change subscriptions.', 'error'); return; }
+        state.subscriptions = d.subscriptions;
+        draw();
+        note(mode === 'all' ? 'Subscriptions are on for everyone.' : mode === 'testers' ? 'Subscriptions are on for testers only.' : 'Subscriptions are off.');
+      });
+    });
+  });
   // The trial offer switch: On or Off, saved at once.
   Array.prototype.forEach.call(document.querySelectorAll('#tiers-trial-wrap [data-trial]'), function (b) {
     b.addEventListener('click', function () {
@@ -69,6 +81,11 @@
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on Laps Pro yet.</p>';
     Array.prototype.forEach.call(document.querySelectorAll('#tiers-trial-wrap [data-trial]'), function (b) {
       var on = (b.getAttribute('data-trial') === 'on') === !!state.trialOpen;
+      b.setAttribute('aria-pressed', String(on));
+      b.className = on ? 'iv-act' : 'secondary';
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#tiers-subs-wrap [data-subs]'), function (b) {
+      var on = b.getAttribute('data-subs') === state.subscriptions;
       b.setAttribute('aria-pressed', String(on));
       b.className = on ? 'iv-act' : 'secondary';
     });

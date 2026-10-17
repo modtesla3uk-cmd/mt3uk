@@ -10,6 +10,9 @@
    Unlock button is a placeholder for the subscription: it says nothing is charged yet. */
 (function () {
   var free = false, observer = null, scheduled = false;
+  // Whether subscribing is open (PayPal is set up). When it is, Unlock starts the subscription; otherwise it says so.
+  var canSubscribe = false;
+  var API_BASE = window.MT3UK_TRACK_API || 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var NOTE = 'Subscriptions are coming soon. Nothing is charged yet.';
 
   function css() {
@@ -123,10 +126,25 @@
     if (!locked) return;
     e.preventDefault();
     e.stopPropagation();
-    toast(NOTE);
+    if (canSubscribe) subscribe(); else toast(NOTE);
   }, true);
 
+  // Unlock: sends a signed-in member to PayPal to approve Laps Pro (the same as Subscribe on the Sessions page).
+  function subscribe() {
+    var token = '';
+    try { token = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (er) { token = ''; }
+    if (!token) { toast(NOTE); return; }
+    fetch(API_BASE + '/laps/pro/subscribe', { method: 'POST', headers: { 'X-Session-Token': token, 'Content-Type': 'application/json' }, body: '{}', cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) {
+        if (d && d.success && d.approveUrl) { window.location.href = d.approveUrl; return; }
+        toast((d && d.message) || 'Could not start the subscription. Try again.');
+      })
+      .catch(function () { toast('Could not start the subscription. Try again.'); });
+  }
+
   function draw(d) {
+    canSubscribe = !!(d && d.subscribe);
     free = !!(d && d.success && d.applies && !d.full);
     if (!free) {
       var old = document.getElementById('tp-quota-ring');

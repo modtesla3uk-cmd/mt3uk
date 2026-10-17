@@ -3122,3 +3122,34 @@ def test_admin_can_end_a_running_trial_now_to_see_the_trial_ended_card(page):
     expect(page.locator("#tiers-trials")).to_contain_text("Ended, not chosen yet")
     assert posts[-1] == {"action": "trial-end", "email": "tester@example.com"}, posts
 
+
+def test_admin_can_set_laps_pro_subscriptions_off_for_testers_or_everyone(page):
+    """Subscriptions are off until the admin chooses testers only or everyone, and the choice saves at once."""
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trialOpen": False,
+             "subscriptions": "off", "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}}
+    posts = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "subscriptions":
+                state["subscriptions"] = body["mode"]
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "subscriptions": state["subscriptions"]}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator('#tiers-subs-wrap [data-subs="off"]')).to_have_attribute("aria-pressed", "true")
+    page.locator('#tiers-subs-wrap [data-subs="testers"]').click()
+    expect(page.locator('#tiers-subs-wrap [data-subs="testers"]')).to_have_attribute("aria-pressed", "true")
+    assert posts[-1] == {"action": "subscriptions", "mode": "testers"}, posts
+    page.locator('#tiers-subs-wrap [data-subs="all"]').click()
+    expect(page.locator('#tiers-subs-wrap [data-subs="all"]')).to_have_attribute("aria-pressed", "true")
+    assert posts[-1] == {"action": "subscriptions", "mode": "all"}, posts
+    page.locator('#tiers-subs-wrap [data-subs="off"]').click()
+    expect(page.locator('#tiers-subs-wrap [data-subs="off"]')).to_have_attribute("aria-pressed", "true")
+    assert posts[-1] == {"action": "subscriptions", "mode": "off"}, posts
+

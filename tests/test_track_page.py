@@ -7746,3 +7746,29 @@ def test_a_subscriber_can_cancel_and_the_card_says_so(page):
     expect(page.locator("#tp-quota")).to_contain_text("Laps Pro")
     assert getattr(fake, "paypal_calls", []) == ["cancel"], getattr(fake, "paypal_calls", None)
 
+
+def test_a_member_who_went_back_to_the_free_tier_can_still_subscribe(page):
+    """After choosing the free tier the trial-ended card goes, but the free-tier box still offers Subscribe to Laps Pro."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 3, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "subscribe": True,
+                  "trial": {"state": "ended", "endsAt": "2026-10-17T12:00:00.000Z", "choice": "free", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    expect(page.locator("#tp-trial-offer")).to_have_count(0)
+    expect(page.locator("#tp-pro-again")).to_contain_text("Laps Pro is available any time")
+    expect(page.locator("#tp-pro-subscribe")).to_be_enabled()
+    expect(page.locator("#tp-quota")).to_contain_text("3 of 6 free days left")
+
+
+
+def test_unlock_on_my_analysis_starts_the_laps_pro_subscription(page):
+    """Unlock on My Analysis starts the PayPal subscription when subscribing is open."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "subscribe": True,
+                  "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake, path="/my-analysis.html")
+    page.route("https://www.sandbox.paypal.com/**", lambda route: route.fulfill(status=200, content_type="text/html", body="<p>Approve</p>"))
+    page.locator("[data-ma-unlock]").click()
+    page.wait_for_url("**/checkoutnow?token=TEST-SUB")
+    assert fake.paypal_calls == ["subscribe"], fake.paypal_calls

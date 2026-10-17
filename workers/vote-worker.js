@@ -8241,6 +8241,29 @@ async function lapsProTrialState(env, email) {
   var ended = new Date(r.end).getTime() <= Date.now();
   return { state: ended ? 'ended' : 'active', endsAt: r.end, choice: r.choice === 'free' ? 'free' : '' };
 }
+// Admin: every trial, newest first, with how many are running, have ended, and chose the free tier. Admin route only, so
+// the list() over the trial keys is fine here (the member routes read one key with get()).
+async function lapsProTrialList(env) {
+  var rows = [], cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'laps-pro-trial:', cursor: cursor });
+    for (var i = 0; i < page.keys.length && rows.length < 1000; i++) {
+      var r = await getJsonKey(env, page.keys[i].name, null);
+      if (!r || !r.start || !r.end) continue;
+      var ended = new Date(r.end).getTime() <= Date.now();
+      rows.push({ email: page.keys[i].name.slice('laps-pro-trial:'.length), start: r.start, end: r.end, ended: ended, choice: r.choice === 'free' ? 'free' : '' });
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && rows.length < 1000);
+  rows.sort(function (a, b) { return a.start < b.start ? 1 : a.start > b.start ? -1 : 0; });
+  var summary = {
+    running: rows.filter(function (x) { return !x.ended; }).length,
+    ended: rows.filter(function (x) { return x.ended; }).length,
+    stayedFree: rows.filter(function (x) { return x.ended && x.choice === 'free'; }).length
+  };
+  summary.awaiting = summary.ended - summary.stayedFree;
+  return { summary: summary, rows: rows };
+}
 async function handleLapsProTrialStart(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -8343,6 +8366,7 @@ async function handleTrackTiersAdmin(request, env) {
   if (request.method === 'GET') {
     var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid };
     reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
+    reply.trials = await lapsProTrialList(env);
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
     return json(reply);
   }

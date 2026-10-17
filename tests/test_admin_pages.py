@@ -2985,3 +2985,26 @@ def test_admin_paid_plan_list_adds_and_takes_away_a_paid_member(page):
     page.locator("#tiers-paid-host .mf-go").click()
     expect(page.locator("#tiers-paid")).to_contain_text("paid@example.com")
     assert {"action": "add", "list": "paid", "email": "paid@example.com"} in posts
+
+
+def test_admin_laps_pro_panel_lists_trials_and_counts_how_many_have_ended(page):
+    """The Laps Pro panel lists every trial, with how many are running, have ended, and chose the free tier or not yet."""
+    trials = {"summary": {"running": 1, "ended": 2, "stayedFree": 1, "awaiting": 1}, "rows": [
+        {"email": "run@example.com", "start": "2026-10-15T09:00:00Z", "end": "2026-10-22T09:00:00Z", "ended": False, "choice": ""},
+        {"email": "free@example.com", "start": "2026-10-01T09:00:00Z", "end": "2026-10-08T09:00:00Z", "ended": True, "choice": "free"},
+        {"email": "wait@example.com", "start": "2026-10-02T09:00:00Z", "end": "2026-10-09T09:00:00Z", "ended": True, "choice": ""},
+    ]}
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trials": trials}
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#tiers-trials-count")).to_contain_text("1 running now. 2 trials have ended: 1 chose the free tier and 1 has not chosen yet.")
+    expect(page.locator("#tiers-trials")).to_contain_text("run@example.com")
+    expect(page.locator("#tiers-trials")).to_contain_text("Running, ends")
+    expect(page.locator("#tiers-trials")).to_contain_text("Ended, chose the free tier")
+    expect(page.locator("#tiers-trials")).to_contain_text("Ended, not chosen yet")

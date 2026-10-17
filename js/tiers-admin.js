@@ -11,6 +11,7 @@
   var noteEl = document.getElementById('tiers-note'), countEl = document.getElementById('tiers-count');
   var testersEl = document.getElementById('tiers-testers'), fullEl = document.getElementById('tiers-full');
   var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
+  var trialsEl = document.getElementById('tiers-trials'), trialsCountEl = document.getElementById('tiers-trials-count');
   var state = null;
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
@@ -54,6 +55,14 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="paid" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on Laps Pro yet.</p>';
+    var trials = state.trials || { summary: { running: 0, ended: 0, stayedFree: 0, awaiting: 0 }, rows: [] };
+    var sm = trials.summary;
+    trialsCountEl.textContent = sm.running + ' running now. ' + sm.ended + ' ' + (sm.ended === 1 ? 'trial has' : 'trials have') + ' ended: ' +
+      sm.stayedFree + ' chose the free tier and ' + sm.awaiting + ' ' + (sm.awaiting === 1 ? 'has' : 'have') + ' not chosen yet.';
+    trialsEl.innerHTML = trials.rows.length ? '<table class="iv-table"><tbody>' + trials.rows.map(function (t) {
+      var status = !t.ended ? 'Running, ends ' + when(t.end) : t.choice === 'free' ? 'Ended, chose the free tier' : 'Ended, not chosen yet';
+      return '<tr><td><span class="iv-sub">' + esc(t.email) + '</span></td><td>' + esc(when(t.start)) + '</td><td>' + esc(status) + '</td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="empty">Nobody has started a Laps Pro trial yet.</p>';
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +

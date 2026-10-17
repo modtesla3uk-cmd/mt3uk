@@ -4,7 +4,7 @@
 Each card on the homepage has a share page, share/card/<id>.html, with its own title, description and picture. Link
 previews (WhatsApp, Facebook, X, iMessage) read the page's HTML and never run its scripts, so the picture has to exist
 as a file. This script opens the live homepage in a browser, takes a picture of each card as it looks now, puts it on a
-1200 x 630 card and saves it as share/card/<id>.jpg. The share page sends people on to the card on the homepage
+transparent picture of the card alone and saves it as share/card/<id>.png. The share page sends people on to the card on the homepage
 (index.html#card-<id>). A card that is not on the homepage today keeps its last picture, or uses the site picture.
 
 The sync workflow (.github/workflows/card-previews.yml) runs it every day and commits the result.
@@ -24,7 +24,6 @@ OUT = ROOT / "share" / "card"
 SITE = os.environ.get("MT3UK_SITE", "https://mt3uk.com").rstrip("/")  # where the pictures are drawn from
 PUBLIC = "https://mt3uk.com"  # the address in the share pages, always the public site
 SITE_PICTURE = "images/MT3UK_RED_BLK_BG.png"
-PREVIEW_W, PREVIEW_H = 1200, 630
 
 CARDS = [
     {"id": "latest", "sel": "#hp-hero .hp-hero-card", "title_sel": "#hp-hero-title", "desc_sel": "#hp-hero-excerpt",
@@ -65,26 +64,11 @@ def picture_for(page, card):
     if loc.count() == 0 or not loc.is_visible():
         return None
     loc.scroll_into_view_if_needed()
-    return loc.screenshot(type="png")
+    # The card alone, with transparent corners: the page's background is left out.
+    return loc.screenshot(type="png", omit_background=True)
 
 
-def preview_jpeg(context, png):
-    """The card on a 1200 x 630 navy picture, as a JPEG small enough for chat apps."""
-    data = base64.b64encode(png).decode("ascii")
-    page = context.new_page()
-    page.set_viewport_size({"width": PREVIEW_W, "height": PREVIEW_H})
-    page.set_content(
-        "<!doctype html><html><body style=\"margin:0;width:%dpx;height:%dpx;background:#16233d;display:flex;"
-        "align-items:center;justify-content:center\">"
-        "<img alt=\"\" src=\"data:image/png;base64,%s\" style=\"max-width:1040px;max-height:500px;border-radius:14px;"
-        "box-shadow:0 14px 40px rgba(0,0,0,.45)\"></body></html>" % (PREVIEW_W, PREVIEW_H, data)
-    )
-    out = page.screenshot(type="jpeg", quality=88, clip={"x": 0, "y": 0, "width": PREVIEW_W, "height": PREVIEW_H})
-    page.close()
-    return out
-
-
-def share_page(card, title, desc, image):
+def share_page(card, title, desc, image, size):
     cid = card["id"]
     url = "%s/share/card/%s.html" % (PUBLIC, cid)
     t, d = html.escape(title, quote=True), html.escape(desc, quote=True)
@@ -118,7 +102,7 @@ def share_page(card, title, desc, image):
 <p>Opening MT3UK... <a href="../../index.html#card-%(cid)s">%(t)s</a></p>
 </body>
 </html>
-""" % {"t": t, "d": d, "url": url, "img": img, "w": PREVIEW_W, "h": PREVIEW_H, "cid": cid}
+""" % {"t": t, "d": d, "url": url, "img": img, "w": size[0], "h": size[1], "cid": cid}
 
 
 def main():
@@ -133,20 +117,24 @@ def main():
         page.wait_for_selector("#hp-hero .hp-hero-card", timeout=30000)
         page.wait_for_timeout(2500)
         # The share buttons are for visitors, not for the picture.
-        page.add_style_tag(content=".hp-card-share{display:none !important}")
+        page.add_style_tag(content=".hp-card-share{display:none !important}"
+                                   " html, body, #hp-hero { background: transparent !important; background-image: none !important; }")
         for card in CARDS:
             title, desc = card_text(page, card)
             png = picture_for(page, card)
-            image = "share/card/%s.jpg" % card["id"]
+            image = "share/card/%s.png" % card["id"]
+            size = (1200, 630)
             if png is not None:
-                (ROOT / image).write_bytes(preview_jpeg(context, png))
-                print("picture", image)
+                (ROOT / image).write_bytes(png)
+                box = page.locator(card["sel"]).first.bounding_box()
+                size = (round(box["width"]), round(box["height"]))
+                print("picture", image, size)
             elif not (ROOT / image).exists():
                 image = SITE_PICTURE
                 print("no picture yet, using the site picture for", card["id"])
             else:
                 print("not on the homepage today, keeping", image)
-            (OUT / ("%s.html" % card["id"])).write_text(share_page(card, title, desc, image), encoding="utf-8")
+            (OUT / ("%s.html" % card["id"])).write_text(share_page(card, title, desc, image, size), encoding="utf-8")
         browser.close()
 
 

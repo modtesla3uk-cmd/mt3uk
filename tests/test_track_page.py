@@ -6682,10 +6682,10 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     def span(key):
         return page.evaluate("k => getComputedStyle(document.querySelector('#tp-board > [data-tile=\"' + k + '\"]')).getPropertyValue('--span').trim()", key)
     first = order()
-    assert first[:5] == ["speed", "map", "grip", "corners", "spotted"]
+    assert first[:9] == ["map", "grip", "corners", "cmpnotes", "speed", "gforce", "spotted", "prohead", "overtime-mods"], first
     for k in ("laps", "spotted", "overtime-mods", "lineedit", "rename", "settings"):
         assert k in first, k
-    assert span("speed") == "3" and span("map") == "6" and span("grip") == "3" and span("corners") == "6" and span("spotted") == "6" and span("settings") == "12"
+    assert span("map") == "6" and span("grip") == "6" and span("speed") == "6" and span("gforce") == "6" and span("corners") == "6" and span("spotted") == "6" and span("cmpnotes") == "6" and span("settings") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
     # The map is the first section on the board, and the paid sections (speed, corner by corner, grip, what we spotted,
     # what each mod did) sit below the free ones. Packed: Corner by corner starts level with the speed charts, beside them.
@@ -6695,10 +6695,13 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     gb = page.locator('[data-tile="grip"]').bounding_box()
     cmp_b = page.locator('[data-tile="cmpnotes"]').bounding_box()
     assert mb["y"] <= cmp_b["y"] + 3 and mb["y"] <= sb["y"], (mb, cmp_b, sb)
-    # Option 1 on desktop: Speed, Map and Grip share the top row (Grip beside the map), and Corner by corner sits below them.
-    assert abs(sb["y"] - mb["y"]) < 3 and abs(gb["y"] - mb["y"]) < 3, (sb, mb, gb)
-    assert sb["x"] < mb["x"] < gb["x"], (sb, mb, gb)
-    assert cb["y"] >= max(sb["y"] + sb["height"], mb["y"] + mb["height"], gb["y"] + gb["height"]) - 3, (cb, sb, mb, gb)
+    # The top of the board: Map with How much grip you used beside it, Corner by corner under the grip, and Speed through
+    # the lap and the G-force chart under the map.
+    gf = page.locator('[data-tile="gforce"]').bounding_box()
+    assert abs(gb["y"] - mb["y"]) < 3 and gb["x"] > mb["x"], (mb, gb)
+    assert abs(cb["x"] - gb["x"]) < 3 and cb["y"] >= gb["y"] + gb["height"] - 3, (cb, gb)
+    assert abs(sb["x"] - mb["x"]) < 3 and sb["y"] >= mb["y"] + mb["height"] - 3, (sb, mb)
+    assert gf["y"] >= sb["y"] + sb["height"] - 3, (gf, sb)
     # On the owner's session the paid sections sit before Start and finish lines, which come last on the board.
     if page.locator('[data-tile="lineedit"]').count():
         lb = page.locator('[data-tile="lineedit"]').bounding_box()
@@ -7788,3 +7791,6 @@ def test_the_free_box_says_laps_pro_is_free_for_everyone_until_the_end_date(page
     open_page(page, fake)
     expect(page.locator("#tp-quota")).to_contain_text("Laps Pro is free for everyone until 1 January 2027")
     expect(page.locator("#tp-quota")).to_contain_text("3 of 6 free days left")
+    # Hide takes the note away with the rest of the box.
+    page.locator("#tp-quota-toggle").click()
+    expect(page.locator("#tp-quota-body")).to_be_hidden()

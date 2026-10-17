@@ -984,12 +984,14 @@
           '<button type="button" class="btn btn-secondary btn-sm" id="tp-pro-subscribe" style="margin-left:4px">Subscribe to Laps Pro' + (d.price ? ' (' + esc(d.price) + ')' : '') + '</button></div>';
       }
       // While Laps Pro is free for everyone, the box says so (the day limit still shows below).
+      // It sits inside the box, so Hide takes it away with the rest.
+      var proNote = '';
       if (d.proFeatures) {
         var proUntil = d.proTrialUntil ? new Date(d.proTrialUntil + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-        offer = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
-          + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>' + offer;
+        proNote = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
+          + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>';
       }
-      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + again + text + '</div>';
+      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
       var startTrial = document.getElementById('tp-trial-start');
       if (startTrial) startTrial.addEventListener('click', function () {
@@ -4422,6 +4424,7 @@
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
         '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
+        '<div class="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3><span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span></div>' +
         '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
       boardOpen = true;
     }
@@ -4579,7 +4582,7 @@
   // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
   // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
   var boardOpen = false;
-  var DEFAULT_SPAN = { speed: 3, map: 6, corners: 6, grip: 3, cmpnotes: 12, laps: 12, spotted: 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var DEFAULT_SPAN = { speed: 6, gforce: 6, map: 6, corners: 6, grip: 6, prohead: 12, cmpnotes: 6, laps: 12, spotted: 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of
@@ -4598,10 +4601,20 @@
   function board() { return document.getElementById('tp-board'); }
   function tilesOf(b) { return b ? [].slice.call(b.querySelectorAll(':scope > [data-tile]')) : []; }
   function keyOf(t) { return t.getAttribute('data-tile'); }
+  // The G-force chart is a tile of its own on the board, under Speed. In full screen it goes back into the map, which
+  // shows it along the bottom.
+  function placeGBox() {
+    var gb = document.getElementById('tp-gbox'), card = document.getElementById('tp-mapcard'), b = board();
+    if (!gb || !card) return;
+    if (cmpFull || !b) { if (gb.parentNode !== card) card.appendChild(gb); gb.removeAttribute('data-tile'); return; }
+    if (gb.parentNode !== b) { var sp = b.querySelector('[data-tile="speed"]'); b.insertBefore(gb, sp ? sp.nextSibling : null); }
+    gb.setAttribute('data-tile', 'gforce');
+  }
   // Gives each tile its width and watches it for packing, after every draw that adds tiles.
   function applyLayout() {
     var b = board();
     if (!b) return;
+    placeGBox();
     tilesOf(b).forEach(function (t) {
       t.style.setProperty('--span', DEFAULT_SPAN[keyOf(t)] || 12);
       if (window.ResizeObserver) { if (!packWatch) packWatch = new ResizeObserver(packSoon); if (!t.getAttribute('data-packed')) { t.setAttribute('data-packed', '1'); packWatch.observe(t); } }
@@ -4912,6 +4925,7 @@
   function fullUi() {
     var b = document.getElementById('tp-full'), card = document.getElementById('tp-mapcard');
     if (card) card.classList.toggle('is-full', cmpFull);
+    placeGBox();
     applyFullLayout();
     document.body.classList.toggle('tp-noscroll', cmpFull);
     if (b) {

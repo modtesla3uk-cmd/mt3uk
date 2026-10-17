@@ -369,3 +369,17 @@ def test_the_editor_sets_the_members_figure_and_the_other_figures_come_from_the_
     assert page.evaluate("document.querySelector('.hp-stats .member-count').textContent") == "3.2K+"
     # The builds and events figures are counted from the site, not typed in.
     expect(page.locator("#hp-stat-builds")).not_to_be_empty()
+
+
+def test_the_homepage_cards_stay_on_the_screen_on_a_narrow_phone(page):
+    """A narrow phone (about 326px) must not push the cards past the right edge: the photo card's buttons wrap and the hero column can shrink."""
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 326, "height": 800})
+    page.goto("/index.html")
+    expect(page.locator("#hp-shop-cards .hp-shop-card")).to_be_visible()
+    right = page.evaluate("""() => Math.max(...['#hp-hero .hp-hero-card', '#hp-hero .hp-laps-promo', '#hp-hero-next', '#hp-join',
+      '#hp-shop-cards .hp-shop-card'].map(s => { const e = document.querySelector(s); return e && !e.hidden ? e.getBoundingClientRect().right : 0; }))""")
+    assert right <= 326
+    assert page.evaluate("document.documentElement.scrollWidth") <= 326

@@ -2620,10 +2620,15 @@
   /* Phone and tablet: the cards stack in one column in the order they sit on desktop. js/home-layout.js sets each card's
      --phone-order (from the saved layout, or the default order), so the swipe row and its arrows are not used. */
   @media (max-width: 900px) {
-    .hp-hero .hp-cols { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+    .hp-hero .hp-cols { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; max-width: 100%; }
+    .hp-hero .hero-grid > div:first-child { min-width: 0; max-width: 100%; }
     .hp-cols .hp-next-row, .hp-cols .hp-col-right, .hp-cols .hp-shop-cards { display: contents; }
     .hp-cols .hp-swipe-hint { display: none; }
     .hp-cols .hp-hero-card::after { display: none; }
+    .hp-cols .hp-join-actions { flex-wrap: wrap; }
+    .hp-cols .hp-join-actions a { min-width: 0; }
+    .hp-cols #hp-hero-next { min-width: 0; }
+    .hp-cols #hp-hero-next > * { min-width: 0; }
     .hp-cols .hp-hero-card, .hp-cols .hp-laps-promo, .hp-cols #hp-hero-next, .hp-cols #hp-join,
     .hp-cols .hp-offer-card, .hp-cols .hp-shop-card, .hp-cols .hp-site-note, .hp-cols .hp-stats { order: var(--phone-order, 0); width: 100%; max-width: none; margin: 0 !important; min-width: 0; flex: none; }
   }

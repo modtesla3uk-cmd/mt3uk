@@ -9,7 +9,7 @@
     { id: 'latest', sel: '#hp-hero .hp-hero-card', name: 'Latest interview', dark: false },
     { id: 'laps', sel: '#hp-hero .hp-laps-promo', name: 'Laps', dark: false },
     { id: 'next', sel: '#hp-hero-next', name: 'Next interview', dark: true, pad: true },
-    { id: 'join', sel: '#hp-join', name: 'Add a photo', dark: true, pad: true },
+    { id: 'join', sel: '#hp-join', name: 'Add a photo', dark: true, textPad: true },
     { id: 'offers', sel: '#hp-shop-cards .hp-offer-card', name: 'Offers', dark: false, pad: true },
     { id: 'shop', sel: '#hp-shop-cards .hp-shop-card', name: 'Shop', dark: true, pad: true }
   ];
@@ -20,6 +20,7 @@
   st.textContent =
     '.hp-has-share { position: relative; }' +
     '.hp-card-pad { padding-right: 56px !important; }' +
+    '.hp-text-pad > p:first-child { padding-right: 56px; }' +
     '.hp-card-share { position: absolute; top: 8px; right: 8px; z-index: 4; width: 40px; height: 40px; padding: 0; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(22, 35, 61, 0.2); background: rgba(255, 255, 255, 0.92); color: #16233d; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); text-decoration: none; }' +
     '.hp-card-share.is-dark { border-color: rgba(255, 255, 255, 0.35); background: rgba(14, 22, 40, 0.8); color: #ffffff; }' +
     '.hp-card-share:focus-visible { outline: 3px solid #e8542a; outline-offset: 2px; }' +
@@ -83,6 +84,8 @@
       card.classList.add('hp-has-share');
       // The text of these cards runs across the top, so it keeps clear of the button. The cards in the swipe row do not need it.
       if (c.pad) card.classList.add('hp-card-pad');
+      // A card whose buttons run along its bottom keeps them the full width; only its text clears the button.
+      if (c.textPad) card.classList.add('hp-text-pad');
     });
     landOnCard();
   }

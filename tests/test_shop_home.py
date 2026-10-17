@@ -383,3 +383,18 @@ def test_the_homepage_cards_stay_on_the_screen_on_a_narrow_phone(page):
       '#hp-shop-cards .hp-shop-card'].map(s => { const e = document.querySelector(s); return e && !e.hidden ? e.getBoundingClientRect().right : 0; }))""")
     assert right <= 326
     assert page.evaluate("document.documentElement.scrollWidth") <= 326
+
+
+def test_the_photo_card_keeps_its_buttons_full_width_with_its_share_button(page):
+    """Signed in, the photo card's buttons keep their width (the share button sits over the card's top right, not over them)."""
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
+                         "localStorage.setItem('mt3ukMyBuildsSession','1');localStorage.setItem('mt3ukMyBuildsEmail','ri@example.com');"
+                         "localStorage.setItem('mt3ukMyBuildsFirstName','Richard');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 326, "height": 800})
+    page.goto("/index.html")
+    expect(page.locator("#hp-join .hp-card-share")).to_be_visible()
+    widths = page.evaluate("""() => [...document.querySelectorAll('#hp-join .hp-join-actions a')].filter(a => a.offsetParent)
+      .map(a => [a.getBoundingClientRect().width, a.scrollWidth])""")
+    assert widths and all(w >= s - 1 for w, s in widths)

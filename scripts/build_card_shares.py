@@ -3,9 +3,10 @@
 
 Each card on the homepage has a share page, share/card/<id>.html, with its own title, description and picture. Link
 previews (WhatsApp, Facebook, X, iMessage) read the page's HTML and never run its scripts, so the picture has to exist
-as a file. This script opens the live homepage in a browser, takes a picture of each card as it looks now, puts it on a
-transparent picture of the card alone and saves it as share/card/<id>.png. The share page sends people on to the card on the homepage
-(index.html#card-<id>). A card that is not on the homepage today keeps its last picture, or uses the site picture.
+as a file. This script opens the live homepage in a browser, takes a picture of each card as it looks now, and sets the
+card alone, enlarged, on a white 1200 x 630 picture (the size Facebook and most chat apps show), saved as share/card/<id>.jpg.
+The share page sends people on to the card on the homepage (index.html#card-<id>). A card that is not on the homepage
+today keeps its last picture, or uses the site picture.
 
 The sync workflow (.github/workflows/card-previews.yml) runs it every day and commits the result.
 
@@ -59,13 +60,31 @@ def card_text(page, card):
 
 
 def picture_for(page, card):
-    """The card as a PNG, or None when it is not on the homepage now."""
+    """The card as a PNG (the page's background left out), or None when it is not on the homepage now."""
     loc = page.locator(card["sel"]).first
     if loc.count() == 0 or not loc.is_visible():
         return None
     loc.scroll_into_view_if_needed()
-    # The card alone, with transparent corners: the page's background is left out.
     return loc.screenshot(type="png", omit_background=True)
+
+
+FRAME_W, FRAME_H = 1200, 630
+
+
+def framed_jpeg(browser, png):
+    """The card enlarged to fill the picture's width (or height), centred on white, as a 1200 x 630 JPEG."""
+    data = base64.b64encode(png).decode("ascii")
+    context = browser.new_context(viewport={"width": FRAME_W, "height": FRAME_H}, device_scale_factor=1)
+    page = context.new_page()
+    page.set_content(
+        "<!doctype html><html><body style=\"margin:0;width:%dpx;height:%dpx;background:#ffffff;display:flex;"
+        "align-items:center;justify-content:center;overflow:hidden\">"
+        "<img alt=\"\" src=\"data:image/png;base64,%s\" style=\"width:1120px;height:auto;max-height:570px;object-fit:contain\">"
+        "</body></html>" % (FRAME_W, FRAME_H, data)
+    )
+    out = page.screenshot(type="jpeg", quality=90, clip={"x": 0, "y": 0, "width": FRAME_W, "height": FRAME_H})
+    context.close()
+    return out
 
 
 def share_page(card, title, desc, image, size):
@@ -110,7 +129,8 @@ def main():
     chrome = os.environ.get("CHROME") or None
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=chrome, args=["--no-sandbox"])
-        context = browser.new_context(viewport={"width": 1280, "height": 900}, device_scale_factor=1)
+        # Three times the size on the page, so the card stays sharp when it is enlarged to the picture's width.
+        context = browser.new_context(viewport={"width": 1280, "height": 900}, device_scale_factor=3)
         context.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
         page = context.new_page()
         page.goto(SITE + "/index.html", wait_until="load")
@@ -118,16 +138,14 @@ def main():
         page.wait_for_timeout(2500)
         # The share buttons are for visitors, not for the picture.
         page.add_style_tag(content=".hp-card-share{display:none !important}"
-                                   " html, body, #hp-hero { background: transparent !important; background-image: none !important; }")
+                                   " html, body, html body #hp-hero { background: transparent !important; background-image: none !important; }")
         for card in CARDS:
             title, desc = card_text(page, card)
             png = picture_for(page, card)
-            image = "share/card/%s.png" % card["id"]
-            size = (1200, 630)
+            image = "share/card/%s.jpg" % card["id"]
+            size = (FRAME_W, FRAME_H)
             if png is not None:
-                (ROOT / image).write_bytes(png)
-                box = page.locator(card["sel"]).first.bounding_box()
-                size = (round(box["width"]), round(box["height"]))
+                (ROOT / image).write_bytes(framed_jpeg(browser, png))
                 print("picture", image, size)
             elif not (ROOT / image).exists():
                 image = SITE_PICTURE
@@ -136,6 +154,9 @@ def main():
                 print("not on the homepage today, keeping", image)
             (OUT / ("%s.html" % card["id"])).write_text(share_page(card, title, desc, image, size), encoding="utf-8")
         browser.close()
+    # The old transparent PNG pictures are replaced by the framed JPEGs.
+    for old in OUT.glob("*.png"):
+        old.unlink()
 
 
 if __name__ == "__main__":

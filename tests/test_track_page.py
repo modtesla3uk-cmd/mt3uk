@@ -6674,12 +6674,14 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
         assert k in first, k
     assert span("speed") == "6" and span("map") == "6" and span("settings") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
-    # Packed: Corner by corner starts straight under the speed charts, not under the taller map beside them.
+    # The map is the first section on the board, and the paid sections (speed, corner by corner, grip, what we spotted,
+    # what each mod did) sit below the free ones. Packed: Corner by corner starts level with the speed charts, beside them.
     sb = page.locator('[data-tile="speed"]').bounding_box()
     cb = page.locator('[data-tile="corners"]').bounding_box()
     mb = page.locator('[data-tile="map"]').bounding_box()
-    assert mb["height"] > sb["height"] + 100, (mb, sb)
-    assert abs(cb["y"] - (sb["y"] + sb["height"] + 14)) < 3, (sb, cb)
+    cmp_b = page.locator('[data-tile="cmpnotes"]').bounding_box()
+    assert mb["y"] <= cmp_b["y"] + 3 and mb["y"] <= sb["y"], (mb, cmp_b, sb)
+    assert sb["y"] > cmp_b["y"] and abs(cb["y"] - sb["y"]) < 3 and cb["x"] > sb["x"], (sb, cb)
     # Every tile spans its own height, so no tile overlaps the one below it.
     # (A tile that has just grown, such as the map edit box once its status arrives, is packed again on the next frame, so
     # wait for the board to settle rather than reading it in the middle of that.)

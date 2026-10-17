@@ -3799,6 +3799,11 @@
     }
     return tierCheckPromise;
   }
+  // The paid sections (speed, grip, corner by corner, what we spotted, what each mod did, and G-force) go below the free
+  // ones on the board, for everyone; track.html moves them with the tp-paid class.
+  function markPaidTiles(root) {
+    root.querySelectorAll('[data-tile="speed"], [data-tile="grip"], [data-tile="corners"], [data-tile="spotted"], [data-tile="overtime-mods"]').forEach(function (el) { el.classList.add('tp-paid'); });
+  }
   function lockPaidTiles(root) {
     tierCheck().then(function (t) {
       if (!t.applies || t.full) return;
@@ -3811,12 +3816,14 @@
       };
       Object.keys(PAID_TILES).forEach(function (k) { lock(root.querySelector('[data-tile="' + k + '"]'), PAID_TILES[k]); });
       lock(root.querySelector('#tp-gbox'), 'G-force and speed');
-      // Compare laps: the free plan has one comparison (the pair the page starts on). Choosing other laps is paid.
+      // Compare laps: the free plan compares the fastest lap with the next one, the pair the page starts on. Choosing
+      // other laps is paid, so the words above the pickers say so.
+      var cmpSub = root.querySelector('#compare .tp-sub');
+      if (cmpSub) cmpSub.textContent = 'Your fastest lap in this session is picked, to compare with the next one. Unlock to compare any two laps in this session.';
       var pick = root.querySelector('.tp-cmp-pick');
       if (pick && !pick.getAttribute('data-locked')) {
         pick.setAttribute('data-locked', '1');
         ['tp-cmp-a', 'tp-cmp-b'].forEach(function (id) { var sel = document.getElementById(id); if (sel) sel.disabled = true; });
-        pick.insertAdjacentHTML('beforeend', '<p class="tp-small" style="margin:8px 0 0;color:#4a5366">Paid: choose any two laps to compare. Your free plan includes one comparison.</p>');
       }
     });
   }
@@ -3855,6 +3862,7 @@
     wireSkip(s);
     markFavs();
     markLikes(s);
+    markPaidTiles(app);
     lockPaidTiles(app);
     if (token() && !s.local) {
       var subLine = document.querySelector('.tp-session-head .tp-sub');
@@ -5343,7 +5351,7 @@
   // so the card says what it could not account for.
   function impactHtml(list, s) {
     var mods = carMods(s.carId).map(function (m) { return { label: m.label, year: m.year, month: m.monthKnown ? m.month : null }; });
-    var head = '<div class="card tp-impact" id="tp-impact" data-tile="overtime-mods"><div class="tp-chart-head">' + '<h3>What each mod did</h3></div>';
+    var head = '<div class="card tp-impact tp-paid" id="tp-impact" data-tile="overtime-mods"><div class="tp-chart-head">' + '<h3>What each mod did</h3></div>';
     if (!mods.length) return head + '<p class="tp-small">Add when you fitted your wheels, tyres, suspension, brakes, aero and performance parts on your build (the Fitted date) and this compares your best dry time here before and after each one.</p></div>';
     var r = T.modImpact(list.map(function (o) { return { id: o.id, date: o.date, bestTime: o.bestTime, conditions: o.conditions, temp: o.temp, tyres: o.tyres }; }), mods);
     var h = head;

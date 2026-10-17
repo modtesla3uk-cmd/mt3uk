@@ -22,6 +22,8 @@
     'mt3uk-fire-red-hoodie-yellow-line': 'merch', 'mt3uk-grey-hoodie-red-line': 'merch', 'black-mt3uk-tee-red-underline-super-soft': 'merch',
     'black-mt3uk-tee-yellow-underline': 'merch' };
   function shopLink(url, id) {
+    // A product on the Shop page always goes to its place there, even if an older offer saved its Shopify address.
+    if (SHOP_ANCHORS[id]) return 'shop.html#' + SHOP_ANCHORS[id];
     var u = String(url || '');
     if (/^https:\/\//.test(u)) {
       var sep = u.indexOf('?') === -1 ? '?' : '&';

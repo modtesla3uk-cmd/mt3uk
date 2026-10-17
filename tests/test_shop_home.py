@@ -30,7 +30,7 @@ def test_the_homepage_shows_the_live_offer_and_the_shop_card_with_its_highlights
     expect(page.locator(".hp-offer-card")).to_contain_text("October offers")
     expect(page.locator(".hp-offer-card")).to_contain_text("20% off")
     link = page.locator(".hp-offer-card a").first
-    expect(link).to_have_attribute("href", re.compile(r"utm_source=mt3uk_shop.*utm_campaign=master-cylinder-brace_order"))
+    expect(link).to_have_attribute("href", "shop.html#brace")
     expect(page.locator(".hp-shop-card")).to_contain_text("Tees, hoodies and stickers")
     # Dates shown as text, and the offer's copy is shown as text, not markup.
     expect(page.locator(".hp-offer-card")).to_contain_text("Until 31 Oct 2026")
@@ -438,6 +438,17 @@ def test_an_offer_item_links_to_its_place_on_the_shop_page_not_to_shopify(page):
     link = page.locator("#hp-shop-cards .hp-offer-card a")
     expect(link).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125)")
     assert link.get_attribute("href") == "shop.html#brace"
+
+
+def test_an_offer_item_saved_with_a_shopify_address_still_links_to_the_shop_page(page):
+    offer = {"on": True, "heading": "Autumn Offers", "percent": 40, "text": "", "code": "", "start": "2026-10-01", "end": "2026-12-31",
+             "items": [{"id": BRACE_PRODUCT["handle"], "name": BRACE_PRODUCT["title"], "url": BRACE_PRODUCT["url"], "price": "£125"}]}
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": offer}), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    assert page.locator("#hp-shop-cards .hp-offer-card a").get_attribute("href") == "shop.html#brace"
 
 
 def test_the_order_link_for_an_offer_item_goes_through_the_discount_code_to_the_product(page):

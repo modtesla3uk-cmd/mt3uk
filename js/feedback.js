@@ -45,7 +45,7 @@
       '<p class="fb-hint">Helps improve the platform</p>' +
       '<label for="fb-nick">Nickname</label><input type="text" id="fb-nick" maxlength="40" required autocomplete="nickname">' +
       '<p class="fb-hint" id="fb-nick-hint">Your nickname from your profile. To change it, edit it in Profile.</p>' +
-      '<label for="fb-msg">What happened?</label><textarea id="fb-msg" maxlength="1000" required></textarea>' +
+      '<label for="fb-msg">Leave your comments</label><textarea id="fb-msg" maxlength="1000" required></textarea>' +
       '<label for="fb-shot">Screenshot (optional)</label><input type="file" id="fb-shot" accept="image/png,image/jpeg,image/webp">' +
       '<label for="fb-email">Email (optional)</label><input type="email" id="fb-email" autocomplete="email">' +
       '<p class="fb-hint">Only add an email if you would like a reply.</p>' +

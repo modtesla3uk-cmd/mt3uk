@@ -307,9 +307,10 @@ def test_the_homepage_editor_numbers_each_card_with_its_place_on_a_phone(page):
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html?layout=edit")
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
+    expect(page.locator(".hp-cols .hl-phone-no[data-for=laps]")).to_have_text("Phone 2")
     numbers = page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('.hp-cols .hl-phone-no')].map(
       el => [el.getAttribute('data-for'), el.textContent]))""")
-    assert numbers == {"latest": "Phone 1", "next": "Phone 2", "join": "Phone 3", "offer": "Phone 4", "laps": "Phone 5", "shop": "Phone 6",
+    assert numbers == {"latest": "Phone 1", "laps": "Phone 2", "next": "Phone 3", "join": "Phone 4", "offer": "Phone 5", "shop": "Phone 6",
                        "note": "Phone 7", "stats": "Phone 8"}
     page.locator("#hl-bar [data-a=phone]").click()
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-no-phone"))
@@ -329,7 +330,7 @@ def test_the_phone_order_is_the_order_the_editor_numbers(page):
       return Object.entries(sels).map(([k, s]) => { const e = document.querySelector(s), r = e.getBoundingClientRect(); return [k, r.top, r.left]; })
         .sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
     }""")
-    assert order == ["latest", "next", "join", "offer", "laps", "shop"]
+    assert order == ["latest", "laps", "next", "join", "offer", "shop"]
 
 
 def test_a_saved_layout_sets_the_phone_order_from_where_the_cards_sit_on_desktop(page):
@@ -349,7 +350,7 @@ def test_a_saved_layout_sets_the_phone_order_from_where_the_cards_sit_on_desktop
       return Object.entries(sels).map(([k, s]) => { const e = document.querySelector(s), r = e.getBoundingClientRect(); return [k, r.top, r.left]; })
         .sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
     }""")
-    assert order == ["shop", "latest", "next", "join", "laps", "offer"]
+    assert order == ["latest", "laps", "shop", "next", "join", "offer"]
 
 
 def test_the_editor_sets_the_members_figure_and_the_other_figures_come_from_the_site(page):

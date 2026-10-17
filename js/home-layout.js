@@ -22,7 +22,14 @@
   // The order the cards come in on a phone. Without a saved layout it is the default desktop order; with one, the order the
   // cards sit in on desktop (top to bottom, then left to right). It sets --phone-order on each card (index.html) and the
   // numbers in the editor.
-  var DEFAULT_ORDER = ['latest', 'next', 'join', 'offer', 'laps', 'shop', 'note', 'stats'];
+  // Where the cards sit with no saved layout (measured on desktop, in the frame's pixels), for the phone order.
+  var DEFAULT_COORDS = {
+    latest: { x: 0, y: 0, w: 484 }, next: { x: 484, y: 0, w: 484 }, join: { x: 484, y: 131, w: 484 },
+    offer: { x: 484, y: 267, w: 484 }, laps: { x: 0, y: 300, w: 484 }, shop: { x: 484, y: 417, w: 484 },
+    note: { x: 0, y: 608, w: 1000 }, stats: { x: 0, y: 663, w: 560 }
+  };
+  var FOOTER = ['note', 'stats'];
+  var FRAME_MIDDLE = 500;
   var phoneRank = {}, lastCoords = null;
   var cols = document.querySelector('.hp-cols');
   if (!cols) return;
@@ -82,14 +89,29 @@
   function coordsNow() {
     var base = cols.getBoundingClientRect(), out = {};
     present().forEach(function (it) {
+      var r = it.el.getBoundingClientRect();
       if (it.el.style.left && it.el.style.top) {
-        out[it.id] = { x: parseFloat(it.el.style.left), y: parseFloat(it.el.style.top) };
+        out[it.id] = { x: parseFloat(it.el.style.left), y: parseFloat(it.el.style.top), w: parseFloat(it.el.style.width) || Math.round(r.width) };
       } else {
-        var r = it.el.getBoundingClientRect();
-        out[it.id] = { x: Math.round(r.left - base.left), y: Math.round(r.top - base.top) };
+        out[it.id] = { x: Math.round(r.left - base.left), y: Math.round(r.top - base.top), w: Math.round(r.width) };
       }
     });
     return out;
+  }
+
+  // The phone order: the left column top to bottom, then the right column top to bottom, then the note and the member
+  // numbers. A card is in the left column when its middle is left of the middle of the frame.
+  function phoneOrder(coords) {
+    var ids = present().map(function (it) { return it.id; }), pos = {};
+    ids.forEach(function (id) { pos[id] = (coords && coords[id]) || DEFAULT_COORDS[id] || { x: 0, y: 100000, w: 0 }; });
+    var byPlace = function (a, b) { return (pos[a].y - pos[b].y) || (pos[a].x - pos[b].x); };
+    var left = [], right = [], footer = [];
+    ids.forEach(function (id) {
+      if (FOOTER.indexOf(id) !== -1) footer.push(id);
+      else if (pos[id].x + (pos[id].w || 0) / 2 <= FRAME_MIDDLE) left.push(id);
+      else right.push(id);
+    });
+    return left.sort(byPlace).concat(right.sort(byPlace), footer.sort(byPlace));
   }
 
   // The phone number of each card sits in the frame behind it, at its top left corner, so it shows where the card is in the
@@ -113,13 +135,8 @@
 
   function applyPhoneOrder(coords) {
     lastCoords = coords;
-    var ids = present().map(function (it) { return it.id; });
-    // Cards with a saved place go by it; any without one (a card added since the layout was saved) follow in the default order.
-    var placed = ids.filter(function (id) { return coords && coords[id]; })
-      .sort(function (a, b) { return (coords[a].y - coords[b].y) || (coords[a].x - coords[b].x); });
-    var order = placed.concat(DEFAULT_ORDER.filter(function (id) { return ids.indexOf(id) !== -1 && placed.indexOf(id) === -1; }));
     phoneRank = {};
-    order.forEach(function (id, i) { phoneRank[id] = i + 1; });
+    phoneOrder(coords).forEach(function (id, i) { phoneRank[id] = i + 1; });
     present().forEach(function (it) { it.el.style.setProperty('--phone-order', phoneRank[it.id]); });
     refreshBadges(coords);
   }
@@ -180,6 +197,7 @@
     selected.style.left = x + 'px';
     selected.style.top = y + 'px';
     refreshPhoneOrder();
+    select(selected);
     say('Moved to ' + x + ', ' + y + ' px from the frame\'s top left.');
   }
 
@@ -205,18 +223,35 @@
         drag.el.style.top = Math.max(TOP_MIN, snap(drag.oy + dy)) + 'px';
       }
     });
-    cols.addEventListener('pointerup', function () { if (drag) refreshPhoneOrder(); drag = null; });
+    cols.addEventListener('pointerup', function () { if (drag) { refreshPhoneOrder(); select(drag.el); } drag = null; });
     cols.addEventListener('pointercancel', function () { drag = null; });
     // A card dragged is not followed by its link.
     cols.addEventListener('click', function (e) { if (cols.classList.contains('hl-edit') && e.target.closest('[data-hl]')) e.preventDefault(); }, true);
+  }
+
+  // How far a card can grow, in frame pixels, before it meets another card or the edge of the frame. Its height is the room
+  // below it; its width, the room to its right. A card that already overlaps another has no room to grow that way.
+  function roomFor(el) {
+    var base = cols.getBoundingClientRect(), r = el.getBoundingClientRect();
+    var x = r.left - base.left, y = r.top - base.top, w = r.width, h = r.height;
+    var maxW = base.width - x, maxH = base.height - y;
+    present().forEach(function (it) {
+      if (it.el === el) return;
+      var o = it.el.getBoundingClientRect();
+      var ox = o.left - base.left, oy = o.top - base.top;
+      var across = oy < y + h && oy + o.height > y, along = ox < x + w && ox + o.width > x;
+      if (across && ox >= x + w - 1) maxW = Math.min(maxW, ox - x);
+      if (along && oy >= y + h - 1) maxH = Math.min(maxH, oy - y);
+    });
+    return { w: Math.max(0, Math.floor(maxW)), h: Math.max(0, Math.floor(maxH)) };
   }
 
   function select(el) {
     if (selected) selected.classList.remove('is-sel');
     selected = el;
     el.classList.add('is-sel');
-    var id = el.getAttribute('data-hl'), phone = phoneRank[id];
-    if (bar) bar.querySelector('[data-hl-name]').textContent = (NAMES[id] || 'Card') + (phone ? ' (phone ' + phone + ')' : '') + ' selected: text and buttons at ' + Math.round(parseFloat(el.style.zoom || 1) * 100) + '%';
+    var id = el.getAttribute('data-hl'), phone = phoneRank[id], room = roomFor(el);
+    if (bar) bar.querySelector('[data-hl-name]').textContent = (NAMES[id] || 'Card') + (phone ? ' (phone ' + phone + ')' : '') + ' selected: text and buttons at ' + Math.round(parseFloat(el.style.zoom || 1) * 100) + '%. Room to grow: ' + room.w + ' px wide, ' + room.h + ' px tall before it meets another card or the frame edge.';
   }
 
   function say(t) { var m = bar && bar.querySelector('.hl-msg'); if (m) m.textContent = t || ''; }
@@ -348,6 +383,8 @@
     });
     document.addEventListener('keydown', keys);
     drawGrid();
+    // The fonts can change the size of the cards after they were measured, so the order is worked out again once they are in.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshPhoneOrder);
     say('Drag a card to move it, or Tab to it and use the arrow keys (Shift for 10 px). Drag its corner to change its width.');
   }
 

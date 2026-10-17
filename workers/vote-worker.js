@@ -9793,7 +9793,7 @@ function shopOfferLive(offer, today) {
 // The homepage hero's layout on desktop, placed by hand in the editor (index.html?layout=edit). One KV key: the frame's
 // height and each card's left, top, width and text size (zoom), in pixels and as a number. Phone keeps its own layout.
 var HOME_LAYOUT_KEY = 'home-layout';
-var HOME_LAYOUT_ITEMS = ['latest', 'laps', 'next', 'join', 'offer', 'shop'];
+var HOME_LAYOUT_ITEMS = ['latest', 'laps', 'next', 'join', 'offer', 'shop', 'note', 'stats'];
 function cleanHomeLayout(l) {
   var out = { desk: null };
   var d = l && l.desk;
@@ -9829,6 +9829,34 @@ async function handleHomeLayoutAdmin(request, env) {
   await env.VOTES.put(HOME_LAYOUT_KEY, JSON.stringify(layout));
   return json({ success: true, layout: layout });
 }
+// The Members figure on the homepage and the other pages is typed in, not counted: it is data/community.json in the repo,
+// so it is read and written there (a commit, like the event pages). The other figures on the homepage come from the site.
+var COMMUNITY_PATH = 'data/community.json';
+async function handleHomeMembersAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var res = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + COMMUNITY_PATH + '?ref=' + BASE_BRANCH,
+    { headers: eventsGithubHeaders(env), cf: { cacheTtl: 0 } }
+  );
+  if (!res.ok) return json({ success: false, message: 'Could not read the members figure (' + res.status + ')' }, 502);
+  var data = await res.json();
+  var current = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+  if (request.method === 'GET') return json({ success: true, members: current.members || '' });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var value = String((body && body.members) || '').trim().replace(/\s+/g, '');
+  if (!/^\d[\d.,]*[KkMm]?\+?$/.test(value) || value.length > 20) {
+    return json({ success: false, message: 'Use a figure such as 3.1K+ or 3,100.' }, 400);
+  }
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(Object.assign({}, current, { members: value }), null, 2) + '\n')));
+  var put = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + COMMUNITY_PATH,
+    { method: 'PUT', headers: eventsGithubHeaders(env), body: JSON.stringify({ message: 'Set the members figure to ' + value, content: content, sha: data.sha, branch: BASE_BRANCH }) }
+  );
+  if (!put.ok) return json({ success: false, message: 'Could not save the members figure (' + put.status + ')' }, 502);
+  return json({ success: true, members: value });
+}
+
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
   // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
@@ -13111,6 +13139,7 @@ export default {
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);
+    if (url.pathname === '/home/members/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeMembersAdmin(request, env);
     if (url.pathname === '/shop/home/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopHomeAdmin(request, env);
     if (url.pathname === '/laps/news' && request.method === 'GET') {
       return handleLapsNewsPublic(request, env);

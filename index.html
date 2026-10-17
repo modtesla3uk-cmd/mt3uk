@@ -9,7 +9,7 @@
    interview code below). The layout is not applied in the editor (?layout=edit), where the editor moves the cards itself. */
 (function () {
   var sel = { latest: '#hp-hero .hp-hero-card', laps: '#hp-hero .hp-laps-promo', next: '#hp-hero-next', join: '#hp-join',
-    offer: '#hp-shop-cards .hp-offer-card', shop: '#hp-shop-cards .hp-shop-card' };
+    offer: '#hp-shop-cards .hp-offer-card', shop: '#hp-shop-cards .hp-shop-card', note: '.hp-cols > .hp-site-note', stats: '.hp-cols > .hp-stats' };
   var editing = /[?&]layout=edit(&|$)/.test(location.search);
   function read() { try { return JSON.parse(localStorage.getItem('mt3ukHomeFirst') || '{}') || {}; } catch (e) { return {}; } }
   function layoutCss(d) {
@@ -2566,8 +2566,8 @@
     .hp-hero .hp-hero-card h1 { max-width: 24ch; font-size: clamp(1.3rem, 2vw, 1.6rem); }
     .hp-hero .hero-grid > div:first-child > .hp-hero-next { grid-column: 2; grid-row: 1; align-self: end; max-width: none; margin: 0 0 16px; }
     .hp-hero .hero-grid > div:first-child > .hp-join { grid-column: 2; grid-row: 2; align-self: end; max-width: none; margin: 0; }
-    .hp-hero .hero-grid > div:first-child > .hp-site-note { grid-column: 1 / -1; grid-row: 3; max-width: none; margin: 34px 0 0; }
-    .hp-hero .hero-grid > div:first-child > .hp-stats { grid-column: 1 / -1; grid-row: 4; max-width: none; margin-top: 18px; }
+    .hp-cols > .hp-site-note { grid-column: 1 / -1; grid-row: 3; max-width: none; margin: 34px 0 0; }
+    .hp-cols > .hp-stats { grid-column: 1 / -1; grid-row: 4; max-width: none; margin-top: 18px; }
     .hp-hero .hp-join { background: rgba(14, 22, 40, 0.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); flex-wrap: wrap; row-gap: 10px; }
     .hp-hero .hp-join p { flex-basis: 100%; }
     .hp-eyebrow, #hp-hero-eyebrow { letter-spacing: 0.04em; }
@@ -2616,6 +2616,16 @@
     .hp-col-right > .hp-hero-next, .hp-col-right > .hp-join { max-width: none; margin-top: 0; }
     .hp-col-right > .hp-shop-cards { margin-top: auto; grid-template-columns: minmax(0, 1fr); }
     .hp-cols > .hp-swipe-hint { display: none; }
+  }
+  /* Phone and tablet: the cards stack in one column in the order they sit on desktop. js/home-layout.js sets each card's
+     --phone-order (from the saved layout, or the default order), so the swipe row and its arrows are not used. */
+  @media (max-width: 900px) {
+    .hp-hero .hp-cols { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+    .hp-cols .hp-next-row, .hp-cols .hp-col-right, .hp-cols .hp-shop-cards { display: contents; }
+    .hp-cols .hp-swipe-hint { display: none; }
+    .hp-cols .hp-hero-card::after { display: none; }
+    .hp-cols .hp-hero-card, .hp-cols .hp-laps-promo, .hp-cols #hp-hero-next, .hp-cols #hp-join,
+    .hp-cols .hp-offer-card, .hp-cols .hp-shop-card, .hp-cols .hp-site-note, .hp-cols .hp-stats { order: var(--phone-order, 0); width: 100%; max-width: none; margin: 0 !important; min-width: 0; }
   }
 </style>
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
@@ -3404,12 +3414,12 @@
         </script>
         <div class="hp-shop-cards" id="hp-shop-cards" hidden></div>
         </div>
-        </div>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-stats">
           <div><strong class="member-count"></strong><span>Members</span></div>
           <div><strong id="hp-stat-builds"></strong><span>Builds in the gallery</span></div>
           <div><strong id="hp-stat-events"></strong><span>Upcoming events</span></div>
+        </div>
         </div>
       </div>
       <div class="hero-media" style="display:none;"></div>
@@ -7047,7 +7057,7 @@
   })();
 </script>
 <script src="js/shop-home-cards.js?v=4" defer></script>
-<script src="js/home-layout.js?v=4" defer></script>
-<script src="js/home-share.js?v=1" defer></script>
+<script src="js/home-layout.js?v=9" defer></script>
+<script src="js/home-share.js?v=2" defer></script>
 </body>
 </html>

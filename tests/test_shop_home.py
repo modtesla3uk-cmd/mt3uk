@@ -153,7 +153,7 @@ def test_the_homepage_editor_moves_a_card_and_saves_the_layout(page):
     page.locator("#hl-bar [data-a=save]").click()
     expect(page.locator("#hl-bar .hl-msg")).to_contain_text("Saved")
     assert posts and posts[-1]["layout"]["desk"]["items"]["latest"]["x"] > 0
-    assert set(posts[-1]["layout"]["desk"]["items"]) == {"latest", "laps", "next", "join", "offer", "shop"}
+    assert set(posts[-1]["layout"]["desk"]["items"]) == {"latest", "laps", "next", "join", "offer", "shop", "note", "stats"}
 
 
 def test_admin_page_editors_section_links_each_page_editor_on_each_address(page):
@@ -256,18 +256,38 @@ def test_each_homepage_card_has_a_share_button_at_its_top_right(page):
         assert 0 <= top <= 16 and 0 <= right <= 16
 
 
-def test_sharing_a_card_saves_it_as_a_picture_when_there_is_no_share_sheet(page):
+def test_the_share_button_shares_the_cards_link_when_there_is_a_share_sheet(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
+                         "window.__shared=null;navigator.share=function(d){window.__shared=d;return Promise.resolve();};}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    page.locator("#hp-shop-cards .hp-shop-card > .hp-card-share").click()
+    expect(page.locator("#hp-shop-cards .hp-shop-card")).to_have_id("card-shop")
+    assert page.evaluate("window.__shared && window.__shared.url") == "https://mt3uk.com/share/card/shop.html"
+
+
+def test_without_a_share_sheet_the_card_link_is_copied(page):
+    page.context.grant_permissions(["clipboard-read", "clipboard-write"])
     page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
                          "Object.defineProperty(navigator,'share',{value:undefined,configurable:true});}catch(e){}")
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
     page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html")
-    with page.expect_download(timeout=20000) as d:
-        page.locator("#hp-shop-cards .hp-shop-card > .hp-card-share").click()
-    assert d.value.suggested_filename == "mt3uk-shop.png"
-    picture = open(d.value.path(), "rb").read()
-    assert picture[:8] == b"\x89PNG\r\n\x1a\n" and len(picture) > 2000
+    page.locator("#hp-hero .hp-hero-card > .hp-card-share").click()
+    expect(page.locator("#hp-hero .hp-hero-card > .hp-card-share")).to_have_attribute("aria-label", "Link copied")
+    assert page.evaluate("navigator.clipboard.readText()") == "https://mt3uk.com/share/card/latest.html"
+
+
+def test_a_card_address_brings_the_visitor_to_that_card(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html#card-shop")
+    expect(page.locator("#card-shop")).to_have_class(re.compile("hp-card-landed"))
 
 
 def test_the_share_buttons_are_left_out_of_the_layout_editor(page):
@@ -278,3 +298,73 @@ def test_the_share_buttons_are_left_out_of_the_layout_editor(page):
     page.goto("/index.html?layout=edit")
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
     expect(page.locator("#hp-shop-cards .hp-shop-card > .hp-card-share")).to_be_hidden()
+
+
+def test_the_homepage_editor_numbers_each_card_with_its_place_on_a_phone(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html?layout=edit")
+    expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
+    numbers = page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('.hp-cols [data-hl]')].map(
+      el => [el.getAttribute('data-hl'), el.querySelector('.hl-phone-no').textContent]))""")
+    assert numbers == {"latest": "Phone 1", "next": "Phone 2", "join": "Phone 3", "offer": "Phone 4", "laps": "Phone 5", "shop": "Phone 6",
+                       "note": "Phone 7", "stats": "Phone 8"}
+    page.locator("#hl-bar [data-a=phone]").click()
+    expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-no-phone"))
+    expect(page.locator("#hp-hero .hp-hero-card .hl-phone-no")).to_be_hidden()
+
+
+def test_the_phone_order_is_the_order_the_editor_numbers(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/index.html")
+    page.wait_for_timeout(800)
+    order = page.evaluate("""() => {
+      const sels = {latest: '#hp-hero .hp-hero-card', laps: '#hp-hero .hp-laps-promo', next: '#hp-hero-next', join: '#hp-join',
+        offer: '#hp-shop-cards .hp-offer-card', shop: '#hp-shop-cards .hp-shop-card'};
+      return Object.entries(sels).map(([k, s]) => { const e = document.querySelector(s), r = e.getBoundingClientRect(); return [k, r.top, r.left]; })
+        .sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+    }""")
+    assert order == ["latest", "next", "join", "offer", "laps", "shop"]
+
+
+def test_a_saved_layout_sets_the_phone_order_from_where_the_cards_sit_on_desktop(page):
+    layout = {"H": 700, "items": {
+        "latest": {"x": 0, "y": 0, "w": 430, "z": 1}, "laps": {"x": 0, "y": 300, "w": 430, "z": 1},
+        "next": {"x": 600, "y": 0, "w": 400, "z": 1}, "join": {"x": 600, "y": 200, "w": 400, "z": 1},
+        "offer": {"x": 600, "y": 320, "w": 400, "z": 1}, "shop": {"x": 600, "y": -40, "w": 400, "z": 1}}}
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": layout}}), headers=CORS))
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/index.html")
+    page.wait_for_timeout(800)
+    order = page.evaluate("""() => {
+      const sels = {latest: '#hp-hero .hp-hero-card', laps: '#hp-hero .hp-laps-promo', next: '#hp-hero-next', join: '#hp-join',
+        offer: '#hp-shop-cards .hp-offer-card', shop: '#hp-shop-cards .hp-shop-card'};
+      return Object.entries(sels).map(([k, s]) => { const e = document.querySelector(s), r = e.getBoundingClientRect(); return [k, r.top, r.left]; })
+        .sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+    }""")
+    assert order == ["shop", "latest", "next", "join", "laps", "offer"]
+
+
+def test_the_editor_sets_the_members_figure_and_the_other_figures_come_from_the_site(page):
+    posts = []
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');sessionStorage.setItem('mt3ukAdminKey','test-key');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.route("**/home/members/admin**", lambda r: (posts.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "members": posts[-1]["members"]}), headers=CORS)))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html?layout=edit")
+    expect(page.locator("#hl-bar [data-hl-members]")).to_have_value("3.1K+")
+    page.locator("#hl-bar [data-hl-members]").fill("3.2K+")
+    page.locator("#hl-bar [data-a=members]").click()
+    expect(page.locator("#hl-bar .hl-msg")).to_contain_text("Saved")
+    assert posts == [{"members": "3.2K+"}]
+    assert page.evaluate("document.querySelector('.hp-stats .member-count').textContent") == "3.2K+"
+    # The builds and events figures are counted from the site, not typed in.
+    assert page.evaluate("document.querySelector('#hp-stat-builds').textContent") != ""

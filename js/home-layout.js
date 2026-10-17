@@ -13,10 +13,17 @@
     next: '#hp-hero-next',
     join: '#hp-join',
     offer: '#hp-shop-cards .hp-offer-card',
-    shop: '#hp-shop-cards .hp-shop-card'
+    shop: '#hp-shop-cards .hp-shop-card',
+    note: '.hp-cols > .hp-site-note',
+    stats: '.hp-cols > .hp-stats'
   };
-  var NAMES = { latest: 'Latest interview', laps: 'Laps', next: 'Next interview', join: 'Add a photo', offer: 'Offers card', shop: 'Shop card' };
-  var gridPx = 8, snapOn = true, showGrid = true;
+  var NAMES = { latest: 'Latest interview', laps: 'Laps', next: 'Next interview', join: 'Add a photo', offer: 'Offers card', shop: 'Shop card', note: 'Site note', stats: 'Member numbers' };
+  var gridPx = 8, snapOn = true, showGrid = true, phoneOn = true;
+  // The order the cards come in on a phone. Without a saved layout it is the default desktop order; with one, the order the
+  // cards sit in on desktop (top to bottom, then left to right). It sets --phone-order on each card (index.html) and the
+  // numbers in the editor.
+  var DEFAULT_ORDER = ['latest', 'next', 'join', 'offer', 'laps', 'shop', 'note', 'stats'];
+  var phoneRank = {}, lastCoords = null;
   var cols = document.querySelector('.hp-cols');
   if (!cols) return;
   var desk = window.matchMedia('(min-width: 901px)');
@@ -40,7 +47,10 @@
       '#hl-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2147483647; background: #16233d; color: #fff; font: 13px/1.4 system-ui, sans-serif; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; box-shadow: 0 -4px 16px rgba(0,0,0,.3); }' +
       '#hl-bar button, #hl-bar a { font: inherit; border-radius: 6px; padding: 6px 12px; border: 1px solid #2c3856; background: #22324f; color: #fff; text-decoration: none; cursor: pointer; }' +
       '#hl-bar button.primary { background: #e8542a; border-color: #e8542a; font-weight: 700; }' +
-      '#hl-bar .hl-msg { flex-basis: 100%; color: #f7c9b9; min-height: 1.4em; }';
+      '#hl-bar .hl-msg { flex-basis: 100%; color: #f7c9b9; min-height: 1.4em; }' +
+      '.hp-cols .hl-phone-no { position: absolute; left: 10px; top: -11px; z-index: 5; pointer-events: none; padding: 4px 9px; border-radius: 999px; background: #16233d; color: #ffffff; font: 700 12px/1.2 system-ui, sans-serif; white-space: nowrap; }' +
+      '.hp-cols.hl-no-phone .hl-phone-no { display: none; }' +
+      '.hp-cols.hl-edit .hp-laps-promo { overflow: visible; }';
     document.head.appendChild(st);
   }
 
@@ -67,7 +77,50 @@
   // A card may rise at most this far above the frame: higher, it goes under the sticky header where no scroll reaches it.
   var TOP_MIN = -60;
 
+  // Where each card is now, from the frame: its saved place, or where it sits when it has none yet (a card drawn later).
+  function coordsNow() {
+    var base = cols.getBoundingClientRect(), out = {};
+    present().forEach(function (it) {
+      if (it.el.style.left && it.el.style.top) {
+        out[it.id] = { x: parseFloat(it.el.style.left), y: parseFloat(it.el.style.top) };
+      } else {
+        var r = it.el.getBoundingClientRect();
+        out[it.id] = { x: Math.round(r.left - base.left), y: Math.round(r.top - base.top) };
+      }
+    });
+    return out;
+  }
+
+  function refreshBadges() {
+    present().forEach(function (it) {
+      var no = it.el.querySelector('.hl-phone-no');
+      var text = 'Phone ' + phoneRank[it.id];
+      if (no && no.textContent !== text) no.textContent = text;
+    });
+  }
+
+  function applyPhoneOrder(coords) {
+    lastCoords = coords;
+    var ids = present().map(function (it) { return it.id; });
+    // Cards with a saved place go by it; any without one (a card added since the layout was saved) follow in the default order.
+    var placed = ids.filter(function (id) { return coords && coords[id]; })
+      .sort(function (a, b) { return (coords[a].y - coords[b].y) || (coords[a].x - coords[b].x); });
+    var order = placed.concat(DEFAULT_ORDER.filter(function (id) { return ids.indexOf(id) !== -1 && placed.indexOf(id) === -1; }));
+    phoneRank = {};
+    order.forEach(function (id, i) { phoneRank[id] = i + 1; });
+    present().forEach(function (it) { it.el.style.setProperty('--phone-order', phoneRank[it.id]); });
+    refreshBadges();
+  }
+
+  // On the frame (a saved layout or the editor) the order follows where the cards are; on a phone it follows the saved
+  // layout, or the default order when there is none.
+  function refreshPhoneOrder() {
+    var live = cols.classList.contains('hl-on') || cols.classList.contains('hl-edit');
+    applyPhoneOrder(live ? coordsNow() : lastCoords);
+  }
+
   function applyLayout(l) {
+    applyPhoneOrder(l && l.desk ? l.desk.items : null);
     if (!desk.matches || !l || !l.desk) { clearLayout(); return; }
     ensureCss();
     cols.classList.add('hl-on');
@@ -114,6 +167,7 @@
     var y = Math.max(TOP_MIN, Math.round(parseFloat(selected.style.top) || 0) + d[1] * step);
     selected.style.left = x + 'px';
     selected.style.top = y + 'px';
+    refreshPhoneOrder();
     say('Moved to ' + x + ', ' + y + ' px from the frame\'s top left.');
   }
 
@@ -139,7 +193,7 @@
         drag.el.style.top = Math.max(TOP_MIN, snap(drag.oy + dy)) + 'px';
       }
     });
-    cols.addEventListener('pointerup', function () { drag = null; });
+    cols.addEventListener('pointerup', function () { if (drag) refreshPhoneOrder(); drag = null; });
     cols.addEventListener('pointercancel', function () { drag = null; });
     // A card dragged is not followed by its link.
     cols.addEventListener('click', function (e) { if (cols.classList.contains('hl-edit') && e.target.closest('[data-hl]')) e.preventDefault(); }, true);
@@ -149,7 +203,8 @@
     if (selected) selected.classList.remove('is-sel');
     selected = el;
     el.classList.add('is-sel');
-    if (bar) bar.querySelector('[data-hl-name]').textContent = (NAMES[el.getAttribute('data-hl')] || 'Card') + ' selected: text and buttons at ' + Math.round(parseFloat(el.style.zoom || 1) * 100) + '%';
+    var id = el.getAttribute('data-hl'), phone = phoneRank[id];
+    if (bar) bar.querySelector('[data-hl-name]').textContent = (NAMES[id] || 'Card') + (phone ? ' (phone ' + phone + ')' : '') + ' selected: text and buttons at ' + Math.round(parseFloat(el.style.zoom || 1) * 100) + '%';
   }
 
   function say(t) { var m = bar && bar.querySelector('.hl-msg'); if (m) m.textContent = t || ''; }
@@ -163,6 +218,9 @@
       '<span data-hl-name>Tap a card to select it</span>' +
       '<button type="button" data-a="plus">A+ text and buttons</button>' +
       '<button type="button" data-a="minus">A− text and buttons</button>' +
+      '<label class="hl-figure">Members figure <input type="text" maxlength="20" data-hl-members aria-label="Members figure" style="width:84px;font:inherit;padding:5px;border-radius:6px;border:1px solid #2c3856;background:#0f1729;color:#fff"></label>' +
+      '<button type="button" data-a="members">Set members figure</button>' +
+      '<button type="button" data-a="phone">Phone order: on</button>' +
       '<button type="button" data-a="grid">Grid: on</button>' +
       '<select data-a="gridsize" aria-label="Grid size"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select>' +
       '<button type="button" data-a="snap">Snap: on</button>' +
@@ -178,6 +236,8 @@
       var b = e.target.closest('[data-a]');
       if (!b) return;
       var a = b.getAttribute('data-a');
+      if (a === 'members') saveMembers();
+      if (a === 'phone') { phoneOn = !phoneOn; b.textContent = 'Phone order: ' + (phoneOn ? 'on' : 'off'); cols.classList.toggle('hl-no-phone', !phoneOn); }
       if (a === 'grid') { showGrid = !showGrid; b.textContent = 'Grid: ' + (showGrid ? 'on' : 'off'); drawGrid(); }
       if (a === 'snap') { snapOn = !snapOn; b.textContent = 'Snap: ' + (snapOn ? 'on' : 'off'); }
       if (a === 'taller') { frameH += 40; cols.style.height = frameH + 'px'; }
@@ -192,6 +252,33 @@
       if (a === 'reset') reset();
     });
     cols.addEventListener('pointerdown', function (e) { if (!e.target.closest('[data-hl]')) { if (selected) selected.classList.remove('is-sel'); selected = null; } }, true);
+  }
+
+  // The Members figure is typed in (data/community.json, read by the other pages too). Build shows the figure in use.
+  function fillMembers() {
+    fetch('data/community.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var input = bar && bar.querySelector('[data-hl-members]');
+      if (input && d && d.members && !input.value) input.value = d.members;
+    }).catch(function () {});
+  }
+
+  function saveMembers() {
+    var input = bar.querySelector('[data-hl-members]');
+    var key = sessionStorage.getItem('mt3ukAdminKey') || window.prompt('Admin key, to save the members figure:') || '';
+    if (!key) { say('Not saved: no admin key.'); return; }
+    sessionStorage.setItem('mt3ukAdminKey', key);
+    say('Saving the members figure...');
+    fetch(API + '/home/members/admin?key=' + encodeURIComponent(key), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ members: input.value.trim() })
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (x) {
+        if (x.ok && x.d.success) {
+          document.querySelectorAll('.member-count').forEach(function (el) { el.textContent = x.d.members; });
+          input.value = x.d.members;
+          say('Saved. The members figure is ' + x.d.members + ' here now; the other pages show it once the site has updated (about a minute).');
+        } else say('Not saved: ' + (x.d.message || 'check the admin key.'));
+      })
+      .catch(function () { say('Not saved: could not reach the server.'); });
   }
 
   function current() {
@@ -233,14 +320,23 @@
 
   function enterEditor() {
     buildBar();
+    fillMembers();
     var start = layout.desk ? { H: layout.desk.H, items: {} } : startFromPage();
     if (layout.desk) present().forEach(function (it) { var p = layout.desk.items[it.id]; if (p) start.items[it.id] = p; });
     frameH = start.H;
     cols.classList.add('hl-edit');
     applyLayout({ desk: start });
     editorDrag();
-    // Each card can take the keyboard: Tab to it, then the arrow keys move it.
-    present().forEach(function (it) { it.el.setAttribute('tabindex', '0'); });
+    // Each card can take the keyboard: Tab to it, then the arrow keys move it. Each shows its place on a phone.
+    present().forEach(function (it) {
+      it.el.setAttribute('tabindex', '0');
+      if (!it.el.querySelector('.hl-phone-no')) {
+        var no = document.createElement('span');
+        no.className = 'hl-phone-no';
+        it.el.appendChild(no);
+      }
+    });
+    refreshBadges();
     cols.addEventListener('focusin', function (e) {
       var el = e.target.closest && e.target.closest('[data-hl]');
       if (el && cols.classList.contains('hl-edit')) select(el);
@@ -268,4 +364,11 @@
     .catch(function () { if (editing) whenCardsReady(enterEditor); });
 
   desk.addEventListener('change', function () { if (!editing) applyLayout(layout); });
+
+  // A card that appears later (the Next interview, the offer, sign-in's photo card) takes its place in the phone order too.
+  var heroBox = document.getElementById('hp-hero');
+  if (heroBox && 'MutationObserver' in window) {
+    new MutationObserver(function () { refreshPhoneOrder(); })
+      .observe(heroBox, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  }
 })();

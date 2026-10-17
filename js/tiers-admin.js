@@ -79,7 +79,8 @@
     trialsEl.innerHTML = trials.rows.length ? '<table class="iv-table"><tbody>' + trials.rows.map(function (t) {
       var status = !t.ended ? 'Running, ends ' + when(t.end) : t.choice === 'free' ? 'Ended, chose the free tier' : 'Ended, not chosen yet';
       return '<tr><td><span class="iv-sub">' + esc(t.email) + '</span></td><td>' + esc(when(t.start)) + '</td><td>' + esc(status) + '</td>' +
-        '<td><button type="button" class="danger iv-act" data-trial-remove="' + esc(t.email) + '">Remove</button></td></tr>';
+        '<td>' + (t.ended ? '' : '<button type="button" class="secondary iv-act" data-trial-end="' + esc(t.email) + '">End now</button> ') +
+        '<button type="button" class="danger iv-act" data-trial-remove="' + esc(t.email) + '">Remove</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has started a Laps Pro trial yet.</p>';
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
@@ -120,6 +121,19 @@
     call('POST', { action: 'trial-add', email: input.value.trim() }).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'Could not add the tester.', 'error'); return; }
       input.value = '';
+      note(d.message);
+      load();
+    });
+  });
+  // Ends a running trial now, so the member sees the trial-ended card (for testing the subscribe step).
+  trialsEl.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-trial-end]');
+    if (!b) return;
+    var email = b.getAttribute('data-trial-end');
+    if (!window.confirm('End the Laps Pro trial for ' + email + ' now?')) return;
+    b.disabled = true;
+    call('POST', { action: 'trial-end', email: email }).then(function (d) {
+      if (!d.ok || !d.success) { b.disabled = false; note(d.message || 'Could not end the trial.', 'error'); return; }
       note(d.message);
       load();
     });

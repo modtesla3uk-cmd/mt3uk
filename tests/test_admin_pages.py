@@ -3093,3 +3093,32 @@ def test_admin_can_add_a_tester_who_starts_their_trial_now(page):
     expect(page.locator("#tiers-trials")).to_contain_text("tester@example.com")
     assert posts[-1] == {"action": "trial-add", "email": "tester@example.com"}, posts
 
+
+def test_admin_can_end_a_running_trial_now_to_see_the_trial_ended_card(page):
+    """End now on a running trial ends it straight away, so the member sees the trial-ended card."""
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trialOpen": True,
+             "trials": {"summary": {"running": 1, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": [
+                 {"email": "tester@example.com", "start": "2026-10-17T09:00:00Z", "end": "2026-10-24T09:00:00Z", "ended": False, "choice": ""}]}}
+    posts = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "trial-end":
+                state["trials"]["rows"][0].update({"ended": True, "end": "2026-10-17T10:00:00Z"})
+                state["trials"]["summary"] = {"running": 0, "ended": 1, "stayedFree": 0, "awaiting": 1}
+                return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "message": "The trial for tester@example.com has ended."}), headers=cors)
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#tiers-trials")).to_contain_text("Running, ends")
+    page.locator('[data-trial-end="tester@example.com"]').click()
+    expect(page.locator("#tiers-trials")).to_contain_text("Ended, not chosen yet")
+    assert posts[-1] == {"action": "trial-end", "email": "tester@example.com"}, posts
+

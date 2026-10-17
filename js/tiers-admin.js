@@ -112,6 +112,18 @@
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
+  // Adds a tester: starts their 7-day Laps Pro trial now.
+  var testerForm = document.getElementById('tiers-tester-form');
+  if (testerForm) testerForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('tiers-tester-email');
+    call('POST', { action: 'trial-add', email: input.value.trim() }).then(function (d) {
+      if (!d.ok || !d.success) { note(d.message || 'Could not add the tester.', 'error'); return; }
+      input.value = '';
+      note(d.message);
+      load();
+    });
+  });
   // Removes a member's Laps Pro trial, so they can start it again while the offer is on.
   trialsEl.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-trial-remove]');

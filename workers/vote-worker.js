@@ -1157,6 +1157,8 @@ async function deleteMemberAccount(env, email) {
   await env.VOTES.delete(memberCarsKey(email));
   await env.VOTES.delete(lapsAccountKey(email));
   await env.VOTES.delete(lapsProTrialKey(email));
+  await cancelLapsProSubscription(env, email).catch(function () { /* the record is removed either way */ });
+  await env.VOTES.delete(lapsProSubKey(email));
   await removeFromLapsLists(env, email);
 
   var fr = await getFriends(env, email);
@@ -8223,14 +8225,15 @@ async function getTrackTiers(env) {
 async function trackTierFor(env, email) {
   var t = await getTrackTiers(env), e = accessEmail(email);
   var tester = t.testers.some(function (x) { return x.email === e; });
-  var paid = t.paid.some(function (x) { return x.email === e; });
+  var subscribed = (await lapsProSubscriptionStatus(env, e)) === 'ACTIVE';
+  var paid = subscribed || t.paid.some(function (x) { return x.email === e; });
   var fullAccess = t.full.some(function (x) { return x.email === e; });
   var unlimited = paid || fullAccess;
   var onFree = !unlimited && (t.mode === 'all' || (t.mode === 'testers' && tester));
   // A free member on a Laps Pro trial is unlimited for the seven days, then back on the free tier.
   var trial = onFree ? await lapsProTrialState(env, e) : { state: 'none', choice: '' };
   var inTrial = trial.state === 'active';
-  return { mode: t.mode, applies: onFree && !inTrial, tester: tester, full: unlimited || inTrial, paid: paid, allowance: t.allowance, trial: trial };
+  return { mode: t.mode, applies: onFree && !inTrial, tester: tester, full: unlimited || inTrial, paid: paid, subscribed: subscribed, allowance: t.allowance, trial: trial };
 }
 // The Laps Pro trial: one record per member (laps-pro-trial:<email>, read with get()). A free member can start it once,
 // for seven days. When it ends they are back on the free tier, and are asked to subscribe or to stay on the free tier.
@@ -8265,6 +8268,106 @@ async function lapsProTrialList(env) {
   summary.awaiting = summary.ended - summary.stayedFree;
   return { summary: summary, rows: rows };
 }
+// Laps Pro subscriptions through PayPal. The sandbox is the default: PAYPAL_API is the PayPal address to use (set it to
+// https://api-m.paypal.com for live). Worker secrets: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_PLAN_ID (the monthly
+// plan) and PAYPAL_WEBHOOK_ID (the webhook PayPal posts to /laps/pro/webhook). One KV record per member (laps-pro-sub:<email>):
+// the subscription ID and its status (APPROVAL_PENDING, ACTIVE, SUSPENDED, CANCELLED or EXPIRED).
+var PAYPAL_DEFAULT_API = 'https://api-m.sandbox.paypal.com';
+var PAYPAL_STATUS_EVENTS = { 'BILLING.SUBSCRIPTION.ACTIVATED': 'ACTIVE', 'BILLING.SUBSCRIPTION.SUSPENDED': 'SUSPENDED', 'BILLING.SUBSCRIPTION.CANCELLED': 'CANCELLED', 'BILLING.SUBSCRIPTION.EXPIRED': 'EXPIRED' };
+function paypalConfigured(env) { return !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET && env.PAYPAL_PLAN_ID); }
+function paypalBase(env) { return env.PAYPAL_API || PAYPAL_DEFAULT_API; }
+function lapsProSubKey(email) { return 'laps-pro-sub:' + accessEmail(email); }
+async function lapsProSubscriptionStatus(env, email) {
+  var r = await getJsonKey(env, lapsProSubKey(email), null);
+  return r && r.status ? r.status : '';
+}
+async function paypalApi(env, method, path, body) {
+  var basic = btoa(env.PAYPAL_CLIENT_ID + ':' + env.PAYPAL_CLIENT_SECRET);
+  var auth = await fetch(paypalBase(env) + '/v1/oauth2/token', { method: 'POST', headers: { Authorization: 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' });
+  var token = await auth.json().catch(function () { return {}; });
+  if (!auth.ok || !token.access_token) throw new Error('PayPal sign-in failed (' + auth.status + ')');
+  var r = await fetch(paypalBase(env) + path, { method: method, headers: { Authorization: 'Bearer ' + token.access_token, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  var text = await r.text();
+  var d = {};
+  try { d = text ? JSON.parse(text) : {}; } catch (er) { d = {}; }
+  if (!r.ok) throw new Error('PayPal ' + r.status + (d.message ? ': ' + d.message : ''));
+  return d;
+}
+// A member asks to subscribe: PayPal makes the subscription and gives the address where they approve it.
+async function handleLapsProSubscribe(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  if (!paypalConfigured(env)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
+  var e = accessEmail(email);
+  if ((await lapsProSubscriptionStatus(env, e)) === 'ACTIVE') return json({ success: false, message: 'You already have Laps Pro.' }, 400);
+  var sub = await paypalApi(env, 'POST', '/v1/billing/subscriptions', {
+    plan_id: env.PAYPAL_PLAN_ID,
+    custom_id: e.slice(0, 127),
+    application_context: { brand_name: 'Laps by MT3UK', user_action: 'SUBSCRIBE_NOW', return_url: LAPS_SITE_URL + '/track.html?pro=return', cancel_url: LAPS_SITE_URL + '/track.html?pro=cancel' }
+  });
+  var approve = (sub.links || []).filter(function (l) { return l.rel === 'approve'; })[0];
+  if (!sub.id || !approve) return json({ success: false, message: 'PayPal did not give a way to approve the subscription.' }, 502);
+  await env.VOTES.put(lapsProSubKey(e), JSON.stringify({ id: sub.id, status: sub.status || 'APPROVAL_PENDING', at: new Date().toISOString() }));
+  return json({ success: true, approveUrl: approve.href });
+}
+// The member comes back from approving: the status is checked with PayPal (the webhook is the other way it is set).
+async function handleLapsProReturn(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  if (!paypalConfigured(env)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
+  var rec = await getJsonKey(env, lapsProSubKey(email), null);
+  if (!rec || !rec.id) return json({ success: false, message: 'There is no subscription to check.' }, 400);
+  var sub = await paypalApi(env, 'GET', '/v1/billing/subscriptions/' + encodeURIComponent(rec.id));
+  rec.status = sub.status || rec.status;
+  await env.VOTES.put(lapsProSubKey(email), JSON.stringify(rec));
+  return json({ success: true, status: rec.status, subscribed: rec.status === 'ACTIVE' });
+}
+// Cancels with PayPal and marks the member off. Used by the member's Cancel and when a member leaves.
+async function cancelLapsProSubscription(env, email) {
+  var rec = await getJsonKey(env, lapsProSubKey(email), null);
+  if (!rec || !rec.id || rec.status === 'CANCELLED') return false;
+  if (paypalConfigured(env)) await paypalApi(env, 'POST', '/v1/billing/subscriptions/' + encodeURIComponent(rec.id) + '/cancel', { reason: 'Cancelled by the member on Laps' });
+  rec.status = 'CANCELLED';
+  await env.VOTES.put(lapsProSubKey(email), JSON.stringify(rec));
+  return true;
+}
+async function handleLapsProCancel(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  try {
+    var done = await cancelLapsProSubscription(env, email);
+  } catch (er) {
+    return json({ success: false, message: 'Could not cancel just now. Try again, or cancel in your PayPal account.' }, 502);
+  }
+  return json({ success: true, message: done ? 'Your Laps Pro subscription is cancelled.' : 'You have no subscription to cancel.' });
+}
+// PayPal's events. Each one is checked with PayPal's signature check before it is believed; the member is the custom_id.
+async function handleLapsProWebhook(request, env) {
+  if (!paypalConfigured(env) || !env.PAYPAL_WEBHOOK_ID) return json({ success: false, message: 'Not set up' }, 404);
+  var event;
+  try { event = JSON.parse(await request.text()); } catch (er) { return json({ success: false, message: 'Invalid body' }, 400); }
+  var check = await paypalApi(env, 'POST', '/v1/notifications/verify-webhook-signature', {
+    auth_algo: request.headers.get('paypal-auth-algo'),
+    cert_url: request.headers.get('paypal-cert-url'),
+    transmission_id: request.headers.get('paypal-transmission-id'),
+    transmission_sig: request.headers.get('paypal-transmission-sig'),
+    transmission_time: request.headers.get('paypal-transmission-time'),
+    webhook_id: env.PAYPAL_WEBHOOK_ID,
+    webhook_event: event
+  });
+  if (check.verification_status !== 'SUCCESS') return json({ success: false, message: 'Signature not verified' }, 400);
+  var status = PAYPAL_STATUS_EVENTS[event.event_type];
+  var res = event.resource || {};
+  if (status && res.custom_id) {
+    var rec = await getJsonKey(env, lapsProSubKey(res.custom_id), null);
+    if (rec && rec.id === res.id) {
+      rec.status = status;
+      await env.VOTES.put(lapsProSubKey(res.custom_id), JSON.stringify(rec));
+    }
+  }
+  return json({ success: true });
+}
+
 async function handleLapsProTrialStart(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -8361,7 +8464,7 @@ async function handleTrackTiersAccess(request, env) {
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
   var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: LAPS_PRO_TRIAL_DAYS };
-  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial });
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: paypalConfigured(env), subscribed: r.subscribed === true });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -8382,6 +8485,14 @@ async function handleTrackTiersAdmin(request, env) {
   } else if (action === 'trial') {
     // The Laps Pro trial offer: off until the admin switches it on.
     t.trialOpen = body.on === true;
+  } else if (action === 'trial-add') {
+    // Starts a member's trial now, for testers. A member who has had a trial already is refused until it is removed.
+    var tae = accessEmail(body.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tae)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if ((await lapsProTrialState(env, tae)).state !== 'none') return json({ success: false, message: 'That member has had a Laps Pro trial. Remove it first, then add them again.' }, 400);
+    var taeNow = new Date(), taeEnd = new Date(taeNow.getTime() + LAPS_PRO_TRIAL_DAYS * 86400000);
+    await env.VOTES.put(lapsProTrialKey(tae), JSON.stringify({ start: taeNow.toISOString(), end: taeEnd.toISOString(), choice: '' }));
+    return json({ success: true, message: 'Added ' + tae + ' as a tester for ' + LAPS_PRO_TRIAL_DAYS + ' days.' });
   } else if (action === 'trial-remove') {
     // Takes a member's trial record away, so they can start the trial again while the offer is on (for testing).
     var rte = accessEmail(body.email);
@@ -13111,6 +13222,18 @@ export default {
     }
     if (url.pathname === '/laps/pro/trial/free' && request.method === 'POST') {
       return handleLapsProTrialFree(request, env);
+    }
+    if (url.pathname === '/laps/pro/subscribe' && request.method === 'POST') {
+      return handleLapsProSubscribe(request, env);
+    }
+    if (url.pathname === '/laps/pro/return' && request.method === 'POST') {
+      return handleLapsProReturn(request, env);
+    }
+    if (url.pathname === '/laps/pro/cancel' && request.method === 'POST') {
+      return handleLapsProCancel(request, env);
+    }
+    if (url.pathname === '/laps/pro/webhook' && request.method === 'POST') {
+      return handleLapsProWebhook(request, env);
     }
     if (url.pathname === '/track/admin/session' && request.method === 'POST') {
       return handleTrackAdminSessionRename(request, env);

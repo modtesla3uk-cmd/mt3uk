@@ -3065,3 +3065,31 @@ def test_admin_can_remove_a_members_laps_pro_trial_so_they_can_test_it_again(pag
     page.locator('[data-trial-remove="tester@example.com"]').click()
     expect(page.locator("#tiers-trials")).not_to_contain_text("tester@example.com")
     assert posts[-1] == {"action": "trial-remove", "email": "tester@example.com"}, posts
+
+
+def test_admin_can_add_a_tester_who_starts_their_trial_now(page):
+    """The Add tester form on the Laps Pro panel starts a member's trial straight away and lists it."""
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trialOpen": False,
+             "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}}
+    posts = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "trial-add":
+                state["trials"]["rows"] = [{"email": body["email"], "start": "2026-10-17T09:00:00Z", "end": "2026-10-24T09:00:00Z", "ended": False, "choice": ""}]
+                state["trials"]["summary"] = {"running": 1, "ended": 0, "stayedFree": 0, "awaiting": 0}
+                return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "message": "Added " + body["email"] + " as a tester for 7 days."}), headers=cors)
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "trialOpen": False}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    page.locator("#tiers-tester-email").fill("tester@example.com")
+    page.locator("#tiers-tester-form button").click()
+    expect(page.locator("#tiers-trials")).to_contain_text("tester@example.com")
+    assert posts[-1] == {"action": "trial-add", "email": "tester@example.com"}, posts
+

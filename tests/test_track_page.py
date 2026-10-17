@@ -126,6 +126,12 @@ class FakeWorker:
         elif path == "/laps/pro/trial/free" and req.method == "POST":
             self.tiers = dict(self.tiers, trial={"state": "ended", "endsAt": "2026-10-17T12:00:00.000Z", "choice": "free", "canStart": False, "days": 7})
             data = {"success": True, "message": "You are on the free tier."}
+        elif path == "/laps/pro/subscribe" and req.method == "POST":
+            self.paypal_calls = getattr(self, "paypal_calls", []) + ["subscribe"]
+            data = {"success": True, "approveUrl": "https://www.sandbox.paypal.com/checkoutnow?token=TEST-SUB"}
+        elif path == "/laps/pro/cancel" and req.method == "POST":
+            self.paypal_calls = getattr(self, "paypal_calls", []) + ["cancel"]
+            data = {"success": True, "message": "Your Laps Pro subscription is cancelled."}
         elif path == "/track/access" and req.method == "GET":
             data = {"success": True, "access": self.access}
         elif path == "/track/access/request" and req.method == "POST":
@@ -7711,3 +7717,32 @@ def test_the_free_tier_sees_basic_tyre_comparison_with_a_laps_pro_note(page):
     expect(rows.nth(0)).not_to_contain_text("Maker")
     expect(page.locator("#lb-cmp-same")).to_have_count(0)
     expect(page.locator("#lb-cmp-pro")).to_contain_text("More comparisons will be available under Laps Pro.")
+
+
+def test_the_trial_ended_card_subscribes_through_paypal_once_it_is_set_up(page):
+    """With PayPal set up, the trial-ended card's Subscribe button is live and sends the member to PayPal to approve it."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "subscribe": True,
+                  "trial": {"state": "ended", "endsAt": "2026-10-17T12:00:00.000Z", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    page.route("https://www.sandbox.paypal.com/**", lambda route: route.fulfill(status=200, content_type="text/html", body="<p>Approve</p>"))
+    expect(page.locator("#tp-pro-subscribe")).to_contain_text("Subscribe to Laps Pro")
+    expect(page.locator("#tp-pro-subscribe")).to_be_enabled()
+    page.locator("#tp-pro-subscribe").click()
+    page.wait_for_url("**/checkoutnow?token=TEST-SUB")
+    assert fake.paypal_calls == ["subscribe"], fake.paypal_calls
+
+
+def test_a_subscriber_can_cancel_and_the_card_says_so(page):
+    """A member with an active subscription sees Laps Pro and can cancel it."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": False, "full": True, "paid": True, "subscribed": True, "subscribe": True,
+                  "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6},
+                  "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota")).to_contain_text("Laps Pro")
+    page.locator("#tp-pro-cancel").click()
+    expect(page.locator("#tp-quota")).to_contain_text("Laps Pro")
+    assert getattr(fake, "paypal_calls", []) == ["cancel"], getattr(fake, "paypal_calls", None)
+

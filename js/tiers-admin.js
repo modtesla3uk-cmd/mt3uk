@@ -78,7 +78,8 @@
       sm.stayedFree + ' chose the free tier and ' + sm.awaiting + ' ' + (sm.awaiting === 1 ? 'has' : 'have') + ' not chosen yet.';
     trialsEl.innerHTML = trials.rows.length ? '<table class="iv-table"><tbody>' + trials.rows.map(function (t) {
       var status = !t.ended ? 'Running, ends ' + when(t.end) : t.choice === 'free' ? 'Ended, chose the free tier' : 'Ended, not chosen yet';
-      return '<tr><td><span class="iv-sub">' + esc(t.email) + '</span></td><td>' + esc(when(t.start)) + '</td><td>' + esc(status) + '</td></tr>';
+      return '<tr><td><span class="iv-sub">' + esc(t.email) + '</span></td><td>' + esc(when(t.start)) + '</td><td>' + esc(status) + '</td>' +
+        '<td><button type="button" class="danger iv-act" data-trial-remove="' + esc(t.email) + '">Remove</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has started a Laps Pro trial yet.</p>';
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
@@ -111,6 +112,19 @@
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
+  // Removes a member's Laps Pro trial, so they can start it again while the offer is on.
+  trialsEl.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-trial-remove]');
+    if (!b) return;
+    var email = b.getAttribute('data-trial-remove');
+    if (!window.confirm('Remove the Laps Pro trial for ' + email + '? They can start it again while the offer is on.')) return;
+    b.disabled = true;
+    call('POST', { action: 'trial-remove', email: email }).then(function (d) {
+      if (!d.ok || !d.success) { b.disabled = false; note(d.message || 'Could not remove the trial.', 'error'); return; }
+      note(d.message);
+      load();
+    });
+  });
   wrap.addEventListener('click', function (e) {
     var m = e.target.closest('[data-mode]');
     if (m) {

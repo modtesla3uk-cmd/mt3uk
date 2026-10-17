@@ -8382,6 +8382,12 @@ async function handleTrackTiersAdmin(request, env) {
   } else if (action === 'trial') {
     // The Laps Pro trial offer: off until the admin switches it on.
     t.trialOpen = body.on === true;
+  } else if (action === 'trial-remove') {
+    // Takes a member's trial record away, so they can start the trial again while the offer is on (for testing).
+    var rte = accessEmail(body.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rte)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    await env.VOTES.delete(lapsProTrialKey(rte));
+    return json({ success: true, message: 'The trial has been removed.' });
   } else if (action === 'allowance') {
     var a = { start: parseInt(body.start, 10), monthly: parseInt(body.monthly, 10), cap: parseInt(body.cap, 10) };
     if (!(a.start >= 0 && a.monthly >= 0 && a.cap >= 0 && a.start <= 1000 && a.monthly <= 1000 && a.cap <= 1000)) return json({ success: false, message: 'Each allowance must be a whole number from 0 to 1,000.' }, 400);

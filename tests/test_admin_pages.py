@@ -3036,3 +3036,32 @@ def test_admin_can_switch_the_laps_pro_trial_offer_on_and_off(page):
     page.locator('#tiers-trial-wrap [data-trial="off"]').click()
     expect(page.locator('#tiers-trial-wrap [data-trial="off"]')).to_have_attribute("aria-pressed", "true")
     assert posts[-1] == {"action": "trial", "on": False}, posts
+
+
+def test_admin_can_remove_a_members_laps_pro_trial_so_they_can_test_it_again(page):
+    """Each trial has a Remove button; removing it takes the trial away and the list no longer shows it."""
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trialOpen": True,
+             "trials": {"summary": {"running": 1, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": [
+                 {"email": "tester@example.com", "start": "2026-10-17T09:00:00Z", "end": "2026-10-24T09:00:00Z", "ended": False, "choice": ""}]}}
+    posts = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "trial-remove":
+                state["trials"]["rows"] = [r for r in state["trials"]["rows"] if r["email"] != body["email"]]
+                state["trials"]["summary"] = {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}
+                return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "message": "The trial has been removed."}), headers=cors)
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "trialOpen": True}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#tiers-trials")).to_contain_text("tester@example.com")
+    page.locator('[data-trial-remove="tester@example.com"]').click()
+    expect(page.locator("#tiers-trials")).not_to_contain_text("tester@example.com")
+    assert posts[-1] == {"action": "trial-remove", "email": "tester@example.com"}, posts

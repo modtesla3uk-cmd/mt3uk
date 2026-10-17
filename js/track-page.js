@@ -977,11 +977,13 @@
           '<div><button type="button" class="btn btn-accent" id="tp-pro-subscribe" style="margin-top:8px"' + (d.subscribe ? '' : ' disabled') + '>' + (d.subscribe ? 'Subscribe to Laps Pro' : 'Subscribe, coming soon') + '</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
       }
       // A member who went back to the free tier after the trial can still subscribe, from the free-tier box.
+      // It sits inside the usage box, so Hide takes it away with the rest.
+      var again = '';
       if (!offer && trial.state === 'ended' && d.subscribe) {
-        offer = '<div class="tp-trial" id="tp-pro-again" style="margin-bottom:10px;font-size:0.88rem">Laps Pro is available any time, with no limit on uploads. ' +
+        again = '<div class="tp-trial" id="tp-pro-again" style="margin-bottom:10px;font-size:0.88rem">Laps Pro is available any time, with no limit on uploads. ' +
           '<button type="button" class="btn btn-secondary btn-sm" id="tp-pro-subscribe" style="margin-left:4px">Subscribe to Laps Pro</button></div>';
       }
-      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
+      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
       var startTrial = document.getElementById('tp-trial-start');
       if (startTrial) startTrial.addEventListener('click', function () {

@@ -8493,6 +8493,14 @@ async function handleTrackTiersAdmin(request, env) {
     var taeNow = new Date(), taeEnd = new Date(taeNow.getTime() + LAPS_PRO_TRIAL_DAYS * 86400000);
     await env.VOTES.put(lapsProTrialKey(tae), JSON.stringify({ start: taeNow.toISOString(), end: taeEnd.toISOString(), choice: '' }));
     return json({ success: true, message: 'Added ' + tae + ' as a tester for ' + LAPS_PRO_TRIAL_DAYS + ' days.' });
+  } else if (action === 'trial-end') {
+    // Ends a running trial now (for testing the subscribe step): the record stays, so the member sees the trial-ended card.
+    var tee = accessEmail(body.email);
+    var teeRec = await getJsonKey(env, lapsProTrialKey(tee), null);
+    if (!teeRec || !teeRec.start) return json({ success: false, message: 'That member has no trial.' }, 400);
+    teeRec.end = new Date().toISOString();
+    await env.VOTES.put(lapsProTrialKey(tee), JSON.stringify(teeRec));
+    return json({ success: true, message: 'The trial for ' + tee + ' has ended.' });
   } else if (action === 'trial-remove') {
     // Takes a member's trial record away, so they can start the trial again while the offer is on (for testing).
     var rte = accessEmail(body.email);

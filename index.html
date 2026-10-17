@@ -4,6 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
+/* Applied before the page is drawn, so a returning visitor sees the last saved homepage layout and hero picture at
+   once, not the default ones for a moment. Each is kept in this browser when it is loaded (js/home-layout.js and the
+   interview code below). The layout is not applied in the editor (?layout=edit), where the editor moves the cards itself. */
+(function () {
+  var sel = { latest: '#hp-hero .hp-hero-card', laps: '#hp-hero .hp-laps-promo', next: '#hp-hero-next', join: '#hp-join',
+    offer: '#hp-shop-cards .hp-offer-card', shop: '#hp-shop-cards .hp-shop-card' };
+  var editing = /[?&]layout=edit(&|$)/.test(location.search);
+  function read() { try { return JSON.parse(localStorage.getItem('mt3ukHomeFirst') || '{}') || {}; } catch (e) { return {}; } }
+  function layoutCss(d) {
+    if (!d || !d.items) return '';
+    var c = '@media (min-width: 901px) { html body .hp-cols { position: relative !important; display: block !important; height: ' + d.H + 'px !important; }' +
+      ' html body .hp-cols .hp-col-right { display: contents !important; } html body .hp-cols .hp-shop-cards { display: block !important; margin: 0 !important; }';
+    Object.keys(sel).forEach(function (id) {
+      var p = d.items[id];
+      if (!p) return;
+      c += 'html body ' + sel[id] + ' { position: absolute !important; margin: 0 !important; max-width: none !important; left: ' + p.x + 'px !important;' +
+        ' top: ' + Math.max(-60, p.y) + 'px !important; width: ' + p.w + 'px !important; zoom: ' + p.z + ' !important; }';
+    });
+    return c + ' }';
+  }
+  function render() {
+    var h = read(), css = '';
+    if (h.hero && h.hero.value) css += 'html body #hp-hero { background-image: ' + h.hero.value + ' !important; background-position: ' + (h.hero.pos || 'center') + ' !important; }';
+    if (!editing) css += layoutCss(h.layout);
+    var st = document.getElementById('hp-first');
+    if (!st) { st = document.createElement('style'); st.id = 'hp-first'; document.head.appendChild(st); }
+    st.textContent = css;
+  }
+  window.mt3ukHomeFirst = {
+    save: function (part, value) {
+      var h = read();
+      h[part] = value;
+      try { localStorage.setItem('mt3ukHomeFirst', JSON.stringify(h)); } catch (e) { /* storage blocked: the page still loads */ }
+      render();
+    }
+  };
+  render();
+})();
+</script>
+<script>
   // laps.mt3uk.com/ is Laps, not this page (the two addresses serve the same files). Signed-in members go straight
   // to their Sessions; anyone else sees the Laps front page (laps.html) once in each browser, then Sessions, where
   // Play intro shows it again.
@@ -2556,6 +2596,10 @@
   .hp-card-list { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.5; }
   .hp-card-list a { color: inherit; font-weight: 700; }
   .hp-card-link { margin-top: auto; color: #f2a48c; font-weight: 700; }
+  /* One body size for the text inside every homepage card on desktop, so resizing them with the editor looks even. */
+  @media (min-width: 901px) {
+    .hp-hero-meta, .hp-hero-excerpt, .hp-next-sub, .hp-join p, .hp-laps-text, .hp-card-text, .hp-card-note, .hp-card-list { font-size: 0.9rem; }
+  }
   @media (max-width: 600px) { .hp-shop-cards { grid-template-columns: 1fr; } }
   /* The hero's cards on desktop, as the approved layout: the Latest interview and Laps on the left, and on the right the
      Next interview, Add a photo, then the Offers card and the Shop card at the bottom, level with the bottom of Laps.
@@ -6917,6 +6961,7 @@
         hero.style.backgroundImage = 'linear-gradient(rgba(14, 22, 40, 0.2), rgba(14, 22, 40, 0.88) 70%), url("' + feature.image + '")';
         // Portrait photos crop hard in the wide hero, so each interview can say where the car sits
         hero.style.backgroundPosition = feature.heroPosition || 'center';
+        if (window.mt3ukHomeFirst) window.mt3ukHomeFirst.save('hero', { value: 'linear-gradient(rgba(14, 22, 40, 0.2), rgba(14, 22, 40, 0.88) 70%), url("' + feature.image + '")', pos: feature.heroPosition || 'center' });
       }
       setText('hp-hero-eyebrow', live ? 'Latest interview' : 'Interviews start ' + prettyDay(feature.publish));
       setText('hp-hero-title', feature.title);
@@ -7002,6 +7047,6 @@
   })();
 </script>
 <script src="js/shop-home-cards.js?v=4" defer></script>
-<script src="js/home-layout.js?v=2" defer></script>
+<script src="js/home-layout.js?v=4" defer></script>
 </body>
 </html>

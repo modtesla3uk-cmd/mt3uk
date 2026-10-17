@@ -7,6 +7,10 @@ from playwright.sync_api import expect
 from test_admin_pages import open_admin
 
 CORS = {"Access-Control-Allow-Origin": "*"}
+
+
+def no_saved_layout(route):
+    route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS)
 OFFER = {
     "success": True,
     "highlights": ["Tees, hoodies and stickers", "Tevo Solutions parts for Model 3 and Y"],
@@ -20,6 +24,7 @@ def test_the_homepage_shows_the_live_offer_and_the_shop_card_with_its_highlights
     page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
     page.set_viewport_size({"width": 1280, "height": 900})
+    page.route("**/home/layout", no_saved_layout)
     page.goto("/index.html")
     expect(page.locator("#hp-shop-cards")).to_be_visible()
     expect(page.locator(".hp-offer-card")).to_contain_text("October offers")
@@ -36,6 +41,7 @@ def test_with_no_live_offer_the_placeholder_shows_and_the_shop_card_stays(page):
     no_offer = dict(OFFER, offer=None)
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(no_offer), headers=CORS))
     page.set_viewport_size({"width": 1280, "height": 900})
+    page.route("**/home/layout", no_saved_layout)
     page.goto("/index.html")
     expect(page.locator(".hp-offer-card")).to_contain_text("More offers soon")
     expect(page.locator(".hp-shop-card")).to_be_visible()
@@ -45,6 +51,7 @@ def test_the_homepage_cards_fit_a_phone_without_sideways_scroll(page):
     page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
     page.set_viewport_size({"width": 390, "height": 844})
+    page.route("**/home/layout", no_saved_layout)
     page.goto("/index.html")
     expect(page.locator(".hp-offer-card")).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
@@ -159,3 +166,76 @@ def test_admin_page_editors_section_links_each_page_editor_on_each_address(page)
     assert "https://mt3uk.com/track.html?layout=edit" in hrefs
     assert "https://laps.mt3uk.com/leaderboards.html?layout=edit" in hrefs
     assert "https://test.laps.mt3uk.com/index.html?layout=edit" in hrefs
+
+
+def test_a_returning_visitor_sees_the_saved_layout_and_hero_picture_before_the_worker_answers(page):
+    """The layout and the hero picture are kept in this browser, so a refresh draws them at once, not the default first."""
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
+                         "localStorage.setItem('mt3ukHomeFirst', JSON.stringify({layout: %s, hero: {value: 'url(\"images/kept.jpg\")', pos: 'center top'}}));}catch(e){}"
+                         % json.dumps(SAVED_LAYOUT["desk"]))
+    # The worker does not answer: the saved copy alone must place the cards and the picture.
+    page.route("**/home/layout", lambda r: r.abort())
+    page.route("**/shop/home", lambda r: r.abort())
+    # With the interview data also out of reach, nothing replaces the kept picture, so it is what the page is drawn with.
+    page.route("**/data/interviews.json*", lambda r: r.abort())
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    assert page.evaluate("getComputedStyle(document.querySelector('#hp-hero .hp-hero-card')).position") == "absolute"
+    assert page.evaluate("getComputedStyle(document.querySelector('#hp-hero .hp-hero-card')).left") == "0px"
+    # The picture is set by the early style sheet; the page's own hero code replaces it once the interview data arrives.
+    assert "kept.jpg" in page.evaluate("document.getElementById('hp-first').textContent")
+
+
+def test_a_card_saved_above_the_frame_is_not_drawn_under_the_header(page):
+    """A card may rise at most 60px above the frame, so no card hides under the sticky header and the top of the page stays reachable."""
+    high = json.loads(json.dumps(SAVED_LAYOUT["desk"]))
+    high["items"]["latest"]["y"] = -150
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
+                         "localStorage.setItem('mt3ukHomeFirst', JSON.stringify({layout: %s}));}catch(e){}" % json.dumps(high))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json",
+                                                    body=json.dumps({"success": True, "layout": {"desk": high}})))
+    page.route("**/shop/home", lambda r: r.abort())
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    top = page.evaluate("""() => {
+      const card = document.querySelector('#hp-hero .hp-hero-card').getBoundingClientRect();
+      const cols = document.querySelector('.hp-cols').getBoundingClientRect();
+      return card.top - cols.top;
+    }""")
+    assert top >= -60
+
+
+def test_the_homepage_editor_has_a_grid_and_moves_a_card_by_keyboard(page):
+    """The editor draws a grid like Laps, and a card that takes the keyboard moves 1px per arrow (10px with Shift)."""
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html?layout=edit")
+    expect(page.locator("#hl-bar")).to_be_visible()
+    assert "linear-gradient" in page.evaluate("document.querySelector('.hp-cols').style.backgroundImage")
+    page.locator("#hl-bar [data-a=gridsize]").select_option("16")
+    assert page.evaluate("document.querySelector('.hp-cols').style.backgroundSize") == "16px 16px"
+    page.locator("#hl-bar [data-a=grid]").click()
+    assert page.evaluate("document.querySelector('.hp-cols').style.backgroundImage") == ""
+    card = page.locator("#hp-hero .hp-hero-card")
+    card.focus()
+    before = page.evaluate("[parseFloat(document.querySelector('#hp-hero .hp-hero-card').style.left), parseFloat(document.querySelector('#hp-hero .hp-hero-card').style.top)]")
+    page.keyboard.press("ArrowRight")
+    page.keyboard.press("ArrowUp")
+    page.keyboard.press("Shift+ArrowDown")
+    after = page.evaluate("[parseFloat(document.querySelector('#hp-hero .hp-hero-card').style.left), parseFloat(document.querySelector('#hp-hero .hp-hero-card').style.top)]")
+    assert after == [before[0] + 1, before[1] - 1 + 10]
+
+
+def test_the_homepage_cards_use_one_body_text_size_on_desktop(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    sizes = page.evaluate("""() => [...new Set([
+      '#hp-hero .hp-hero-excerpt', '#hp-hero-next .hp-next-sub', '#hp-join p', '#hp-hero .hp-laps-text',
+      '#hp-shop-cards .hp-card-text', '#hp-shop-cards .hp-card-list li'
+    ].map(s => getComputedStyle(document.querySelector(s)).fontSize))]""")
+    assert sizes == ["14.4px"]

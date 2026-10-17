@@ -9805,7 +9805,7 @@ function cleanHomeLayout(l) {
     if (!p || typeof p !== 'object') return;
     items[id] = {
       x: Math.max(-200, Math.min(2000, Math.round(Number(p.x) || 0))),
-      y: Math.max(-200, Math.min(2000, Math.round(Number(p.y) || 0))),
+      y: Math.max(-60, Math.min(2000, Math.round(Number(p.y) || 0))),
       w: Math.max(120, Math.min(1200, Math.round(Number(p.w) || 300))),
       z: Math.max(0.5, Math.min(2, Math.round((Number(p.z) || 1) * 100) / 100))
     };

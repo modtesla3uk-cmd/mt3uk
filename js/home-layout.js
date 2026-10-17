@@ -16,7 +16,7 @@
     shop: '#hp-shop-cards .hp-shop-card'
   };
   var NAMES = { latest: 'Latest interview', laps: 'Laps', next: 'Next interview', join: 'Add a photo', offer: 'Offers card', shop: 'Shop card' };
-  var GRID = 8;
+  var gridPx = 8, snapOn = true, showGrid = true;
   var cols = document.querySelector('.hp-cols');
   if (!cols) return;
   var desk = window.matchMedia('(min-width: 901px)');
@@ -64,6 +64,9 @@
     });
   }
 
+  // A card may rise at most this far above the frame: higher, it goes under the sticky header where no scroll reaches it.
+  var TOP_MIN = -60;
+
   function applyLayout(l) {
     if (!desk.matches || !l || !l.desk) { clearLayout(); return; }
     ensureCss();
@@ -74,7 +77,7 @@
       it.el.setAttribute('data-hl', it.id);
       if (!p) return;
       it.el.style.left = p.x + 'px';
-      it.el.style.top = p.y + 'px';
+      it.el.style.top = Math.max(TOP_MIN, p.y) + 'px';
       it.el.style.width = p.w + 'px';
       it.el.style.zoom = p.z;
     });
@@ -91,7 +94,28 @@
     return out;
   }
 
-  function snap(v) { return Math.round(v / GRID) * GRID; }
+  function snap(v) { return snapOn ? Math.round(v / gridPx) * gridPx : Math.round(v); }
+
+  // The grid is drawn on the frame behind the cards, only while editing; it follows the grid size and the show switch.
+  function drawGrid() {
+    var on = cols.classList.contains('hl-edit') && showGrid;
+    cols.style.backgroundImage = on ? 'linear-gradient(to right, rgba(255,255,255,.16) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.16) 1px, transparent 1px)' : '';
+    cols.style.backgroundSize = on ? gridPx + 'px ' + gridPx + 'px' : '';
+  }
+
+  // Keyboard: with a card selected, the arrow keys move it 1px (Shift: 10px). Tab goes from card to card.
+  function keys(e) {
+    if (!selected || !cols.classList.contains('hl-edit') || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName)) return;
+    var d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    var step = e.shiftKey ? 10 : 1;
+    var x = Math.max(0, Math.round(parseFloat(selected.style.left) || 0) + d[0] * step);
+    var y = Math.max(TOP_MIN, Math.round(parseFloat(selected.style.top) || 0) + d[1] * step);
+    selected.style.left = x + 'px';
+    selected.style.top = y + 'px';
+    say('Moved to ' + x + ', ' + y + ' px from the frame\'s top left.');
+  }
 
   function editorDrag() {
     var drag = null;
@@ -112,7 +136,7 @@
         drag.el.style.width = Math.max(120, snap(drag.ow + dx)) + 'px';
       } else {
         drag.el.style.left = Math.max(0, snap(drag.ox + dx)) + 'px';
-        drag.el.style.top = Math.max(-200, snap(drag.oy + dy)) + 'px';
+        drag.el.style.top = Math.max(TOP_MIN, snap(drag.oy + dy)) + 'px';
       }
     });
     cols.addEventListener('pointerup', function () { drag = null; });
@@ -139,6 +163,9 @@
       '<span data-hl-name>Tap a card to select it</span>' +
       '<button type="button" data-a="plus">A+ text and buttons</button>' +
       '<button type="button" data-a="minus">A− text and buttons</button>' +
+      '<button type="button" data-a="grid">Grid: on</button>' +
+      '<select data-a="gridsize" aria-label="Grid size"><option value="4">4 px</option><option value="8" selected>8 px</option><option value="16">16 px</option></select>' +
+      '<button type="button" data-a="snap">Snap: on</button>' +
       '<button type="button" data-a="taller">Frame taller</button>' +
       '<button type="button" data-a="shorter">Frame shorter</button>' +
       '<button type="button" class="primary" data-a="save">Save layout</button>' +
@@ -146,10 +173,13 @@
       '<a href="' + location.pathname + '">Exit editing</a>' +
       '<span class="hl-msg"></span>';
     document.body.appendChild(bar);
+    bar.querySelector('[data-a="gridsize"]').addEventListener('change', function () { gridPx = parseInt(this.value, 10); drawGrid(); });
     bar.addEventListener('click', function (e) {
       var b = e.target.closest('[data-a]');
       if (!b) return;
       var a = b.getAttribute('data-a');
+      if (a === 'grid') { showGrid = !showGrid; b.textContent = 'Grid: ' + (showGrid ? 'on' : 'off'); drawGrid(); }
+      if (a === 'snap') { snapOn = !snapOn; b.textContent = 'Snap: ' + (snapOn ? 'on' : 'off'); }
       if (a === 'taller') { frameH += 40; cols.style.height = frameH + 'px'; }
       if (a === 'shorter') { frameH = Math.max(200, frameH - 40); cols.style.height = frameH + 'px'; }
       if (a === 'plus' || a === 'minus') {
@@ -196,7 +226,7 @@
     fetch(API + '/home/layout/admin?key=' + encodeURIComponent(key), {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ layout: { desk: null } })
     }).then(function (r) { return r.json(); }).then(function (d) {
-      if (d.success) { layout = { desk: null }; clearLayout(); cols.classList.add('hl-edit'); applyLayout({ desk: startFromPage() }); say('Reset. The default layout shows to visitors.'); }
+      if (d.success) { layout = { desk: null }; clearLayout(); cols.classList.add('hl-edit'); applyLayout({ desk: startFromPage() }); drawGrid(); say('Reset. The default layout shows to visitors.'); }
       else say('Not reset: ' + (d.message || 'check the admin key.'));
     }).catch(function () { say('Not reset: could not reach the server.'); });
   }
@@ -209,7 +239,15 @@
     cols.classList.add('hl-edit');
     applyLayout({ desk: start });
     editorDrag();
-    say('Drag a card to move it. Drag its corner to change its width.');
+    // Each card can take the keyboard: Tab to it, then the arrow keys move it.
+    present().forEach(function (it) { it.el.setAttribute('tabindex', '0'); });
+    cols.addEventListener('focusin', function (e) {
+      var el = e.target.closest && e.target.closest('[data-hl]');
+      if (el && cols.classList.contains('hl-edit')) select(el);
+    });
+    document.addEventListener('keydown', keys);
+    drawGrid();
+    say('Drag a card to move it, or Tab to it and use the arrow keys (Shift for 10 px). Drag its corner to change its width.');
   }
 
   // Wait until the shop cards have been drawn, so the editor sees every card.
@@ -223,6 +261,7 @@
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) {
       layout = d && d.success && d.layout ? d.layout : { desk: null };
+      if (window.mt3ukHomeFirst) window.mt3ukHomeFirst.save('layout', layout.desk || null);
       if (editing && desk.matches) whenCardsReady(enterEditor);
       else whenCardsReady(function () { applyLayout(layout); });
     })

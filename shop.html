@@ -1376,6 +1376,15 @@
       // The discount code of the live offer, by Shopify handle: shown on the item in the Shop (applied at checkout on Shopify).
       var offerCodes = {};
       var HOME_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/home');
+      // The Order link. With a discount code on the offer, the link goes through Shopify's discount address, which applies the
+      // code and then sends the shopper to the product, so the code is already in the basket at checkout.
+      function orderUrl(p, campaign) {
+        var utm = 'utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=' + campaign;
+        var code = offerCodes[p.handle];
+        if (!code || !p.handle || !p.url) return p.url + '?' + utm;
+        var shop = p.url.split('/products/')[0];
+        return shop + '/discount/' + encodeURIComponent(code) + '?redirect=' + encodeURIComponent('/products/' + p.handle + '?' + utm);
+      }
       var MANUAL_PRODUCT_KEYS = {
         'black-mt3uk-tee-red-underline-super-soft': 'tee',
         'black-mt3uk-tee-yellow-underline': 'tee-yellow',
@@ -1439,7 +1448,7 @@
         if (!partsHost) return;
         var img = p.images && p.images[0] ? p.images[0] : '';
         var img2 = p.images && p.images[1] ? p.images[1] : '';
-        var url = p.url + '?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=brace_order';
+        var url = orderUrl(p, 'brace_order');
         var card = document.createElement('div');
         card.className = 'shop-card';
         card.id = 'brace';
@@ -1511,7 +1520,7 @@
 
         products.forEach(function (p) {
           var img = p.images && p.images[0] ? p.images[0] : '';
-          var url = p.url + '?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=live_merch';
+          var url = orderUrl(p, 'live_merch');
           var key = MANUAL_PRODUCT_KEYS[p.handle];
           var card = document.createElement('div');
           card.className = 'shop-live-card';

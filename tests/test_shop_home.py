@@ -92,7 +92,7 @@ def test_admin_shop_panel_lists_products_and_saves_the_offer_with_its_items(page
     expect(page.locator("#shop-note")).to_contain_text("Saved")
     home = saved[-1]["home"]
     assert home["offer"]["on"] is True and home["offer"]["percent"] == 20
-    assert home["offer"]["items"] == [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket", "url": "https://mt3uk.myshopify.com/products/model-3-brake-master-cylinder-bracket-for-rhd-models-only"}]
+    assert home["offer"]["items"] == [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket", "url": ""}]
     assert home["offer"]["code"] == "MT3UKMC40"
     assert home["highlights"] == ["Tees, hoodies and stickers", "Tevo parts for Model 3 and Y"]
 
@@ -424,3 +424,30 @@ def test_the_shop_brace_shows_the_discount_code_in_place_of_limited_stock_while_
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": None}), headers=CORS))
     page.goto("/shop.html")
     expect(page.locator("#brace .tee-offer-banner")).to_contain_text("Limited stock at this price")
+
+
+def test_an_offer_item_links_to_its_place_on_the_shop_page_not_to_shopify(page):
+    offer = {"on": True, "heading": "Autumn Offers", "percent": 40, "text": "", "code": "MT3UKMC40", "start": "2026-10-01", "end": "2026-12-31",
+             "items": [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket",
+                        "url": "", "price": "£125"}]}
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": offer}), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    link = page.locator("#hp-shop-cards .hp-offer-card a")
+    expect(link).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125)")
+    assert link.get_attribute("href") == "shop.html#brace"
+
+
+def test_the_order_link_for_an_offer_item_goes_through_the_discount_code_to_the_product(page):
+    offer = {"on": True, "heading": "Autumn Offers", "percent": 40, "text": "", "code": "MT3UKMC40", "start": "2026-10-01", "end": "2026-12-31",
+             "items": [{"id": BRACE_PRODUCT["handle"], "name": BRACE_PRODUCT["title"], "url": "", "price": "£125"}]}
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop-products**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": [BRACE_PRODUCT]}), headers=CORS))
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": offer}), headers=CORS))
+    page.goto("/shop.html")
+    href = page.locator("#brace a.tee-shop-btn").get_attribute("href")
+    assert href.startswith("https://mt3uk.myshopify.com/discount/MT3UKMC40?redirect=")
+    assert "%2Fproducts%2Fmodel-3-brake-master-cylinder-bracket-for-rhd-models-only" in href
+    assert "utm_campaign%3Dbrace_order" in href

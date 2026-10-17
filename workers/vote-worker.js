@@ -9782,7 +9782,8 @@ function cleanShopOffer(o) {
 // The price of each Shopify product, from the same catalogue the Shop reads (shown on the homepage offer): '£125', '£29.99'.
 async function shopifyPrices() {
   try {
-    var res = await fetch(SHOPIFY_PRODUCTS_URL, { cf: { cacheTtl: 120, cacheEverything: true } });
+    // The same request the Shop's product list makes (Shopify refuses a request with no user agent).
+    var res = await fetch(SHOPIFY_PRODUCTS_URL, { headers: { 'User-Agent': 'mt3uk-shop-sync' } });
     if (!res.ok) return {};
     var data = await res.json();
     var out = {};

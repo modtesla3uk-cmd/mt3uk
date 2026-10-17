@@ -137,7 +137,8 @@
   document.getElementById('shop-save').addEventListener('click', function () {
     var picked = Array.prototype.map.call(itemsEl.querySelectorAll('.shop-pick:checked'), function (c) { return c.value; });
     // An item is a Shopify product: its handle is the id, its price is looked up on the site, the discount code is shown with the offer.
-    var items = catalogue.filter(function (p) { return picked.indexOf(p.handle) !== -1; }).map(function (p) { return { id: p.handle, name: p.title, url: p.url }; });
+    // Its link is empty, so it goes to the item on the Shop page (the homepage works out where).
+    var items = catalogue.filter(function (p) { return picked.indexOf(p.handle) !== -1; }).map(function (p) { return { id: p.handle, name: p.title, url: '' }; });
     var offer = {
       on: onBtn.getAttribute('aria-checked') === 'true',
       heading: document.getElementById('shop-o-heading').value.trim(),

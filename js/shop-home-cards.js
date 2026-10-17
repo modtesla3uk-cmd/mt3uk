@@ -16,7 +16,11 @@
     return e;
   }
   // Where each Shop product sits on shop.html, for an item with no link of its own (so the card goes to the item, not the top).
-  var SHOP_ANCHORS = { 'master-cylinder-brace': 'brace', 'evoffer-sport-seats': 'evoffer', 'merch': 'merch' };
+  // Shopify products go to their place on the Shop page (not to Shopify): the brace, and the merch in the Shop's merch section.
+  var SHOP_ANCHORS = { 'master-cylinder-brace': 'brace', 'model-3-brake-master-cylinder-bracket-for-rhd-models-only': 'brace',
+    'evoffer-sport-seats': 'evoffer', 'merch': 'merch', 'mt3uk-official-stickers-white-red-line-3-pack': 'merch',
+    'mt3uk-fire-red-hoodie-yellow-line': 'merch', 'mt3uk-grey-hoodie-red-line': 'merch', 'black-mt3uk-tee-red-underline-super-soft': 'merch',
+    'black-mt3uk-tee-yellow-underline': 'merch' };
   function shopLink(url, id) {
     var u = String(url || '');
     if (/^https:\/\//.test(u)) {

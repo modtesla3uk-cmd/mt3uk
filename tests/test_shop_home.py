@@ -239,3 +239,42 @@ def test_the_homepage_cards_use_one_body_text_size_on_desktop(page):
       '#hp-shop-cards .hp-card-text', '#hp-shop-cards .hp-card-list li'
     ].map(s => getComputedStyle(document.querySelector(s)).fontSize))]""")
     assert sizes == ["14.4px"]
+
+
+def test_each_homepage_card_has_a_share_button_at_its_top_right(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    expect(page.locator(".hp-card-share")).to_have_count(6)
+    places = page.evaluate("""() => [...document.querySelectorAll('.hp-card-share')].map(b => {
+      const card = b.parentElement.getBoundingClientRect(), r = b.getBoundingClientRect();
+      return [r.top - card.top, card.right - r.right];
+    })""")
+    for top, right in places:
+        assert 0 <= top <= 16 and 0 <= right <= 16
+
+
+def test_sharing_a_card_saves_it_as_a_picture_when_there_is_no_share_sheet(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');"
+                         "Object.defineProperty(navigator,'share',{value:undefined,configurable:true});}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    with page.expect_download(timeout=20000) as d:
+        page.locator("#hp-shop-cards .hp-shop-card > .hp-card-share").click()
+    assert d.value.suggested_filename == "mt3uk-shop.png"
+    picture = open(d.value.path(), "rb").read()
+    assert picture[:8] == b"\x89PNG\r\n\x1a\n" and len(picture) > 2000
+
+
+def test_the_share_buttons_are_left_out_of_the_layout_editor(page):
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html?layout=edit")
+    expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
+    expect(page.locator("#hp-shop-cards .hp-shop-card > .hp-card-share")).to_be_hidden()

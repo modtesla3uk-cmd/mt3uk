@@ -9758,14 +9758,14 @@ function cleanShopProducts(list) {
   return (Array.isArray(list) ? list : []).map(function (p) {
     var id = shopId((p && (p.id || p.name)) || ''), name = String((p && p.name) || '').trim().slice(0, 120);
     if (!id || !name) return null;
-    return { id: id, name: name, price: String(p.price || '').trim().slice(0, 20), url: shopUrl(p.url), line: String(p.line || '').trim().slice(0, 160) };
+    return { id: id, name: name, url: shopUrl(p.url), line: String(p.line || '').trim().slice(0, 160) };
   }).filter(Boolean).slice(0, 300);
 }
 function cleanShopOffer(o) {
   if (!o || typeof o !== 'object') return null;
   var items = (Array.isArray(o.items) ? o.items : []).map(function (it) {
     var id = shopId(it && (it.id || it.name)), name = String((it && it.name) || '').trim().slice(0, 120);
-    return id && name ? { id: id, name: name, price: String(it.price || '').trim().slice(0, 20), url: shopUrl(it.url) } : null;
+    return id && name ? { id: id, name: name, url: shopUrl(it.url) } : null;
   }).filter(Boolean).slice(0, 20);
   return {
     on: !!o.on,

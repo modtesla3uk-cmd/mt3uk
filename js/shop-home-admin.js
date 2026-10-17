@@ -39,7 +39,7 @@
 
   function drawList() {
     listEl.innerHTML = products.length ? '<table class="iv-table"><tbody>' + products.map(function (p) {
-      return '<tr><td>' + esc(p.name) + (p.price ? ' <span class="iv-sub">' + esc(p.price) + '</span>' : '') +
+      return '<tr><td>' + esc(p.name) +
         (p.line ? '<br><span class="iv-sub">' + esc(p.line) + '</span>' : '') + '</td>' +
         '<td><button type="button" class="danger iv-act" data-remove="' + esc(p.id) + '">Remove</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">No products yet.</p>';
@@ -113,12 +113,11 @@
     while (products.some(function (p) { return p.id === id; })) { id = base + '-' + n++; }
     var item = {
       id: id, name: name,
-      price: document.getElementById('shop-p-price').value.trim(),
       url: document.getElementById('shop-p-url').value.trim(),
       line: document.getElementById('shop-p-line').value.trim()
     };
     save({ products: products.concat([item]) }, 'Added to the Shop list.').then(function () {
-      ['shop-p-name', 'shop-p-price', 'shop-p-url', 'shop-p-line'].forEach(function (k) { document.getElementById(k).value = ''; });
+      ['shop-p-name', 'shop-p-url', 'shop-p-line'].forEach(function (k) { document.getElementById(k).value = ''; });
     });
   });
 
@@ -130,7 +129,7 @@
 
   document.getElementById('shop-save').addEventListener('click', function () {
     var picked = Array.prototype.map.call(itemsEl.querySelectorAll('.shop-pick:checked'), function (c) { return c.value; });
-    var items = products.filter(function (p) { return picked.indexOf(p.id) !== -1; }).map(function (p) { return { id: p.id, name: p.name, price: p.price, url: p.url }; });
+    var items = products.filter(function (p) { return picked.indexOf(p.id) !== -1; }).map(function (p) { return { id: p.id, name: p.name, url: p.url }; });
     var offer = {
       on: onBtn.getAttribute('aria-checked') === 'true',
       heading: document.getElementById('shop-o-heading').value.trim(),

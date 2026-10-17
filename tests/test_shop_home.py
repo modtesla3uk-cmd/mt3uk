@@ -16,7 +16,7 @@ OFFER = {
     "highlights": ["Tees, hoodies and stickers", "Tevo Solutions parts for Model 3 and Y"],
     "placeholder": "More offers soon",
     "offer": {"heading": "October offers", "percent": 20, "text": "20% off selected parts this month.", "end": "2026-10-31",
-              "items": [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "price": "£95", "url": "https://www.tevo.solutions/brace"}]},
+              "items": [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "url": "https://www.tevo.solutions/brace"}]},
 }
 
 
@@ -59,8 +59,8 @@ def test_the_homepage_cards_fit_a_phone_without_sideways_scroll(page):
 
 def test_admin_shop_panel_lists_products_and_saves_the_offer_with_its_items(page):
     saved = []
-    products = [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "price": "£95", "url": "", "line": ""},
-                {"id": "merch", "name": "MT3UK tees", "price": "", "url": "shop.html#merch", "line": ""}]
+    products = [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "url": "", "line": ""},
+                {"id": "merch", "name": "MT3UK tees", "url": "shop.html#merch", "line": ""}]
 
     def admin(route):
         if route.request.method == "POST":
@@ -85,13 +85,13 @@ def test_admin_shop_panel_lists_products_and_saves_the_offer_with_its_items(page
     expect(page.locator("#shop-note")).to_contain_text("Saved")
     home = saved[-1]["home"]
     assert home["offer"]["on"] is True and home["offer"]["percent"] == 20
-    assert home["offer"]["items"] == [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "price": "£95", "url": ""}]
+    assert home["offer"]["items"] == [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "url": ""}]
     assert home["highlights"] == ["Tees, hoodies and stickers", "Tevo parts for Model 3 and Y"]
 
 
 def test_admin_adds_a_product_to_the_shop_list(page):
     saved = []
-    products = [{"id": "merch", "name": "MT3UK tees", "price": "", "url": "shop.html#merch", "line": ""}]
+    products = [{"id": "merch", "name": "MT3UK tees", "url": "shop.html#merch", "line": ""}]
 
     def admin(route):
         if route.request.method == "POST":
@@ -106,7 +106,6 @@ def test_admin_adds_a_product_to_the_shop_list(page):
     page.locator("#shop-cards-wrap summary").click()
     expect(page.locator("#shop-products")).to_contain_text("MT3UK tees")
     page.fill("#shop-p-name", "Carbotech front pads")
-    page.fill("#shop-p-price", "£120")
     page.locator("#shop-product-form button").click()
     expect(page.locator("#shop-note")).to_contain_text("Added to the Shop list")
     names = [p["name"] for p in saved[-1]["products"]]

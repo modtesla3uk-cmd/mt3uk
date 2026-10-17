@@ -1,7 +1,32 @@
 [
-  { "id": "merch", "name": "MT3UK tees, hoodies and stickers", "price": "", "url": "shop.html#merch", "line": "Tees, hoodies and stickers, discounted for members." },
-  { "id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "price": "£95", "url": "", "line": "Reduces brake pedal flex on Model 3 (RHD)." },
-  { "id": "evoffer-sport-seats", "name": "EVOffer Sport Seats", "price": "", "url": "", "line": "Sport seats for Tesla, from Tevo Solutions." },
-  { "id": "pagid-street-pads", "name": "Pagid street brake pads, Model 3 and Y Performance", "price": "", "url": "https://www.tevo.solutions/braking/pagid-street-brake-pads-for-model-3y-performance?ref=mt3uk", "line": "Street brake pads from Tevo Solutions." },
-  { "id": "carbotech-front-pads", "name": "Carbotech front brake pads, Model 3 Performance", "price": "", "url": "https://www.tevo.solutions/braking/carbotech-brake-pads-for-model-3-performance-front?ref=mt3uk", "line": "Track-focused front pads from Tevo Solutions." }
+  {
+    "id": "merch",
+    "name": "MT3UK tees, hoodies and stickers",
+    "url": "shop.html#merch",
+    "line": "Tees, hoodies and stickers, discounted for members."
+  },
+  {
+    "id": "master-cylinder-brace",
+    "name": "Tevo Master Cylinder Brace",
+    "url": "",
+    "line": "Reduces brake pedal flex on Model 3 (RHD)."
+  },
+  {
+    "id": "evoffer-sport-seats",
+    "name": "EVOffer Sport Seats",
+    "url": "",
+    "line": "Sport seats for Tesla, from Tevo Solutions."
+  },
+  {
+    "id": "pagid-street-pads",
+    "name": "Pagid street brake pads, Model 3 and Y Performance",
+    "url": "https://www.tevo.solutions/braking/pagid-street-brake-pads-for-model-3y-performance?ref=mt3uk",
+    "line": "Street brake pads from Tevo Solutions."
+  },
+  {
+    "id": "carbotech-front-pads",
+    "name": "Carbotech front brake pads, Model 3 Performance",
+    "url": "https://www.tevo.solutions/braking/carbotech-brake-pads-for-model-3-performance-front?ref=mt3uk",
+    "line": "Track-focused front pads from Tevo Solutions."
+  }
 ]

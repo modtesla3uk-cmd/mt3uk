@@ -61,7 +61,7 @@
       var list = el('ul', 'hp-card-list');
       offer.items.forEach(function (it) {
         var li = el('li');
-        var a = el('a', '', it.name + (it.price ? ' (' + it.price + ')' : ''));
+        var a = el('a', '', it.name);
         a.href = shopLink(it.url, it.id);
         li.appendChild(a);
         list.appendChild(li);

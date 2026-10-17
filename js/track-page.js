@@ -974,14 +974,14 @@
           '<div><button type="button" class="btn btn-accent" id="tp-trial-start" style="margin-top:8px">Start my free trial</button></div></div>';
       } else if (trial.state === 'ended' && trial.choice !== 'free') {
         offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Your Laps Pro trial has ended.</b> ' + (d.subscribe ? 'Subscribe to keep Laps Pro, or go back to the free tier.' : 'Subscribing to Laps Pro is coming soon. Until then you can go back to the free tier.') +
-          '<div><button type="button" class="btn btn-accent" id="tp-pro-subscribe" style="margin-top:8px"' + (d.subscribe ? '' : ' disabled') + '>' + (d.subscribe ? 'Subscribe to Laps Pro' : 'Subscribe, coming soon') + '</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
+          '<div><button type="button" class="btn btn-accent" id="tp-pro-subscribe" style="margin-top:8px"' + (d.subscribe ? '' : ' disabled') + '>' + (d.subscribe ? 'Subscribe to Laps Pro' + (d.price ? ' (' + esc(d.price) + ')' : '') : 'Subscribe, coming soon') + '</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
       }
       // A member who went back to the free tier after the trial can still subscribe, from the free-tier box.
       // It sits inside the usage box, so Hide takes it away with the rest.
       var again = '';
       if (!offer && trial.state === 'ended' && d.subscribe) {
         again = '<div class="tp-trial" id="tp-pro-again" style="margin-bottom:10px;font-size:0.88rem">Laps Pro is available any time, with no limit on uploads. ' +
-          '<button type="button" class="btn btn-secondary btn-sm" id="tp-pro-subscribe" style="margin-left:4px">Subscribe to Laps Pro</button></div>';
+          '<button type="button" class="btn btn-secondary btn-sm" id="tp-pro-subscribe" style="margin-left:4px">Subscribe to Laps Pro' + (d.price ? ' (' + esc(d.price) + ')' : '') + '</button></div>';
       }
       box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
@@ -3871,7 +3871,7 @@
   }
   function lockPaidTiles(root) {
     tierCheck().then(function (t) {
-      if (!t.applies || t.full) return;
+      if (!t.applies || t.full || t.proFeatures) return;
       var lock = function (el, title) {
         if (!el || el.getAttribute('data-locked')) return;
         el.setAttribute('data-locked', '1');

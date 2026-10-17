@@ -350,7 +350,7 @@
   // what a paid plan includes instead. Full access and the switch being off see the page as before.
   var subscribeOpen = false;
   fetch(API + '/track/tiers/access', H).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (t) {
-    if (t && t.success && t.applies && !t.full) {
+    if (t && t.success && t.applies && !t.full && !t.proFeatures) {
       subscribeOpen = !!t.subscribe;
       // An example of a paid analysis, greyed out so it is clear it is not the member's own. Nothing of theirs is shown.
       app.innerHTML = '<div class="tm-card ma-example-note"><h2>This is an example</h2>' +

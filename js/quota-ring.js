@@ -145,7 +145,7 @@
 
   function draw(d) {
     canSubscribe = !!(d && d.subscribe);
-    free = !!(d && d.success && d.applies && !d.full);
+    free = !!(d && d.success && d.applies && !d.full && !d.proFeatures);
     if (!free) {
       var old = document.getElementById('tp-quota-ring');
       if (old) old.hidden = true;

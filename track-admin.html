@@ -145,10 +145,23 @@
       <div id="tiers-full-host"></div>
       <h3 class="sub-head">Laps Pro</h3>
       <p class="iv-note">Laps Pro members have no session limit and every tool is open to them. There are no payments yet: you set who is on Laps Pro here.</p>
-      <p class="iv-note">The 7-day trial offer: free members see it only while it is on.</p>
+      <p class="iv-note">The trial offer: free members see it only while it is on.</p>
       <div class="iv-row" id="tiers-trial-wrap">
         <button type="button" class="secondary" data-trial="off" aria-pressed="false">Off</button>
         <button type="button" class="secondary" data-trial="on" aria-pressed="false">On</button>
+      </div>
+      <h3 class="sub-head">Laps Pro for everyone (trial)</h3>
+      <p class="iv-note">While this is on, every member gets the Laps Pro analysis. The free day limit still applies. Leave the end date blank to keep it on until you switch it off.</p>
+      <div class="iv-row" id="tiers-protrial-wrap">
+        <button type="button" class="secondary" data-protrial="off" aria-pressed="false">Off</button>
+        <button type="button" class="secondary" data-protrial="on" aria-pressed="false">On</button>
+        <label>End date <input type="date" id="tiers-protrial-until" aria-label="End date for Laps Pro for everyone"></label>
+        <button type="button" class="secondary" id="tiers-protrial-save">Save end date</button>
+      </div>
+      <div class="iv-row" id="tiers-trial-settings-wrap">
+        <label>Trial length (days) <input type="number" id="tiers-trial-days" min="1" max="60" step="1" aria-label="Trial length in days"></label>
+        <label>Price shown to members <input type="text" id="tiers-price" maxlength="40" placeholder="for example £3.99 a month" aria-label="Price shown to members"></label>
+        <button type="button" class="secondary" id="tiers-trial-settings-save">Save trial settings</button>
       </div>
       <p class="iv-note">Laps Pro subscriptions: Subscribe and Unlock send members to PayPal. Testers only lets just the testers list subscribe, for testing.</p>
       <div class="iv-row" id="tiers-subs-wrap">
@@ -172,7 +185,7 @@
       <div id="tiers-trials"></div>
       <h3 class="sub-head">Add a tester</h3>
       <div id="tiers-trial-add-host"></div>
-      <p class="iv-note">Starts their 7-day Laps Pro trial now, without the trial offer being on.</p>
+      <p class="iv-note">Starts their Laps Pro trial now, without the trial offer being on.</p>
     </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
@@ -464,7 +477,7 @@
 <script src="js/member-finder.js?v=1" defer></script>
 <script src="js/laps-offline-admin.js?v=3" defer></script>
 <script src="js/sessions-tree-admin.js?v=2" defer></script>
-<script src="js/tiers-admin.js?v=17" defer></script>
+<script src="js/tiers-admin.js?v=19" defer></script>
 <script src="js/paypal-admin.js?v=2" defer></script>
 <script src="js/kinds-admin.js?v=2" defer></script>
 <script src="js/track-usage-admin.js?v=20270102" defer></script>

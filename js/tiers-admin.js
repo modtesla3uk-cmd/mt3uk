@@ -13,6 +13,31 @@
   var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
   var trialsEl = document.getElementById('tiers-trials'), trialsCountEl = document.getElementById('tiers-trials-count');
   var state = null;
+  // Laps Pro for everyone: On or Off, and an optional end date.
+  function saveProTrial(on) {
+    var until = document.getElementById('tiers-protrial-until');
+    call('POST', { action: 'pro-trial', on: on, until: until.value || '' }).then(function (d) {
+      if (!d.ok || !d.success) { note(d.message || 'Could not change Laps Pro for everyone.', 'error'); return; }
+      state.proTrial = d.proTrial;
+      draw();
+      note(on ? (until.value ? 'Laps Pro is free for everyone until ' + until.value + '.' : 'Laps Pro is free for everyone until you switch it off.') : 'Laps Pro for everyone is off.');
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#tiers-protrial-wrap [data-protrial]'), function (b) {
+    b.addEventListener('click', function () { saveProTrial(b.getAttribute('data-protrial') === 'on'); });
+  });
+  var settingsSave = document.getElementById('tiers-trial-settings-save');
+  if (settingsSave) settingsSave.addEventListener('click', function () {
+    var days = document.getElementById('tiers-trial-days'), price = document.getElementById('tiers-price');
+    call('POST', { action: 'trial-settings', days: days.value, price: price.value.trim() }).then(function (d) {
+      if (!d.ok || !d.success) { note(d.message || 'Could not save the trial settings.', 'error'); return; }
+      state.trialDays = d.trialDays; state.price = d.price;
+      draw();
+      note('Trial settings saved.');
+    });
+  });
+  var proSave = document.getElementById('tiers-protrial-save');
+  if (proSave) proSave.addEventListener('click', function () { saveProTrial(!!(state && state.proTrial && state.proTrial.on)); });
   // The Laps Pro subscriptions switch: On or Off, saved at once.
   Array.prototype.forEach.call(document.querySelectorAll('#tiers-subs-wrap [data-subs]'), function (b) {
     b.addEventListener('click', function () {
@@ -89,6 +114,17 @@
       b.setAttribute('aria-pressed', String(on));
       b.className = on ? 'iv-act' : 'secondary';
     });
+    var pro = state.proTrial || { on: false, until: '' };
+    Array.prototype.forEach.call(document.querySelectorAll('#tiers-protrial-wrap [data-protrial]'), function (b) {
+      var on = (b.getAttribute('data-protrial') === 'on') === !!pro.on;
+      b.setAttribute('aria-pressed', String(on));
+      b.className = on ? 'iv-act' : 'secondary';
+    });
+    var setDays = document.getElementById('tiers-trial-days'), setPrice = document.getElementById('tiers-price');
+    if (setDays && document.activeElement !== setDays) setDays.value = state.trialDays || 7;
+    if (setPrice && document.activeElement !== setPrice) setPrice.value = state.price || '';
+    var proDate = document.getElementById('tiers-protrial-until');
+    if (proDate && document.activeElement !== proDate) proDate.value = pro.until || '';
     var trials = state.trials || { summary: { running: 0, ended: 0, stayedFree: 0, awaiting: 0 }, rows: [] };
     var sm = trials.summary;
     trialsCountEl.textContent = sm.running + ' running now. ' + sm.ended + ' ' + (sm.ended === 1 ? 'trial has' : 'trials have') + ' ended: ' +

@@ -8219,7 +8219,10 @@ async function getTrackTiers(env) {
     full: cleanTierList(t.full),
     paid: cleanTierList(t.paid),
     trialOpen: t.trialOpen === true,
-    subscriptions: SUBSCRIPTION_MODES.indexOf(t.subscriptions) !== -1 ? t.subscriptions : 'off'
+    subscriptions: SUBSCRIPTION_MODES.indexOf(t.subscriptions) !== -1 ? t.subscriptions : 'off',
+    proTrial: { on: !!(t.proTrial && t.proTrial.on === true), until: cleanProTrialDate(t.proTrial && t.proTrial.until) },
+    trialDays: (parseInt(t.trialDays, 10) >= 1 && parseInt(t.trialDays, 10) <= 60) ? parseInt(t.trialDays, 10) : LAPS_PRO_TRIAL_DAYS,
+    price: String(t.price || '').slice(0, 40)
   };
 }
 // What one member sees. Paid members and Full access members are not held to the free tier (no limit, nothing locked);
@@ -8236,7 +8239,7 @@ async function trackTierFor(env, email) {
   // A free member on a Laps Pro trial is unlimited for the seven days, then back on the free tier.
   var trial = onFree ? await lapsProTrialState(env, e) : { state: 'none', choice: '' };
   var inTrial = trial.state === 'active';
-  return { mode: t.mode, applies: onFree && !inTrial, tester: tester, full: unlimited || inTrial, paid: paid, subscribed: subscribed, allowance: t.allowance, trial: trial };
+  return { mode: t.mode, applies: onFree && !inTrial, tester: tester, full: unlimited || inTrial, paid: paid, subscribed: subscribed, allowance: t.allowance, trial: trial, proFeatures: proTrialActive(t) };
 }
 // The Laps Pro trial: one record per member (laps-pro-trial:<email>, read with get()). A free member can start it once,
 // for seven days. When it ends they are back on the free tier, and are asked to subscribe or to stay on the free tier.
@@ -8296,6 +8299,14 @@ async function paypalConfigured(env) {
 }
 function lapsProSubKey(email) { return 'laps-pro-sub:' + accessEmail(email); }
 // Whether this member may subscribe: everyone, the testers list only, or nobody.
+// The Laps Pro trial for everyone: the analysis features are open to every member while it is on (the day limit still
+// applies), until the end date if one is set (YYYY-MM-DD, UK), or until the admin switches it off.
+function cleanProTrialDate(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? String(v) : ''; }
+function proTrialActive(t) {
+  if (!t.proTrial || !t.proTrial.on) return false;
+  if (!t.proTrial.until) return true;
+  return Date.now() < new Date(t.proTrial.until + 'T23:59:59Z').getTime();
+}
 function subscriptionsOpenFor(t, email) {
   if (t.subscriptions === 'all') return true;
   return t.subscriptions === 'testers' && t.testers.some(function (x) { return x.email === accessEmail(email); });
@@ -8420,9 +8431,10 @@ async function handleLapsProTrialStart(request, env) {
   var existing = await lapsProTrialState(env, email);
   if (existing.state !== 'none') return json({ success: false, message: 'You have already had your Laps Pro trial.' }, 400);
   var now = new Date();
-  var end = new Date(now.getTime() + LAPS_PRO_TRIAL_DAYS * 86400000);
+  var trialDaysNow = (await getTrackTiers(env)).trialDays;
+  var end = new Date(now.getTime() + trialDaysNow * 86400000);
   await env.VOTES.put(lapsProTrialKey(email), JSON.stringify({ start: now.toISOString(), end: end.toISOString(), choice: '' }));
-  return json({ success: true, message: 'Your ' + LAPS_PRO_TRIAL_DAYS + '-day Laps Pro trial has started.', trial: { state: 'active', endsAt: end.toISOString(), choice: '' } });
+  return json({ success: true, message: 'Your ' + trialDaysNow + '-day Laps Pro trial has started.', trial: { state: 'active', endsAt: end.toISOString(), choice: '' } });
 }
 // The member's choice when the trial has ended: stay on the free tier. (Subscribing is not open yet.)
 async function handleLapsProTrialFree(request, env) {
@@ -8506,14 +8518,14 @@ async function handleTrackTiersAccess(request, env) {
   var tiersNow = await getTrackTiers(env), trialOpen = tiersNow.trialOpen;
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: LAPS_PRO_TRIAL_DAYS };
-  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: (await paypalConfigured(env)) && subscriptionsOpenFor(tiersNow, email), subscribed: r.subscribed === true });
+  var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: tiersNow.trialDays };
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: (await paypalConfigured(env)) && subscriptionsOpenFor(tiersNow, email), subscribed: r.subscribed === true, proFeatures: r.proFeatures === true, proTrialUntil: tiersNow.proTrial.until, price: tiersNow.price });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
   if (request.method === 'GET') {
-    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions };
+    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions, proTrial: t.proTrial, trialDays: t.trialDays, price: t.price };
     reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
     reply.trials = await lapsProTrialList(env);
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
@@ -8528,6 +8540,17 @@ async function handleTrackTiersAdmin(request, env) {
   } else if (action === 'trial') {
     // The Laps Pro trial offer: off until the admin switches it on.
     t.trialOpen = body.on === true;
+  } else if (action === 'trial-settings') {
+    // The Laps Pro trial length (1 to 60 days) and the price shown to members (text, for example £3.99 a month).
+    var tsDays = parseInt(body.days, 10);
+    if (!(tsDays >= 1 && tsDays <= 60)) return json({ success: false, message: 'The trial length must be from 1 to 60 days.' }, 400);
+    t.trialDays = tsDays;
+    t.price = String(body.price || '').trim().slice(0, 40);
+  } else if (action === 'pro-trial') {
+    // Laps Pro for everyone: on or off, and an optional end date (blank keeps it on until switched off).
+    var until = String(body.until || '').trim();
+    if (until && !cleanProTrialDate(until)) return json({ success: false, message: 'Use the end date as YYYY-MM-DD, or leave it blank.' }, 400);
+    t.proTrial = { on: body.on === true, until: until };
   } else if (action === 'subscriptions') {
     // Laps Pro subscriptions: off, the testers list only, or everyone.
     if (SUBSCRIPTION_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Unknown mode' }, 400);
@@ -8537,9 +8560,9 @@ async function handleTrackTiersAdmin(request, env) {
     var tae = accessEmail(body.email);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tae)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
     if ((await lapsProTrialState(env, tae)).state !== 'none') return json({ success: false, message: 'That member has had a Laps Pro trial. Remove it first, then add them again.' }, 400);
-    var taeNow = new Date(), taeEnd = new Date(taeNow.getTime() + LAPS_PRO_TRIAL_DAYS * 86400000);
+    var taeNow = new Date(), taeEnd = new Date(taeNow.getTime() + t.trialDays * 86400000);
     await env.VOTES.put(lapsProTrialKey(tae), JSON.stringify({ start: taeNow.toISOString(), end: taeEnd.toISOString(), choice: '' }));
-    return json({ success: true, message: 'Added ' + tae + ' as a tester for ' + LAPS_PRO_TRIAL_DAYS + ' days.' });
+    return json({ success: true, message: 'Added ' + tae + ' as a tester for ' + t.trialDays + ' days.' });
   } else if (action === 'trial-end') {
     // Ends a running trial now (for testing the subscribe step): the record stays, so the member sees the trial-ended card.
     var tee = accessEmail(body.email);
@@ -8595,7 +8618,7 @@ async function handleTrackTiersAdmin(request, env) {
     return json({ success: true });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
-  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions });
+  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen, subscriptions: t.subscriptions, proTrial: t.proTrial, trialDays: t.trialDays, price: t.price });
 }
 
 async function handleTrackSessionsList(request, env) {

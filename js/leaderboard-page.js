@@ -886,7 +886,7 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (d && window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d);
-        var limitedNow = !!(d && d.success && d.applies && !d.full);
+        var limitedNow = !!(d && d.success && d.applies && !d.full && !d.proFeatures);
         if (limitedNow !== tierLimited) { tierLimited = limitedNow; if (viewMode === 'tyres') route(); }
       })
       .catch(function () { /* no ring without an answer */ });

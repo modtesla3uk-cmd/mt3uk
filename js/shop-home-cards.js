@@ -57,11 +57,12 @@
     card.appendChild(el('span', 'hp-card-tag', offer.percent ? offer.percent + '% off' : 'Offer'));
     card.appendChild(el('h3', 'hp-card-title', offer.heading));
     if (offer.text) card.appendChild(el('p', 'hp-card-text', offer.text));
+    if (offer.code) card.appendChild(el('p', 'hp-card-text', 'Use code ' + offer.code + ' at checkout.'));
     if (offer.items && offer.items.length) {
       var list = el('ul', 'hp-card-list');
       offer.items.forEach(function (it) {
         var li = el('li');
-        var a = el('a', '', it.name);
+        var a = el('a', '', it.name + (it.price ? ' (' + it.price + ')' : ''));
         a.href = shopLink(it.url, it.id);
         li.appendChild(a);
         list.appendChild(li);

@@ -1373,6 +1373,9 @@
     (function () {
       var SHOP_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev/shop-products';
       var BRACE_HANDLE = 'model-3-brake-master-cylinder-bracket-for-rhd-models-only';
+      // The discount code of the live offer, by Shopify handle: shown on the item in the Shop (applied at checkout on Shopify).
+      var offerCodes = {};
+      var HOME_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/home');
       var MANUAL_PRODUCT_KEYS = {
         'black-mt3uk-tee-red-underline-super-soft': 'tee',
         'black-mt3uk-tee-yellow-underline': 'tee-yellow',
@@ -1450,7 +1453,7 @@
               (img2 ? '<div class="shop-preview-thumb" id="brace-trigger-2" tabindex="0"><img src="' + esc(img2) + '" alt="' + esc(p.title) + ' mounting hardware"></div>' : '') +
             '</div>'
             : '') +
-          '<div class="tee-offer-banner">&#9201; Limited stock at this price</div>' +
+          '<div class="tee-offer-banner">&#9201; ' + (offerCodes[BRACE_HANDLE] ? 'Use code ' + esc(offerCodes[BRACE_HANDLE]) + ' at checkout' : 'Limited stock at this price') + '</div>' +
           '<p class="tee-modal-lead">For Model 3 and Model 3 Highland</p>' +
           '<p class="tee-modal-lead">Improve braking with this brace that reduces flex!</p>' +
           '<button type="button" class="detail-toggle" aria-expanded="false" aria-controls="brace-detail-content">More detail</button>' +
@@ -1526,6 +1529,7 @@
             (key ? soldHtml(key, sales) : '') +
             '<div class="tee-offer-actions">' +
               '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
+              (offerCodes[p.handle] ? '<span class="tag">Use code ' + esc(offerCodes[p.handle]) + ' at checkout</span>' : '') +
               '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Shop now</a>' +
             '</div>';
           host.appendChild(card);
@@ -1538,11 +1542,20 @@
       Promise.all([
         fetch(SHOP_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
         fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
-        fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; })
+        fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
+        fetch(HOME_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; })
       ]).then(function (results) {
         var data = results[0];
         var reviews = Array.isArray(results[1]) ? results[1] : [];
         var sales = results[2] || {};
+        // The offer's code is shown only while the offer is in its dates (the same check as the homepage).
+        var home = results[3] || {};
+        var offer = home.offer;
+        var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+        var today = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+        if (offer && offer.code && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end)) {
+          (offer.items || []).forEach(function (it) { offerCodes[it.id] = offer.code; });
+        }
         if (data && data.success && Array.isArray(data.products)) {
           var braceProduct = data.products.filter(function (p) { return p.handle === BRACE_HANDLE; })[0];
           var merchProducts = data.products.filter(function (p) { return p.handle !== BRACE_HANDLE; });

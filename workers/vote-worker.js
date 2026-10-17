@@ -9772,10 +9772,26 @@ function cleanShopOffer(o) {
     heading: String(o.heading || '').trim().slice(0, 80),
     percent: Math.max(0, Math.min(100, parseInt(o.percent, 10) || 0)),
     text: String(o.text || '').trim().slice(0, 240),
+    // The discount code is applied at checkout on Shopify; the site only shows it.
+    code: String(o.code || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 40),
     start: shopDate(o.start),
     end: shopDate(o.end),
     items: items
   };
+}
+// The price of each Shopify product, from the same catalogue the Shop reads (shown on the homepage offer): '£125', '£29.99'.
+async function shopifyPrices() {
+  try {
+    var res = await fetch(SHOPIFY_PRODUCTS_URL, { cf: { cacheTtl: 120, cacheEverything: true } });
+    if (!res.ok) return {};
+    var data = await res.json();
+    var out = {};
+    (data.products || []).forEach(function (p) {
+      var prices = (p.variants || []).map(function (v) { return parseFloat(v.price); }).filter(function (n) { return !isNaN(n); });
+      if (prices.length) out[p.handle] = '£' + (Math.min.apply(null, prices) % 1 === 0 ? String(Math.min.apply(null, prices)) : Math.min.apply(null, prices).toFixed(2));
+    });
+    return out;
+  } catch (e) { return {}; }
 }
 function cleanShopHome(h, old) {
   var src = h && typeof h === 'object' ? h : {};
@@ -9861,11 +9877,20 @@ async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
   // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
   var live = home.offer && home.offer.on ? home.offer : null;
+  var offer = null;
+  if (live) {
+    // Each item's price is the Shopify price now, not one typed in.
+    var prices = await shopifyPrices();
+    offer = {
+      heading: live.heading, percent: live.percent, text: live.text, code: live.code || '', start: live.start, end: live.end,
+      items: (live.items || []).map(function (it) { return { id: it.id, name: it.name, url: it.url, price: prices[it.id] || '' }; })
+    };
+  }
   var res = json({
     success: true,
     highlights: home.highlights || [],
     placeholder: home.placeholder || '',
-    offer: live ? { heading: live.heading, percent: live.percent, text: live.text, start: live.start, end: live.end, items: live.items } : null
+    offer: offer
   });
   res.headers.set('Cache-Control', 'public, max-age=120');
   return res;

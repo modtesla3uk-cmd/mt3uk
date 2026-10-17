@@ -10,7 +10,7 @@
   var noteEl = document.getElementById('shop-note'), countEl = document.getElementById('shop-cards-count');
   var listEl = document.getElementById('shop-products'), itemsEl = document.getElementById('shop-o-items');
   var onBtn = document.getElementById('shop-offer-on');
-  var state = null, products = [];
+  var state = null, products = [], catalogue = [];
   // Today's date on the admin's own clock, as YYYY-MM-DD.
   function localToday() {
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -30,6 +30,12 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
   function slug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60); }
+
+  // The products an offer can take: the Shopify catalogue (with its prices), from the public Shop feed.
+  function loadCatalogue() {
+    return fetch(API + '/shop-products', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { catalogue = (d && d.products) || []; }).catch(function () { catalogue = []; });
+  }
 
   function productsOrSeed() {
     // Until the admin saves the list, the starting list in data/shop-products.json.
@@ -54,12 +60,13 @@
     document.getElementById('shop-o-start').value = offer.start || '';
     document.getElementById('shop-o-end').value = offer.end || '';
     document.getElementById('shop-o-text').value = offer.text || '';
+    document.getElementById('shop-o-code').value = offer.code || '';
     document.getElementById('shop-placeholder').value = (home && home.placeholder) || '';
     document.getElementById('shop-highlights').value = ((home && home.highlights) || []).join('\n');
     var picked = (offer.items || []).map(function (i) { return i.id; });
-    itemsEl.innerHTML = products.length ? products.map(function (p) {
-      return '<label class="iv-note" style="display:block"><input type="checkbox" class="shop-pick" value="' + esc(p.id) + '"' + (picked.indexOf(p.id) !== -1 ? ' checked' : '') + '> ' + esc(p.name) + '</label>';
-    }).join('') : '<p class="empty">Add a product to the Shop list first.</p>';
+    itemsEl.innerHTML = catalogue.length ? catalogue.map(function (p) {
+      return '<label class="iv-note" style="display:block"><input type="checkbox" class="shop-pick" value="' + esc(p.handle) + '"' + (picked.indexOf(p.handle) !== -1 ? ' checked' : '') + '> ' + esc(p.title) + (p.minPrice != null ? ' <span class="iv-sub">£' + esc(p.minPrice) + '</span>' : '') + '</label>';
+    }).join('') : '<p class="empty">No products on Shopify yet.</p>';
     var today = localToday();
     var live = !!offer.on && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end);
     countEl.textContent = live ? 'offer showing' : (offer.on ? 'offer not in its dates' : 'no offer');
@@ -75,7 +82,7 @@
     call('GET').then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'Could not load the Shop. Check the admin key.', 'error'); return; }
       state = d;
-      return productsOrSeed().then(function (list) {
+      return loadCatalogue().then(productsOrSeed).then(function (list) {
         products = list;
         note('');
         draw();
@@ -129,7 +136,8 @@
 
   document.getElementById('shop-save').addEventListener('click', function () {
     var picked = Array.prototype.map.call(itemsEl.querySelectorAll('.shop-pick:checked'), function (c) { return c.value; });
-    var items = products.filter(function (p) { return picked.indexOf(p.id) !== -1; }).map(function (p) { return { id: p.id, name: p.name, url: p.url }; });
+    // An item is a Shopify product: its handle is the id, its price is looked up on the site, the discount code is shown with the offer.
+    var items = catalogue.filter(function (p) { return picked.indexOf(p.handle) !== -1; }).map(function (p) { return { id: p.handle, name: p.title, url: p.url }; });
     var offer = {
       on: onBtn.getAttribute('aria-checked') === 'true',
       heading: document.getElementById('shop-o-heading').value.trim(),
@@ -137,6 +145,7 @@
       start: document.getElementById('shop-o-start').value,
       end: document.getElementById('shop-o-end').value,
       text: document.getElementById('shop-o-text').value.trim(),
+      code: document.getElementById('shop-o-code').value.trim().toUpperCase(),
       items: items
     };
     if (offer.on && (!offer.heading || !offer.items.length)) { note('An offer needs a heading and at least one item.', 'error'); return; }

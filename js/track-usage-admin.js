@@ -1,6 +1,6 @@
 /*
   track-admin.html, Usage panel: how Laps is being used, from the worker's /track/admin/usage (admin key), for
-  deciding on a paid tier. Members with sessions, who is active and who comes back, sessions saved per week,
+  deciding on Laps Pro. Members with sessions, who is active and who comes back, sessions saved per week,
   shared sessions and kept readings with their storage, vehicles by make, and the access list.
 */
 (function () {

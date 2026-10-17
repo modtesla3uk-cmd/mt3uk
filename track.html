@@ -540,6 +540,8 @@
   .tp-board > [data-tile] { grid-column: span var(--span, 12); grid-row-end: span var(--rows, 1); min-width: 0; margin: 0; position: relative; box-sizing: border-box; }
   .tp-board > .tp-section { margin-top: 0; }
   .tp-board > .tp-paid { order: 10; }
+  /* Start and finish lines come after the paid sections, so the board runs: free tiles, Session settings, paid, then the lines. */
+  .tp-board > [data-tile="lineedit"] { order: 11; }
   @media (max-width: 780px) { .tp-board > [data-tile] { grid-column: span 12 !important; } }
   .tp-board > .tp-section .tp-head { margin-bottom: 6px; }
   .tp-field[hidden] { display: none; }
@@ -1467,7 +1469,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
 <script src="js/quota-ring.js?v=7" defer></script>
-<script src="js/track-page.js?v=20271134" defer></script>
+<script src="js/track-page.js?v=20271135" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

@@ -6682,6 +6682,10 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     cmp_b = page.locator('[data-tile="cmpnotes"]').bounding_box()
     assert mb["y"] <= cmp_b["y"] + 3 and mb["y"] <= sb["y"], (mb, cmp_b, sb)
     assert sb["y"] > cmp_b["y"] and abs(cb["y"] - sb["y"]) < 3 and cb["x"] > sb["x"], (sb, cb)
+    # On the owner's session the paid sections sit before Start and finish lines, which come last on the board.
+    if page.locator('[data-tile="lineedit"]').count():
+        lb = page.locator('[data-tile="lineedit"]').bounding_box()
+        assert lb["y"] > page.locator('[data-tile="overtime-mods"]').bounding_box()["y"] and lb["y"] > sb["y"], (lb, sb)
     # Every tile spans its own height, so no tile overlaps the one below it.
     # (A tile that has just grown, such as the map edit box once its status arrives, is packed again on the next frame, so
     # wait for the board to settle rather than reading it in the middle of that.)
@@ -7615,7 +7619,7 @@ def test_a_paid_member_sees_the_paid_plan_and_no_limit(page):
     fake = FakeWorker()
     fake.tiers = {"success": True, "applies": False, "full": True, "paid": True, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     open_page(page, fake)
-    expect(page.locator("#tp-quota")).to_contain_text("Paid plan")
+    expect(page.locator("#tp-quota")).to_contain_text("Laps Pro")
     expect(page.locator("#tp-quota")).not_to_contain_text("used your free sessions")
 
 

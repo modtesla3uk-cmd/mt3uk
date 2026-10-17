@@ -188,7 +188,7 @@
       ['Take away', 'Removes someone from the list. If they had Offline mode on, it is switched off and the copy kept on their device is removed; anything still waiting to be sent stays.'],
       ['Find a Laps member', 'Lists members to search by name or email, with Give access or Take away on each row, and Add me for the account signed in to Laps in this browser.']
     ] },
-    'usage-wrap': { t: 'Usage', p: 'How Laps is being used, for deciding whether a paid tier is worth building.', i: [
+    'usage-wrap': { t: 'Usage', p: 'How Laps is being used, for deciding whether Laps Pro is worth building.', i: [
       ['Members', 'Members with sessions, how many were active in the last 30 and 90 days, new ones, those who came back (sessions in two or more months) and those with only one session.'],
       ['Sessions', 'Saved in all and in the last 30 and 90 days, how many are shared, how many keep their readings and the storage they take, split by type.'],
       ['Each week', 'Sessions saved a week for 12 weeks, with how many vehicles.'],

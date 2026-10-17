@@ -1,6 +1,6 @@
 /*
   track-admin.html, Free tier and Full access panel. The switch (off, testers only, everyone), the allowance (start,
-  monthly top-up, cap), the testers, the members with Full access and the paid plan. One KV key (track-tiers) kept by
+  monthly top-up, cap), the testers, the members with Full access and Laps Pro. One KV key (track-tiers) kept by
   the worker (/track/tiers/admin). Nothing shows to members while the switch is off. Each list of members is found
   with the shared finder (js/member-finder.js): by nickname, name or email, with Show members and Close list.
 */
@@ -53,7 +53,7 @@
     paidEl.innerHTML = (state.paid || []).length ? '<table class="iv-table"><tbody>' + state.paid.map(function (a) {
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="paid" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
-    }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on the paid plan yet.</p>';
+    }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on Laps Pro yet.</p>';
     var asks = state.requests || [];
     reqEl.innerHTML = asks.length ? '<table class="iv-table"><tbody>' + asks.map(function (a) {
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
@@ -99,7 +99,7 @@
     var dn = e.target.closest('[data-done]');
     if (dn) { act({ action: 'requestdone', id: dn.getAttribute('data-done') }, 'Marked done.'); return; }
     var r = e.target.closest('[data-revoke]');
-    if (r && window.confirm('Take this member off the ' + ({ full: 'Full access', paid: 'paid plan' }[r.getAttribute('data-revoke')] || 'testers') + ' list?')) {
+    if (r && window.confirm('Take this member off the ' + ({ full: 'Full access', paid: 'Laps Pro' }[r.getAttribute('data-revoke')] || 'testers') + ' list?')) {
       act({ action: 'revoke', list: r.getAttribute('data-revoke'), email: r.getAttribute('data-email') }, 'Removed.');
     }
   });
@@ -125,8 +125,8 @@
     });
     window.MT3UKMemberFinder.mount(document.getElementById('tiers-paid-host'), {
       load: loadMembers,
-      action: giveButton('paid', 'Add to paid plan', 'Added to the paid plan.'),
-      note: function (m) { return state && has(state.paid, m.email) ? '(on the paid plan)' : ''; }
+      action: giveButton('paid', 'Add to Laps Pro', 'Added to Laps Pro.'),
+      note: function (m) { return state && has(state.paid, m.email) ? '(on Laps Pro)' : ''; }
     });
   }
   document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });

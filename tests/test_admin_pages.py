@@ -2979,7 +2979,7 @@ def test_admin_paid_plan_list_adds_and_takes_away_a_paid_member(page):
     open_admin(page, "track-admin.html")
     page.route("**/track/tiers/admin**", tiers)
     page.locator("#tiers-wrap summary").click()
-    expect(page.locator("#tiers-paid")).to_contain_text("Nobody is on the paid plan yet")
+    expect(page.locator("#tiers-paid")).to_contain_text("Nobody is on Laps Pro yet")
     page.locator("#tiers-paid-host .mf-show").click()
     page.locator("#tiers-paid-host .mf-find").fill("pat")
     page.locator("#tiers-paid-host .mf-go").click()

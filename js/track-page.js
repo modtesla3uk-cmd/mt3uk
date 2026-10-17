@@ -924,7 +924,7 @@
       if (!d || !d.success || (!d.applies && !d.full)) { drawQuotaRing(null); return; }
       box.hidden = false;
       box.style.fontSize = '0.88rem';
-      if (d.paid) { box.innerHTML = '<b>Paid plan</b> Every tool is open to you, and uploads are not limited.'; drawQuotaRing(d); return; }
+      if (d.paid) { box.innerHTML = '<b>Laps Pro</b> Every tool is open to you, and uploads are not limited.'; drawQuotaRing(d); return; }
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
       var cap = d.total || (d.allowance && d.allowance.cap) || 6;
@@ -3812,14 +3812,14 @@
         el.setAttribute('data-locked', '1');
         el.innerHTML = '<div class="tp-lock" style="padding:14px;border:1px dashed #9aa1b2;border-radius:10px;color:#4a5366;font-size:.9rem;line-height:1.45">' +
           '<b style="display:block;color:#16233d;margin-bottom:4px">' + esc(title) + '</b>' +
-          'Paid. On your free plan you see your laps, map and speed. Paid plans include this.</div>';
+          'Available on Laps Pro. On your free plan you see your laps, map and speed.</div>';
       };
       Object.keys(PAID_TILES).forEach(function (k) { lock(root.querySelector('[data-tile="' + k + '"]'), PAID_TILES[k]); });
       lock(root.querySelector('#tp-gbox'), 'G-force and speed');
       // Compare laps: the free plan compares the fastest lap with the next one, the pair the page starts on. Choosing
       // other laps is paid, so the words above the pickers say so.
       var cmpSub = root.querySelector('#compare .tp-sub');
-      if (cmpSub) cmpSub.textContent = 'Your fastest lap in this session is picked, to compare with the next one. Unlock to compare any two laps in this session.';
+      if (cmpSub) cmpSub.textContent = 'Your fastest lap in this session is picked, to compare with the next one. Laps Pro lets you compare any two laps in this session.';
       var pick = root.querySelector('.tp-cmp-pick');
       if (pick && !pick.getAttribute('data-locked')) {
         pick.setAttribute('data-locked', '1');

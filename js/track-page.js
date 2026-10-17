@@ -916,6 +916,11 @@
     if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d);
   }
   function drawQuota() {
+    if (/[?&]pro=return(&|$)/.test(location.search)) {
+      var clean = location.search.replace(/([?&])pro=return(&|$)/, function (m, a, b) { return b ? a : ''; });
+      history.replaceState(null, '', location.pathname + clean + location.hash);
+      api('POST', '/laps/pro/return', {}, false).then(function () { drawQuota(); }).catch(function () { drawQuota(); });
+    }
     var box = document.getElementById('tp-quota');
     if (!box) { box = document.createElement('div'); box.id = 'tp-quota'; box.className = 'card tp-quota'; box.setAttribute('role', 'status'); app.insertBefore(box, app.firstChild); }
     box.hidden = true;
@@ -932,7 +937,22 @@
         drawQuotaRing(d);
         return;
       }
-      if (d.paid) { box.innerHTML = '<b>Laps Pro</b> Every tool is open to you, and uploads are not limited.'; drawQuotaRing(d); return; }
+      if (d.paid) {
+        box.innerHTML = '<b>Laps Pro</b> Every tool is open to you, and uploads are not limited.' + (d.subscribed
+          ? '<div><button type="button" class="btn btn-secondary" id="tp-pro-cancel" style="margin-top:8px">Cancel my subscription</button></div><p class="tp-quota-note" role="status" id="tp-pro-note" hidden style="margin:8px 0 0"></p>'
+          : '');
+        var cancelPro = document.getElementById('tp-pro-cancel');
+        if (cancelPro) cancelPro.addEventListener('click', function () {
+          cancelPro.disabled = true;
+          api('POST', '/laps/pro/cancel', {}, false).then(function (r) {
+            if (r && r.success) { drawQuota(); return; }
+            cancelPro.disabled = false;
+            var n = document.getElementById('tp-pro-note'); if (n) { n.textContent = (r && r.message) || 'Could not cancel. Try again.'; n.hidden = false; }
+          }).catch(function (e) { cancelPro.disabled = false; var n = document.getElementById('tp-pro-note'); if (n) { n.textContent = (e && e.message) || 'Could not cancel. Try again.'; n.hidden = false; } });
+        });
+        drawQuotaRing(d);
+        return;
+      }
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
       var cap = d.total || (d.allowance && d.allowance.cap) || 6;
@@ -953,8 +973,8 @@
         offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Try Laps Pro free for ' + (trial.days || 7) + ' days.</b> Every tool is open to you for a week, and uploads are not limited. When it ends you can subscribe or go back to the free tier.' +
           '<div><button type="button" class="btn btn-accent" id="tp-trial-start" style="margin-top:8px">Start my free trial</button></div></div>';
       } else if (trial.state === 'ended' && trial.choice !== 'free') {
-        offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Your Laps Pro trial has ended.</b> Subscribing to Laps Pro is coming soon. Until then you can go back to the free tier.' +
-          '<div><button type="button" class="btn btn-secondary" disabled style="margin-top:8px">Subscribe, coming soon</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
+        offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Your Laps Pro trial has ended.</b> ' + (d.subscribe ? 'Subscribe to keep Laps Pro, or go back to the free tier.' : 'Subscribing to Laps Pro is coming soon. Until then you can go back to the free tier.') +
+          '<div><button type="button" class="btn btn-accent" id="tp-pro-subscribe" style="margin-top:8px"' + (d.subscribe ? '' : ' disabled') + '>' + (d.subscribe ? 'Subscribe to Laps Pro' : 'Subscribe, coming soon') + '</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
       }
       box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
@@ -965,6 +985,14 @@
           if (r && r.success) { drawQuota(); return; }
           startTrial.disabled = false; trialNote((r && r.message) || 'Could not start the trial. Try again.');
         }).catch(function (e) { startTrial.disabled = false; trialNote((e && e.message) || 'Could not start the trial. Try again.'); });
+      });
+      var subscribeBtn = document.getElementById('tp-pro-subscribe');
+      if (subscribeBtn) subscribeBtn.addEventListener('click', function () {
+        subscribeBtn.disabled = true;
+        api('POST', '/laps/pro/subscribe', {}, false).then(function (r) {
+          if (r && r.success && r.approveUrl) { window.location.href = r.approveUrl; return; }
+          subscribeBtn.disabled = false; trialNote((r && r.message) || 'Could not start the subscription. Try again.');
+        }).catch(function (e) { subscribeBtn.disabled = false; trialNote((e && e.message) || 'Could not start the subscription. Try again.'); });
       });
       var stayFree = document.getElementById('tp-trial-free');
       if (stayFree) stayFree.addEventListener('click', function () {

@@ -531,6 +531,8 @@
   var boardModel = 'All', fCond = 'All', fMake = 'All', fTyre = 'All';
   // Compare tyres and Compare pads: which view is on show, and their extra filters.
   var viewMode = 'board', fDrive = 'All', fTemp = 'All', fWeight = 'All';
+  // A free member on the free tier sees the basic tyre comparison only; the rest is Laps Pro.
+  var tierLimited = false;
   var TEMPS = [['cold', 'Under 10\u00b0C'], ['mild', '10 to 20\u00b0C'], ['warm', 'Over 20\u00b0C']];
   var WEIGHTS = [['light', 'Under 1,800 kg'], ['mid', '1,800 to 2,100 kg'], ['heavy', 'Over 2,100 kg']];
   function tempBand(t) { return typeof t !== 'number' ? '' : t < 10 ? 'cold' : t <= 20 ? 'mild' : 'warm'; }
@@ -681,10 +683,11 @@
   function tyreLabel(key) { return key.replace('|', ' '); }
   function compareHtml(entries, type) {
     var pads = viewMode === 'pads', TY = window.MT3UKTyres, PD = window.MT3UKPads;
+    var limited = !pads && tierLimited;
     var res = groupResults(entries, type, pads ? padKeyOf : tyreKeyOf), groups = res.groups;
     var who = [boardModel === 'All' ? 'every car' : 'the ' + (MODEL_SHORT[boardModel] || boardModel), fDrive !== 'All' ? fDrive : '', fCond !== 'All' ? 'in the ' + fCond.toLowerCase() : '', fTemp !== 'All' ? labelOf(TEMPS, fTemp).toLowerCase() : '', fWeight !== 'All' ? labelOf(WEIGHTS, fWeight).toLowerCase() : ''].filter(Boolean).join(', ');
     var h = '<section class="card lb-cmp" id="lb-cmp"><h3>' + (pads ? 'Brake pads' : 'Tyres') + ' on ' + esc(who) + '</h3>' +
-      '<p class="tp-small">Each car counts once for each ' + (pads ? 'set of pads' : 'tyre') + ', with its best time on ' + (pads ? 'them' : 'it') + '. Typical is the middle time of those cars.' + (pads ? ' Braking is the hardest stop measured; brake temperature comes from Tesla Track Mode files.' : '') + '</p>';
+      '<p class="tp-small">Each car counts once for each ' + (pads ? 'set of pads' : 'tyre') + ', with its best time on ' + (pads ? 'them' : 'it') + '.' + (limited ? '' : ' Typical is the middle time of those cars.') + (pads ? ' Braking is the hardest stop measured; brake temperature comes from Tesla Track Mode files.' : '') + '</p>';
     if (!groups.length) {
       h += '<p class="lb-cmp-empty">' + (pads ? 'No sessions here say which pads they were run on yet. Pads are saved with each session on the Add page.' : 'No sessions here match these filters with their tyres given.') + '</p></section>';
       return h;
@@ -699,14 +702,14 @@
         var hot = info && info.tempMax && g.brakeTemp > info.tempMax;
       } else {
         var parts = g.key.split('|'), ti = TY && TY.info ? TY.info(parts[0], parts[1]) : null;
-        maker = TY && TY.makerLine ? TY.makerLine(ti) : '';
+        maker = TY && TY.makerLine && !limited ? TY.makerLine(ti) : '';
         title = tyreLabel(g.key);
       }
       return '<div class="lb-cmp-row">' +
         '<div class="lb-cmp-name"><b>' + esc(title) + '</b>' + (maker ? '<small>Maker\'s figures: ' + esc(maker) + '</small>' : '') + '</div>' +
         '<div class="lb-cmp-n">' + g.cars.length + ' car' + (g.cars.length === 1 ? '' : 's') + (g.cars.length < 3 ? '<span class="lb-few">Few cars</span>' : '') + '</div>' +
         '<div class="lb-cmp-t"><small>Best</small><b>' + fmtRes(g.best, type) + '</b></div>' +
-        '<div class="lb-cmp-t"><small>Typical</small><b>' + fmtRes(g.typical, type) + '</b></div>' +
+        (limited ? '' : '<div class="lb-cmp-t"><small>Typical</small><b>' + fmtRes(g.typical, type) + '</b></div>') +
         (pads ? '<div class="lb-cmp-t"><small>Braking</small><b>' + (g.brakeG ? g.brakeG.toFixed(2) + ' g' : '&ndash;') + '</b></div>' +
           '<div class="lb-cmp-t"><small>Brake temp</small><b' + (hot ? ' class="lb-hot"' : '') + '>' + (g.brakeTemp ? Math.round(g.brakeTemp) + '°C' : '&ndash;') + '</b></div>' : '') +
         '<div class="lb-cmp-gap' + (i ? '' : ' is-quickest') + '">' + (i ? '+' + (g.best - quickest).toFixed(2) + ' s' : 'Quickest') + '</div>' +
@@ -714,9 +717,11 @@
         '</div>';
     }).join('') + '</div>';
     var fewest = groups.reduce(function (n, g) { return n + g.cars.length; }, 0);
+    if (limited) h += '<p class="tp-small lb-cmp-pro" id="lb-cmp-pro">More comparisons will be available under Laps Pro.</p>';
     h += '<p class="tp-small lb-cmp-note">' + fewest + ' result' + (fewest === 1 ? '' : 's') + ' from ' + new Set(groups.reduce(function (a, g) { return a.concat(g.cars.map(function (c) { return c.e.carId; })); }, [])).size + ' cars. With few cars a comparison is a guide only: drivers, weather and track temperature differ.</p></section>';
     // The same car on two (or more): its quickest against its slowest.
     var pairs = res.perCar;
+    if (limited) return h + '</section>';
     h += '<section class="card lb-cmp" id="lb-cmp-same"><h3>Same car, different ' + (pads ? 'pads' : 'tyres') + '</h3><p class="tp-small">The fairest comparison: the same car and driver here on both.</p>';
     if (!pairs.length) h += '<p class="lb-cmp-empty">No car here has been run on more than one ' + (pads ? 'set of pads' : 'tyre') + ' with these filters yet.</p>';
     else h += pairs.map(function (p) {
@@ -879,7 +884,11 @@
   if (ringToken) {
     fetch(API + '/track/tiers/access', { cache: 'no-store', headers: { 'X-Session-Token': ringToken } })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { if (d && window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d); })
+      .then(function (d) {
+        if (d && window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(d);
+        var limitedNow = !!(d && d.success && d.applies && !d.full);
+        if (limitedNow !== tierLimited) { tierLimited = limitedNow; if (viewMode === 'tyres') route(); }
+      })
       .catch(function () { /* no ring without an answer */ });
   }
 })();

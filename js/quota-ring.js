@@ -4,8 +4,9 @@
    for them).
    The ring: days used out of the cap, in the usage bar's colours (green while less than half are used, amber from half
    used, red when 1 or none is left). It sits straight after the tip's light bulb in the title.
-   Locked for a free member: Corner by corner, How much grip you used and Speed on a session, and Compare tyres and
-   Compare pads on a Leaderboard board. My Analysis stays open, so the example there can be seen. Each locked thing shows an Unlock hint, and its
+   Locked for a free member: Corner by corner, How much grip you used and Speed on a session, and Compare pads on a
+   Leaderboard board. Compare tyres stays open with its basic figures, and says more is under Laps Pro. My Analysis stays
+   open, so the example there can be seen. Each locked thing shows an Unlock hint, and its
    Unlock button is a placeholder for the subscription: it says nothing is charged yet. */
 (function () {
   var free = false, observer = null, scheduled = false;
@@ -106,8 +107,8 @@
       var key = tile.getAttribute('data-tile');
       lockTile(tile, key === 'corners' ? 'Corner by corner' : key === 'grip' ? 'How much grip you used' : 'Speed');
     });
-    // The Leaderboard: the compare tabs.
-    document.querySelectorAll('#lb-views [data-view="tyres"],#lb-views [data-view="pads"]').forEach(lockControl);
+    // The Leaderboard: Compare pads. Compare tyres is open on the free tier (its basic figures).
+    document.querySelectorAll('#lb-views [data-view="pads"]').forEach(lockControl);
   }
   function schedule() {
     if (scheduled) return;

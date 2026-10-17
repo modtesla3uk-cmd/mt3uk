@@ -120,6 +120,12 @@ class FakeWorker:
             data = {"success": True, "message": "Thanks. MT3UK has been asked for more sessions and will be in touch."}
         elif path == "/track/tiers/access" and req.method == "GET":
             data = getattr(self, "tiers", {"success": True, "applies": False, "full": False, "balance": 10, "nextTopUp": "2026-11-01T00:00:00.000Z"})
+        elif path == "/laps/pro/trial/start" and req.method == "POST":
+            self.tiers = dict(self.tiers, trial={"state": "active", "endsAt": "2026-10-24T12:00:00.000Z", "choice": "", "canStart": False, "days": 7}, applies=False, full=True)
+            data = {"success": True, "message": "Your 7-day Laps Pro trial has started."}
+        elif path == "/laps/pro/trial/free" and req.method == "POST":
+            self.tiers = dict(self.tiers, trial={"state": "ended", "endsAt": "2026-10-17T12:00:00.000Z", "choice": "free", "canStart": False, "days": 7})
+            data = {"success": True, "message": "You are on the free tier."}
         elif path == "/track/access" and req.method == "GET":
             data = {"success": True, "access": self.access}
         elif path == "/track/access/request" and req.method == "POST":
@@ -7654,3 +7660,54 @@ def test_the_what_panel_stays_shut_once_its_x_is_pressed(page):
     expect(page.locator(".page-hero details.tp-what")).to_have_count(1)
     page.wait_for_timeout(800)
     expect(panel).to_have_js_property("open", False)
+
+
+def test_a_free_member_is_offered_a_seven_day_laps_pro_trial_and_it_starts_there(page):
+    """A free member is offered Laps Pro for 7 days; starting it opens every tool and shows the days left."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6},
+                  "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": True, "days": 7}}
+    open_page(page, fake)
+    expect(page.locator("#tp-trial-offer")).to_contain_text("Try Laps Pro free for 7 days")
+    page.locator("#tp-trial-start").click()
+    expect(page.locator("#tp-quota")).to_contain_text("Laps Pro trial")
+    expect(page.locator("#tp-quota")).to_contain_text("left, until")
+    expect(page.locator("#tp-trial-offer")).to_have_count(0)
+
+
+def test_when_the_trial_ends_a_member_can_go_back_to_the_free_tier(page):
+    """After the trial the member is told it has ended, can see that subscribing is coming soon, and can go back to the free tier."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6},
+                  "trial": {"state": "ended", "endsAt": "2026-10-17T12:00:00.000Z", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    expect(page.locator("#tp-trial-offer")).to_contain_text("Your Laps Pro trial has ended")
+    expect(page.locator("#tp-trial-offer button").first).to_be_disabled()
+    page.locator("#tp-trial-free").click()
+    expect(page.locator("#tp-trial-offer")).to_have_count(0)
+    expect(page.locator("#tp-quota")).to_contain_text("4 of 6 free days left")
+
+
+def test_the_free_tier_sees_basic_tyre_comparison_with_a_laps_pro_note(page):
+    """On the free tier Compare tyres shows each tyre's cars, best and gap to the quickest, without typical times,
+    maker figures or the same-car pairs, and says more comparisons will be available under Laps Pro."""
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": _compare_board()}
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}}
+    open_page(page, fake, path="/leaderboards.html")
+    page.reload()
+    page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    page.locator('#lb-views [data-view="tyres"]').click()
+    rows = page.locator("#lb-cmp .lb-cmp-row")
+    expect(rows).to_have_count(3)
+    expect(rows.nth(0)).to_contain_text("2 cars")
+    expect(rows.nth(0)).to_contain_text("Quickest")
+    expect(rows.nth(1)).to_contain_text("+2.10 s")
+    expect(rows.nth(0)).not_to_contain_text("Typical")
+    expect(rows.nth(0)).not_to_contain_text("Maker")
+    expect(page.locator("#lb-cmp-same")).to_have_count(0)
+    expect(page.locator("#lb-cmp-pro")).to_contain_text("More comparisons will be available under Laps Pro.")

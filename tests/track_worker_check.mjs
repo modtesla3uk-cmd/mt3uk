@@ -1986,6 +1986,29 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   ok(sent.length === 1, 'adding a day emails the member');
 }
 
+// The Laps Pro trial: a free member on a seven-day trial is unlimited while it runs, then back on the free tier.
+{
+  const kvP = new Map();
+  const envP = { VOTES: { get: async k => kvP.get(k) ?? null, put: async (k, v) => kvP.set(k, v), delete: async k => kvP.delete(k) } };
+  kvP.set('track-tiers', JSON.stringify({ mode: 'all', allowance: { start: 3, monthly: 3, cap: 6 } }));
+  const member = 'trial@example.com';
+  const none = await mod.trackTierFor(envP, member);
+  ok(none.applies && !none.full && none.trial.state === 'none', 'a free member with no trial is on the free tier');
+  kvP.set('laps-pro-trial:' + member, JSON.stringify({ start: new Date().toISOString(), end: new Date(Date.now() + 86400000 * 3).toISOString(), choice: '' }));
+  const active = await mod.trackTierFor(envP, member);
+  ok(!active.applies && active.full && active.trial.state === 'active', 'during the trial the member is not held to the free tier');
+  kvP.set('laps-pro-trial:' + member, JSON.stringify({ start: '2026-10-01T00:00:00.000Z', end: '2026-10-08T00:00:00.000Z', choice: '' }));
+  const ended = await mod.trackTierFor(envP, member);
+  ok(ended.applies && !ended.full && ended.trial.state === 'ended', 'after the trial the member is back on the free tier and asked to choose');
+  kvP.set('laps-pro-trial:' + member, JSON.stringify({ start: '2026-10-01T00:00:00.000Z', end: '2026-10-08T00:00:00.000Z', choice: 'free' }));
+  const chose = await mod.trackTierFor(envP, member);
+  ok(chose.applies && chose.trial.choice === 'free', 'going back to the free tier is kept');
+  kvP.set('track-tiers', JSON.stringify({ mode: 'off', allowance: { start: 3, monthly: 3, cap: 6 } }));
+  kvP.set('laps-pro-trial:' + member, JSON.stringify({ start: new Date().toISOString(), end: new Date(Date.now() + 86400000 * 3).toISOString(), choice: '' }));
+  const off = await mod.trackTierFor(envP, member);
+  ok(!off.applies && !off.full && off.trial.state === 'none', 'with the free tier switched off the trial has no effect');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

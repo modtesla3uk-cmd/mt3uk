@@ -924,6 +924,14 @@
       if (!d || !d.success || (!d.applies && !d.full)) { drawQuotaRing(null); return; }
       box.hidden = false;
       box.style.fontSize = '0.88rem';
+      var trial = d.trial || {};
+      if (trial.state === 'active') {
+        var left = Math.max(0, Math.ceil((new Date(trial.endsAt).getTime() - Date.now()) / 86400000));
+        var until = new Date(trial.endsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+        box.innerHTML = '<b>Laps Pro trial</b> ' + left + ' day' + (left === 1 ? '' : 's') + ' left, until ' + until + '. Every tool is open to you, and uploads are not limited.';
+        drawQuotaRing(d);
+        return;
+      }
       if (d.paid) { box.innerHTML = '<b>Laps Pro</b> Every tool is open to you, and uploads are not limited.'; drawQuotaRing(d); return; }
       if (d.full) { box.innerHTML = '<b>Full access</b> Every tool is open while MT3UK tests Laps. Uploads are not limited.'; drawQuotaRing(d); return; }
       var when = new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
@@ -940,7 +948,29 @@
           '<div><button type="button" class="btn btn-secondary" id="tp-ask-more" style="margin-top:8px">Ask MT3UK for more days</button></div>';
       // The banner can be folded to its heading line; the choice is kept in this browser.
       var open = localStorage.getItem('mt3ukQuotaOpen') !== 'closed';
-      box.innerHTML = '<div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
+      var offer = '';
+      if (trial.canStart) {
+        offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Try Laps Pro free for ' + (trial.days || 7) + ' days.</b> Every tool is open to you for a week, and uploads are not limited. When it ends you can subscribe or go back to the free tier.' +
+          '<div><button type="button" class="btn btn-accent" id="tp-trial-start" style="margin-top:8px">Start my free trial</button></div></div>';
+      } else if (trial.state === 'ended' && trial.choice !== 'free') {
+        offer = '<div class="tp-trial" id="tp-trial-offer" style="margin-bottom:10px"><b>Your Laps Pro trial has ended.</b> Subscribing to Laps Pro is coming soon. Until then you can go back to the free tier.' +
+          '<div><button type="button" class="btn btn-secondary" disabled style="margin-top:8px">Subscribe, coming soon</button> <button type="button" class="btn btn-secondary" id="tp-trial-free" style="margin-top:8px">Go back to the free tier</button></div></div>';
+      }
+      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + text + '</div>';
+      var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
+      var startTrial = document.getElementById('tp-trial-start');
+      if (startTrial) startTrial.addEventListener('click', function () {
+        startTrial.disabled = true;
+        api('POST', '/laps/pro/trial/start', {}, false).then(function (r) {
+          if (r && r.success) { drawQuota(); return; }
+          startTrial.disabled = false; trialNote((r && r.message) || 'Could not start the trial. Try again.');
+        }).catch(function (e) { startTrial.disabled = false; trialNote((e && e.message) || 'Could not start the trial. Try again.'); });
+      });
+      var stayFree = document.getElementById('tp-trial-free');
+      if (stayFree) stayFree.addEventListener('click', function () {
+        stayFree.disabled = true;
+        api('POST', '/laps/pro/trial/free', {}, false).then(function () { drawQuota(); }).catch(function (e) { stayFree.disabled = false; trialNote((e && e.message) || 'Could not change that. Try again.'); });
+      });
       var tog = document.getElementById('tp-quota-toggle');
       if (tog) tog.addEventListener('click', function () {
         var isOpen = box.querySelector('#tp-quota-body').hidden;

@@ -1156,6 +1156,7 @@ async function deleteMemberAccount(env, email) {
   for (var c = 0; c < noPhotoCars.length; c++) await deleteCarRecord(env, noPhotoCars[c]);
   await env.VOTES.delete(memberCarsKey(email));
   await env.VOTES.delete(lapsAccountKey(email));
+  await env.VOTES.delete(lapsProTrialKey(email));
   await removeFromLapsLists(env, email);
 
   var fr = await getFriends(env, email);
@@ -8224,7 +8225,43 @@ async function trackTierFor(env, email) {
   var paid = t.paid.some(function (x) { return x.email === e; });
   var fullAccess = t.full.some(function (x) { return x.email === e; });
   var unlimited = paid || fullAccess;
-  return { mode: t.mode, applies: !unlimited && (t.mode === 'all' || (t.mode === 'testers' && tester)), tester: tester, full: unlimited, paid: paid, allowance: t.allowance };
+  var onFree = !unlimited && (t.mode === 'all' || (t.mode === 'testers' && tester));
+  // A free member on a Laps Pro trial is unlimited for the seven days, then back on the free tier.
+  var trial = onFree ? await lapsProTrialState(env, e) : { state: 'none', choice: '' };
+  var inTrial = trial.state === 'active';
+  return { mode: t.mode, applies: onFree && !inTrial, tester: tester, full: unlimited || inTrial, paid: paid, allowance: t.allowance, trial: trial };
+}
+// The Laps Pro trial: one record per member (laps-pro-trial:<email>, read with get()). A free member can start it once,
+// for seven days. When it ends they are back on the free tier, and are asked to subscribe or to stay on the free tier.
+var LAPS_PRO_TRIAL_DAYS = 7;
+function lapsProTrialKey(email) { return 'laps-pro-trial:' + accessEmail(email); }
+async function lapsProTrialState(env, email) {
+  var r = await getJsonKey(env, lapsProTrialKey(email), null);
+  if (!r || !r.start || !r.end) return { state: 'none', choice: '' };
+  var ended = new Date(r.end).getTime() <= Date.now();
+  return { state: ended ? 'ended' : 'active', endsAt: r.end, choice: r.choice === 'free' ? 'free' : '' };
+}
+async function handleLapsProTrialStart(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var tier = await trackTierFor(env, email);
+  if (!tier.applies) return json({ success: false, message: 'The trial is for members on the free tier.' }, 400);
+  var existing = await lapsProTrialState(env, email);
+  if (existing.state !== 'none') return json({ success: false, message: 'You have already had your Laps Pro trial.' }, 400);
+  var now = new Date();
+  var end = new Date(now.getTime() + LAPS_PRO_TRIAL_DAYS * 86400000);
+  await env.VOTES.put(lapsProTrialKey(email), JSON.stringify({ start: now.toISOString(), end: end.toISOString(), choice: '' }));
+  return json({ success: true, message: 'Your ' + LAPS_PRO_TRIAL_DAYS + '-day Laps Pro trial has started.', trial: { state: 'active', endsAt: end.toISOString(), choice: '' } });
+}
+// The member's choice when the trial has ended: stay on the free tier. (Subscribing is not open yet.)
+async function handleLapsProTrialFree(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var r = await getJsonKey(env, lapsProTrialKey(email), null);
+  if (!r || !r.start) return json({ success: false, message: 'There is no trial to end.' }, 400);
+  r.choice = 'free';
+  await env.VOTES.put(lapsProTrialKey(email), JSON.stringify(r));
+  return json({ success: true, message: 'You are on the free tier.' });
 }
 // The allowance a free member has left. Each member has one balance (track-quota:<owner>): it starts at `start`, gets
 // `monthly` more on the 1st of each month up to `cap`, goes down by one for each new session, and goes up by one when an
@@ -8297,7 +8334,8 @@ async function handleTrackTiersAccess(request, env) {
   var r = await trackTierFor(env, email), now = new Date();
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now) });
+  var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none', days: LAPS_PRO_TRIAL_DAYS };
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -13031,6 +13069,12 @@ export default {
     }
     if (url.pathname === '/track/tiers/access' && request.method === 'GET') {
       return handleTrackTiersAccess(request, env);
+    }
+    if (url.pathname === '/laps/pro/trial/start' && request.method === 'POST') {
+      return handleLapsProTrialStart(request, env);
+    }
+    if (url.pathname === '/laps/pro/trial/free' && request.method === 'POST') {
+      return handleLapsProTrialFree(request, env);
     }
     if (url.pathname === '/track/admin/session' && request.method === 'POST') {
       return handleTrackAdminSessionRename(request, env);

@@ -8213,7 +8213,8 @@ async function getTrackTiers(env) {
     allowance: { start: tierNumber(al.start, TRACK_ALLOWANCE.start), monthly: tierNumber(al.monthly, TRACK_ALLOWANCE.monthly), cap: tierNumber(al.cap, TRACK_ALLOWANCE.cap) },
     testers: cleanTierList(t.testers),
     full: cleanTierList(t.full),
-    paid: cleanTierList(t.paid)
+    paid: cleanTierList(t.paid),
+    trialOpen: t.trialOpen === true
   };
 }
 // What one member sees. Paid members and Full access members are not held to the free tier (no limit, nothing locked);
@@ -8269,6 +8270,7 @@ async function handleLapsProTrialStart(request, env) {
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var tier = await trackTierFor(env, email);
   if (!tier.applies) return json({ success: false, message: 'The trial is for members on the free tier.' }, 400);
+  if (!(await getTrackTiers(env)).trialOpen) return json({ success: false, message: 'The Laps Pro trial is not open yet.' }, 400);
   var existing = await lapsProTrialState(env, email);
   if (existing.state !== 'none') return json({ success: false, message: 'You have already had your Laps Pro trial.' }, 400);
   var now = new Date();
@@ -8355,16 +8357,17 @@ async function handleTrackTiersAccess(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var r = await trackTierFor(env, email), now = new Date();
+  var trialOpen = (await getTrackTiers(env)).trialOpen;
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
-  var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none', days: LAPS_PRO_TRIAL_DAYS };
+  var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: LAPS_PRO_TRIAL_DAYS };
   return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var t = await getTrackTiers(env);
   if (request.method === 'GET') {
-    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid };
+    var reply = { success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen };
     reply.requests = (await getJsonKey(env, TRACK_QUOTA_REQUESTS_KEY, [])).filter(function (x) { return !x.done; });
     reply.trials = await lapsProTrialList(env);
     if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, { open: false, allowed: t.testers });
@@ -8376,6 +8379,9 @@ async function handleTrackTiersAdmin(request, env) {
   if (action === 'mode') {
     if (TRACK_TIER_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Unknown mode' }, 400);
     t.mode = body.mode;
+  } else if (action === 'trial') {
+    // The Laps Pro trial offer: off until the admin switches it on.
+    t.trialOpen = body.on === true;
   } else if (action === 'allowance') {
     var a = { start: parseInt(body.start, 10), monthly: parseInt(body.monthly, 10), cap: parseInt(body.cap, 10) };
     if (!(a.start >= 0 && a.monthly >= 0 && a.cap >= 0 && a.start <= 1000 && a.monthly <= 1000 && a.cap <= 1000)) return json({ success: false, message: 'Each allowance must be a whole number from 0 to 1,000.' }, 400);
@@ -8417,7 +8423,7 @@ async function handleTrackTiersAdmin(request, env) {
     return json({ success: true });
   } else return json({ success: false, message: 'Unknown action' }, 400);
   await env.VOTES.put(TRACK_TIERS_KEY, JSON.stringify(t));
-  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid });
+  return json({ success: true, mode: t.mode, allowance: t.allowance, testers: t.testers, full: t.full, paid: t.paid, trialOpen: t.trialOpen });
 }
 
 async function handleTrackSessionsList(request, env) {

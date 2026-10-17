@@ -13,6 +13,18 @@
   var reqEl = document.getElementById('tiers-requests'), paidEl = document.getElementById('tiers-paid');
   var trialsEl = document.getElementById('tiers-trials'), trialsCountEl = document.getElementById('tiers-trials-count');
   var state = null;
+  // The trial offer switch: On or Off, saved at once.
+  Array.prototype.forEach.call(document.querySelectorAll('#tiers-trial-wrap [data-trial]'), function (b) {
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('data-trial') === 'on';
+      call('POST', { action: 'trial', on: on }).then(function (d) {
+        if (!d.ok || !d.success) { note(d.message || 'Could not change the trial offer.', 'error'); return; }
+        state.trialOpen = !!d.trialOpen;
+        draw();
+        note(on ? 'The trial offer is on: free members can start it.' : 'The trial offer is off.');
+      });
+    });
+  });
   var MODE_WORDS = { off: 'Off', testers: 'Testers only', all: 'Everyone' };
 
   function key() {
@@ -55,6 +67,11 @@
       return '<tr><td>' + esc(a.name ? a.name + ' ' : '') + '<span class="iv-sub">' + esc(a.email) + '</span></td><td>' + esc(when(a.at)) + '</td>' +
         '<td><button type="button" class="danger iv-act" data-revoke="paid" data-email="' + esc(a.email) + '">Take away</button></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody is on Laps Pro yet.</p>';
+    Array.prototype.forEach.call(document.querySelectorAll('#tiers-trial-wrap [data-trial]'), function (b) {
+      var on = (b.getAttribute('data-trial') === 'on') === !!state.trialOpen;
+      b.setAttribute('aria-pressed', String(on));
+      b.className = on ? 'iv-act' : 'secondary';
+    });
     var trials = state.trials || { summary: { running: 0, ended: 0, stayedFree: 0, awaiting: 0 }, rows: [] };
     var sm = trials.summary;
     trialsCountEl.textContent = sm.running + ' running now. ' + sm.ended + ' ' + (sm.ended === 1 ? 'trial has' : 'trials have') + ' ended: ' +

@@ -3008,3 +3008,31 @@ def test_admin_laps_pro_panel_lists_trials_and_counts_how_many_have_ended(page):
     expect(page.locator("#tiers-trials")).to_contain_text("Running, ends")
     expect(page.locator("#tiers-trials")).to_contain_text("Ended, chose the free tier")
     expect(page.locator("#tiers-trials")).to_contain_text("Ended, not chosen yet")
+
+
+def test_admin_can_switch_the_laps_pro_trial_offer_on_and_off(page):
+    """The trial offer is off until the admin switches it on, and the switch saves at once."""
+    state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [],
+             "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}, "trialOpen": False}
+    posts = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+
+    def tiers(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posts.append(body)
+            if body.get("action") == "trial":
+                state["trialOpen"] = body["on"]
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "trialOpen": state["trialOpen"]}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/track/tiers/admin**", tiers)
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator('#tiers-trial-wrap [data-trial="off"]')).to_have_attribute("aria-pressed", "true")
+    page.locator('#tiers-trial-wrap [data-trial="on"]').click()
+    expect(page.locator('#tiers-trial-wrap [data-trial="on"]')).to_have_attribute("aria-pressed", "true")
+    assert posts[-1] == {"action": "trial", "on": True}, posts
+    page.locator('#tiers-trial-wrap [data-trial="off"]').click()
+    expect(page.locator('#tiers-trial-wrap [data-trial="off"]')).to_have_attribute("aria-pressed", "true")
+    assert posts[-1] == {"action": "trial", "on": False}, posts

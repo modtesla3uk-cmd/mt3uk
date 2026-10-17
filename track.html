@@ -540,8 +540,17 @@
   .tp-board > [data-tile] { grid-column: span var(--span, 12); grid-row-end: span var(--rows, 1); min-width: 0; margin: 0; position: relative; box-sizing: border-box; }
   .tp-board > .tp-section { margin-top: 0; }
   .tp-board > .tp-paid { order: 10; }
+  /* Desktop, option 1: Speed, Map and Grip share the top row, with Corner by corner and What we spotted below, side by side. Phones keep the order above. */
+  @media (min-width: 781px) {
+    .tp-board > [data-tile="speed"] { order: -4; }
+    .tp-board > [data-tile="map"] { order: -3; }
+    .tp-board > [data-tile="grip"] { order: -2; }
+    .tp-board > [data-tile="corners"], .tp-board > [data-tile="spotted"] { order: -1; }
+  }
   /* Start and finish lines come after the paid sections, so the board runs: free tiles, Session settings, paid, then the lines. */
   .tp-board > [data-tile="lineedit"] { order: 11; }
+  /* Layout name and Session settings go last, after Start and finish lines. */
+  .tp-board > [data-tile="rename"], .tp-board > [data-tile="settings"] { order: 12; }
   @media (max-width: 780px) { .tp-board > [data-tile] { grid-column: span 12 !important; } }
   .tp-board > .tp-section .tp-head { margin-bottom: 6px; }
   .tp-field[hidden] { display: none; }
@@ -1469,7 +1478,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
 <script src="js/quota-ring.js?v=9" defer></script>
-<script src="js/track-page.js?v=20271141" defer></script>
+<script src="js/track-page.js?v=20271144" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

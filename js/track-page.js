@@ -983,6 +983,12 @@
         again = '<div class="tp-trial" id="tp-pro-again" style="margin-bottom:10px;font-size:0.88rem">Laps Pro is available any time, with no limit on uploads. ' +
           '<button type="button" class="btn btn-secondary btn-sm" id="tp-pro-subscribe" style="margin-left:4px">Subscribe to Laps Pro' + (d.price ? ' (' + esc(d.price) + ')' : '') + '</button></div>';
       }
+      // While Laps Pro is free for everyone, the box says so (the day limit still shows below).
+      if (d.proFeatures) {
+        var proUntil = d.proTrialUntil ? new Date(d.proTrialUntil + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        offer = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
+          + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>' + offer;
+      }
       box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Free Tier Usage</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
       var startTrial = document.getElementById('tp-trial-start');
@@ -4573,7 +4579,7 @@
   // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
   // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
   var boardOpen = false;
-  var DEFAULT_SPAN = { speed: 6, map: 6, corners: 6, grip: 6, cmpnotes: 12, laps: 12, spotted: 12, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var DEFAULT_SPAN = { speed: 3, map: 6, corners: 6, grip: 3, cmpnotes: 12, laps: 12, spotted: 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of

@@ -58,7 +58,7 @@
     // The pictures first, as soon as they come; the session picker fills in behind, a page at a time.
     call('GET', '/share/' + slot + '/admin').then(function (d) {
       if (!d.success) { say(d.message || 'Could not load the pictures.', true); return; }
-      state = d; loaded = true; draw(); loadGallery(); say(state.rotate ? 'A different picture each week (' + state.week + ').' : 'One picture, until you change it.');
+      state = d; loaded = true; draw(); loadGallery();
     }).catch(function () { say('Could not reach the server.', true); });
     loadSessions();
   }

@@ -8,6 +8,7 @@
    the buttons, a button list (click a button on the page, or pick it from the list), live preview and Save to site
    (the admin key, kept for this tab). */
 (function () {
+  if (!window.MT3UKWithAdminKey) document.head.appendChild(Object.assign(document.createElement('script'), { src: 'js/admin-key-ask.js' }));
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var CACHE = 'mt3ukSiteLook', BTN_CACHE = 'mt3ukSiteButtons';
   var EDIT = /[?&]look=edit(&|$)/.test(location.search);
@@ -107,16 +108,8 @@
     });
   }
   function say(text) { if (msg) msg.textContent = text; }
-  function adminKey() {
-    var k = (sessionStorage.getItem('mt3ukAdminKey') || '').trim();
-    if (!k) {
-      k = (window.prompt('Admin key, to save these changes for every visitor:') || '').trim();
-      if (k) sessionStorage.setItem('mt3ukAdminKey', k);
-    }
-    return k;
-  }
   function post(path, body, done, onSaved) {
-    var key = adminKey();
+    window.MT3UKWithAdminKey('Admin key, to save these changes for every visitor:', function (key) {
     if (!key) { say('Not saved: no admin key.'); return; }
     say('Saving...');
     fetch(API + path + '?key=' + encodeURIComponent(key), {
@@ -129,6 +122,7 @@
         say(done);
       });
     }).catch(function () { say('Not saved: no connection.'); });
+    });
   }
   function site(body, done) {
     post('/site/look/admin', body, done, function (d) {

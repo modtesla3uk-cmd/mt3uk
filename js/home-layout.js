@@ -6,6 +6,7 @@
   the swipe layout in css/index.html and is not touched.
 */
 (function () {
+  if (!window.MT3UKWithAdminKey) document.head.appendChild(Object.assign(document.createElement('script'), { src: 'js/admin-key-ask.js' }));
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var ITEMS = {
     latest: '#hp-hero .hp-hero-card',
@@ -311,9 +312,8 @@
 
   function saveMembers() {
     var input = bar.querySelector('[data-hl-members]');
-    var key = sessionStorage.getItem('mt3ukAdminKey') || window.prompt('Admin key, to save the members figure:') || '';
+    window.MT3UKWithAdminKey('Admin key, to save the members figure:', function (key) {
     if (!key) { say('Not saved: no admin key.'); return; }
-    sessionStorage.setItem('mt3ukAdminKey', key);
     say('Saving the members figure...');
     fetch(API + '/home/members/admin?key=' + encodeURIComponent(key), {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ members: input.value.trim() })
@@ -326,6 +326,7 @@
         } else say('Not saved: ' + (x.d.message || 'check the admin key.'));
       })
       .catch(function () { say('Not saved: could not reach the server.'); });
+    });
   }
 
   function current() {
@@ -338,9 +339,8 @@
   }
 
   function save() {
-    var key = sessionStorage.getItem('mt3ukAdminKey') || window.prompt('Admin key, to save the layout:') || '';
+    window.MT3UKWithAdminKey('Admin key, to save the layout:', function (key) {
     if (!key) { say('Not saved: no admin key.'); return; }
-    sessionStorage.setItem('mt3ukAdminKey', key);
     say('Saving...');
     fetch(API + '/home/layout/admin?key=' + encodeURIComponent(key), {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store',
@@ -352,6 +352,7 @@
         else { say('Not saved.'); }
       })
       .catch(function () { say('Not saved: could not reach the server.'); });
+    });
   }
 
   function reset() {

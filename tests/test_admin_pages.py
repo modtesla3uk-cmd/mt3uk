@@ -3067,10 +3067,10 @@ def test_admin_can_remove_a_members_laps_pro_trial_so_they_can_test_it_again(pag
     assert posts[-1] == {"action": "trial-remove", "email": "tester@example.com"}, posts
 
 
-def test_admin_can_add_a_tester_who_starts_their_trial_now(page):
-    """The Add tester form on the Laps Pro panel starts a member's trial straight away and lists it."""
+def test_admin_can_add_a_tester_by_nickname_name_or_email_who_starts_their_trial_now(page):
+    """The tester box finds a member by nickname, name or email, and adding one starts their trial straight away."""
     state = {"mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trialOpen": False,
-             "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}}
+             "subscriptions": "off", "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}}
     posts = []
     cors = {"Access-Control-Allow-Origin": "*"}
 
@@ -3082,16 +3082,22 @@ def test_admin_can_add_a_tester_who_starts_their_trial_now(page):
                 state["trials"]["rows"] = [{"email": body["email"], "start": "2026-10-17T09:00:00Z", "end": "2026-10-24T09:00:00Z", "ended": False, "choice": ""}]
                 state["trials"]["summary"] = {"running": 1, "ended": 0, "stayedFree": 0, "awaiting": 0}
                 return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "message": "Added " + body["email"] + " as a tester for 7 days."}), headers=cors)
-            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "trialOpen": False}), headers=cors)
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, **state}), headers=cors)
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=cors)
+        if "members=1" in route.request.url:
+            data = {"success": True, **state, "members": [{"email": "richard@example.com", "name": "Richard Chen", "nickname": "RChen", "account": "mt3uk", "access": False}]}
+        else:
+            data = {"success": True, **state}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/track/tiers/admin**", tiers)
     page.locator("#tiers-wrap summary").click()
-    page.locator("#tiers-tester-email").fill("tester@example.com")
-    page.locator("#tiers-tester-form button").click()
-    expect(page.locator("#tiers-trials")).to_contain_text("tester@example.com")
-    assert posts[-1] == {"action": "trial-add", "email": "tester@example.com"}, posts
+    page.locator("#tiers-trial-add-host .mf-show").click()
+    page.locator("#tiers-trial-add-host .mf-find").fill("richard")
+    page.locator("#tiers-trial-add-host .mf-go").click()
+    page.locator("#tiers-trial-add-host").get_by_role("button", name="Add tester").click()
+    expect(page.locator("#tiers-trials")).to_contain_text("richard@example.com")
+    assert posts[-1] == {"action": "trial-add", "email": "richard@example.com"}, posts
 
 
 def test_admin_can_end_a_running_trial_now_to_see_the_trial_ended_card(page):
@@ -3181,3 +3187,17 @@ def test_admin_can_change_the_paypal_ids_but_not_see_the_secret(page):
     assert saved[-1]["planId"] == "P-NEW-1", saved
     assert "secret" not in json.dumps(saved).lower(), saved
 
+
+
+def test_the_admin_key_for_the_layout_editors_is_typed_in_a_hidden_box(page):
+    """The layout editors ask for the admin key in a box that hides what is typed, not the browser's plain prompt."""
+    page.goto("/index.html")
+    page.wait_for_function("typeof window.MT3UKWithAdminKey === 'function'")
+    page.evaluate("window.MT3UKWithAdminKey('Admin key, to test:', function (k) { window.__key = k; })")
+    expect(page.get_by_role("dialog", name="Admin key")).to_contain_text("Admin key, to test:")
+    box = page.locator('input[type="password"][aria-label="Admin key"]')
+    expect(box).to_be_visible()
+    box.fill("typed-key")
+    box.press("Enter")
+    page.wait_for_function("window.__key === 'typed-key'")
+    assert page.evaluate("sessionStorage.getItem('mt3ukAdminKey')") == "typed-key"

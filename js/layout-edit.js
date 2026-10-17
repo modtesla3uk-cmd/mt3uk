@@ -4,6 +4,7 @@
    set to exact numbers. Positions are kept per page and per screen width (desktop
    above 900px, phone at or below it). Copy layout gives CSS lines for the page. */
 (function () {
+  if (!window.MT3UKWithAdminKey) document.head.appendChild(Object.assign(document.createElement('script'), { src: 'js/admin-key-ask.js' }));
   if (!/[?&]layout=edit(&|$)/.test(location.search)) return;
 
   // How far up, in px, an item may go: above the frame, into the blue area under the signed-in row.
@@ -395,18 +396,10 @@
     items.forEach(function (m) { if (ROLES.indexOf(m.key) !== -1) out[m.key] = { x: m.x, y: m.y, w: m.w, h: m.h, fs: m.fs, hide: !!m.hide }; });
     return out;
   }
-  function adminKey() {
-    var k = (sessionStorage.getItem('mt3ukAdminKey') || '').trim();
-    if (!k) {
-      k = (window.prompt('Admin key, to save this layout for every visitor:') || '').trim();
-      if (k) sessionStorage.setItem('mt3ukAdminKey', k);
-    }
-    return k;
-  }
   // Desktop and phone each have their own saved layout. The editor saves the one for the width it is open at.
   function frame() { return innerWidth > 900 ? 'desk' : 'phone'; }
   function site(body, done) {
-    var key = adminKey();
+    window.MT3UKWithAdminKey('Admin key, to save this layout for every visitor:', function (key) {
     if (!key) { say('Not saved: no admin key.'); return; }
     say('Saving...');
     fetch(API + '/laps/heading-layout/admin?key=' + encodeURIComponent(key), {
@@ -418,6 +411,7 @@
         say(done);
       });
     }).catch(function () { say('Not saved: no connection.'); });
+    });
   }
 
   function fill() {

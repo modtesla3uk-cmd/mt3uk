@@ -132,18 +132,22 @@
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
   // The page's Refresh (and each section's refresh) reloads what this panel shows.
   document.addEventListener('mt3uk-admin-refresh', function () { if (wrap.open) load(); });
-  // Adds a tester: starts their 7-day Laps Pro trial now.
-  var testerForm = document.getElementById('tiers-tester-form');
-  if (testerForm) testerForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var input = document.getElementById('tiers-tester-email');
-    call('POST', { action: 'trial-add', email: input.value.trim() }).then(function (d) {
-      if (!d.ok || !d.success) { note(d.message || 'Could not add the tester.', 'error'); return; }
-      input.value = '';
-      note(d.message);
-      load();
+  // Adds a tester: starts their 7-day Laps Pro trial now. Members are found by nickname, name or email (the shared finder).
+  if (window.MT3UKMemberFinder) {
+    window.MT3UKMemberFinder.mount(document.getElementById('tiers-trial-add-host'), {
+      load: loadMembers,
+      action: {
+        label: 'Add tester',
+        run: function (m) {
+          return call('POST', { action: 'trial-add', email: m.email }).then(function (d) {
+            if (!d.ok || !d.success) { note(d.message || 'Could not add the tester.', 'error'); return; }
+            note(d.message);
+            load();
+          });
+        }
+      }
     });
-  });
+  }
   // Ends a running trial now, so the member sees the trial-ended card (for testing the subscribe step).
   trialsEl.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-trial-end]');

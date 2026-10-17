@@ -130,6 +130,8 @@
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
+  // The page's Refresh (and each section's refresh) reloads what this panel shows.
+  document.addEventListener('mt3uk-admin-refresh', function () { if (wrap.open) load(); });
   // Adds a tester: starts their 7-day Laps Pro trial now.
   var testerForm = document.getElementById('tiers-tester-form');
   if (testerForm) testerForm.addEventListener('submit', function (e) {

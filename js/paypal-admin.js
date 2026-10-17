@@ -34,4 +34,5 @@
   });
   var wrap = document.getElementById('tiers-wrap');
   if (wrap) wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
+  document.addEventListener('mt3uk-admin-refresh', function () { if (wrap && wrap.open) load(); });
 })();

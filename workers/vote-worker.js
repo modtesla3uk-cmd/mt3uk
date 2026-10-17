@@ -8277,8 +8277,23 @@ async function lapsProTrialList(env) {
 // the subscription ID and its status (APPROVAL_PENDING, ACTIVE, SUSPENDED, CANCELLED or EXPIRED).
 var PAYPAL_DEFAULT_API = 'https://api-m.sandbox.paypal.com';
 var PAYPAL_STATUS_EVENTS = { 'BILLING.SUBSCRIPTION.ACTIVATED': 'ACTIVE', 'BILLING.SUBSCRIPTION.SUSPENDED': 'SUSPENDED', 'BILLING.SUBSCRIPTION.CANCELLED': 'CANCELLED', 'BILLING.SUBSCRIPTION.EXPIRED': 'EXPIRED' };
-function paypalConfigured(env) { return !!(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET && env.PAYPAL_PLAN_ID); }
-function paypalBase(env) { return env.PAYPAL_API || PAYPAL_DEFAULT_API; }
+// The PayPal settings. The client ID, plan ID and webhook ID can be set on the Laps Pro panel of track-admin.html (KV,
+// paypal-settings) and fall back to the worker's own settings of the same name. The client secret is only ever a worker secret.
+var PAYPAL_SETTINGS_KEY = 'paypal-settings';
+async function paypalSettings(env) {
+  var kv = await getJsonKey(env, PAYPAL_SETTINGS_KEY, {});
+  return {
+    clientId: kv.clientId || env.PAYPAL_CLIENT_ID || '',
+    clientSecret: env.PAYPAL_CLIENT_SECRET || '',
+    planId: kv.planId || env.PAYPAL_PLAN_ID || '',
+    webhookId: kv.webhookId || env.PAYPAL_WEBHOOK_ID || '',
+    base: env.PAYPAL_API || PAYPAL_DEFAULT_API
+  };
+}
+async function paypalConfigured(env) {
+  var s = await paypalSettings(env);
+  return !!(s.clientId && s.clientSecret && s.planId);
+}
 function lapsProSubKey(email) { return 'laps-pro-sub:' + accessEmail(email); }
 // Whether this member may subscribe: everyone, the testers list only, or nobody.
 function subscriptionsOpenFor(t, email) {
@@ -8290,11 +8305,12 @@ async function lapsProSubscriptionStatus(env, email) {
   return r && r.status ? r.status : '';
 }
 async function paypalApi(env, method, path, body) {
-  var basic = btoa(env.PAYPAL_CLIENT_ID + ':' + env.PAYPAL_CLIENT_SECRET);
-  var auth = await fetch(paypalBase(env) + '/v1/oauth2/token', { method: 'POST', headers: { Authorization: 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' });
+  var s = await paypalSettings(env);
+  var basic = btoa(s.clientId + ':' + s.clientSecret);
+  var auth = await fetch(s.base + '/v1/oauth2/token', { method: 'POST', headers: { Authorization: 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' });
   var token = await auth.json().catch(function () { return {}; });
   if (!auth.ok || !token.access_token) throw new Error('PayPal sign-in failed (' + auth.status + ')');
-  var r = await fetch(paypalBase(env) + path, { method: method, headers: { Authorization: 'Bearer ' + token.access_token, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  var r = await fetch(s.base + path, { method: method, headers: { Authorization: 'Bearer ' + token.access_token, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
   var text = await r.text();
   var d = {};
   try { d = text ? JSON.parse(text) : {}; } catch (er) { d = {}; }
@@ -8305,12 +8321,12 @@ async function paypalApi(env, method, path, body) {
 async function handleLapsProSubscribe(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
-  if (!paypalConfigured(env)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
+  if (!(await paypalConfigured(env))) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
   if (!subscriptionsOpenFor(await getTrackTiers(env), email)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
   var e = accessEmail(email);
   if ((await lapsProSubscriptionStatus(env, e)) === 'ACTIVE') return json({ success: false, message: 'You already have Laps Pro.' }, 400);
   var sub = await paypalApi(env, 'POST', '/v1/billing/subscriptions', {
-    plan_id: env.PAYPAL_PLAN_ID,
+    plan_id: (await paypalSettings(env)).planId,
     custom_id: e.slice(0, 127),
     application_context: { brand_name: 'Laps by MT3UK', user_action: 'SUBSCRIBE_NOW', return_url: LAPS_SITE_URL + '/track.html?pro=return', cancel_url: LAPS_SITE_URL + '/track.html?pro=cancel' }
   });
@@ -8323,7 +8339,7 @@ async function handleLapsProSubscribe(request, env) {
 async function handleLapsProReturn(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
-  if (!paypalConfigured(env)) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
+  if (!(await paypalConfigured(env))) return json({ success: false, message: 'Subscriptions are not open yet.' }, 400);
   var rec = await getJsonKey(env, lapsProSubKey(email), null);
   if (!rec || !rec.id) return json({ success: false, message: 'There is no subscription to check.' }, 400);
   var sub = await paypalApi(env, 'GET', '/v1/billing/subscriptions/' + encodeURIComponent(rec.id));
@@ -8335,7 +8351,7 @@ async function handleLapsProReturn(request, env) {
 async function cancelLapsProSubscription(env, email) {
   var rec = await getJsonKey(env, lapsProSubKey(email), null);
   if (!rec || !rec.id || rec.status === 'CANCELLED') return false;
-  if (paypalConfigured(env)) await paypalApi(env, 'POST', '/v1/billing/subscriptions/' + encodeURIComponent(rec.id) + '/cancel', { reason: 'Cancelled by the member on Laps' });
+  if (await paypalConfigured(env)) await paypalApi(env, 'POST', '/v1/billing/subscriptions/' + encodeURIComponent(rec.id) + '/cancel', { reason: 'Cancelled by the member on Laps' });
   rec.status = 'CANCELLED';
   await env.VOTES.put(lapsProSubKey(email), JSON.stringify(rec));
   return true;
@@ -8352,7 +8368,8 @@ async function handleLapsProCancel(request, env) {
 }
 // PayPal's events. Each one is checked with PayPal's signature check before it is believed; the member is the custom_id.
 async function handleLapsProWebhook(request, env) {
-  if (!paypalConfigured(env) || !env.PAYPAL_WEBHOOK_ID) return json({ success: false, message: 'Not set up' }, 404);
+  var wps = await paypalSettings(env);
+  if (!(await paypalConfigured(env)) || !wps.webhookId) return json({ success: false, message: 'Not set up' }, 404);
   var event;
   try { event = JSON.parse(await request.text()); } catch (er) { return json({ success: false, message: 'Invalid body' }, 400); }
   var check = await paypalApi(env, 'POST', '/v1/notifications/verify-webhook-signature', {
@@ -8361,7 +8378,7 @@ async function handleLapsProWebhook(request, env) {
     transmission_id: request.headers.get('paypal-transmission-id'),
     transmission_sig: request.headers.get('paypal-transmission-sig'),
     transmission_time: request.headers.get('paypal-transmission-time'),
-    webhook_id: env.PAYPAL_WEBHOOK_ID,
+    webhook_id: wps.webhookId,
     webhook_event: event
   });
   if (check.verification_status !== 'SUCCESS') return json({ success: false, message: 'Signature not verified' }, 400);
@@ -8377,6 +8394,23 @@ async function handleLapsProWebhook(request, env) {
   return json({ success: true });
 }
 
+// Admin: the PayPal IDs on the Laps Pro panel. Read shows the values in use and whether the secret is set (never the secret).
+// Save keeps the client ID, plan ID and webhook ID in KV; they are ID-like values only.
+async function handleLapsProPaypalAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') {
+    var now = await paypalSettings(env);
+    return json({ success: true, clientId: now.clientId, planId: now.planId, webhookId: now.webhookId, secretSet: !!now.clientSecret, configured: await paypalConfigured(env) });
+  }
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var next = { clientId: String(body.clientId || '').trim(), planId: String(body.planId || '').trim(), webhookId: String(body.webhookId || '').trim() };
+  for (var k of Object.keys(next)) {
+    if (next[k].length > 100 || (next[k] && !/^[A-Za-z0-9_-]+$/.test(next[k]))) return json({ success: false, message: 'Check the ' + k + ': letters, numbers, dashes and underscores only.' }, 400);
+  }
+  await env.VOTES.put(PAYPAL_SETTINGS_KEY, JSON.stringify(next));
+  return json({ success: true, message: 'PayPal settings saved.' });
+}
 async function handleLapsProTrialStart(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -8473,7 +8507,7 @@ async function handleTrackTiersAccess(request, env) {
   var owner = await ownerKey(email);
   var q = await trackQuotaState(env, owner, r.allowance, now);
   var trial = { state: r.trial.state, endsAt: r.trial.endsAt || '', choice: r.trial.choice || '', canStart: r.applies && r.trial.state === 'none' && trialOpen, days: LAPS_PRO_TRIAL_DAYS };
-  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: paypalConfigured(env) && subscriptionsOpenFor(tiersNow, email), subscribed: r.subscribed === true });
+  return json({ success: true, applies: r.applies, full: r.full, paid: r.paid, allowance: r.allowance, total: q.total, balance: q.balance, counted: Object.keys(q.days), nextTopUp: trackNextTopUp(now), trial: trial, subscribe: (await paypalConfigured(env)) && subscriptionsOpenFor(tiersNow, email), subscribed: r.subscribed === true });
 }
 async function handleTrackTiersAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -13252,6 +13286,9 @@ export default {
     }
     if (url.pathname === '/laps/pro/cancel' && request.method === 'POST') {
       return handleLapsProCancel(request, env);
+    }
+    if (url.pathname === '/laps/pro/paypal/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsProPaypalAdmin(request, env);
     }
     if (url.pathname === '/laps/pro/webhook' && request.method === 'POST') {
       return handleLapsProWebhook(request, env);

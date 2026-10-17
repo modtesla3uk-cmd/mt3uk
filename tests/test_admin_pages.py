@@ -3153,3 +3153,31 @@ def test_admin_can_set_laps_pro_subscriptions_off_for_testers_or_everyone(page):
     expect(page.locator('#tiers-subs-wrap [data-subs="off"]')).to_have_attribute("aria-pressed", "true")
     assert posts[-1] == {"action": "subscriptions", "mode": "off"}, posts
 
+
+def test_admin_can_change_the_paypal_ids_but_not_see_the_secret(page):
+    """The PayPal panel shows the IDs in use and whether the secret is set, saves the IDs, and never shows the secret."""
+    saved = []
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"success": True, "clientId": "CLIENT-A", "planId": "P-OLD", "webhookId": "WH-1", "secretSet": True, "configured": True}
+
+    def paypal(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            saved.append(body)
+            state.update(clientId=body["clientId"], planId=body["planId"], webhookId=body["webhookId"])
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "message": "PayPal settings saved."}), headers=cors)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(state), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/pro/paypal/admin**", paypal)
+    page.route("**/track/tiers/admin**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "mode": "all", "allowance": {"start": 3, "monthly": 3, "cap": 6}, "testers": [], "full": [], "paid": [], "requests": [], "trials": {"summary": {"running": 0, "ended": 0, "stayedFree": 0, "awaiting": 0}, "rows": []}, "subscriptions": "off"}), headers=cors))
+    page.locator("#tiers-wrap summary").click()
+    expect(page.locator("#paypal-plan")).to_have_value("P-OLD")
+    expect(page.locator("#paypal-secret")).to_contain_text("set in Cloudflare")
+    expect(page.locator("#paypal-secret")).not_to_contain_text("CLIENT_SECRET=")
+    page.locator("#paypal-plan").fill("P-NEW-1")
+    page.locator("#paypal-form button").click()
+    expect(page.locator("#paypal-plan")).to_have_value("P-NEW-1")
+    assert saved[-1]["planId"] == "P-NEW-1", saved
+    assert "secret" not in json.dumps(saved).lower(), saved
+

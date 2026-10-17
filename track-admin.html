@@ -156,6 +156,15 @@
         <button type="button" class="secondary" data-subs="testers" aria-pressed="false">Testers only</button>
         <button type="button" class="secondary" data-subs="all" aria-pressed="false">Everyone</button>
       </div>
+      <h3 class="sub-head">PayPal</h3>
+      <p class="iv-note" id="paypal-note">The client ID, plan ID and webhook ID can be changed here. The client secret stays in Cloudflare.</p>
+      <form class="iv-toolbar" id="paypal-form">
+        <label>Client ID <input type="text" id="paypal-client" aria-label="PayPal client ID"></label>
+        <label>Plan ID <input type="text" id="paypal-plan" aria-label="PayPal plan ID"></label>
+        <label>Webhook ID <input type="text" id="paypal-webhook" aria-label="PayPal webhook ID"></label>
+        <button type="submit">Save PayPal settings</button>
+      </form>
+      <p class="iv-note" id="paypal-secret"></p>
       <div id="tiers-paid"></div>
       <div id="tiers-paid-host"></div>
       <h3 class="sub-head">Laps Pro trials</h3>
@@ -458,6 +467,7 @@
 <script src="js/laps-offline-admin.js?v=3" defer></script>
 <script src="js/sessions-tree-admin.js?v=2" defer></script>
 <script src="js/tiers-admin.js?v=15" defer></script>
+<script src="js/paypal-admin.js?v=1" defer></script>
 <script src="js/kinds-admin.js?v=2" defer></script>
 <script src="js/track-usage-admin.js?v=20270102" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>

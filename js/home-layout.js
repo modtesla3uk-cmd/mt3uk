@@ -48,8 +48,9 @@
       '#hl-bar button, #hl-bar a { font: inherit; border-radius: 6px; padding: 6px 12px; border: 1px solid #2c3856; background: #22324f; color: #fff; text-decoration: none; cursor: pointer; }' +
       '#hl-bar button.primary { background: #e8542a; border-color: #e8542a; font-weight: 700; }' +
       '#hl-bar .hl-msg { flex-basis: 100%; color: #f7c9b9; min-height: 1.4em; }' +
-      '.hp-cols .hl-phone-no { position: absolute; left: 10px; top: -11px; z-index: 5; pointer-events: none; padding: 4px 9px; border-radius: 999px; background: #16233d; color: #ffffff; font: 700 12px/1.2 system-ui, sans-serif; white-space: nowrap; }' +
+      '.hp-cols .hl-phone-no { position: absolute; z-index: 0; pointer-events: none; padding: 2px 7px; border-radius: 999px; background: #16233d; color: #ffffff; font: 700 11px/1.2 system-ui, sans-serif; white-space: nowrap; }' +
       '.hp-cols.hl-no-phone .hl-phone-no { display: none; }' +
+      '.hp-cols.hl-edit [data-hl] { z-index: 1; }' +
       '.hp-cols.hl-edit .hp-laps-promo { overflow: visible; }';
     document.head.appendChild(st);
   }
@@ -91,11 +92,22 @@
     return out;
   }
 
-  function refreshBadges() {
+  // The phone number of each card sits in the frame behind it, at its top left corner, so it shows where the card is in the
+  // order and moves with the card. Only the editor has them.
+  function refreshBadges(coords) {
+    if (!cols.classList.contains('hl-edit')) return;
+    var c = coords || coordsNow();
     present().forEach(function (it) {
-      var no = it.el.querySelector('.hl-phone-no');
+      var no = cols.querySelector('.hl-phone-no[data-for="' + it.id + '"]');
+      if (!no) {
+        no = document.createElement('span');
+        no.className = 'hl-phone-no';
+        no.setAttribute('data-for', it.id);
+        cols.appendChild(no);
+      }
       var text = 'Phone ' + phoneRank[it.id];
-      if (no && no.textContent !== text) no.textContent = text;
+      if (no.textContent !== text) no.textContent = text;
+      if (c[it.id]) { no.style.left = (c[it.id].x + 10) + 'px'; no.style.top = (c[it.id].y - 18) + 'px'; }
     });
   }
 
@@ -109,7 +121,7 @@
     phoneRank = {};
     order.forEach(function (id, i) { phoneRank[id] = i + 1; });
     present().forEach(function (it) { it.el.style.setProperty('--phone-order', phoneRank[it.id]); });
-    refreshBadges();
+    refreshBadges(coords);
   }
 
   // On the frame (a saved layout or the editor) the order follows where the cards are; on a phone it follows the saved
@@ -328,14 +340,7 @@
     applyLayout({ desk: start });
     editorDrag();
     // Each card can take the keyboard: Tab to it, then the arrow keys move it. Each shows its place on a phone.
-    present().forEach(function (it) {
-      it.el.setAttribute('tabindex', '0');
-      if (!it.el.querySelector('.hl-phone-no')) {
-        var no = document.createElement('span');
-        no.className = 'hl-phone-no';
-        it.el.appendChild(no);
-      }
-    });
+    present().forEach(function (it) { it.el.setAttribute('tabindex', '0'); });
     refreshBadges();
     cols.addEventListener('focusin', function (e) {
       var el = e.target.closest && e.target.closest('[data-hl]');

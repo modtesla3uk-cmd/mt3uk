@@ -307,13 +307,13 @@ def test_the_homepage_editor_numbers_each_card_with_its_place_on_a_phone(page):
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html?layout=edit")
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
-    numbers = page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('.hp-cols [data-hl]')].map(
-      el => [el.getAttribute('data-hl'), el.querySelector('.hl-phone-no').textContent]))""")
+    numbers = page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('.hp-cols .hl-phone-no')].map(
+      el => [el.getAttribute('data-for'), el.textContent]))""")
     assert numbers == {"latest": "Phone 1", "next": "Phone 2", "join": "Phone 3", "offer": "Phone 4", "laps": "Phone 5", "shop": "Phone 6",
                        "note": "Phone 7", "stats": "Phone 8"}
     page.locator("#hl-bar [data-a=phone]").click()
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-no-phone"))
-    expect(page.locator("#hp-hero .hp-hero-card .hl-phone-no")).to_be_hidden()
+    expect(page.locator(".hp-cols .hl-phone-no[data-for=latest]")).to_be_hidden()
 
 
 def test_the_phone_order_is_the_order_the_editor_numbers(page):
@@ -367,4 +367,4 @@ def test_the_editor_sets_the_members_figure_and_the_other_figures_come_from_the_
     assert posts == [{"members": "3.2K+"}]
     assert page.evaluate("document.querySelector('.hp-stats .member-count').textContent") == "3.2K+"
     # The builds and events figures are counted from the site, not typed in.
-    assert page.evaluate("document.querySelector('#hp-stat-builds').textContent") != ""
+    expect(page.locator("#hp-stat-builds")).not_to_be_empty()

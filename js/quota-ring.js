@@ -9,7 +9,9 @@
    open, so the example there can be seen. Each locked thing shows an Unlock hint, and its
    Unlock button is a placeholder for the subscription: it says nothing is charged yet. */
 (function () {
-  var free = false, observer = null, scheduled = false;
+  // ringOn: the free days apply and the ring shows their use (also while Laps Pro is free for everyone, which
+  // keeps the usage). free: the locks apply too, which is not so while Laps Pro is free for everyone.
+  var ringOn = false, free = false, observer = null, scheduled = false;
   // Whether subscribing is open (PayPal is set up). When it is, Unlock starts the subscription; otherwise it says so.
   var canSubscribe = false;
   var API_BASE = window.MT3UK_TRACK_API || 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -51,7 +53,7 @@
   function drawRing(d) {
     var h1 = document.querySelector('.page-hero .lh-title');
     var ring = document.getElementById('tp-quota-ring');
-    if (!h1 || !free) { if (ring) ring.hidden = true; return; }
+    if (!h1 || !ringOn) { if (ring) ring.hidden = true; return; }
     var cap = d.total || (d.allowance && d.allowance.cap) || 6, used = Math.max(0, cap - d.balance);
     var colour = d.balance <= 1 ? '#d9534f' : used >= cap / 2 ? '#e0a100' : '#1f8a70';
     if (!ring) {
@@ -145,14 +147,16 @@
 
   function draw(d) {
     canSubscribe = !!(d && d.subscribe);
-    free = !!(d && d.success && d.applies && !d.full && !d.proFeatures);
-    if (!free) {
+    ringOn = !!(d && d.success && d.applies && !d.full);
+    free = ringOn && !d.proFeatures;
+    if (!ringOn) {
       var old = document.getElementById('tp-quota-ring');
       if (old) old.hidden = true;
       return;
     }
     css();
     drawRing(d);
+    if (!free) return;
     apply();
     // Pages draw their tiles and tabs after the answer arrives, so the page is watched for them.
     if (!observer) {

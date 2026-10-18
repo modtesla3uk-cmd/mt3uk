@@ -101,6 +101,21 @@ def test_the_track_choice_stays_in_view_under_the_header_when_the_page_scrolls(p
     expect(page.locator("#ma-track")).to_have_value("Thruxton|Thruxton")
 
 
+def test_over_time_puts_the_fastest_lap_at_the_top_of_the_axis(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0)
+    add(fake, "a2", "2026-05-08", 60.5)
+    add(fake, "a3", "2026-05-15", 60.9)
+    open_page(page, fake, "/my-analysis.html")
+    chart = page.locator(".tm-chart svg")
+    # The quickest lap (60.50, a2) is the highest dot, and the label at the top of the axis is that time.
+    tops = {sid: float(page.locator('.tm-chart .ma-dot[data-session="%s"]' % sid).get_attribute("cy")) for sid in ("a1", "a2", "a3")}
+    assert tops["a2"] < tops["a3"] < tops["a1"], tops
+    expect(chart.locator("text").filter(has_text="1:00.50")).to_have_count(1)
+    top_label = chart.locator("text").filter(has_text="1:00.50").get_attribute("y")
+    assert float(top_label) <= 40, top_label
+
+
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
     open_page(page, FakeWorker(earlier=False), "/my-analysis.html", signed_in=False)
     expect(page.locator("#ma-app")).to_contain_text("Sign in to see your own analysis")

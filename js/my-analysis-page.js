@@ -174,7 +174,9 @@
     var toScale = days.every(isFinite) && days[n - 1] > days[0];
     var d0 = days[0], dspan = days[n - 1] - d0;
     function X(i) { return toScale ? L + (days[i] - d0) / dspan * (W - L - R) : L + i / (n - 1) * (W - L - R); }
-    function Y(v) { return T + (y1 - v) / span * (H - T - B); }
+    // A lap time reads fastest at the top; the other figures keep the highest value at the top.
+    var fastTop = figureKind(m) === 'low';
+    function Y(v) { return fastTop ? T + (v - y0) / span * (H - T - B) : T + (y1 - v) / span * (H - T - B); }
     var path = pts.map(function (x, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(x.v).toFixed(1); }).join(' ');
     var lowerBetter = figureKind(m) === 'low', bestLine = '';
     if (figureKind(m) === 'low' || figureKind(m) === 'high') {
@@ -208,9 +210,9 @@
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<text x="' + L + '" y="14" style="font-weight:600">' + esc(m.label) + '</text>' +
-      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + esc(m.fmt(y1)) + '</text>' +
+      '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + esc(m.fmt(fastTop ? y0 : y1)) + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (Y(mid) + 4).toFixed(1) + '" text-anchor="end">' + esc(m.fmt(mid)) + '</text>' +
-      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + esc(m.fmt(y0)) + '</text>' +
+      '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + esc(m.fmt(fastTop ? y1 : y0)) + '</text>' +
       '<path d="' + path + '" fill="none" stroke="#b9c2d0" stroke-width="1.5"/>' + bestLine +
       '<text x="' + L + '" y="' + (H - 30) + '">' + esc(niceDate(pts[0].s.date)) + '</text>' +
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[n - 1].s.date)) + '</text>' +

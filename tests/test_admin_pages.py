@@ -17,11 +17,13 @@ API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 PAGES = ["admin.html", "events-admin.html", "device-checklist.html"]
 ALL_PAGES = PAGES + ["track-admin.html"]
 GROUPS = [
+    ("grp-editors", "Page editors", ["editors-wrap"]),
     ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "garage-asks-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap", "feedback-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap", "passkey-nudge-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-sharing", "Sharing links", ["home-share-wrap", "fbposts-wrap"]),
+    ("grp-shop", "Shop", ["shop-cards-wrap"]),
+    ("grp-sharing", "Sharing links", ["card-share-wrap", "home-share-wrap", "fbposts-wrap"]),
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
@@ -127,7 +129,11 @@ def test_admin_pages_fit_a_phone(page, name):
 def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     open_admin(page, "admin.html")
     sub = page.locator("#admin-subnav")
-    # The first category is current at the top: its four panels are listed.
+    # The first group is Page editors: one panel and no headings, so there is nothing to list and the sub menu is hidden.
+    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Page editors")
+    expect(sub).to_be_hidden()
+    # Gallery and builds lists its four panels.
+    page.locator('.admin-nav a[href="admin.html#grp-gallery"]').click()
     expect(sub).to_be_visible()
     assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries", "Other makes"]
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")

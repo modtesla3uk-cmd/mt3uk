@@ -484,6 +484,8 @@
   .fav-hero .fav-intro { grid-column:1 / -1; grid-row:3; color:#d3d8e2; margin:14px 0 0; max-width:62ch; text-align:left; justify-self:start; }
   /* Phone: the same 16px side gutter as the other Laps pages. */
   @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+  /* Phone: the filter chips sit clear of the heading, and the first group comes straight after them. */
+  @media (max-width: 900px) { .fav-wrap { padding-top: 24px !important; } .fav-group { padding-top: 0 !important; margin-top: 14px !important; } }
   /* Phone: the heading is as tall as its buttons, with the list starting just below it. */
   @media (max-width: 900px) { .fav-hero .wrap { height: auto !important; min-height: 0 !important; padding-bottom: 0; position: relative; } .fav-hero { padding-bottom: 0 !important; } .fav-hero .fav-tools > [data-laps-tip] { position: absolute; width: 0; height: 0; overflow: visible; } }
   /* Phone: Back and My Sessions on the first row, Leaderboards and My Analysis on the second. */

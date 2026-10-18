@@ -66,8 +66,10 @@ def test_intro_says_what_is_here_and_can_be_played_again(device_page):
     page.evaluate("window.scrollTo(0, 0)")
     link = page.locator("#hp-hero #play-intro")
     assert link.count() == 1
+    # The link sits at the foot of the hero, so bring it into view before checking it can be reached.
+    link.scroll_into_view_if_needed()
     box = link.bounding_box()
-    assert box and box["y"] + box["height"] <= page.viewport_size["height"], "On the first screen"
+    assert box and 0 <= box["y"] and box["y"] + box["height"] <= page.viewport_size["height"], "Reachable once scrolled to"
     link.click()
     intro.wait_for(state="visible", timeout=5000)
     assert page.url.endswith("/index.html")

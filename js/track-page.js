@@ -3901,6 +3901,52 @@
     });
   }
   // The owner's timed session links to My Analysis, filtered to the track and car it was driven on (js/my-analysis-page.js).
+  // The Laps Pro card on the owner's session: the car's figures across its sessions (best lap, most charge in one session,
+  // hottest brakes, highest peak power), the tracks it has been driven at, and what this session says against them.
+  function laprosBandHtml(s) {
+    if (!s.mine || s.local || !view.mine || !view.mine.sessions) return '';
+    var all = view.mine.sessions.filter(function (o) { return !s.carId || o.carId === s.carId; });
+    if (!all.length) return '';
+    var me = all.filter(function (o) { return o.id === s.id; })[0] || {};
+    var trackOf = function (o) { return (o.venue || 'Track') + (o.layout ? ', ' + o.layout : ''); };
+    var timed = all.filter(function (o) { return o.bestTime && o.type !== 'drag'; });
+    var bestOf = function (list) { return list.reduce(function (a, o) { return !a || o.bestTime < a.bestTime ? o : a; }, null); };
+    var withMode = function (test) { return all.filter(function (o) { return o.mode && test(o.mode); }); };
+    var most = function (list, value) { return list.reduce(function (a, o) { return !a || value(o) > value(a) ? o : a; }, null); };
+    var best = bestOf(timed);
+    var charge = most(withMode(function (m) { return m.soc; }), function (o) { return o.mode.soc[0] - o.mode.soc[1]; });
+    var hot = most(withMode(function (m) { return isFinite(m.brakeTemp); }), function (o) { return o.mode.brakeTemp; });
+    var power = most(withMode(function (m) { return isFinite(m.power); }), function (o) { return o.mode.power; });
+    var fig = function (label, value, sub, cls) {
+      return '<div class="tp-band-fig"><span>' + label + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + value + '</b><small>' + sub + '</small></div>';
+    };
+    var figs = fig('Best lap', best ? V.fmtLap(best.bestTime) : '–', best ? esc(trackOf(best)) + ', ' + esc(shortDate(best.date)) : 'No timed laps yet') +
+      fig('Most charge in one session', charge ? (Math.round((charge.mode.soc[0] - charge.mode.soc[1]) * 10) / 10) + '%' : '–', charge ? esc(trackOf(charge)) + ', ' + esc(shortDate(charge.date)) : 'Needs Track Mode') +
+      fig('Hottest brakes', hot ? Math.round(hot.mode.brakeTemp) + ' °C' : '–', hot ? esc(trackOf(hot)) + ', ' + esc(shortDate(hot.date)) + '. The car’s own figure.' : 'Needs Track Mode', 'is-hot') +
+      fig('Highest peak power', power ? Math.round(power.mode.power) + ' kW' : '–', power ? esc(trackOf(power)) + ', ' + esc(shortDate(power.date)) : 'Needs Track Mode');
+    var tracks = {};
+    timed.forEach(function (o) { var k = (o.venue || '') + '|' + (o.layout || ''); (tracks[k] = tracks[k] || []).push(o); });
+    var driven = Object.keys(tracks).map(function (k) { return { key: k, best: bestOf(tracks[k]), n: tracks[k].length }; })
+      .sort(function (a, b) { return a.best.bestTime - b.best.bestTime; });
+    var drivenHtml = driven.length ? driven.slice(0, 8).map(function (r) {
+      return '<a class="tp-band-row" href="my-analysis.html?track=' + encodeURIComponent(r.key) + (s.carId ? '&car=' + encodeURIComponent(s.carId) : '') + '"><span>' + esc(trackOf(r.best)) +
+        '<small>' + r.n + (r.n === 1 ? ' session' : ' sessions') + '</small></span><span>' + V.fmtLap(r.best.bestTime) + '<small>' + esc(shortDate(r.best.date)) + '</small></span></a>';
+    }).join('') + '<p>Tap a track to see its sessions.</p>' : '<p>No timed laps yet.</p>';
+    var say = [];
+    var hereBest = bestOf(timed.filter(function (o) { return o.venue === s.venue && (o.layout || '') === (s.layout || ''); }));
+    if (s.bestTime && s.type !== 'drag' && hereBest) {
+      var gap = s.bestTime - hereBest.bestTime;
+      say.push(gap <= 0.005 ? 'This session has your best lap here, ' + V.fmtLap(s.bestTime) + '.' :
+        'This session’s best lap is ' + V.fmtLap(s.bestTime) + ', ' + gap.toFixed(2) + ' s off your best here.');
+    }
+    if (isFinite(me.mode && me.mode.brakeTemp)) say.push('The hottest brakes in this session were ' + Math.round(me.mode.brakeTemp) + ' °C, the car’s own figure.');
+    say.push('These figures come from each session’s own readings. Weather, tyres and driving changes are not taken out.');
+    return '<div class="tp-band"><h4>Your best laps</h4><p class="tp-band-note">Across ' + all.length + (all.length === 1 ? ' session' : ' sessions') +
+      (s.car ? ' on ' + esc(s.car) : '') + '. Figures are from your own sessions.</p>' +
+      '<div class="tp-band-figs">' + figs + '</div>' +
+      '<div class="tp-band-cols"><div class="tp-band-box"><h5>Where you have driven</h5>' + drivenHtml + '</div>' +
+      '<div class="tp-band-box"><h5>What the figures say</h5>' + say.map(function (t) { return '<p>' + t + '</p>'; }).join('') + '</div></div></div>';
+  }
   function analysisLinkHtml(s) {
     if (!s.mine || s.local || !s.venue || s.type === 'other') return '';
     var key = (s.venue || '') + '|' + (s.layout || '');
@@ -4430,7 +4476,7 @@
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
         '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
-        '<div class="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3><span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s) + '</div>' +
+        '<div class="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3>' + (laprosBandHtml(s) ? analysisLinkHtml(s) + laprosBandHtml(s) : '<span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s)) + '</div>' +
         '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
       boardOpen = true;
     }

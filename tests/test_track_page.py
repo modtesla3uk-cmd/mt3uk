@@ -7845,6 +7845,20 @@ def test_the_usage_box_heading_shows_the_plan_free_members_see_your_free_days(pa
     expect(page.locator("#tp-quota > b").first).to_have_text("Laps Pro")
 
 
+def test_the_laps_pro_card_in_a_session_shows_the_cars_figures_and_the_tracks_driven(page):
+    """The owner's session has a Laps Pro card: the car's best lap, its four figures, the tracks it has been driven at and what this session says."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    card = page.locator(".tp-band")
+    expect(card).to_contain_text("Your best laps")
+    expect(card.locator(".tp-band-fig")).to_have_count(4)
+    expect(card.locator(".tp-band-fig").first).to_contain_text("Best lap")
+    expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Highest peak power")
+    expect(card).to_contain_text("Where you have driven")
+    expect(card.locator(".tp-band-row").first).to_have_attribute("href", re.compile(r"my-analysis\.html\?track=Thruxton%7CThruxton"))
+    expect(card).to_contain_text("This session has your best lap here")
+
+
 def test_the_laps_pro_heading_links_to_my_analysis_for_the_track_and_car_of_the_session(page):
     """The owner's session has a link in its Laps Pro heading to My Analysis, filtered to that track and car."""
     fake = FakeWorker()

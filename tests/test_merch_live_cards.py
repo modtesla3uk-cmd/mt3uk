@@ -41,6 +41,10 @@ def mock_shop_endpoint(page):
             body=json.dumps(FAKE_PRODUCTS),
         ),
     )
+    page.route(
+        "**/shop/home",
+        lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True})),
+    )
 
 
 def test_live_products_render_with_discount_pricing(page):

@@ -1549,10 +1549,10 @@
       }
 
       Promise.all([
-        fetch(SHOP_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
-        fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
-        fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
-        fetch(HOME_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; })
+        fetch(SHOP_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
+        fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
+        fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
+        fetch(HOME_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; })
       ]).then(function (results) {
         var data = results[0];
         var reviews = Array.isArray(results[1]) ? results[1] : [];

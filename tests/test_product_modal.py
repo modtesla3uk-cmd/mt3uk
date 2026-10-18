@@ -1,3 +1,35 @@
+import json
+
+import pytest
+
+BRACE_PRODUCTS = {
+    "success": True,
+    "products": [
+        {
+            "handle": "model-3-brake-master-cylinder-bracket-for-rhd-models-only",
+            "title": "Model 3 Brake Master Cylinder Bracket",
+            "url": "https://example-shop.myshopify.com/products/brace",
+            "images": ["https://example.com/brace.jpg"],
+            "available": True,
+            "minPrice": 39.99,
+            "maxPrice": 39.99,
+        },
+    ],
+}
+
+
+@pytest.fixture(autouse=True)
+def mock_shop_products(page):
+    page.route(
+        "**/shop-products",
+        lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(BRACE_PRODUCTS)),
+    )
+    page.route(
+        "**/shop/home",
+        lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True})),
+    )
+
+
 def test_more_detail_button_expands_accordion(page):
     page.goto("/shop.html")
     toggle = page.locator("#brace .detail-toggle")

@@ -12,6 +12,9 @@
   var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
   var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridGroup: 'All figures' };
+  var TRACK_KEY = 'mt3ukAnalysisTrack';
+  // The track picked stays picked on this device, so the page opens on it next time (a track that is no longer there falls back to all tracks).
+  function rememberTrack() { try { localStorage.setItem(TRACK_KEY, state.track); } catch (e) { /* storage blocked */ } }
   var scrollAfterDraw = false;
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -81,24 +84,6 @@
   }
   function carName(id) { return state.cars[id] || 'Car'; }
 
-  function tile(label, value) { return '<div class="tm-tile"><b>' + value + '</b><span>' + esc(label) + '</span></div>'; }
-  function tiles(list) {
-    var laps = list.filter(timed).map(function (s) { return s.bestTime; });
-    var best = laps.length ? Math.min.apply(null, laps) : null;
-    var speeds = list.map(function (s) { return num(s.vmax); }).filter(function (v) { return v > 0; });
-    var brakes = list.map(function (s) { return num(s.brakeG); }).filter(function (v) { return v > 0; });
-    var charged = list.map(used).filter(function (v) { return v != null; });
-    var hot = list.map(function (s) { return num(mode(s).brakeTemp); }).filter(function (v) { return v != null; });
-    return '<div class="ma-tiles">' +
-      tile('Sessions', list.length) +
-      tile('Best lap', best != null ? fmtLap(best) : '–') +
-      tile('Average best lap', laps.length ? fmtLap(avg(laps)) : '–') +
-      tile('Top speed', speeds.length ? fmtSpeed(Math.max.apply(null, speeds)) : '–') +
-      tile('Peak braking', brakes.length ? Math.max.apply(null, brakes).toFixed(2) + ' g' : '–') +
-      tile('Average charge used', charged.length ? pctTxt(avg(charged)) : '–') +
-      tile('Hottest brakes', hot.length ? pctTxt(Math.max.apply(null, hot)) : '–') +
-      '</div>';
-  }
 
   // What the figures say, in plain words. Only what the sessions carry is mentioned.
   // The icon before each finding (the same line style as the rest of Laps).
@@ -426,9 +411,6 @@
     var track = keys.indexOf(state.track) !== -1 ? state.track : keys.reduce(function (a, b) { return counts[b] > counts[a] ? b : a; });
     var sessions = sortByWhen(carList.filter(function (s) { return trackKey(s) === track; }));
     var venue = sessions[0].venue || names[track];
-    var chips = keys.map(function (k) {
-      return '<button type="button" class="chip' + (k === track ? ' is-on' : '') + '" data-grid-track="' + esc(k) + '" aria-pressed="' + (k === track) + '">' + esc(names[k]) + '</button>';
-    }).join('');
     var groups = GROUPS.map(function (g) {
       return '<button type="button" class="chip' + (state.gridGroup === g ? ' is-on' : '') + '" data-grid-group="' + esc(g) + '" aria-pressed="' + (state.gridGroup === g) + '">' + esc(g) + '</button>';
     }).join('');
@@ -438,7 +420,6 @@
     }).join('');
     return '<div class="tm-card ma-grid-head"><h2>All figures</h2>' +
       '<p class="tm-note">One track at a time, one dot per session. Each figure is coloured against your best at this track. Press a dot to see that day under the figure.</p>' +
-      '<div class="tm-chips ma-grid-chips" role="group" aria-label="Track">' + chips + '</div>' +
       '<div class="tm-chips ma-grid-chips" role="group" aria-label="Figures">' + groups + '</div>' +
       keyHtml() + '</div>' +
       '<div class="ma-grid" id="ma-grid">' + cards + '</div>';
@@ -524,7 +505,6 @@
       var says = findings(list);
       body = gridSection() +
         '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
-        tiles(list) +
         chart(list) + beneathChart(list) + setupBlock(list) + detailsTable(list);
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
@@ -583,18 +563,17 @@
   });
   // The figure and setup chips, and the drop-downs, redraw the page in place.
   document.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('[data-metric],[data-setup],[data-grid-track],[data-grid-group]') : null;
+    var b = e.target && e.target.closest ? e.target.closest('[data-metric],[data-setup],[data-grid-group]') : null;
     if (!b || !app.contains(b)) return;
     if (b.getAttribute('data-metric')) state.metric = b.getAttribute('data-metric');
     if (b.getAttribute('data-setup')) state.setup = b.getAttribute('data-setup');
-    if (b.getAttribute('data-grid-track')) { state.track = b.getAttribute('data-grid-track'); clearDay(); }
     if (b.getAttribute('data-grid-group')) state.gridGroup = b.getAttribute('data-grid-group');
     draw();
   });
   document.addEventListener('change', function (e) {
     if (!e.target || !app.contains(e.target)) return;
-    if (e.target.id === 'ma-car') { state.car = e.target.value; state.track = 'all'; clearDay(); draw(); }
-    if (e.target.id === 'ma-track') { state.track = e.target.value; clearDay(); draw(); }
+    if (e.target.id === 'ma-car') { state.car = e.target.value; state.track = 'all'; rememberTrack(); clearDay(); draw(); }
+    if (e.target.id === 'ma-track') { state.track = e.target.value; rememberTrack(); clearDay(); draw(); }
   });
   // Redraw the graph at a new width (a phone turned sideways).
   var lastW = app.clientWidth, timer = 0;
@@ -649,6 +628,8 @@
     state.sessions = res[0].sessions || [];
     (res[1].cars || []).forEach(function (c) { state.cars[c.id] = c.name || 'Car'; });
     // A link from a session opens the page on that car and track (?car=, ?track=); an unknown track falls back to all tracks.
+    // The track picked last time is remembered on this device; a link with ?track= still takes precedence.
+    try { var kept = localStorage.getItem(TRACK_KEY); if (kept) state.track = kept; } catch (e) { /* storage blocked */ }
     var q = new URLSearchParams(location.search);
     if (q.get('car')) state.car = q.get('car');
     if (q.get('track')) state.track = q.get('track');

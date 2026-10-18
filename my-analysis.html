@@ -233,8 +233,6 @@
   .ma-track-cell .ma-tm-icon { stroke:var(--orange); }
   .tm-pick { display:grid; gap:4px; font-size:.8rem; color:var(--steel); min-width:0; }
   .tm-pick select { font:inherit; font-size:.95rem; min-height:44px; padding:6px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); width:100%; min-width:0; }
-  .ma-tiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 12px; }
-  .ma-tiles .tm-tile b { font-size:.98rem; }
   .ma-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -14px; padding:0 14px; }
   .ma-table { border-collapse:collapse; width:100%; min-width:900px; font-size:.84rem; }
   .ma-table th, .ma-table td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--hair); white-space:nowrap; font-variant-numeric:tabular-nums; }
@@ -244,7 +242,6 @@
   .ma-setup .tm-row.tm-head { grid-template-columns:minmax(0,1.6fr) repeat(4,minmax(0,1fr)); }
   @media (max-width:780px) {
     .ma-controls { grid-template-columns:minmax(0,1fr); }
-    .ma-tiles { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .ma-setup .tm-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .ma-setup .tm-row.tm-head { display:none; }
     .ma-setup .tm-row > div:first-child { grid-column:1 / -1; }
@@ -351,7 +348,7 @@
 
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/my-analysis-page.js?v=33" defer></script>
+<script src="js/my-analysis-page.js?v=35" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

@@ -15,7 +15,7 @@ def add(fake, sid, date, best, car="car1", tyres="", pads="", mode=None, brake_g
     fake.index.append(entry)
 
 
-def test_my_analysis_shows_the_tiles_findings_chart_setups_and_every_session(page):
+def test_my_analysis_shows_the_findings_chart_setups_and_every_session(page):
     fake = FakeWorker(earlier=False)
     add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin Pilot Sport 4S", pads="Pagid RSL29", brake_g=1.1, temp=14,
         mode={"soc": [70.0, 62.0], "power": 230, "brakeTemp": 61, "batteryTemp": 49})
@@ -24,10 +24,8 @@ def test_my_analysis_shows_the_tiles_findings_chart_setups_and_every_session(pag
     add(fake, "a3", "2026-05-15", 60.9, tyres="Toyo R888R", pads="", brake_g=1.0, temp=12,
         mode={"soc": [61.0, 52.0], "power": 240, "brakeTemp": 70, "batteryTemp": 50})
     open_page(page, fake, "/my-analysis.html")
-    tiles = page.locator(".ma-tiles .tm-tile")
-    expect(tiles).to_have_count(7)
-    expect(tiles.nth(0)).to_contain_text("3")
-    expect(tiles.nth(1)).to_contain_text("1:00.50")
+    # No summary tiles: the findings, the graph and the rest are what the page leads with.
+    expect(page.locator(".ma-tiles")).to_have_count(0)
     expect(page.locator("#ma-app")).to_contain_text("Your best lap is 1:00.50")
     expect(page.locator("#ma-app")).to_contain_text("Your latest lap is 0.10 s quicker than your first")
     # The chart plots every session: a dot each, opening its session.
@@ -63,6 +61,24 @@ def test_my_analysis_picks_a_car_and_a_track(page):
     expect(page.locator(".ma-table tbody tr")).to_have_count(2)
     page.locator("#ma-car").select_option("car2")
     expect(page.locator(".ma-table tbody tr")).to_have_count(1)
+
+
+def test_the_track_picked_is_remembered_when_the_page_is_opened_again(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0)
+    add(fake, "a2", "2026-05-08", 60.5)
+    r = dict(day_session("t1", "10:00", 80.0, 4, date="2026-05-22", venue="Thruxton", venue_id="thruxton"), layoutId="thruxton", layout="Thruxton", carId="car1")
+    fake.sessions["t1"] = dict(r)
+    fake.index.append(dict(summary(r), carId="car1", tyres="", pads="", drive="", temp=None, brakeG=None, mode={"brakeTemp": 70, "power": 240}))
+    open_page(page, fake, "/my-analysis.html")
+    page.locator("#ma-track").select_option(label="Thruxton · Track day")
+    expect(page.locator("#ma-track")).to_have_value("Thruxton|Thruxton")
+    # Opened again, the same track is picked (and the All figures grid is on it).
+    page.reload()
+    expect(page.locator("#ma-track")).to_have_value("Thruxton|Thruxton")
+    expect(page.locator("#ma-grid .ma-fig-card").first).to_be_visible()
+    # The grid has no track chips of its own: the drop-down above it is the one choice.
+    expect(page.locator("button[data-grid-track]")).to_have_count(0)
 
 
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
@@ -235,7 +251,6 @@ def test_my_analysis_is_a_paid_tool_for_free_members_while_the_switch_is_on(page
     add(fake, "a1", "2026-05-01", 61.0)
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator("#ma-app")).to_contain_text("Data analysis is a Laps Pro feature")
-    expect(page.locator(".ma-tiles")).to_have_count(0)
 
 
 def test_full_access_and_the_switch_off_see_my_analysis(page):
@@ -243,7 +258,7 @@ def test_full_access_and_the_switch_off_see_my_analysis(page):
     fake.tiers = {"success": True, "applies": True, "full": True, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     add(fake, "a1", "2026-05-01", 61.0)
     open_page(page, fake, "/my-analysis.html")
-    expect(page.locator(".ma-tiles .tm-tile").first).to_be_visible()
+    expect(page.locator("#ma-grid")).to_be_visible()
 
 
 def test_the_chart_key_sits_above_the_graph_and_the_dots_use_the_three_colours(page):

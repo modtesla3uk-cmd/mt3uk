@@ -24,8 +24,9 @@
     st.textContent =
       '.tp-quota-ring { position: relative; display: inline-flex; margin-left: 10px; vertical-align: middle; }' +
       '.tp-quota-ring[hidden] { display: none; }' +
+      '#tp-quota-ring.tp-quota-ring { border: 0 !important; box-shadow: none !important; background: none !important; padding: 0 !important; border-radius: 0 !important; min-height: 0 !important; }' +
       '.tp-quota-ring-btn { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 3px 12px 3px 6px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; cursor: pointer; }' +
-      '.tp-quota-ring-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(300px, calc(100vw - 32px)); padding: 12px 48px 12px 14px; border: 1px solid rgba(0,0,0,.2); border-radius: 10px; background: #9cc7f2; color: #000; opacity: 1; box-shadow: 0 10px 26px rgba(0,0,0,.25); font: 400 14px/1.45 var(--font-body, system-ui); text-align: left; white-space: normal; }' +
+      '.tp-quota-ring-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(300px, calc(100vw - 32px)); padding: 12px 48px 12px 14px; border: 1px solid rgba(0,0,0,.2); border-radius: 10px; background: #f3f1ea; color: #000; opacity: 1; box-shadow: 0 10px 26px rgba(0,0,0,.25); font: 400 14px/1.45 var(--font-body, system-ui); text-align: left; white-space: normal; }' +
       '.tp-quota-ring-pop, .tp-quota-ring-pop * { color: #000 !important; opacity: 1 !important; }' +
       '.tp-quota-ring-pop[hidden] { display: none; }' +
       '.tp-quota-ring-pop b { display: block; margin-bottom: 4px; font-size: 15px; }' +

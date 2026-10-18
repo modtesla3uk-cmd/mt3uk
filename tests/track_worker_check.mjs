@@ -804,6 +804,8 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   // A session at a track that has since gone from the list (renamed or re-added) is found, and Repair links it, and the
   // member's other sessions there, to the track it looks like.
   {
+    // Sprints and hill climbs are gated while they are tested; open them for this block of checks.
+    await call('POST', '/track/kinds/admin?key=secret', { action: 'mode', mode: 'all' });
     const sl2 = [[52.2, -2.3], [52.2002, -2.3002]], fl2 = [[52.21, -2.31], [52.2102, -2.3102]];
     await call('PUT', '/track/admin/tracks?key=secret', { venue: { name: 'Gone Hill', type: 'sprint', hill: true, lat: 52.2, lng: -2.3, radius: 1500, layouts: [{ name: 'Hill', length: 900, sectors: [], corners: [] }] } });
     const gv = (await call('GET', '/track/tracks')).body.extra.venues.find(v => v.name === 'Gone Hill');

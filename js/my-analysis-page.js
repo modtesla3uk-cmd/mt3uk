@@ -11,7 +11,8 @@
   // The desktop Track Mode badge is kept here, because the app is drawn again each time and the badge moves into it.
   var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
-  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null };
+  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridView: 'time', gridGroup: 'All figures' };
+  var scrollAfterDraw = false;
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmtLap(s) { return V.fmtLap ? V.fmtLap(s) : s.toFixed(2); }
@@ -70,13 +71,6 @@
     { id: 'conditions', label: 'Conditions', get: function (s) { return s.conditions || ''; } },
     { id: 'logger', label: 'Logger', get: function (s) { return s.logger || ''; } }
   ];
-
-  // The orange scale of the Over time graph: faded for the lower end, strong orange for the top.
-  var SHADE_LOW = [246, 196, 168], SHADE_HIGH = [232, 89, 12];
-  function shadeAt(t) {
-    t = Math.max(0, Math.min(1, t));
-    return 'rgb(' + SHADE_LOW.map(function (v, i) { return Math.round(v + (SHADE_HIGH[i] - v) * t); }).join(',') + ')';
-  }
 
   // The sessions the page is about: the car and track picked.
   // Drives are not analysed here, so they are left out of every figure, the chart and the table.
@@ -181,10 +175,9 @@
     function X(i) { return L + i / (pts.length - 1) * (W - L - R); }
     function Y(v) { return T + (y1 - v) / span * (H - T - B); }
     var dots = pts.map(function (x, i) {
-      var t = (x.v - y0) / span;
       var cx = X(i).toFixed(1), cy = Y(x.v).toFixed(1), id = esc(x.s.id), on = state.picked === x.s.id;
-      return '<circle class="ma-hit" data-session="' + id + '" cx="' + cx + '" cy="' + cy + '" r="14" fill="transparent"/>' +
-        '<circle class="ma-dot' + (on ? ' is-picked' : '') + '" data-session="' + id + '" tabindex="0" role="button" cx="' + cx + '" cy="' + cy + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
+      return '<circle class="ma-hit" data-session="' + id + '" data-day="' + esc(dayKey(x.s)) + '" cx="' + cx + '" cy="' + cy + '" r="14" fill="transparent"/>' +
+        '<circle class="ma-dot' + (on ? ' is-picked' : '') + '" data-session="' + id + '" tabindex="0" role="button" cx="' + cx + '" cy="' + cy + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + figureColour(m, x.v, vs) + '" data-day="' + esc(dayKey(x.s)) + '"><title>' +
         esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Press to see that day') + '</title></circle>';
     }).join('');
     var grid = '';
@@ -203,10 +196,7 @@
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].s.date)) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in date order</text>' +
       dots + '</svg>';
-    // The key runs from the light end (the dots at the bottom of the scale's slow end) to the dark end, so its words match the dots.
-    var keyWords = m.quicker ? ['Slower', 'Quicker'] : ['Lower', 'Higher'];
-    var legend = '<p class="tm-legend"><span>' + esc(keyWords[0]) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + esc(keyWords[1]) + '</span></p>';
-    return '<div class="tm-card tm-chart">' + head + chips + legend + svg + '</div>';
+    return '<div class="tm-card tm-chart">' + head + chips + keyHtml() + svg + '</div>';
   }
 
   function setupBlock(list) {
@@ -277,21 +267,35 @@
     if (!state.day) return [];
     return sortByWhen(list.filter(function (s) { return trackKey(s) === state.day.track && s.date === state.day.date; }));
   }
-  // The colours of a day's figures, as in the mock-up: a performance figure is fast within 1% of your best at this track and
-  // slow 3% or more off it; a heat figure takes the car's heat zones; a context figure is grey.
+  // The colours of the figures, as in the mock-up: a performance figure is fast within 1% of your best at this track and slow
+  // 3% or more off it; a heat figure takes the car's heat zones; a context figure is grey. vals are the figure's values across
+  // the sessions of the track, so "your best" is the best of them.
   var FAST = '#1f8a70', MIDDLE = '#16233d', SLOW = '#e8542a', CONTEXT = '#9aa3b5';
   var HEAT = { normal: '#3d6b8f', yellow: '#eab308', orange: '#c2410c', red: '#b91c1c' };
   var HIGHER_IS_BETTER = { speed: true, brakeg: true, power: true, brakep: true, throttle: true };
   var HEAT_FIGURE = { brakes: true, battemp: true, inverter: true };
+  var GROUPS = ['All figures', 'Pace', 'Brakes', 'Power', 'Battery and heat', 'Driving', 'Conditions'];
+  var FIGURE_GROUP = { lap: 'Pace', speed: 'Pace', brakeg: 'Brakes', brakep: 'Brakes', brakes: 'Brakes', power: 'Power', regen: 'Power', used: 'Battery and heat', battemp: 'Battery and heat', inverter: 'Battery and heat', throttle: 'Driving', slip: 'Driving', temp: 'Conditions', press: 'Conditions' };
+  var GRID_ORDER = ['lap', 'speed', 'brakeg', 'brakep', 'brakes', 'power', 'regen', 'used', 'battemp', 'inverter', 'throttle', 'slip', 'temp', 'press'];
   function heatZone(p) { return p >= 100 ? 'red' : p >= 85 ? 'orange' : p >= 70 ? 'yellow' : 'normal'; }
-  function dayColour(m, v, pool) {
-    if (HEAT_FIGURE[m.id]) return HEAT[heatZone(v)];
-    if (m.id !== 'lap' && !HIGHER_IS_BETTER[m.id]) return CONTEXT;
-    var vals = pool.map(function (s) { return m.get(s); }).filter(function (x) { return x != null; });
-    var quickest = m.id === 'lap';
-    var best = quickest ? Math.min.apply(null, vals) : Math.max.apply(null, vals);
-    var off = quickest ? (v - best) / best * 100 : (best - v) / best * 100;
+  function figureKind(m) { return m.id === 'lap' ? 'low' : HIGHER_IS_BETTER[m.id] ? 'high' : HEAT_FIGURE[m.id] ? 'heat' : 'ctx'; }
+  function figureColour(m, v, vals) {
+    var kind = figureKind(m);
+    if (kind === 'heat') return HEAT[heatZone(v)];
+    if (kind === 'ctx') return CONTEXT;
+    var best = kind === 'low' ? Math.min.apply(null, vals) : Math.max.apply(null, vals);
+    var off = kind === 'low' ? (v - best) / best * 100 : (best - v) / best * 100;
     return off <= 1 ? FAST : off >= 3 ? SLOW : MIDDLE;
+  }
+  function valuesOf(m, list) { return list.map(function (s) { return m.get(s); }).filter(function (x) { return x != null; }); }
+  function dayColour(m, v, pool) { return figureColour(m, v, valuesOf(m, pool)); }
+  function dayKey(s) { return trackKey(s) + '|' + s.date; }
+  // The key under the graph and the grid: the same colours and heat zones as the day panel.
+  function keyHtml() {
+    var items = [[FAST, 'Fast: within 1% of your best here'], [MIDDLE, 'Middle'], [SLOW, 'Slow: 3% or more off your best'],
+      [HEAT.normal, 'Heat: normal'], [HEAT.yellow, 'Heat: yellow, from 70%'], [HEAT.orange, 'Heat: orange, from 85%'],
+      [HEAT.red, 'Heat: red, 100% and over'], [CONTEXT, 'Context: no good or bad']];
+    return '<div class="ma-day-key ma-key">' + items.map(function (k) { return '<span><i style="background:' + k[0] + '"></i>' + esc(k[1]) + '</span>'; }).join('') + '</div>';
   }
   function dayPanel(list) {
     var rows = dayRows(list);
@@ -319,16 +323,167 @@
       '<div class="ma-day-key">' + key.map(function (k) { return '<span><i style="background:' + k[0] + '"></i>' + esc(k[1]) + '</span>'; }).join('') + '</div>' +
       sessions + '</div>';
   }
-  // A dot opens its day, and the page moves to the graph so the day's sessions sit directly under it.
-  function isDot(el) { return !!el.classList && (el.classList.contains('ma-dot') || el.classList.contains('ma-hit')); }
-  function openDay(id) {
+  // One figure's card in the grid: a dot per session, or per day in By day, each in the three colours.
+  function figureCard(m, sessions, view, group, trackName) {
+    var rows = sessions.map(function (s) { return { s: s, v: m.get(s) }; }).filter(function (x) { return x.v != null; });
+    if (!rows.length) return '';
+    var kind = figureKind(m), vals = rows.map(function (x) { return x.v; }), pts;
+    if (view === 'day') {
+      var days = [], byDay = {};
+      rows.forEach(function (x) {
+        if (!byDay[x.s.date]) { byDay[x.s.date] = []; days.push(x.s.date); }
+        byDay[x.s.date].push(x);
+      });
+      pts = days.map(function (d) {
+        var xs = byDay[d].map(function (x) { return x.v; });
+        var v = kind === 'low' ? Math.min.apply(null, xs) : kind === 'ctx' ? avg(xs) : Math.max.apply(null, xs);
+        var pick = byDay[d].filter(function (x) { return x.v === v; })[0] || byDay[d][0];
+        return { v: v, s: pick.s, date: d };
+      });
+    } else {
+      pts = rows.map(function (x) { return { v: x.v, s: x.s, date: x.s.date }; });
+    }
+    pts.forEach(function (p) { p.c = figureColour(m, p.v, vals); p.key = dayKey(p.s); });
+    var unit = view === 'day' ? 'days' : 'sessions', headline, sub, foot;
+    if (kind === 'low' || kind === 'high') {
+      headline = m.fmt(kind === 'low' ? Math.min.apply(null, vals) : Math.max.apply(null, vals));
+      sub = 'your best at ' + trackName;
+    } else if (kind === 'heat') {
+      headline = m.fmt(Math.max.apply(null, vals));
+      sub = 'hottest at ' + trackName;
+    } else {
+      headline = m.fmt(rows[rows.length - 1].v);
+      sub = 'latest at ' + trackName;
+    }
+    if (kind === 'ctx') {
+      foot = 'Context figure, grey: no good or bad';
+    } else if (kind === 'heat') {
+      var z = { normal: 0, yellow: 0, orange: 0, red: 0 };
+      pts.forEach(function (p) { z[heatZone(p.v)] += 1; });
+      foot = 'Normal ' + z.normal + ', yellow ' + z.yellow + ', orange ' + z.orange + ', red ' + z.red + ' ' + unit;
+    } else {
+      var n = { fast: 0, middle: 0, slow: 0 };
+      pts.forEach(function (p) { if (p.c === FAST) n.fast += 1; else if (p.c === SLOW) n.slow += 1; else n.middle += 1; });
+      foot = 'Fast ' + n.fast + ', middle ' + n.middle + ', slow ' + n.slow + ' ' + unit;
+    }
+    // Better is up: a faster lap, or a higher performance figure, sits at the top of its strip.
+    var W = 300, H = 56, P = 8;
+    var lo = Math.min.apply(null, pts.map(function (p) { return p.v; })), hi = Math.max.apply(null, pts.map(function (p) { return p.v; }));
+    var span = (hi - lo) || 1;
+    var xy = pts.map(function (p, i) {
+      var x = P + (pts.length > 1 ? i / (pts.length - 1) : 0.5) * (W - 2 * P);
+      var frac = kind === 'low' ? (hi - p.v) / span : (p.v - lo) / span;
+      return { x: x.toFixed(1), y: (P + (1 - frac) * (H - 2 * P)).toFixed(1) };
+    });
+    var line = xy.length > 1 ? '<polyline points="' + xy.map(function (q) { return q.x + ',' + q.y; }).join(' ') + '" fill="none" stroke="#d3d8e2" stroke-width="1.5"/>' : '';
+    var dots = pts.map(function (p, i) {
+      return '<circle class="ma-gdot" cx="' + xy[i].x + '" cy="' + xy[i].y + '" r="5.5" fill="' + p.c + '" stroke="#fff" stroke-width="1.5" data-session="' + esc(p.s.id) + '" data-day="' + esc(p.key) + '" tabindex="0" role="button"><title>' + esc(niceDate(p.date) + ': ' + m.fmt(p.v) + '. Press to see that day') + '</title></circle>';
+    }).join('');
+    var hits = pts.map(function (p, i) {
+      return '<circle class="ma-ghit" cx="' + xy[i].x + '" cy="' + xy[i].y + '" r="21" fill="transparent" data-session="' + esc(p.s.id) + '" data-day="' + esc(p.key) + '"/>';
+    }).join('');
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.label + ', ' + unit) + '">' + line + hits + dots + '</svg>';
+    var axis = '<div class="ma-axis"><span>' + esc(niceDate(pts[0].date)) + '</span><span>' + esc(niceDate(pts[pts.length - 1].date)) + '</span></div>';
+    return '<div class="tm-card ma-fig-card" data-figure="' + m.id + '"' + (group !== 'All figures' && FIGURE_GROUP[m.id] !== group ? ' hidden' : '') + '>' +
+      '<div class="ma-fig-top"><b>' + esc(m.label) + '</b><span class="ma-grp">' + esc(FIGURE_GROUP[m.id]) + '</span></div>' +
+      '<div class="ma-fig-val">' + esc(headline) + '</div><div class="ma-fig-sub">' + esc(sub) + '</div>' +
+      svg + axis + '<div class="ma-fig-foot">' + esc(foot) + '</div></div>';
+  }
+
+  // The All figures grid: one track at a time, its figures as cards, with the track, view and group choices above them.
+  function gridSection() {
+    var carList = state.sessions.filter(function (s) { return s.type !== 'other' && (state.car === 'all' || s.carId === state.car); });
+    var counts = {}, names = {};
+    carList.filter(function (s) { return timed(s) || s.type === 'drag'; }).forEach(function (s) {
+      var k = trackKey(s);
+      counts[k] = (counts[k] || 0) + 1;
+      names[k] = names[k] || trackOf(s);
+    });
+    var keys = Object.keys(counts);
+    if (!keys.length) return '';
+    keys.sort(function (a, b) { return names[a] < names[b] ? -1 : 1; });
+    var track = keys.indexOf(state.track) !== -1 ? state.track : keys.reduce(function (a, b) { return counts[b] > counts[a] ? b : a; });
+    var sessions = sortByWhen(carList.filter(function (s) { return trackKey(s) === track; }));
+    var venue = sessions[0].venue || names[track];
+    var chips = keys.map(function (k) {
+      return '<button type="button" class="chip' + (k === track ? ' is-on' : '') + '" data-grid-track="' + esc(k) + '" aria-pressed="' + (k === track) + '">' + esc(names[k]) + '</button>';
+    }).join('');
+    var views = [['time', 'Over time'], ['day', 'By day']].map(function (v) {
+      return '<button type="button" class="chip' + (state.gridView === v[0] ? ' is-on' : '') + '" data-grid-view="' + v[0] + '" aria-pressed="' + (state.gridView === v[0]) + '">' + v[1] + '</button>';
+    }).join('');
+    var groups = GROUPS.map(function (g) {
+      return '<button type="button" class="chip' + (state.gridGroup === g ? ' is-on' : '') + '" data-grid-group="' + esc(g) + '" aria-pressed="' + (state.gridGroup === g) + '">' + esc(g) + '</button>';
+    }).join('');
+    var cards = GRID_ORDER.map(function (id) {
+      var m = METRICS.filter(function (x) { return x.id === id; })[0];
+      return m ? figureCard(m, sessions, state.gridView, state.gridGroup, venue) : '';
+    }).join('');
+    return '<div class="tm-card ma-grid-head"><h2>All figures</h2>' +
+      '<p class="tm-note">One track at a time, one dot per session. Each figure is coloured against your best at this track. Press a dot to see that day under the figure.</p>' +
+      '<div class="tm-chips ma-grid-chips" role="group" aria-label="Track">' + chips + '</div>' +
+      '<div class="tm-chips ma-grid-chips" role="group" aria-label="View">' + views + '</div>' +
+      '<div class="tm-chips ma-grid-chips" role="group" aria-label="Figures">' + groups + '</div>' +
+      keyHtml() + '</div>' +
+      '<div class="ma-grid" id="ma-grid">' + cards + '</div>';
+  }
+
+  // The day panel sits under the graph when a graph dot opened it; otherwise the picked session's card shows there.
+  function beneathChart(list) {
+    if (!state.day) return pickHtml(list);
+    return state.day.anchor === 'chart' ? dayPanel(list) : '';
+  }
+
+  // A day opened from a figure's dot sits under that figure: after its row on a phone or tablet, at the bottom of the grid on a desktop.
+  function placeGridDay(list) {
+    var a = state.day && state.day.anchor;
+    if (!a || a === 'chart') return;
+    var grid = document.getElementById('ma-grid');
+    var card = grid && grid.querySelector('.ma-fig-card[data-figure="' + a + '"]');
+    if (!card || card.hidden) { clearDay(); return; }
+    var box = document.createElement('div');
+    box.innerHTML = dayPanel(list);
+    var panel = box.firstChild;
+    if (!panel) return;
+    var cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    if (cols > 2) { grid.appendChild(panel); return; }
+    var cards = Array.prototype.filter.call(grid.children, function (el) { return el.classList.contains('ma-fig-card') && !el.hidden; });
+    var end = Math.min(cards.length - 1, Math.floor(cards.indexOf(card) / cols) * cols + cols - 1);
+    grid.insertBefore(panel, cards[end].nextSibling);
+  }
+
+  // After a dot opens a day: the graph's dot brings the graph to the top of the screen; a phone's grid card brings the card,
+  // with its day under it; on a desktop the day is at the bottom of the grid.
+  function scrollToDay() {
+    var a = state.day && state.day.anchor;
+    var target = app.querySelector('.tm-chart svg') || app.querySelector('.tm-chart');
+    if (a && a !== 'chart') {
+      target = app.querySelector('.ma-fig-card[data-figure="' + a + '"]');
+      var panel = app.querySelector('#ma-day');
+      var grid = document.getElementById('ma-grid');
+      if (panel && grid && panel.parentElement === grid && getComputedStyle(grid).gridTemplateColumns.split(' ').length > 2) target = panel;
+    }
+    if (target && target.scrollIntoView) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  // Highlights every dot of the day on show, on the graph and in each figure.
+  function markDay() {
+    var dots = Array.prototype.slice.call(app.querySelectorAll('.ma-dot, .ma-gdot'));
+    dots.forEach(function (d) { d.classList.remove('is-open'); });
+    if (!state.day) return;
+    var k = state.day.track + '|' + state.day.date;
+    dots.forEach(function (d) { if (d.getAttribute('data-day') === k) d.classList.add('is-open'); });
+  }
+
+  function isDot(el) { return !!el.classList && ['ma-dot', 'ma-hit', 'ma-gdot', 'ma-ghit'].some(function (c) { return el.classList.contains(c); }); }
+  // The figure a dot sits in, or the graph.
+  function anchorOf(el) { var card = el.closest ? el.closest('.ma-fig-card') : null; return card ? card.getAttribute('data-figure') : 'chart'; }
+  function openDay(id, anchor) {
     var s = state.sessions.filter(function (x) { return x.id === id; })[0];
     if (!s) return;
     state.picked = id;
-    state.day = { track: trackKey(s), date: s.date };
+    state.day = { track: trackKey(s), date: s.date, anchor: anchor || 'chart' };
+    scrollAfterDraw = true;
     draw();
-    var graph = app.querySelector('.tm-chart svg') || app.querySelector('.tm-chart');
-    if (graph && graph.scrollIntoView) graph.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
   function clearDay() { state.day = null; state.picked = null; }
   function draw() {
@@ -352,7 +507,7 @@
       var says = findings(list);
       body = '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
         tiles(list) +
-        chart(list) + (dayPanel(list) || pickHtml(list)) + setupBlock(list) + detailsTable(list);
+        chart(list) + beneathChart(list) + gridSection() + setupBlock(list) + detailsTable(list);
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     // (The title's badge on desktop and the copy under the buttons on a phone.)
@@ -375,6 +530,9 @@
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + '<div class="ma-track-cell">' + trackPick + '<span class="ma-tm-slot"></span></div></div>' + body;
     var slot = app.querySelector('.ma-tm-slot');
     if (slot && tmDesk) slot.replaceWith(tmDesk);
+    placeGridDay(list);
+    markDay();
+    if (scrollAfterDraw) { scrollAfterDraw = false; scrollToDay(); }
   }
 
   // A dot or a table row selects its session: the panel above the table shows it, and the page moves to the panel.
@@ -388,7 +546,7 @@
   document.addEventListener('click', function (e) {
     var el = e.target && e.target.closest ? e.target.closest('[data-session]') : null;
     if (!el || !app.contains(el) || (e.target.closest && e.target.closest('a'))) return;
-    if (isDot(el)) { openDay(el.getAttribute('data-session')); return; }
+    if (isDot(el)) { openDay(el.getAttribute('data-session'), anchorOf(el)); return; }
     selectSession(el, el.tagName.toLowerCase() !== 'tr');
   });
   document.addEventListener('keydown', function (e) {
@@ -396,7 +554,7 @@
     var el = e.target && e.target.getAttribute ? e.target.getAttribute('data-session') : null;
     if (!el || !app.contains(e.target)) return;
     e.preventDefault();
-    if (isDot(e.target)) { openDay(el); return; }
+    if (isDot(e.target)) { openDay(el, anchorOf(e.target)); return; }
     selectSession(e.target, true);
   });
   // The day panel's close button clears the day and the session picked with it.
@@ -407,10 +565,13 @@
   });
   // The figure and setup chips, and the drop-downs, redraw the page in place.
   document.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('[data-metric],[data-setup]') : null;
+    var b = e.target && e.target.closest ? e.target.closest('[data-metric],[data-setup],[data-grid-track],[data-grid-view],[data-grid-group]') : null;
     if (!b || !app.contains(b)) return;
     if (b.getAttribute('data-metric')) state.metric = b.getAttribute('data-metric');
     if (b.getAttribute('data-setup')) state.setup = b.getAttribute('data-setup');
+    if (b.getAttribute('data-grid-track')) { state.track = b.getAttribute('data-grid-track'); clearDay(); }
+    if (b.getAttribute('data-grid-view')) state.gridView = b.getAttribute('data-grid-view');
+    if (b.getAttribute('data-grid-group')) state.gridGroup = b.getAttribute('data-grid-group');
     draw();
   });
   document.addEventListener('change', function (e) {

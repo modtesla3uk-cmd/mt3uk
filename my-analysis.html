@@ -157,6 +157,26 @@
   .ma-facts dd { margin: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   .ma-open { display: inline-flex; align-items: center; min-height: 44px; }
   .tm-chart svg { scroll-margin-top: 100px; }
+  .ma-grid-head h2 { margin: 0 0 4px; }
+  .ma-grid-head > .tm-note { margin: 0 0 8px; }
+  .ma-grid-chips { margin: 8px 0 0; }
+  .ma-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  .ma-grid > #ma-day { grid-column: 1 / -1; margin-top: 0; }
+  .ma-fig-card { min-width: 0; }
+  .ma-fig-card { scroll-margin-top: 100px; }
+  .ma-fig-card[hidden] { display: none; }
+  .ma-fig-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .ma-fig-top b { font-size: .98rem; }
+  .ma-grp { font-size: .74rem; color: var(--steel); background: #eef1f6; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .ma-fig-val { font-size: 1.5rem; font-weight: 800; margin-top: 8px; }
+  .ma-fig-sub { font-size: .85rem; color: var(--steel); margin-bottom: 6px; }
+  .ma-fig-card svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ma-dot, .ma-gdot, .ma-hit, .ma-ghit { cursor: pointer; }
+  .ma-dot.is-open, .ma-gdot.is-open { stroke: #16233d; stroke-width: 3px; }
+  .ma-axis { display: flex; justify-content: space-between; font-size: .78rem; color: var(--steel); margin-top: 2px; }
+  .ma-fig-foot { font-size: .8rem; color: var(--steel); margin-top: 6px; }
+  @media (max-width: 780px) { .ma-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .ma-grid { grid-template-columns: minmax(0, 1fr); } }
   .ma-day-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .ma-day-head h2 { margin: 0; }
   .ma-day-head .tm-note { margin: 4px 0 0; }
@@ -331,7 +351,7 @@
 
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/my-analysis-page.js?v=30" defer></script>
+<script src="js/my-analysis-page.js?v=31" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

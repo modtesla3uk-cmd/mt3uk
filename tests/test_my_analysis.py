@@ -246,20 +246,74 @@ def test_full_access_and_the_switch_off_see_my_analysis(page):
     expect(page.locator(".ma-tiles .tm-tile").first).to_be_visible()
 
 
-def test_the_chart_key_sits_above_the_graph_with_its_words_matching_the_dots(page):
+def test_the_chart_key_sits_above_the_graph_and_the_dots_use_the_three_colours(page):
     fake = FakeWorker(earlier=False)
     for sid, date, best in [("a1", "2026-02-23", 79.4), ("a2", "2026-03-09", 78.1), ("a3", "2026-04-06", 76.9), ("a4", "2026-05-01", 75.8)]:
         add(fake, sid, date, best)
     open_page(page, fake, "/my-analysis.html")
     chart = page.locator("#ma-app .tm-chart")
-    key = chart.locator(".tm-legend")
-    expect(key.locator("span").first).to_have_text("Slower")
-    expect(key.locator("span").last).to_have_text("Quicker")
-    assert key.locator(".tm-grad").bounding_box()["width"] > 50
+    key = chart.locator(".ma-key")
+    expect(key.locator("span").first).to_contain_text("Fast: within 1% of your best here")
+    expect(key.locator("span").nth(2)).to_contain_text("Slow: 3% or more off your best")
     # The key comes before the graph, not under its axis labels.
     assert key.bounding_box()["y"] < chart.locator("svg").bounding_box()["y"]
     # The measure's name is over the vertical axis.
     expect(chart.locator("svg text").filter(has_text="Best lap")).to_have_count(1)
+    # The same colours as the figures, in date order: slow, slow, middle, then fast for the quickest lap.
+    fills = chart.locator(".ma-dot").evaluate_all("els => els.map(e => e.getAttribute('fill'))")
+    assert fills == ["#e8542a", "#e8542a", "#16233d", "#1f8a70"], fills
+
+
+def test_the_all_figures_grid_shows_each_figure_at_one_track_with_its_views_and_groups(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, temp=14, mode={"brakeTemp": 61, "power": 230, "batteryTemp": 49})
+    add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, temp=16, mode={"brakeTemp": 84, "power": 260, "batteryTemp": 52})
+    add(fake, "a3", "2026-05-15", 60.9, brake_g=1.0, temp=12, mode={"brakeTemp": 70, "power": 240, "batteryTemp": 50})
+    open_page(page, fake, "/my-analysis.html")
+    grid = page.locator("#ma-grid")
+    expect(grid).to_be_visible()
+    # A card for each figure the sessions record, and none for a figure they do not.
+    expect(grid.locator('.ma-fig-card[data-figure="lap"]')).to_be_visible()
+    expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_contain_text("84%")
+    expect(grid.locator('.ma-fig-card[data-figure="brakep"]')).to_have_count(0)
+    # A group shows only its figures.
+    page.locator('button[data-grid-group="Brakes"]').click()
+    expect(grid.locator('.ma-fig-card[data-figure="lap"]')).to_be_hidden()
+    expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_be_visible()
+    page.locator('button[data-grid-group="All figures"]').click()
+    expect(grid.locator('.ma-fig-card[data-figure="lap"]')).to_be_visible()
+    # By day: one dot per day, and each card says so.
+    page.locator('button[data-grid-view="day"]').click()
+    expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_contain_text("days")
+    expect(grid.locator('.ma-fig-card[data-figure="brakes"] .ma-gdot')).to_have_count(3)
+
+
+def test_on_a_phone_a_grid_dot_opens_its_day_directly_under_that_figure(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, mode={"brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, mode={"brakeTemp": 84})
+    add(fake, "a3", "2026-05-08", 60.9, brake_g=1.0, mode={"brakeTemp": 70})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] .ma-gdot[data-session="a2"]').click()
+    expect(page.locator("#ma-day")).to_be_visible()
+    # The day sits directly under the figure it was tapped on, and its two sessions are highlighted in that figure.
+    assert page.evaluate("document.getElementById('ma-day').previousElementSibling.getAttribute('data-figure')") == "brakes"
+    expect(page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] .ma-gdot.is-open')).to_have_count(2)
+    # The figure and the top of its day are on the same screen, below the site header.
+    page.wait_for_timeout(900)
+    top = page.evaluate("document.querySelector('#ma-grid .ma-fig-card[data-figure=\"brakes\"]').getBoundingClientRect().top")
+    assert 80 <= top <= 160, top
+
+
+def test_on_a_desktop_a_grid_dot_opens_its_day_at_the_bottom_of_the_grid(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, mode={"brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, mode={"brakeTemp": 84})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] .ma-gdot[data-session="a2"]').click()
+    expect(page.locator("#ma-day")).to_be_visible()
+    assert page.evaluate("document.getElementById('ma-grid').lastElementChild.id") == "ma-day"
 
 
 def test_the_track_mode_badge_counts_the_sessions_until_a_track_is_picked(page):

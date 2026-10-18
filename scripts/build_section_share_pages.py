@@ -324,7 +324,7 @@ def pages_to_write():
     images = live_images()
     out = {}
     for page in PAGES:
-        # A page of the member's own (Favourites) is not shared, so it has no share page.
+        # A page marked data-no-share has no share page.
         if '<body data-no-share' in (ROOT / (page + ".html")).read_text(encoding="utf-8"):
             continue
         root = parse(ROOT / (page + ".html"))

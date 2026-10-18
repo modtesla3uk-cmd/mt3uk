@@ -352,7 +352,7 @@
 <script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
 <script src="js/laps-early-label.js?v=3" defer></script>
 </head>
-<body data-no-share>
+<body>
 
 <!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
 <div class="promo-banner" id="promo-banner">
@@ -432,7 +432,7 @@
   <div class="wrap">
     <div class="tp-hero-top lh-hero-top"><a href="track.html" data-btn="back" class="back-link lh-back" aria-label="Back to Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
     <div class="tp-hero-row lh-hero-row">
-      <h1 class="lh-title">Favourites<svg class="icon fav-title-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2-4.5-4.4 6.2-.9z"/></svg><button type="button" class="tp-what-q" aria-expanded="false" aria-label="What are Favourites?"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/></svg></button></h1>
+      <h1 class="lh-title" data-share-page>Favourites<svg class="icon fav-title-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2-4.5-4.4 6.2-.9z"/></svg><button type="button" class="tp-what-q" aria-expanded="false" aria-label="What are Favourites?"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/></svg></button></h1>
       <div class="fav-tools lh-hero-actions">
         <a href="my-analysis.html" data-btn="my-analysis" class="tp-lb-pill lh-pill lh-s1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis</a>
         <a href="leaderboards.html" data-btn="leaderboards" class="tp-lb-pill lh-pill lh-s2"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
@@ -484,6 +484,8 @@
   .fav-hero .fav-intro { grid-column:1 / -1; grid-row:3; color:#d3d8e2; margin:14px 0 0; max-width:62ch; text-align:left; justify-self:start; }
   /* Phone: the same 16px side gutter as the other Laps pages. */
   @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+  /* Phone: the heading is as tall as its buttons, with the list starting just below it. */
+  @media (max-width: 900px) { .fav-hero .wrap { height: auto !important; min-height: 0 !important; padding-bottom: 0; position: relative; } .fav-hero { padding-bottom: 0 !important; } .fav-hero .fav-tools > [data-laps-tip] { position: absolute; width: 0; height: 0; overflow: visible; } }
   /* Phone: Back and My Sessions on the first row, Leaderboards and My Analysis on the second. */
   @media (max-width: 900px) {
     .fav-hero .wrap { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }

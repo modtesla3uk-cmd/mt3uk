@@ -2,7 +2,7 @@
   My Analysis (my-analysis.html): the signed-in member's own Track sessions, read from their session list (GET /track/sessions)
   and garage names (GET /my-builds). It replaces the Analysis panel that used to sit on My Sessions. Every figure a session's
   summary carries is used: lap times, top speed, braking g, the Track Mode figures, air temperature, conditions, tyres, pads,
-  driven wheels and logger. Each dot opens its session.
+  driven wheels and logger. Each dot opens its day, with that day's sessions under the graph.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -11,7 +11,7 @@
   // The desktop Track Mode badge is kept here, because the app is drawn again each time and the badge moves into it.
   var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
-  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres' };
+  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmtLap(s) { return V.fmtLap ? V.fmtLap(s) : s.toFixed(2); }
@@ -170,7 +170,7 @@
     var chips = '<div class="tm-chips" role="group" aria-label="Figure to plot">' + avail.map(function (x) {
       return '<button type="button" class="chip' + (x.id === m.id ? ' is-on' : '') + '" data-metric="' + x.id + '" aria-pressed="' + (x.id === m.id) + '">' + esc(x.label) + '</button>';
     }).join('') + '</div>';
-    var head = '<h2>Over time</h2><p class="tm-note">Each dot is a session, in the order it was driven. Press a dot to open that session. Pick a figure to plot.</p>';
+    var head = '<h2>Over time</h2><p class="tm-note">Each dot is a session, in the order it was driven. Press a dot to see that day’s sessions below the graph. Pick a figure to plot.</p>';
     var pts = sortByWhen(list).map(function (s) { return { s: s, v: m.get(s) }; }).filter(function (x) { return x.v != null; });
     if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough sessions with this figure yet.</p></div>';
     var W = Math.round(Math.min(900, Math.max(320, (app.clientWidth || 800) - 48))), H = 278, L = 58, R = 12, T = 30, B = 54;
@@ -185,7 +185,7 @@
       var cx = X(i).toFixed(1), cy = Y(x.v).toFixed(1), id = esc(x.s.id), on = state.picked === x.s.id;
       return '<circle class="ma-hit" data-session="' + id + '" cx="' + cx + '" cy="' + cy + '" r="14" fill="transparent"/>' +
         '<circle class="ma-dot' + (on ? ' is-picked' : '') + '" data-session="' + id + '" tabindex="0" role="button" cx="' + cx + '" cy="' + cy + '" r="5" stroke="#16233d" stroke-opacity=".5" stroke-width="1" fill="' + shadeAt(m.quicker ? 1 - t : t) + '"><title>' +
-        esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Press to see the session') + '</title></circle>';
+        esc(niceDate(x.s.date) + ', ' + trackOf(x.s) + ': ' + m.fmt(x.v) + '. Press to see that day') + '</title></circle>';
     }).join('');
     var grid = '';
     for (var g = 0; g <= 5; g++) {
@@ -232,7 +232,7 @@
   // The session picked on the graph or in the table: its figures here, and a button to open it.
   function pickHtml(list) {
     var s = list.filter(function (x) { return x.id === state.picked; })[0];
-    if (!s) return '<div class="tm-card ma-pick" id="ma-pick"><p class="tm-note">Press a dot on the graph, or a row in the table, to see that session here.</p></div>';
+    if (!s) return '<div class="tm-card ma-pick" id="ma-pick"><p class="tm-note">Press a dot on the graph to see that day, or a row in the table to see that session here.</p></div>';
     var m = mode(s), u = used(s), facts = [
       ['Date', niceDate(s.date) + (s.time ? ' at ' + esc(s.time) : '')], ['Track', esc(trackOf(s))], ['Type', esc(kindOf(s))], ['Car', esc(carName(s.carId))],
       ['Conditions', esc(s.conditions || '')], ['Air temperature', num(s.temp) != null ? Math.round(s.temp) + ' °C' : ''], ['Logger', esc(s.logger || '')],
@@ -272,6 +272,65 @@
       '<div class="ma-scroll"><table class="ma-table"><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div></div>';
   }
 
+  // The day a dot opens: every session at its track on its date, in the order they were driven.
+  function dayRows(list) {
+    if (!state.day) return [];
+    return sortByWhen(list.filter(function (s) { return trackKey(s) === state.day.track && s.date === state.day.date; }));
+  }
+  // The colours of a day's figures, as in the mock-up: a performance figure is fast within 1% of your best at this track and
+  // slow 3% or more off it; a heat figure takes the car's heat zones; a context figure is grey.
+  var FAST = '#1f8a70', MIDDLE = '#16233d', SLOW = '#e8542a', CONTEXT = '#9aa3b5';
+  var HEAT = { normal: '#3d6b8f', yellow: '#eab308', orange: '#c2410c', red: '#b91c1c' };
+  var HIGHER_IS_BETTER = { speed: true, brakeg: true, power: true, brakep: true, throttle: true };
+  var HEAT_FIGURE = { brakes: true, battemp: true, inverter: true };
+  function heatZone(p) { return p >= 100 ? 'red' : p >= 85 ? 'orange' : p >= 70 ? 'yellow' : 'normal'; }
+  function dayColour(m, v, pool) {
+    if (HEAT_FIGURE[m.id]) return HEAT[heatZone(v)];
+    if (m.id !== 'lap' && !HIGHER_IS_BETTER[m.id]) return CONTEXT;
+    var vals = pool.map(function (s) { return m.get(s); }).filter(function (x) { return x != null; });
+    var quickest = m.id === 'lap';
+    var best = quickest ? Math.min.apply(null, vals) : Math.max.apply(null, vals);
+    var off = quickest ? (v - best) / best * 100 : (best - v) / best * 100;
+    return off <= 1 ? FAST : off >= 3 ? SLOW : MIDDLE;
+  }
+  function dayPanel(list) {
+    var rows = dayRows(list);
+    if (!rows.length) return '';
+    var first = rows[0], pool = list.filter(function (s) { return trackKey(s) === state.day.track; });
+    var key = [[FAST, 'Fast: within 1% of your best here'], [MIDDLE, 'Middle'], [SLOW, 'Slow: 3% or more off your best'],
+      [HEAT.normal, 'Heat: normal'], [HEAT.yellow, 'Heat: yellow, from 70%'], [HEAT.orange, 'Heat: orange, from 85%'],
+      [HEAT.red, 'Heat: red, 100% and over'], [CONTEXT, 'Context: no good or bad']];
+    var sessions = rows.map(function (s) {
+      var figs = METRICS.filter(function (m) { return m.id !== 'laps' && m.get(s) != null; }).map(function (m) {
+        var v = m.get(s);
+        return '<div class="ma-fig"><i style="background:' + dayColour(m, v, pool) + '"></i><div><span>' + esc(m.label) + '</span><b>' + esc(m.fmt(v)) + '</b></div></div>';
+      }).join('');
+      var facts = [['Tyres', s.tyres], ['Brake pads', s.pads], ['Driven wheels', s.drive], ['Conditions', s.conditions], ['Logger', s.logger]]
+        .filter(function (f) { return f[1]; });
+      return '<section class="ma-sess' + (s.id === state.picked ? ' is-picked' : '') + '">' +
+        '<div class="ma-sess-head"><b>' + esc(s.time || '') + '</b><span>' + esc(carName(s.carId)) + '</span>' +
+        '<a class="tm-pill tm-pill-accent ma-open" href="track.html?s=' + esc(s.id) + '">Open this session</a></div>' +
+        (facts.length ? '<dl class="ma-facts ma-sess-facts">' + facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>'; }).join('') + '</dl>' : '') +
+        '<div class="ma-figs">' + figs + '</div></section>';
+    }).join('');
+    return '<div class="tm-card ma-day" id="ma-day"><div class="ma-day-head"><div><h2>' + esc(niceDate(first.date)) + ', ' + esc(trackOf(first)) + '</h2>' +
+      '<p class="tm-note">' + rows.length + (rows.length === 1 ? ' session' : ' sessions') + ' on this day. Each figure is coloured against your best at this track.</p></div>' +
+      '<button type="button" class="ma-day-close" data-close-day aria-label="Close this day"><svg class="ma-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<div class="ma-day-key">' + key.map(function (k) { return '<span><i style="background:' + k[0] + '"></i>' + esc(k[1]) + '</span>'; }).join('') + '</div>' +
+      sessions + '</div>';
+  }
+  // A dot opens its day, and the page moves to the graph so the day's sessions sit directly under it.
+  function isDot(el) { return !!el.classList && (el.classList.contains('ma-dot') || el.classList.contains('ma-hit')); }
+  function openDay(id) {
+    var s = state.sessions.filter(function (x) { return x.id === id; })[0];
+    if (!s) return;
+    state.picked = id;
+    state.day = { track: trackKey(s), date: s.date };
+    draw();
+    var graph = app.querySelector('.tm-chart svg') || app.querySelector('.tm-chart');
+    if (graph && graph.scrollIntoView) graph.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  function clearDay() { state.day = null; state.picked = null; }
   function draw() {
     var list = scoped();
     var cars = state.sessions.map(function (s) { return s.carId; }).filter(function (id, i, all) { return id && all.indexOf(id) === i; });
@@ -293,7 +352,7 @@
       var says = findings(list);
       body = '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
         tiles(list) +
-        chart(list) + pickHtml(list) + setupBlock(list) + detailsTable(list);
+        chart(list) + (dayPanel(list) || pickHtml(list)) + setupBlock(list) + detailsTable(list);
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     // (The title's badge on desktop and the copy under the buttons on a phone.)
@@ -320,6 +379,7 @@
 
   // A dot or a table row selects its session: the panel above the table shows it, and the page moves to the panel.
   function selectSession(el, scroll) {
+    state.day = null;
     state.picked = el.getAttribute('data-session');
     draw();
     var panel = document.getElementById('ma-pick');
@@ -328,6 +388,7 @@
   document.addEventListener('click', function (e) {
     var el = e.target && e.target.closest ? e.target.closest('[data-session]') : null;
     if (!el || !app.contains(el) || (e.target.closest && e.target.closest('a'))) return;
+    if (isDot(el)) { openDay(el.getAttribute('data-session')); return; }
     selectSession(el, el.tagName.toLowerCase() !== 'tr');
   });
   document.addEventListener('keydown', function (e) {
@@ -335,7 +396,14 @@
     var el = e.target && e.target.getAttribute ? e.target.getAttribute('data-session') : null;
     if (!el || !app.contains(e.target)) return;
     e.preventDefault();
+    if (isDot(e.target)) { openDay(el); return; }
     selectSession(e.target, true);
+  });
+  // The day panel's close button clears the day and the session picked with it.
+  document.addEventListener('click', function (e) {
+    if (!e.target || !e.target.closest || !app.contains(e.target) || !e.target.closest('[data-close-day]')) return;
+    clearDay();
+    draw();
   });
   // The figure and setup chips, and the drop-downs, redraw the page in place.
   document.addEventListener('click', function (e) {
@@ -347,8 +415,8 @@
   });
   document.addEventListener('change', function (e) {
     if (!e.target || !app.contains(e.target)) return;
-    if (e.target.id === 'ma-car') { state.car = e.target.value; state.track = 'all'; draw(); }
-    if (e.target.id === 'ma-track') { state.track = e.target.value; draw(); }
+    if (e.target.id === 'ma-car') { state.car = e.target.value; state.track = 'all'; clearDay(); draw(); }
+    if (e.target.id === 'ma-track') { state.track = e.target.value; clearDay(); draw(); }
   });
   // Redraw the graph at a new width (a phone turned sideways).
   var lastW = app.clientWidth, timer = 0;

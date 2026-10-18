@@ -75,24 +75,91 @@ def test_my_analysis_says_when_there_are_no_sessions_yet(page):
     expect(page.locator("#ma-app")).to_contain_text("No sessions here yet")
 
 
-def test_tapping_a_dot_shows_that_session_here_with_a_button_to_open_it(page):
+def test_tapping_a_dot_opens_its_day_with_each_session_and_a_button_to_open_it(page):
     fake = FakeWorker(earlier=False)
     add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", brake_g=1.1, mode={"brakeTemp": 61, "power": 230})
     add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, mode={"brakeTemp": 84, "power": 260})
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator("#ma-pick")).to_contain_text("Press a dot")
-    # The dot is the link's own dot, so tapping it stays on the page and shows the session.
+    # A dot opens the day it was driven on, under the graph: each session that day, with its setup, figures and a button to open it.
     page.locator('.ma-dot[data-session="a2"]').click()
-    panel = page.locator("#ma-pick")
-    expect(panel).to_contain_text("Toyo")
-    expect(panel).to_contain_text("84%")
-    expect(panel.locator(".ma-open")).to_have_attribute("href", "track.html?s=a2")
+    day = page.locator("#ma-day")
+    expect(day).to_contain_text("Toyo")
+    expect(day).to_contain_text("84%")
+    expect(day.locator(".ma-sess")).to_have_count(1)
+    expect(day.locator(".ma-sess.is-picked .ma-open")).to_have_attribute("href", "track.html?s=a2")
     expect(page.locator('.ma-row[data-session="a2"]')).to_have_class(re.compile("is-picked"))
-    # A row in the table selects it the same way, and Open still goes to the session.
+    # A row in the table picks its session as before, and Open still goes to the session.
     page.locator('.ma-row[data-session="a1"]').click()
+    expect(page.locator("#ma-day")).to_have_count(0)
     expect(page.locator("#ma-pick")).to_contain_text("Michelin")
     page.locator('.ma-row[data-session="a1"] a').click()
     page.wait_for_url("**/track.html?s=a1")
+
+
+def test_the_day_panel_lists_each_session_of_that_day_with_its_figures_and_colours(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-08", 61.0, tyres="Michelin", brake_g=1.1, temp=14, mode={"brakeTemp": 61, "power": 230})
+    add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, temp=16, mode={"brakeTemp": 84, "power": 260})
+    add(fake, "a3", "2026-05-15", 60.9, tyres="Toyo", brake_g=1.0, temp=12, mode={"brakeTemp": 70, "power": 240})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('.ma-dot[data-session="a1"]').click()
+    day = page.locator("#ma-day")
+    expect(day.locator(".ma-day-head h2")).to_contain_text("8 May 2026")
+    expect(day.locator(".ma-day-head .tm-note")).to_contain_text("2 sessions on this day")
+    expect(day.locator(".ma-sess")).to_have_count(2)
+    expect(day.locator(".ma-sess.is-picked")).to_have_count(1)
+    # Every figure a session records is listed with a coloured dot; a figure it does not record is left out.
+    first = day.locator(".ma-sess").nth(0)
+    expect(first).to_contain_text("Peak braking")
+    expect(first).to_contain_text("Air temperature")
+    expect(first).to_contain_text("Hottest brakes")
+    expect(first).not_to_contain_text("Battery used")
+    expect(first.locator(".ma-fig i").first).to_have_attribute("style", re.compile("background"))
+
+
+def test_the_day_panel_sits_under_the_graph_at_every_width_and_closes_back_to_the_placeholder(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('.ma-dot[data-session="a2"]').click()
+    expect(page.locator("#ma-day")).to_be_visible()
+    assert "tm-chart" in page.evaluate("document.getElementById('ma-day').previousElementSibling.className")
+    page.set_viewport_size({"width": 390, "height": 844})
+    expect(page.locator("#ma-day")).to_be_visible()
+    assert "tm-chart" in page.evaluate("document.getElementById('ma-day').previousElementSibling.className")
+    assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") == 0
+    page.locator("#ma-day .ma-day-close").click()
+    expect(page.locator("#ma-day")).to_have_count(0)
+    expect(page.locator("#ma-pick")).to_contain_text("Press a dot")
+
+
+def test_a_dot_can_be_opened_from_the_keyboard(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('.ma-dot[data-session="a2"]').focus()
+    page.keyboard.press("Enter")
+    expect(page.locator("#ma-day")).to_be_visible()
+    expect(page.locator("#ma-day .ma-sess")).to_have_count(1)
+
+
+def test_on_a_phone_a_dot_brings_its_graph_and_the_day_under_it_into_view(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
+    open_page(page, fake, "/my-analysis.html")
+    page.locator('.ma-dot[data-session="a2"]').click()
+    expect(page.locator("#ma-day")).to_be_visible()
+    page.wait_for_timeout(900)
+    # The graph sits just below the site header, and the top of its day is on the same screen beneath it.
+    graph = page.locator("#ma-app .tm-chart svg").bounding_box()
+    day = page.locator("#ma-day").bounding_box()
+    assert 80 <= graph["y"] <= 160, graph["y"]
+    assert day["y"] < 844, day["y"]
 
 
 def test_the_track_mode_badge_shows_only_when_the_sessions_have_track_mode_figures(page):

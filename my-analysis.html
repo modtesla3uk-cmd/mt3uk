@@ -156,6 +156,27 @@
   .ma-facts dt { font-size: .74rem; color: var(--steel); }
   .ma-facts dd { margin: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   .ma-open { display: inline-flex; align-items: center; min-height: 44px; }
+  .tm-chart svg { scroll-margin-top: 100px; }
+  .ma-day-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .ma-day-head h2 { margin: 0; }
+  .ma-day-head .tm-note { margin: 4px 0 0; }
+  .ma-day-close { flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 999px; background: #eef1f6; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .ma-x { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .ma-day-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font-size: .8rem; color: var(--steel); }
+  .ma-day-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .ma-day-key i, .ma-fig i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .ma-sess { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hair); }
+  .ma-sess.is-picked { outline: 2px solid var(--ink); outline-offset: 6px; border-radius: 4px; }
+  .ma-sess-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+  .ma-sess-head b { font-size: 1rem; }
+  .ma-sess-head span { color: var(--steel); font-size: .9rem; }
+  .ma-sess-head .ma-open { margin-left: auto; }
+  .ma-sess-facts { margin-top: 8px; }
+  .ma-figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 14px; margin-top: 10px; }
+  .ma-fig { display: flex; gap: 8px; align-items: flex-start; }
+  .ma-fig i { margin-top: 5px; }
+  .ma-fig span { display: block; font-size: .78rem; color: var(--steel); }
+  .ma-fig b { display: block; font-size: .95rem; color: var(--ink); }
   @media (max-width:780px) { .ma-facts { gap: 8px 12px; } }
   .ma-tm { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 4px 12px 4px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.35); color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: .82rem; font-weight: 600; vertical-align: middle; text-align: center; }
   .ma-tm[hidden] { display: none; }
@@ -310,7 +331,7 @@
 
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/my-analysis-page.js?v=29" defer></script>
+<script src="js/my-analysis-page.js?v=30" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

@@ -50,7 +50,7 @@ def test_the_figure_and_setup_chips_change_the_graph_and_the_comparison(page):
     expect(page.locator(".tm-chart h2")).to_have_text("Over time")
     page.locator('[data-metric="brakes"]').click()
     expect(page.locator('[data-metric="brakes"]')).to_have_attribute("aria-pressed", "true")
-    expect(page.locator(".tm-chart svg")).to_have_attribute("aria-label", "Hottest brakes for each session, in date order")
+    expect(page.locator(".tm-chart svg")).to_have_attribute("aria-label", "Hottest brakes for each session, by date")
     page.locator('[data-setup="pads"]').click()
     expect(page.locator(".ma-setup .tm-row:not(.tm-head)").first).to_contain_text("Ferodo")
 
@@ -264,7 +264,7 @@ def test_the_chart_key_sits_above_the_graph_and_the_dots_use_the_three_colours(p
     assert fills == ["#e8542a", "#e8542a", "#16233d", "#1f8a70"], fills
 
 
-def test_the_all_figures_grid_shows_each_figure_at_one_track_with_its_views_and_groups(page):
+def test_the_all_figures_grid_shows_each_figure_at_one_track_with_its_groups(page):
     fake = FakeWorker(earlier=False)
     add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, temp=14, mode={"brakeTemp": 61, "power": 230, "batteryTemp": 49})
     add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, temp=16, mode={"brakeTemp": 84, "power": 260, "batteryTemp": 52})
@@ -282,9 +282,11 @@ def test_the_all_figures_grid_shows_each_figure_at_one_track_with_its_views_and_
     expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_be_visible()
     page.locator('button[data-grid-group="All figures"]').click()
     expect(grid.locator('.ma-fig-card[data-figure="lap"]')).to_be_visible()
-    # By day: one dot per day, and each card says so.
-    page.locator('button[data-grid-view="day"]').click()
-    expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_contain_text("days")
+    # The All figures grid leads the page: the findings and the graph come after it.
+    assert page.evaluate("!!(document.getElementById('ma-grid').compareDocumentPosition(document.querySelector('.tm-finds')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    # There is no By day view: each figure is one dot per session.
+    expect(page.locator('button[data-grid-view]')).to_have_count(0)
+    expect(page.get_by_role("button", name="By day")).to_have_count(0)
     expect(grid.locator('.ma-fig-card[data-figure="brakes"] .ma-gdot')).to_have_count(3)
 
 

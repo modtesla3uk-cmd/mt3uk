@@ -7828,3 +7828,29 @@ def test_my_analysis_shows_the_usage_ring_beside_its_title(page):
                   "allowance": {"start": 3, "monthly": 3, "cap": 6}, "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
     open_page(page, fake, path="/my-analysis.html")
     expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("3/6")
+
+
+def test_the_usage_box_heading_shows_the_plan_free_members_see_your_free_days(page):
+    """Free members see "Your free days" as the heading of their usage box; a paid Laps Pro member sees "Laps Pro"."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 2, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    expect(page.locator("#tp-quota .tp-quota-head b")).to_have_text("Your free days")
+    paid = FakeWorker()
+    paid.tiers = {"success": True, "applies": True, "full": False, "paid": True, "subscribed": False, "balance": 0,
+                  "nextTopUp": "2026-11-01T00:00:00.000Z", "allowance": {"start": 3, "monthly": 3, "cap": 6},
+                  "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, paid)
+    expect(page.locator("#tp-quota > b").first).to_have_text("Laps Pro")
+
+
+def test_the_laps_pro_heading_links_to_my_analysis_for_the_track_and_car_of_the_session(page):
+    """The owner's session has a link in its Laps Pro heading to My Analysis, filtered to that track and car."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    link = page.locator(".tp-prohead-link")
+    expect(link).to_have_text("See this track in My Analysis")
+    expect(link).to_have_attribute("href", re.compile(r"my-analysis\.html\?track=Thruxton%7CThruxton&car="))
+    link.click()
+    page.wait_for_url(re.compile(r".*my-analysis\.html\?track=Thruxton%7CThruxton.*"), timeout=5000)

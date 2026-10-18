@@ -390,6 +390,10 @@
     if (!res[0] || res[0].success === false) throw {};
     state.sessions = res[0].sessions || [];
     (res[1].cars || []).forEach(function (c) { state.cars[c.id] = c.name || 'Car'; });
+    // A link from a session opens the page on that car and track (?car=, ?track=); an unknown track falls back to all tracks.
+    var q = new URLSearchParams(location.search);
+    if (q.get('car')) state.car = q.get('car');
+    if (q.get('track')) state.track = q.get('track');
     draw();
   }).catch(function (err) {
     if (err && err.signIn) { app.innerHTML = '<div class="tm-card"><p>Your sign-in has ended. Sign in again to see your analysis.</p><p><a class="tm-pill tm-pill-accent" href="' + esc(signIn) + '">Sign in</a></p></div>'; return; }

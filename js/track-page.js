@@ -991,7 +991,7 @@
         proNote = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
           + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>';
       }
-      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Laps Pro</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
+      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Your free days</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
       var startTrial = document.getElementById('tp-trial-start');
       if (startTrial) startTrial.addEventListener('click', function () {
@@ -3900,6 +3900,12 @@
       }
     });
   }
+  // The owner's timed session links to My Analysis, filtered to the track and car it was driven on (js/my-analysis-page.js).
+  function analysisLinkHtml(s) {
+    if (!s.mine || s.local || !s.venue || s.type === 'other') return '';
+    var key = (s.venue || '') + '|' + (s.layout || '');
+    return '<a class="tp-prohead-link" href="my-analysis.html?track=' + encodeURIComponent(key) + (s.carId ? '&car=' + encodeURIComponent(s.carId) : '') + '">See this track in My Analysis</a>';
+  }
   function drawSession() {
     var s = view.s;
     lastSession = s.id;
@@ -4424,7 +4430,7 @@
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
         '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
-        '<div class="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3><span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span></div>' +
+        '<div class="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3><span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s) + '</div>' +
         '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
       boardOpen = true;
     }

@@ -25,11 +25,12 @@
       '.tp-quota-ring { position: relative; display: inline-flex; margin-left: 10px; vertical-align: middle; }' +
       '.tp-quota-ring[hidden] { display: none; }' +
       '.tp-quota-ring-btn { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 3px 12px 3px 6px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; cursor: pointer; }' +
-      '.tp-quota-ring-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(300px, calc(100vw - 32px)); padding: 12px 48px 12px 14px; border: 1px solid rgba(22,35,61,.16); border-radius: 10px; background: #fff; color: #16233d; box-shadow: 0 10px 26px rgba(0,0,0,.25); font: 400 14px/1.45 var(--font-body, system-ui); text-align: left; white-space: normal; }' +
+      '.tp-quota-ring-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(300px, calc(100vw - 32px)); padding: 12px 48px 12px 14px; border: 1px solid rgba(0,0,0,.2); border-radius: 10px; background: #9cc7f2; color: #000; opacity: 1; box-shadow: 0 10px 26px rgba(0,0,0,.25); font: 400 14px/1.45 var(--font-body, system-ui); text-align: left; white-space: normal; }' +
+      '.tp-quota-ring-pop, .tp-quota-ring-pop * { color: #000 !important; opacity: 1 !important; }' +
       '.tp-quota-ring-pop[hidden] { display: none; }' +
       '.tp-quota-ring-pop b { display: block; margin-bottom: 4px; font-size: 15px; }' +
       '.tp-quota-ring-pop p { margin: 6px 0 0; }' +
-      '.tp-quota-ring-close { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #16233d; cursor: pointer; }' +
+      '.tp-quota-ring-close { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #000; cursor: pointer; }' +
       '.tp-quota-ring-close .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }' +
       '.tier-lock-tag { display: inline-flex; align-items: center; margin-left: 8px; padding: 3px 9px; border-radius: 999px; background: #e8542a; color: #fff; font: 700 11px/1.2 var(--font-body, system-ui); vertical-align: middle; white-space: nowrap; }' +
       '.is-tier-locked { opacity: .55; filter: grayscale(1); cursor: pointer !important; }' +

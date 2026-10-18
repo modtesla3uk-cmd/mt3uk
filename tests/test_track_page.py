@@ -7853,12 +7853,12 @@ def test_the_laps_pro_card_in_a_session_shows_this_sessions_track_mode_figures(p
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     card = page.locator(".tp-band")
-    expect(card).to_contain_text("This session’s Track Mode")
+    expect(card).to_contain_text("This session’s figures")
     expect(card.locator(".tp-band-fig")).to_have_count(4)
     expect(card.locator(".tp-band-fig").first).to_contain_text("Best lap")
-    expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Peak power")
+    expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Most grip used")
     expect(card).not_to_contain_text("Where you have driven")
-    expect(card).to_contain_text("This session has no Track Mode figures")
+    expect(card).to_contain_text("No Track Mode data in this session")
     expect(card).to_contain_text("This session’s best lap is 1:39.79")
 
 

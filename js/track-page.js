@@ -3917,31 +3917,34 @@
     });
   }
   // The owner's timed session links to My Analysis, filtered to the track and car it was driven on (js/my-analysis-page.js).
-  // The Laps Pro card on the owner's session: this session's own Track Mode figures (best lap, most charge in the session,
-  // hottest brakes, peak power). No other session is counted.
+  // The Laps Pro card on the owner's session: this session's own figures. The lap analysis (best lap, top speed, peak braking,
+  // most grip used) is always there; this session's Track Mode figures are added when the car recorded them.
   function laprosBandHtml(s) {
-    if (!s.mine || s.local || !view.mine || !view.mine.sessions) return '';
-    var me = view.mine.sessions.filter(function (o) { return o.id === s.id; })[0];
-    if (!me) return '';
+    if (!s.mine || s.local) return '';
+    var me = (view.mine && view.mine.sessions || []).filter(function (o) { return o.id === s.id; })[0] || {};
     var mode = me.mode || {};
     var trackOf = function (o) { return (o.venue || 'Track') + (o.layout ? ', ' + o.layout : ''); };
     var soc = mode.soc && isFinite(mode.soc[0]) && isFinite(mode.soc[1]) ? Math.round((mode.soc[0] - mode.soc[1]) * 10) / 10 : null;
-    var none = 'Needs Track Mode';
     var fig = function (label, value, sub, cls) {
       return '<div class="tp-band-fig"><span>' + label + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + value + '</b><small>' + sub + '</small></div>';
     };
     var lapOk = s.bestTime && s.type !== 'drag';
-    var figs = fig('Best lap', lapOk ? V.fmtLap(s.bestTime) : '–', lapOk ? esc(trackOf(me)) + ', ' + esc(shortDate(me.date)) : 'No timed lap in this session') +
-      fig('Most charge in this session', soc !== null ? soc + '%' : '–', soc !== null ? 'Battery at the start to the end' : none) +
-      fig('Hottest brakes', isFinite(mode.brakeTemp) ? Math.round(mode.brakeTemp) + ' °C' : '–', isFinite(mode.brakeTemp) ? 'The car’s own figure' : none, 'is-hot') +
-      fig('Peak power', isFinite(mode.power) ? Math.round(mode.power) + ' kW' : '–', isFinite(mode.power) ? 'Highest in this session' : none);
+    var figs = fig('Best lap', lapOk ? V.fmtLap(s.bestTime) : '–', lapOk ? esc(trackOf(s)) + ', ' + esc(shortDate(s.date)) : 'No timed lap in this session') +
+      fig('Top speed', s.vmax ? V.fmtV(s.vmax) : '–', 'Highest in this session') +
+      fig('Peak braking', s.brakeMax ? s.brakeMax.toFixed(2) + ' g' : '–', 'Hardest stop in this session') +
+      fig('Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '–', s.gDerived ? 'Estimated from the speed' : 'Sideways, in this session');
+    var tm = soc !== null || isFinite(mode.brakeTemp) || isFinite(mode.power);
+    var tmHtml = tm ? '<div class="tp-band-tm"><h5>Track Mode</h5><div class="tp-band-figs">' +
+      fig('Most charge', soc !== null ? soc + '%' : '–', soc !== null ? 'Battery, start to end' : 'Not recorded') +
+      fig('Hottest brakes', isFinite(mode.brakeTemp) ? Math.round(mode.brakeTemp) + ' °C' : '–', isFinite(mode.brakeTemp) ? 'The car’s own figure' : 'Not recorded', 'is-hot') +
+      fig('Peak power', isFinite(mode.power) ? Math.round(mode.power) + ' kW' : '–', isFinite(mode.power) ? 'Highest in this session' : 'Not recorded') +
+      '</div></div>' : '<p class="tp-band-note">No Track Mode data in this session.</p>';
     var say = [];
     if (lapOk) say.push('This session’s best lap is ' + V.fmtLap(s.bestTime) + '.');
     say.push('These figures come from this session’s own readings. Weather, tyres and driving changes are not taken out.');
-    var where = esc(trackOf(me)) + ', ' + esc(shortDate(me.date)) + (me.time ? ', ' + esc(me.time) : '');
-    var note = me.mode ? '. Figures from this session only. Other sessions are not counted.' : '. This session has no Track Mode figures.';
-    return '<div class="tp-band"><h4>This session’s Track Mode</h4><p class="tp-band-note">' + where + note + '</p>' +
-      '<div class="tp-band-figs">' + figs + '</div>' +
+    return '<div class="tp-band"><h4>This session’s figures</h4><p class="tp-band-note">' + esc(trackOf(s)) + ', ' + esc(shortDate(s.date)) +
+      (s.time ? ', ' + esc(s.time) : '') + '. Figures from this session only.</p>' +
+      '<div class="tp-band-figs">' + figs + '</div>' + tmHtml +
       '<div class="tp-band-box"><h5>What the figures say</h5>' + say.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div></div>';
   }
   function analysisLinkHtml(s) {
@@ -4000,6 +4003,14 @@
     else if (s.adminView) wireAdminLayout(s);
     var moreFold = document.getElementById('tp-more');
     if (moreFold) moreFold.addEventListener('toggle', function () { sessionFoldOpen = moreFold.open; });
+    // The Laps Pro link scrolls to its section (a plain jump to the # address does not move this page).
+    var lapsJump = document.querySelector('.tp-laps-jump');
+    if (lapsJump) lapsJump.addEventListener('click', function (e) {
+      var target = document.getElementById('tp-prohead');
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     var sidBtn = document.getElementById('tp-sid-copy');
     if (sidBtn) sidBtn.addEventListener('click', function () { copyText(s.id, sidBtn); });
     if (s.mine) wireLineEdit(s);

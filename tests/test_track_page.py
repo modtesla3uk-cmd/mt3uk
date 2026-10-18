@@ -636,6 +636,7 @@ def test_add_a_session_from_the_racebox_file(page):
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
     expect(page.locator("#tp-speed")).to_contain_text(" mi")
+    page.locator("#tp-more summary").click()
     page.locator("[data-units]").first.click()
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d km$"))
     page.locator("[data-units]").first.click()
@@ -4310,7 +4311,7 @@ def test_tyres_make_model_and_size_in_session_settings(page):
     expect(page.locator("#tp-status")).to_have_text("Saved.")
     rec = fake.sessions["new1"]
     assert (rec["tyres"], rec["tyreMake"], rec["tyreModel"], rec["tyreWidth"], rec["tyreProfile"], rec["tyreRim"]) == ("Michelin Pilot Sport 4S, 245/35 R19", "Michelin", "Pilot Sport 4S", 245, 35, 19)
-    expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
+    expect(page.locator("#tp-more .tp-more-body")).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
     # It comes back filled in.
     expect(page.locator("#tp-e-tyre-make")).to_have_value("Michelin")
     expect(page.locator("#tp-e-tyre-w")).to_have_value("245")
@@ -5843,6 +5844,7 @@ def test_the_refresh_button_loads_the_page_again_from_the_latest_version(page):
     member sees what is live now, and the member stays on the same view."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
+    page.locator("#tp-more summary").click()
     expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
     seen = []
     page.on("request", lambda r: seen.append(r.url))
@@ -5860,6 +5862,7 @@ def test_the_session_id_is_shown_with_a_copy_button(page):
     page.context.grant_permissions(["clipboard-read", "clipboard-write"])
     fake = FakeWorker()
     save_fixture_session(page, fake)
+    page.locator("#tp-more summary").click()
     expect(page.locator("#tp-sid-text")).to_have_text("new1")
     page.get_by_role("button", name="Copy the session ID").click()
     expect(page.locator("#tp-sid-copy")).to_contain_text("Copied")
@@ -7845,18 +7848,18 @@ def test_the_usage_box_heading_shows_the_plan_free_members_see_your_free_days(pa
     expect(page.locator("#tp-quota > b").first).to_have_text("Laps Pro")
 
 
-def test_the_laps_pro_card_in_a_session_shows_the_cars_figures_and_the_tracks_driven(page):
-    """The owner's session has a Laps Pro card: the car's best lap, its four figures, the tracks it has been driven at and what this session says."""
+def test_the_laps_pro_card_in_a_session_shows_this_sessions_track_mode_figures(page):
+    """The owner's session has a Laps Pro card with this session's own Track Mode figures; other sessions are not counted."""
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     card = page.locator(".tp-band")
-    expect(card).to_contain_text("Your best laps")
+    expect(card).to_contain_text("This session’s Track Mode")
     expect(card.locator(".tp-band-fig")).to_have_count(4)
     expect(card.locator(".tp-band-fig").first).to_contain_text("Best lap")
-    expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Highest peak power")
-    expect(card).to_contain_text("Where you have driven")
-    expect(card.locator(".tp-band-row").first).to_have_attribute("href", re.compile(r"my-analysis\.html\?track=Thruxton%7CThruxton"))
-    expect(card).to_contain_text("This session has your best lap here")
+    expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Peak power")
+    expect(card).not_to_contain_text("Where you have driven")
+    expect(card).to_contain_text("This session has no Track Mode figures")
+    expect(card).to_contain_text("This session’s best lap is 1:39.79")
 
 
 def test_the_laps_pro_heading_links_to_my_analysis_for_the_track_and_car_of_the_session(page):

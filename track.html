@@ -564,13 +564,19 @@
   .tp-band-fig b { display: block; margin: 4px 0 2px; font: 700 1.5rem/1.1 var(--font-head); color: #7fe3c6; }
   .tp-band-fig b.is-hot { color: #ff9b6e; }
   .tp-band-fig small { display: block; font-size: 12px; line-height: 1.35; color: #aab4c8; }
-  .tp-band-cols { display: grid; gap: 12px; }
   .tp-band-box { min-width: 0; padding: 12px 14px; background: #1f2f4e; border-radius: var(--radius-sm); }
   .tp-band-box h5 { margin: 0 0 6px; font: 700 14px/1.3 var(--font-body); color: #fff; }
   .tp-band-box p { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: #e6ebf5; }
-  .tp-band-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.1); color: #fff; text-decoration: none; font-size: 14px; }
-  .tp-band-row small { display: block; font-size: 12px; color: #aab4c8; }
-  @media (min-width: 781px) { .tp-band-figs { grid-template-columns: repeat(4, minmax(0, 1fr)); } .tp-band-cols { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 781px) { .tp-band-figs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .tp-more { margin: 2px 0 8px; }
+  .tp-more summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink); list-style: none; }
+  .tp-more summary::-webkit-details-marker { display: none; }
+  .tp-more summary::after { content: ''; width: 8px; height: 8px; margin-left: auto; margin-right: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+  .tp-more[open] summary::after { transform: rotate(-135deg); }
+  .tp-more-body { padding: 2px 0 6px; }
+  .tp-more-body p { margin: 4px 0; }
+  .tp-more-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .tp-laps-jump { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; padding: 0 16px; border-radius: 999px; background: var(--orange); color: #fff; font-weight: 600; font-size: 14px; text-decoration: none; }
   /* Start and finish lines come after the paid sections, so the board runs: free tiles, Session settings, paid, then the lines. */
   .tp-board > [data-tile="lineedit"] { order: 11; }
   /* Layout name and Session settings go last, after Start and finish lines. */
@@ -1502,7 +1508,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/track-page.js?v=20271149" defer></script>
+<script src="js/track-page.js?v=20271151" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

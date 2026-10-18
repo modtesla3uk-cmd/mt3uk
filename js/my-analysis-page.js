@@ -291,11 +291,15 @@
         chart(list) + pickHtml(list) + setupBlock(list) + detailsTable(list);
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
-    var tmBadge = document.getElementById('ma-tm');
-    if (tmBadge) tmBadge.hidden = !list.some(function (x) { return !!x.mode; });
+    // (The title's badge on desktop and the copy under the buttons on a phone.)
+    var tmShow = list.some(function (x) { return !!x.mode; });
+    var tmBadges = [document.getElementById('ma-tm'), document.getElementById('ma-tm-phone')].filter(Boolean);
+    tmBadges.forEach(function (b) { b.hidden = !tmShow; });
     // Play the red dot again each time the badge shows (page load, or a new track or car picked).
-    var tick = tmBadge && !tmBadge.hidden ? tmBadge.querySelector('.ma-rec-dot') : null;
-    if (tick) { tick.style.animation = 'none'; void tick.getBoundingClientRect(); tick.style.animation = ''; }
+    tmBadges.forEach(function (b) {
+      var tick = tmShow ? b.querySelector('.ma-rec-dot') : null;
+      if (tick) { tick.style.animation = 'none'; void tick.getBoundingClientRect(); tick.style.animation = ''; }
+    });
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;
   }
 
@@ -350,6 +354,8 @@
   // what a paid plan includes instead. Full access and the switch being off see the page as before.
   var subscribeOpen = false;
   fetch(API + '/track/tiers/access', H).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (t) {
+    // The usage ring beside the title, as on the Sessions pages (js/quota-ring.js).
+    if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(t || {});
     if (t && t.success && t.applies && !t.full && !t.proFeatures) {
       subscribeOpen = !!t.subscribe;
       // An example of a paid analysis, greyed out so it is clear it is not the member's own. Nothing of theirs is shown.

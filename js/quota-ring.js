@@ -22,8 +22,15 @@
     var st = document.createElement('style');
     st.id = 'mt3uk-quota-ring-css';
     st.textContent =
-      '.tp-quota-ring { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 9px 3px 5px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; vertical-align: middle; }' +
+      '.tp-quota-ring { position: relative; display: inline-flex; margin-left: 10px; vertical-align: middle; }' +
       '.tp-quota-ring[hidden] { display: none; }' +
+      '.tp-quota-ring-btn { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 3px 12px 3px 6px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 13px/1 var(--font-body, system-ui); white-space: nowrap; cursor: pointer; }' +
+      '.tp-quota-ring-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(300px, calc(100vw - 32px)); padding: 12px 48px 12px 14px; border: 1px solid rgba(22,35,61,.16); border-radius: 10px; background: #fff; color: #16233d; box-shadow: 0 10px 26px rgba(0,0,0,.25); font: 400 14px/1.45 var(--font-body, system-ui); text-align: left; white-space: normal; }' +
+      '.tp-quota-ring-pop[hidden] { display: none; }' +
+      '.tp-quota-ring-pop b { display: block; margin-bottom: 4px; font-size: 15px; }' +
+      '.tp-quota-ring-pop p { margin: 6px 0 0; }' +
+      '.tp-quota-ring-close { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #16233d; cursor: pointer; }' +
+      '.tp-quota-ring-close .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }' +
       '.tier-lock-tag { display: inline-flex; align-items: center; margin-left: 8px; padding: 3px 9px; border-radius: 999px; background: #e8542a; color: #fff; font: 700 11px/1.2 var(--font-body, system-ui); vertical-align: middle; white-space: nowrap; }' +
       '.is-tier-locked { opacity: .55; filter: grayscale(1); cursor: pointer !important; }' +
       '.tier-lock-host { position: relative !important; }' +
@@ -50,6 +57,22 @@
     }
   }
 
+  // The usage panel the ring opens: what the figures mean, with the Laps Pro line while it is free for everyone.
+  function usagePanel(d, used, cap) {
+    var when = d.nextTopUp ? new Date(d.nextTopUp).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : '';
+    var monthly = (d.allowance && d.allowance.monthly) || 3;
+    var html = '<button type="button" class="tp-quota-ring-close" data-pop-close aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+      '<b>Usage</b>' +
+      '<p>You have used ' + used + ' of your ' + cap + ' free days' + (d.balance > 0 ? ', so ' + d.balance + ' are left.' : '. You can still open all your sessions.') + '</p>' +
+      '<p>Each driving date uses one day when you save a session on it. Sessions on a day already used are free.</p>' +
+      (when && d.balance <= 0 ? '<p>New days come back on ' + when + ', or ask MT3UK for more.</p>' : when ? '<p>You get ' + monthly + ' more on ' + when + '.</p>' : '');
+    if (d.proFeatures) {
+      var until = d.proTrialUntil ? new Date(d.proTrialUntil + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      html += '<p>Laps Pro is free for everyone' + (until ? ' until ' + until : '') + '. Every analysis tool is open to you, and the day limit still applies.</p>';
+    }
+    return html;
+  }
+
   function drawRing(d) {
     var h1 = document.querySelector('.page-hero .lh-title');
     var ring = document.getElementById('tp-quota-ring');
@@ -60,14 +83,22 @@
       ring = document.createElement('span');
       ring.id = 'tp-quota-ring';
       ring.className = 'tp-quota-ring';
+      ring.innerHTML = '<button type="button" class="tp-quota-ring-btn" aria-expanded="false" aria-controls="tp-quota-ring-pop"></button>' +
+        '<div class="tp-quota-ring-pop" id="tp-quota-ring-pop" role="dialog" aria-label="Usage" hidden></div>';
+      var btn = ring.querySelector('.tp-quota-ring-btn'), pop = ring.querySelector('.tp-quota-ring-pop');
+      var setOpen = function (on) { pop.hidden = !on; btn.setAttribute('aria-expanded', String(on)); };
+      btn.addEventListener('click', function () { setOpen(pop.hidden); });
+      document.addEventListener('click', function (e) { if (!pop.hidden && !ring.contains(e.target)) setOpen(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { setOpen(false); btn.focus(); } });
+      pop.addEventListener('click', function (e) { if (e.target.closest('[data-pop-close]')) { setOpen(false); btn.focus(); } });
     }
     placeRing(h1, ring);
     ring.hidden = false;
     var deg = 100 * used / cap, c = 2 * Math.PI * 9;
-    ring.setAttribute('role', 'img');
-    ring.setAttribute('aria-label', used + ' of ' + cap + ' free days used');
-    ring.title = used + ' of ' + cap + ' free days used';
-    ring.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" stroke="' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + used + '/' + cap + '</span>';
+    var b = ring.querySelector('.tp-quota-ring-btn');
+    b.setAttribute('aria-label', used + ' of ' + cap + ' free days used. Tap to see what this means.');
+    b.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" stroke="' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + used + '/' + cap + '</span>';
+    ring.querySelector('.tp-quota-ring-pop').innerHTML = usagePanel(d, used, cap);
   }
 
   function tag(el) {

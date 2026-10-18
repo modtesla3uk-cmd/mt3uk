@@ -7794,3 +7794,37 @@ def test_the_free_box_says_laps_pro_is_free_for_everyone_until_the_end_date(page
     # Hide takes the note away with the rest of the box.
     page.locator("#tp-quota-toggle").click()
     expect(page.locator("#tp-quota-body")).to_be_hidden()
+
+
+def test_tapping_the_usage_ring_explains_the_free_days(page):
+    """The usage ring opens a small Usage panel saying what the figures mean, and closes again."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 3, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake)
+    ring = page.locator("#tp-quota-ring-btn, .tp-quota-ring-btn").first
+    expect(ring).to_contain_text("3/6")
+    expect(page.locator("#tp-quota-ring-pop")).to_be_hidden()
+    ring.click()
+    pop = page.locator("#tp-quota-ring-pop")
+    expect(pop).to_be_visible()
+    expect(pop).to_contain_text("Usage")
+    expect(pop).to_contain_text("You have used 3 of your 6 free days, so 3 are left.")
+    expect(pop).to_contain_text("You get 3 more on 1 November.")
+    expect(ring).to_have_attribute("aria-expanded", "true")
+    page.locator("body").click(position={"x": 2, "y": 2})
+    expect(pop).to_be_hidden()
+    ring.click()
+    expect(pop).to_be_visible()
+    pop.get_by_role("button", name="Close").click()
+    expect(pop).to_be_hidden()
+    expect(ring).to_have_attribute("aria-expanded", "false")
+
+
+def test_my_analysis_shows_the_usage_ring_beside_its_title(page):
+    """My Analysis shows the same usage ring beside its title as the Sessions pages do."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 3, "nextTopUp": "2026-11-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 6}, "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    open_page(page, fake, path="/my-analysis.html")
+    expect(page.locator(".page-hero .lh-title #tp-quota-ring")).to_contain_text("3/6")

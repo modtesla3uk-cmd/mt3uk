@@ -51,6 +51,14 @@
     return offer;
   }
 
+  // The price after the offer's percentage, as the list price is written ("£87.50", "£50"), or '' when there is none to work out.
+  function reducedPrice(price, percent) {
+    var list = parseFloat(String(price || '').replace(/[^0-9.]/g, ''));
+    if (!list || !percent) return '';
+    var pence = Math.round(list * (100 - percent)) / 100;
+    return '£' + (pence % 1 === 0 ? String(pence) : pence.toFixed(2));
+  }
+
   function offerCard(data) {
     var offer = liveOffer(data.offer);
     if (!offer && !data.placeholder) return null;
@@ -68,7 +76,11 @@
       var list = el('ul', 'hp-card-list');
       offer.items.forEach(function (it) {
         var li = el('li');
-        var a = el('a', '', it.name + (it.price ? ' (' + it.price + ')' : ''));
+        var now = reducedPrice(it.price, offer.percent);
+        // The list price, then the price after the offer's percentage in orange.
+        var a = el('a', '', it.name);
+        if (it.price) a.appendChild(document.createTextNode(' (' + it.price + ')'));
+        if (now) a.appendChild(el('span', 'hp-card-now', ' ' + now));
         a.href = shopLink(it.url, it.id);
         li.appendChild(a);
         list.appendChild(li);

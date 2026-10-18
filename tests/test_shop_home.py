@@ -436,8 +436,28 @@ def test_an_offer_item_links_to_its_place_on_the_shop_page_not_to_shopify(page):
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html")
     link = page.locator("#hp-shop-cards .hp-offer-card a")
-    expect(link).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125)")
+    expect(link).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125) £75")
     assert link.get_attribute("href") == "shop.html#brace"
+
+
+def test_the_offer_card_shows_the_reduced_price_for_the_percentage_entered(page):
+    offer = {"on": True, "heading": "Autumn Offers", "percent": 30, "text": "", "code": "MT3UKMC30", "start": "2026-10-01", "end": "2026-12-31",
+             "items": [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket",
+                        "url": "", "price": "£125"},
+                       {"id": "tevo-brace", "name": "Tevo Brace", "url": "", "price": "£50"},
+                       {"id": "tevo-kit", "name": "Tevo Kit", "url": "", "price": ""}]}
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": offer}), headers=CORS))
+    page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/index.html")
+    items = page.locator("#hp-shop-cards .hp-offer-card li a")
+    # £125 less 30% is £87.50; £50 less 30% is £35; an item with no price shows no price.
+    expect(items.nth(0)).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125) £87.50")
+    expect(items.nth(1)).to_have_text("Tevo Brace (£50) £35")
+    expect(items.nth(2)).to_have_text("Tevo Kit")
+    # The reduced price is in the site's orange, the list price is not.
+    expect(items.nth(0).locator(".hp-card-now")).to_have_css("color", "rgb(232, 84, 42)")
 
 
 def test_an_offer_item_saved_with_a_shopify_address_still_links_to_the_shop_page(page):

@@ -6685,26 +6685,24 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     def span(key):
         return page.evaluate("k => getComputedStyle(document.querySelector('#tp-board > [data-tile=\"' + k + '\"]')).getPropertyValue('--span').trim()", key)
     first = order()
-    assert first[:9] == ["map", "grip", "corners", "cmpnotes", "speed", "gforce", "spotted", "prohead", "overtime-mods"], first
+    assert first[:10] == ["laps", "map", "speed", "gforce", "grip", "corners", "cmpnotes", "prohead", "spotted", "overtime-mods"], first
     for k in ("laps", "spotted", "overtime-mods", "lineedit", "rename", "settings"):
         assert k in first, k
     assert span("map") == "6" and span("grip") == "6" and span("speed") == "6" and span("gforce") == "6" and span("corners") == "6" and span("spotted") == "6" and span("cmpnotes") == "6" and span("settings") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
-    # The map is the first section on the board, and the paid sections (speed, corner by corner, grip, what we spotted,
-    # what each mod did) sit below the free ones. Packed: Corner by corner starts level with the speed charts, beside them.
+    # The order on the board: Laps at the top, then Map, Speed and the G-force graph, with How much grip you used and
+    # Corner by corner below the G-force graph.
     sb = page.locator('[data-tile="speed"]').bounding_box()
     cb = page.locator('[data-tile="corners"]').bounding_box()
     mb = page.locator('[data-tile="map"]').bounding_box()
     gb = page.locator('[data-tile="grip"]').bounding_box()
     cmp_b = page.locator('[data-tile="cmpnotes"]').bounding_box()
-    assert mb["y"] <= cmp_b["y"] + 3 and mb["y"] <= sb["y"], (mb, cmp_b, sb)
-    # The top of the board: Map with How much grip you used beside it, Corner by corner under the grip, and Speed through
-    # the lap and the G-force chart under the map.
+    laps_b = page.locator('[data-tile="laps"]').bounding_box()
     gf = page.locator('[data-tile="gforce"]').bounding_box()
-    assert abs(gb["y"] - mb["y"]) < 3 and gb["x"] > mb["x"], (mb, gb)
-    assert abs(cb["x"] - gb["x"]) < 3 and cb["y"] >= gb["y"] + gb["height"] - 3, (cb, gb)
-    assert abs(sb["x"] - mb["x"]) < 3 and sb["y"] >= mb["y"] + mb["height"] - 3, (sb, mb)
+    assert laps_b["y"] <= mb["y"] + 3 and mb["y"] <= cmp_b["y"] + 3, (laps_b, mb, cmp_b)
+    assert sb["y"] >= mb["y"] + mb["height"] - 3, (sb, mb)
     assert gf["y"] >= sb["y"] + sb["height"] - 3, (gf, sb)
+    assert gb["y"] >= gf["y"] + gf["height"] - 3 and cb["y"] >= gb["y"] + gb["height"] - 3, (gb, cb, gf)
     # On the owner's session the paid sections sit before Start and finish lines, which come last on the board.
     if page.locator('[data-tile="lineedit"]').count():
         lb = page.locator('[data-tile="lineedit"]').bounding_box()

@@ -166,7 +166,7 @@ def test_my_analysis_is_a_paid_tool_for_free_members_while_the_switch_is_on(page
     fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-11-01T00:00:00.000Z"}
     add(fake, "a1", "2026-05-01", 61.0)
     open_page(page, fake, "/my-analysis.html")
-    expect(page.locator("#ma-app")).to_contain_text("My Analysis is a paid tool")
+    expect(page.locator("#ma-app")).to_contain_text("Data analysis is a Laps Pro feature")
     expect(page.locator(".ma-tiles")).to_have_count(0)
 
 
@@ -176,3 +176,19 @@ def test_full_access_and_the_switch_off_see_my_analysis(page):
     add(fake, "a1", "2026-05-01", 61.0)
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator(".ma-tiles .tm-tile").first).to_be_visible()
+
+
+def test_the_chart_key_sits_above_the_graph_with_its_words_matching_the_dots(page):
+    fake = FakeWorker(earlier=False)
+    for sid, date, best in [("a1", "2026-02-23", 79.4), ("a2", "2026-03-09", 78.1), ("a3", "2026-04-06", 76.9), ("a4", "2026-05-01", 75.8)]:
+        add(fake, sid, date, best)
+    open_page(page, fake, "/my-analysis.html")
+    chart = page.locator("#ma-app .tm-chart")
+    key = chart.locator(".tm-legend")
+    expect(key.locator("span").first).to_have_text("Slower")
+    expect(key.locator("span").last).to_have_text("Quicker")
+    assert key.locator(".tm-grad").bounding_box()["width"] > 50
+    # The key comes before the graph, not under its axis labels.
+    assert key.bounding_box()["y"] < chart.locator("svg").bounding_box()["y"]
+    # The measure's name is over the vertical axis.
+    expect(chart.locator("svg text").filter(has_text="Best lap")).to_have_count(1)

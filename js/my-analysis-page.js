@@ -171,7 +171,7 @@
     var head = '<h2>Over time</h2><p class="tm-note">Each dot is a session, in the order it was driven. Press a dot to open that session. Pick a figure to plot.</p>';
     var pts = sortByWhen(list).map(function (s) { return { s: s, v: m.get(s) }; }).filter(function (x) { return x.v != null; });
     if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough sessions with this figure yet.</p></div>';
-    var W = Math.round(Math.min(900, Math.max(320, (app.clientWidth || 800) - 48))), H = 262, L = 58, R = 12, T = 14, B = 54;
+    var W = Math.round(Math.min(900, Math.max(320, (app.clientWidth || 800) - 48))), H = 278, L = 58, R = 12, T = 30, B = 54;
     var vs = pts.map(function (x) { return x.v; });
     var y0 = Math.min.apply(null, vs), y1 = Math.max.apply(null, vs);
     if (y1 - y0 < 0.5) { y0 -= 0.5; y1 += 0.5; }
@@ -194,14 +194,17 @@
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.label) + ' for each session, in date order">' + grid +
       '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
       '<line x1="' + L + '" y1="' + T + '" x2="' + L + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<text x="' + L + '" y="14" style="font-weight:600">' + esc(m.label) + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (T + 10) + '" text-anchor="end">' + esc(m.fmt(y1)) + '</text>' +
       '<text x="' + (L - 6) + '" y="' + (H - B) + '" text-anchor="end">' + esc(m.fmt(y0)) + '</text>' +
       '<text x="' + L + '" y="' + (H - 30) + '">' + esc(niceDate(pts[0].s.date)) + '</text>' +
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[pts.length - 1].s.date)) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">Session, in date order</text>' +
       dots + '</svg>';
-    var legend = '<p class="tm-legend"><span>' + esc(m.quicker ? 'Quicker' : 'Higher') + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + esc(m.quicker ? 'Slower' : 'Higher still') + '</span></p>';
-    return '<div class="tm-card tm-chart">' + head + chips + svg + legend + '</div>';
+    // The key runs from the light end (the dots at the bottom of the scale's slow end) to the dark end, so its words match the dots.
+    var keyWords = m.quicker ? ['Slower', 'Quicker'] : ['Lower', 'Higher'];
+    var legend = '<p class="tm-legend"><span>' + esc(keyWords[0]) + '</span><span class="tm-grad" style="background:linear-gradient(to right,' + shadeAt(0) + ',' + shadeAt(1) + ')"></span><span>' + esc(keyWords[1]) + '</span></p>';
+    return '<div class="tm-card tm-chart">' + head + chips + legend + svg + '</div>';
   }
 
   function setupBlock(list) {

@@ -8,6 +8,8 @@
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var app = document.getElementById('ma-app');
   if (!app) return;
+  // The desktop Track Mode badge is kept here, because the app is drawn again each time and the badge moves into it.
+  var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
   var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres' };
 
@@ -295,15 +297,25 @@
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     // (The title's badge on desktop and the copy under the buttons on a phone.)
-    var tmShow = list.some(function (x) { return !!x.mode; });
-    var tmBadges = [document.getElementById('ma-tm'), document.getElementById('ma-tm-phone')].filter(Boolean);
-    tmBadges.forEach(function (b) { b.hidden = !tmShow; });
+    var recorded = list.filter(function (x) { return !!x.mode; }).length;
+    var tmShow = recorded > 0;
+    var tmBadges = [tmDesk, document.getElementById('ma-tm-phone')].filter(Boolean);
+    // With no track picked the badge counts the sessions recorded with Track Mode; with a track it names the feature.
+    var tmWords = state.track !== 'all' ? 'Recorded with Track Mode' : recorded + (recorded === 1 ? ' session was' : ' sessions were') + ' recorded with Track Mode';
+    tmBadges.forEach(function (b) {
+      b.hidden = !tmShow;
+      var text = Array.prototype.find.call(b.childNodes, function (n) { return n.nodeType === 3 && n.nodeValue.trim(); });
+      if (text) text.nodeValue = tmWords;
+    });
     // Play the red dot again each time the badge shows (page load, or a new track or car picked).
     tmBadges.forEach(function (b) {
       var tick = tmShow ? b.querySelector('.ma-rec-dot') : null;
       if (tick) { tick.style.animation = 'none'; void tick.getBoundingClientRect(); tick.style.animation = ''; }
     });
-    app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + trackPick + '</div>' + body;
+    // The badge sits beside the Track and layout drop-down on desktop (a phone shows its own copy under the buttons).
+    app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + '<div class="ma-track-cell">' + trackPick + '<span class="ma-tm-slot"></span></div></div>' + body;
+    var slot = app.querySelector('.ma-tm-slot');
+    if (slot && tmDesk) slot.replaceWith(tmDesk);
   }
 
   // A dot or a table row selects its session: the panel above the table shows it, and the page moves to the panel.

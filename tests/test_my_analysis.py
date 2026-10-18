@@ -104,7 +104,8 @@ def test_the_track_mode_badge_shows_only_when_the_sessions_have_track_mode_figur
     add(fake2, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61, "power": 230})
     open_page(page, fake2, "/my-analysis.html")
     expect(page.locator("#ma-tm")).to_be_visible()
-    expect(page.locator("#ma-tm")).to_contain_text("Recorded with Track Mode")
+    # With no track picked the badge counts the sessions recorded with Track Mode.
+    expect(page.locator("#ma-tm")).to_contain_text("1 session was recorded with Track Mode")
 
 
 def test_the_track_mode_page_is_out_of_the_laps_menus(page):
@@ -192,3 +193,19 @@ def test_the_chart_key_sits_above_the_graph_with_its_words_matching_the_dots(pag
     assert key.bounding_box()["y"] < chart.locator("svg").bounding_box()["y"]
     # The measure's name is over the vertical axis.
     expect(chart.locator("svg text").filter(has_text="Best lap")).to_have_count(1)
+
+
+def test_the_track_mode_badge_counts_the_sessions_until_a_track_is_picked(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61, "power": 230})
+    add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84, "power": 260})
+    add(fake, "a3", "2026-05-15", 60.9)
+    r = dict(day_session("t1", "10:00", 80.0, 4, date="2026-05-22", venue="Thruxton", venue_id="thruxton"), layoutId="thruxton", layout="Thruxton", carId="car1")
+    fake.sessions["t1"] = dict(r)
+    fake.index.append(dict(summary(r), carId="car1", tyres="", pads="", drive="", temp=None, brakeG=None, mode={"brakeTemp": 70, "power": 240}))
+    open_page(page, fake, "/my-analysis.html")
+    # Three of the four sessions carry Track Mode figures, and no track is picked yet.
+    expect(page.locator("#ma-tm")).to_contain_text("3 sessions were recorded with Track Mode")
+    page.locator("#ma-track").select_option(label="Thruxton · Track day")
+    expect(page.locator("#ma-tm")).to_contain_text("Recorded with Track Mode")
+    expect(page.locator("#ma-tm")).not_to_contain_text("sessions were")

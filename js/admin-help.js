@@ -130,6 +130,14 @@
     ] },
 
     // ---------------------------------------------------------------- admin.html and track-admin.html: sharing
+    'shop-cards-wrap': { t: 'Offers card and Shop card', p: 'The Offers card and the Shop card on the homepage, and the list of products an offer can pick.', i: [
+      ['Shop list', 'Every product an offer can pick. Add products here as they are added to the Shop.'],
+      ['Offer', 'Shows the offer on the Offers card while it is switched on and today is between its start and end dates. Each item can show its reduced price from the percentage.'],
+      ['Shop card highlights', 'One highlight per line, shown as text on the Shop card.'],
+    ] },
+    'editors-wrap': { t: 'Layout editors', p: 'Opens the layout editor on each page. The editor is on when the page address ends with ?layout=edit.', i: [
+      ['Open editor', 'Opens that page with its editor on. There is one address for each site: mt3uk.com, laps.mt3uk.com and the test copy.'],
+    ] },
     'card-share-wrap': { t: 'Homepage card pictures', p: 'The pictures a shared link to the homepage cards shows (share/card/).', i: [
       ['Rebuild share cards', 'Redraws the pictures now, so a changed offer or Shop card reaches its share link. It takes a few minutes; scrape the link again in Facebook afterwards.'],
     ] },

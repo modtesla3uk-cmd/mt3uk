@@ -1082,6 +1082,8 @@
       var whatShut = false;
       try { whatShut = localStorage.getItem('mt3ukWhatShut-' + location.pathname) === '1'; } catch (e) { /* storage blocked */ }
       if (what && m) what.open = !(m.cars || []).length && !whatShut;
+      // Opened by itself, it sits in the page (not over it); the What is...? button opens it as a popover.
+      if (what) what.classList.toggle('is-inline', !!what.open);
       if (m && m.cars && m.cars.length) { drawNews(); drawSince(m); }
       // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
       if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);
@@ -4458,6 +4460,7 @@
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';
     var spottedHtml = '<div class="tp-section" data-tile="spotted"><div class="tp-chart-head">' + '<h3>What we spotted</h3></div><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     // One map: Compare laps' Map, straight after the tiles.
+    var spottedInBoard = false;
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
@@ -4486,11 +4489,14 @@
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
         '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
-        '<div class="tp-prohead" id="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3>' + (laprosBandHtml(s) ? analysisLinkHtml(s) + laprosBandHtml(s) : '<span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s)) + '</div>' +
-        '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
+        '<div class="tp-prohead" id="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3>' + (laprosBandHtml(s) ? analysisLinkHtml(s) + laprosBandHtml(s) : '<span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s)) +
+        '<div class="tp-pro-cards"><div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>' + spottedHtml + '</div></div>';
       boardOpen = true;
+      spottedInBoard = true;
     }
-    h += lapsHtml + spottedHtml;
+    h += lapsHtml;
+    // Without the board (no lap trace) What we spotted is still shown on its own.
+    if (!spottedInBoard) h += spottedHtml;
     return h;
   }
   // "Lap 5", or "Session 2, lap 5" on a day made from several files
@@ -5519,8 +5525,9 @@
     if (!b || !view.mine || !s.mine) return;
     var list = view.mine.sessions.filter(function (o) { return o.carId === s.carId && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
     tilesOf(b).forEach(function (t) { if (keyOf(t) === 'overtime-mods') t.remove(); });
-    var spotted = b.querySelector('[data-tile="spotted"]'), html = impactHtml(list, s);
-    if (spotted) spotted.insertAdjacentHTML('afterend', html); else b.insertAdjacentHTML('beforeend', html);
+    // After the Laps Pro section, which holds What the laps say and What we spotted.
+    var pro = b.querySelector('[data-tile="prohead"]'), html = impactHtml(list, s);
+    if (pro) pro.insertAdjacentHTML('afterend', html); else b.insertAdjacentHTML('beforeend', html);
     applyLayout();
   }
   function dragHtml(s) {

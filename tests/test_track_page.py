@@ -6685,24 +6685,34 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     def span(key):
         return page.evaluate("k => getComputedStyle(document.querySelector('#tp-board > [data-tile=\"' + k + '\"]')).getPropertyValue('--span').trim()", key)
     first = order()
-    assert first[:10] == ["laps", "map", "speed", "gforce", "grip", "corners", "cmpnotes", "prohead", "spotted", "overtime-mods"], first
-    for k in ("laps", "spotted", "overtime-mods", "lineedit", "rename", "settings"):
+    assert first[:8] == ["laps", "map", "speed", "gforce", "grip", "corners", "prohead", "overtime-mods"], first
+    for k in ("laps", "prohead", "overtime-mods", "lineedit", "rename", "settings"):
         assert k in first, k
-    assert span("map") == "6" and span("grip") == "6" and span("speed") == "6" and span("gforce") == "6" and span("corners") == "6" and span("spotted") == "6" and span("cmpnotes") == "6" and span("settings") == "12"
+    assert span("map") == "6" and span("grip") == "6" and span("speed") == "6" and span("gforce") == "6" and span("corners") == "6" and span("prohead") == "12" and span("settings") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
-    # The order on the board: Laps at the top, then Map, Speed and the G-force graph, with How much grip you used and
-    # Corner by corner below the G-force graph.
-    sb = page.locator('[data-tile="speed"]').bounding_box()
-    cb = page.locator('[data-tile="corners"]').bounding_box()
-    mb = page.locator('[data-tile="map"]').bounding_box()
-    gb = page.locator('[data-tile="grip"]').bounding_box()
-    cmp_b = page.locator('[data-tile="cmpnotes"]').bounding_box()
-    laps_b = page.locator('[data-tile="laps"]').bounding_box()
-    gf = page.locator('[data-tile="gforce"]').bounding_box()
-    assert laps_b["y"] <= mb["y"] + 3 and mb["y"] <= cmp_b["y"] + 3, (laps_b, mb, cmp_b)
-    assert sb["y"] >= mb["y"] + mb["height"] - 3, (sb, mb)
-    assert gf["y"] >= sb["y"] + sb["height"] - 3, (gf, sb)
-    assert gb["y"] >= gf["y"] + gf["height"] - 3 and cb["y"] >= gb["y"] + gb["height"] - 3, (gb, cb, gf)
+    # The order on the board: Laps at the top, then Map with Speed beside it and the G-force graph under Speed, How much grip
+    # you used under the map and Corner by corner under the G-force graph. The Laps Pro section, with What the laps say and
+    # What we spotted side by side inside it, sits below both columns.
+    sb = page.locator('#tp-board > [data-tile="speed"]').bounding_box()
+    cb = page.locator('#tp-board > [data-tile="corners"]').bounding_box()
+    mb = page.locator('#tp-board > [data-tile="map"]').bounding_box()
+    gb = page.locator('#tp-board > [data-tile="grip"]').bounding_box()
+    gf = page.locator('#tp-board > [data-tile="gforce"]').bounding_box()
+    laps_b = page.locator('#tp-board > [data-tile="laps"]').bounding_box()
+    pro_b = page.locator('#tp-board > [data-tile="prohead"]').bounding_box()
+    cmp_b = page.locator('#tp-prohead [data-tile="cmpnotes"]').bounding_box()
+    sp_b = page.locator('#tp-prohead [data-tile="spotted"]').bounding_box()
+    assert laps_b["y"] <= mb["y"] + 3, (laps_b, mb)
+    # On a desktop Speed sits beside the map, and the G-force graph sits under Speed in the same column.
+    assert abs(sb["y"] - mb["y"]) < 3 and sb["x"] > mb["x"] + mb["width"] - 3, (sb, mb)
+    assert gf["y"] >= sb["y"] + sb["height"] - 3 and abs(gf["x"] - sb["x"]) < 3, (gf, sb)
+    # How much grip you used sits under the map, and Corner by corner under the G-force graph.
+    assert gb["y"] >= mb["y"] + mb["height"] - 3 and abs(gb["x"] - mb["x"]) < 3, (gb, mb)
+    assert cb["y"] >= gf["y"] + gf["height"] - 3 and abs(cb["x"] - sb["x"]) < 3, (cb, gf)
+    # Laps Pro is full width below both columns, with What the laps say and What we spotted side by side inside it.
+    assert pro_b["y"] >= max(gb["y"] + gb["height"], cb["y"] + cb["height"]) - 3, (pro_b, gb, cb)
+    assert abs(cmp_b["y"] - sp_b["y"]) < 3 and sp_b["x"] > cmp_b["x"] + cmp_b["width"] - 3, (cmp_b, sp_b)
+    assert cmp_b["y"] >= pro_b["y"] and sp_b["y"] + sp_b["height"] <= pro_b["y"] + pro_b["height"] + 1, (cmp_b, sp_b, pro_b)
     # On the owner's session the paid sections sit before Start and finish lines, which come last on the board.
     if page.locator('[data-tile="lineedit"]').count():
         lb = page.locator('[data-tile="lineedit"]').bounding_box()

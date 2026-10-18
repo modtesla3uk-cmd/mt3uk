@@ -85,6 +85,11 @@
     z-index: 60; background: #22324f; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); padding: 16px 18px;
     box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; color: #d3d8e2; margin: 0;
   }
+  /* A fold opened by itself (a member with no cars yet) sits in the page and pushes the list down; the ? button still opens it as a popover. */
+  body:not([data-tp-view="session"]) .lh-hero .lh-fold.is-inline[open].lh-fold {
+    position: relative !important; top: auto !important; left: auto !important; width: 100% !important;
+    box-shadow: none; z-index: auto;
+  }
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] > :not(summary) { max-width: none !important; margin: 0 !important; text-align: left !important; }
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] p { margin: 0 0 8px; color: #d3d8e2 !important; }
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open] li { color: #d3d8e2 !important; }

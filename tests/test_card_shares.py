@@ -33,3 +33,19 @@ def test_the_card_previews_workflow_runs_every_day_and_on_homepage_changes():
     assert "cron:" in workflow and "build_card_shares.py" in workflow
     assert "js/home-share.js" in workflow and "index.html" in workflow
     assert re.search(r"git add share/card", workflow)
+
+
+def test_the_card_previews_workflow_can_be_started_from_the_admin_page():
+    # The Rebuild share cards button sends the card-previews event (worker /home/cards/rebuild); the workflow listens for it.
+    workflow = (ROOT / ".github" / "workflows" / "card-previews.yml").read_text(encoding="utf-8")
+    assert "repository_dispatch:" in workflow and "types: [card-previews]" in workflow
+    assert "card-previews" in (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    assert "card-share-admin.js" in (ROOT / "admin.html").read_text(encoding="utf-8")
+
+
+def test_the_admin_panel_opens_the_sharing_debugger_for_each_homepage_card():
+    # Each card's share page is filled into Facebook's Sharing Debugger, so its picture can be scraped again by hand.
+    page = (ROOT / "admin.html").read_text(encoding="utf-8")
+    for card in CARDS:
+        share = "https%%3A%%2F%%2Fmt3uk.com%%2Fshare%%2Fcard%%2F%s.html" % card
+        assert "https://developers.facebook.com/tools/debug/?q=" + share in page, card

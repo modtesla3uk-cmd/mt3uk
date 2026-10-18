@@ -362,6 +362,22 @@
   <section class="admin-group" id="grp-sharing" aria-labelledby="grp-sharing-h">
     <div class="group-head"><h2 id="grp-sharing-h">Sharing links</h2><p>The picture a shared link shows in WhatsApp, Facebook and the rest, for the homepage. The Track sessions link picture is on the Track admin page.</p></div>
     <div class="panel-wrap">
+    <details class="collapsible" id="card-share-wrap">
+      <summary><h3 class="panel-title">Homepage card pictures</h3></summary>
+      <p class="iv-note">The pictures a shared link to the Latest interview, Laps, Next interview, Add a photo, Offers and Shop cards shows (share/card/). They are drawn every morning, and when the homepage code changes. Use the button after changing the Offers or Shop card so the link picks it up now. The pictures take a few minutes to be drawn and committed; Facebook keeps its own copy until you scrape the link again.</p>
+      <div class="iv-toolbar"><button type="button" id="card-share-rebuild">Rebuild share cards</button></div>
+      <p class="iv-note" id="card-share-status" role="status"></p>
+      <h3 class="sub-head">Facebook Sharing Debugger</h3>
+      <p class="iv-note">Opens Facebook's Sharing Debugger with each card's share page filled in. Press Scrape again there so Facebook takes the new picture.</p>
+      <div class="iv-toolbar">
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Flatest.html" target="_blank" rel="noopener">Latest interview</a>
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Flaps.html" target="_blank" rel="noopener">Laps</a>
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Fnext.html" target="_blank" rel="noopener">Next interview</a>
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Fjoin.html" target="_blank" rel="noopener">Add a photo</a>
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Foffers.html" target="_blank" rel="noopener">Offers</a>
+        <a href="https://developers.facebook.com/tools/debug/?q=https%3A%2F%2Fmt3uk.com%2Fshare%2Fcard%2Fshop.html" target="_blank" rel="noopener">Shop</a>
+      </div>
+    </details>
     <details class="collapsible" id="home-share-wrap" data-share-slot="home">
       <summary><h3 class="panel-title">Homepage sharing</h3></summary>
       <p class="iv-note">The picture a shared homepage link shows in WhatsApp, Facebook and the rest. Pick a photo from the build gallery, upload one, or draw a card from a saved track session, give it a caption, and either rotate through them a week at a time or pick one. With none saved the link keeps its usual picture. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
@@ -2572,6 +2588,7 @@
 <script src="js/admin-section-tools.js?v=1" defer></script>
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/shop-home-admin.js?v=6" defer></script>
+<script src="js/card-share-admin.js?v=1" defer></script>
 <script src="js/admin-toast.js?v=1" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/nickname-fill-admin.js?v=20270212" defer></script>

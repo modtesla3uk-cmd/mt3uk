@@ -10,6 +10,9 @@ on:
       - "js/shop-home-cards.js"
       - "scripts/build_card_shares.py"
   workflow_dispatch: {}
+  # The Rebuild share cards button on admin.html (worker /home/cards/rebuild) sends this event.
+  repository_dispatch:
+    types: [card-previews]
   # Every morning: the offer, the next interview and the Shop card change with the dates and the admin.
   schedule:
     - cron: "40 5 * * *"

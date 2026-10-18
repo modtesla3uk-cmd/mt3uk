@@ -366,6 +366,8 @@ def test_the_editor_sets_the_members_figure_and_the_other_figures_come_from_the_
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
     page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
     page.route("**/home/members/admin**", lambda r: (posts.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "members": posts[-1]["members"]}), headers=CORS)))
+    # The figure the editor starts from is data/community.json, which the editor saves to, so the test sets its own.
+    page.route("**/data/community.json", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"members": "3.1K+"}), headers=CORS))
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html?layout=edit")
     expect(page.locator("#hl-bar [data-hl-members]")).to_have_value("3.1K+")
@@ -482,3 +484,13 @@ def test_the_order_link_for_an_offer_item_goes_through_the_discount_code_to_the_
     assert href.startswith("https://mt3uk.myshopify.com/discount/MT3UKMC40?redirect=")
     assert "%2Fproducts%2Fmodel-3-brake-master-cylinder-bracket-for-rhd-models-only" in href
     assert "utm_campaign%3Dbrace_order" in href
+
+
+def test_admin_rebuilds_the_homepage_card_pictures_from_the_sharing_panel(page):
+    asked = []
+    open_admin(page, "admin.html")
+    page.route("**/home/cards/rebuild**", lambda r: (asked.append(r.request.method), r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requestedAt": "2026-10-18T10:00:00Z"}), headers=CORS)))
+    page.locator("#card-share-wrap summary").click()
+    page.locator("#card-share-rebuild").click()
+    expect(page.locator("#card-share-status")).to_contain_text("Started")
+    assert asked == ["POST"]

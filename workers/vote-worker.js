@@ -10136,6 +10136,17 @@ async function handleHomeMembersAdmin(request, env) {
   if (!put.ok) return json({ success: false, message: 'Could not save the members figure (' + put.status + ')' }, 502);
   return json({ success: true, members: value });
 }
+// Asks GitHub to redraw the homepage card pictures now (card-previews.yml listens for this event). It commits the pictures,
+// so the share links pick up the offer, the Shop card and the next interview without waiting for the morning run.
+async function handleCardSharesRebuild(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var res = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/dispatches',
+    { method: 'POST', headers: Object.assign({}, eventsGithubHeaders(env), { 'Content-Type': 'application/json' }), body: JSON.stringify({ event_type: 'card-previews' }) }
+  );
+  if (!res.ok) return json({ success: false, message: 'GitHub did not accept the request (' + res.status + ').' }, 502);
+  return json({ success: true, requestedAt: new Date().toISOString() });
+}
 
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
@@ -13450,6 +13461,7 @@ export default {
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);
     if (url.pathname === '/home/members/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeMembersAdmin(request, env);
+    if (url.pathname === '/home/cards/rebuild' && request.method === 'POST') return handleCardSharesRebuild(request, env);
     if (url.pathname === '/shop/home/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopHomeAdmin(request, env);
     if (url.pathname === '/laps/news' && request.method === 'GET') {
       return handleLapsNewsPublic(request, env);

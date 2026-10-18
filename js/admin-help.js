@@ -130,6 +130,9 @@
     ] },
 
     // ---------------------------------------------------------------- admin.html and track-admin.html: sharing
+    'card-share-wrap': { t: 'Homepage card pictures', p: 'The pictures a shared link to the homepage cards shows (share/card/).', i: [
+      ['Rebuild share cards', 'Redraws the pictures now, so a changed offer or Shop card reaches its share link. It takes a few minutes; scrape the link again in Facebook afterwards.'],
+    ] },
     'home-share-wrap': { t: 'Homepage sharing', p: 'The picture a shared homepage link shows in WhatsApp, Facebook and the rest.', i: [
       ['Add a picture', 'Pick a photo from the build gallery, upload one, or draw a card from a saved track session. Give each a caption.'],
       ['A different picture each week', 'On: the week\'s picture is taken in turn from the saved ones. Off: the one you pick is always used.'],

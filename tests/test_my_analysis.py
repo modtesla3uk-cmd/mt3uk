@@ -81,6 +81,26 @@ def test_the_track_picked_is_remembered_when_the_page_is_opened_again(page):
     expect(page.locator("button[data-grid-track]")).to_have_count(0)
 
 
+def test_the_track_choice_stays_in_view_under_the_header_when_the_page_scrolls(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker(earlier=False)
+    for i, d in enumerate(["2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05"]):
+        add(fake, "s%d" % i, d, 60.0 + i * 0.3, brake_g=1.1, temp=12, mode={"brakeTemp": 60 + i * 4, "power": 240, "batteryTemp": 50})
+    r = dict(day_session("t1", "10:00", 80.0, 4, date="2026-05-22", venue="Thruxton", venue_id="thruxton"), layoutId="thruxton", layout="Thruxton", carId="car1")
+    fake.sessions["t1"] = dict(r)
+    fake.index.append(dict(summary(r), carId="car1", tyres="", pads="", drive="", temp=None, brakeG=None, mode={"brakeTemp": 70, "power": 240}))
+    open_page(page, fake, "/my-analysis.html")
+    page.locator("#ma-track").select_option(label="Thruxton · Track day")
+    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    page.wait_for_timeout(300)
+    assert page.evaluate("window.scrollY") > 300
+    header_bottom = page.evaluate("document.querySelector('header').getBoundingClientRect().bottom")
+    track_top = page.locator("#ma-track").bounding_box()["y"]
+    # Still on screen, just under the header, with the track drop-down's own choice showing.
+    assert header_bottom - 2 <= track_top <= header_bottom + 80, (header_bottom, track_top)
+    expect(page.locator("#ma-track")).to_have_value("Thruxton|Thruxton")
+
+
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
     open_page(page, FakeWorker(earlier=False), "/my-analysis.html", signed_in=False)
     expect(page.locator("#ma-app")).to_contain_text("Sign in to see your own analysis")
@@ -227,6 +247,7 @@ def test_the_track_drop_down_leaves_out_drives_which_have_no_time(page):
     drive = dict(summary(day_session("d1", "10:00", None, 0, date="2026-05-02", venue="Indy Drive", venue_id="indy-drive")), type="other", layoutId="", layout="", bestTime=None, carId="car1")
     fake.index.append(drive)
     open_page(page, fake, "/my-analysis.html")
+    expect(page.locator("#ma-track")).to_be_visible()
     options = page.locator("#ma-track option").all_text_contents()
     assert any("Indy" in o for o in options) and any("Thruxton" in o for o in options), options
     assert not any("Indy Drive" in o for o in options), options

@@ -225,7 +225,7 @@
     .lh-hero .lh-title .tp-what-q { display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 12px; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
     .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
   }
-  .ma-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 12px; }
+  .ma-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 12px; position:sticky; top:var(--ma-top, 0); z-index:20; background:var(--paper); padding:8px 0; box-shadow:0 8px 10px -10px rgba(20,33,61,.45); }
   /* The Track and layout drop-down, with the Track Mode badge beside it, on the bottom edge of the drop-down. */
   .ma-track-cell { display:flex; align-items:flex-end; gap:12px; min-width:0; }
   .ma-track-cell > .tm-pick { flex:1 1 200px; min-width:0; }
@@ -348,7 +348,7 @@
 
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/my-analysis-page.js?v=35" defer></script>
+<script src="js/my-analysis-page.js?v=36" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

@@ -575,10 +575,17 @@
     if (e.target.id === 'ma-car') { state.car = e.target.value; state.track = 'all'; rememberTrack(); clearDay(); draw(); }
     if (e.target.id === 'ma-track') { state.track = e.target.value; rememberTrack(); clearDay(); draw(); }
   });
+  // The track and car choices stay in view under the page header as the page scrolls: their top sits just below the header.
+  function setControlsTop() {
+    var h = document.querySelector('header');
+    if (h) document.documentElement.style.setProperty('--ma-top', Math.ceil(h.getBoundingClientRect().height) + 'px');
+  }
+  setControlsTop();
   // Redraw the graph at a new width (a phone turned sideways).
   var lastW = app.clientWidth, timer = 0;
   window.addEventListener('resize', function () {
     clearTimeout(timer);
+    setControlsTop();
     timer = setTimeout(function () { if (app.clientWidth !== lastW && state.sessions.length) { lastW = app.clientWidth; draw(); } }, 200);
   });
 

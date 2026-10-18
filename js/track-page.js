@@ -991,7 +991,7 @@
         proNote = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
           + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>';
       }
-      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Your free days</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
+      box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Laps Pro</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };
       var startTrial = document.getElementById('tp-trial-start');
       if (startTrial) startTrial.addEventListener('click', function () {

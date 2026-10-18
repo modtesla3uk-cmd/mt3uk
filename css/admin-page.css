@@ -254,6 +254,7 @@
   .iv-settings { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; color: var(--steel); font-size: 0.72rem; }
   .iv-settings select { background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); font-family: inherit; font-size: inherit; padding: 4px 6px; }
   .iv-gap { color: var(--orange); font-size: 0.72rem; margin: 0 0 12px; }
+  .iv-table-wrap { max-width: 100%; overflow-x: auto; }
   .iv-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
   .iv-table th { text-align: left; color: var(--steel); font-weight: normal; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
   .iv-table td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }

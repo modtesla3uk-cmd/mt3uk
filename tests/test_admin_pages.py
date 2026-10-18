@@ -53,9 +53,9 @@ def test_the_admin_pages_are_light_and_share_one_navigation(page, name):
     assert luminance(page.evaluate("getComputedStyle(document.body).backgroundColor")) > 0.85
     assert luminance(page.evaluate("getComputedStyle(document.body).color")) < 0.3
     links = page.locator(".admin-nav a")
-    assert links.all_inner_texts() == ["Gallery and builds", "Reports", "Members", "Owner interviews", "Track sessions", "Sharing links", "Events", "Device checks"]
+    assert links.all_inner_texts() == ["Page editors", "Gallery and builds", "Reports", "Members", "Owner interviews", "Shop", "Track sessions", "Sharing links", "Events", "Device checks"]
     hrefs = [links.nth(i).get_attribute("href") for i in range(links.count())]
-    assert hrefs == ["admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "track-admin.html", "admin.html#grp-sharing", "events-admin.html", "device-checklist.html"]
+    assert hrefs == ["admin.html#grp-editors", "admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "admin.html#grp-shop", "track-admin.html", "admin.html#grp-sharing", "events-admin.html", "device-checklist.html"]
     current = page.locator('.admin-nav a[aria-current="page"]')
     if name == "admin.html":
         expect(current).to_have_count(0)

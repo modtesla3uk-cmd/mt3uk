@@ -1,11 +1,12 @@
 /* Shared desktop heading for the four Laps heading pages (Sessions, Leaderboard, My Analysis, Favourites).
-   From 901px wide the heading is one 1000 x 280 px box, and every page places the same parts in the same
+   From 901px wide the heading is one 1000 x 146 px box, tight below the buttons, and every page places the same parts in the same
    positions: the title at the top left, Back under it, three buttons at the top right and under them, and the
    intro below Back. Positions are from the top left of the heading box. Phone is left to each page's own rules.
    Pages mark their parts with lh-* classes (see tests/test_laps_heading.py). */
 @media (min-width: 901px) {
+  body:not([data-tp-view="session"]) .lh-hero { padding-top: 6px !important; }
   body:not([data-tp-view="session"]) .lh-hero > .wrap {
-    position: relative !important; display: block !important; height: 280px !important;
+    position: relative !important; display: block !important; height: 146px !important; margin-top: -16px !important;
   }
   body:not([data-tp-view="session"]) .lh-hero .lh-hero-row, body:not([data-tp-view="session"]) .lh-hero .lh-hero-top, body:not([data-tp-view="session"]) .lh-hero .lh-hero-left, body:not([data-tp-view="session"]) .lh-hero .lh-hero-right,
   body:not([data-tp-view="session"]) .lh-hero .lh-hero-actions:not([hidden]) {

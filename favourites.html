@@ -30,7 +30,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271026">
 <script src="js/site-look.js?v=3"></script>
-<link rel="stylesheet" href="css/laps-heading.css?v=14">
+<link rel="stylesheet" href="css/laps-heading.css?v=18">
 <script src="js/laps-heading-layout.js?v=1"></script>
 <script src="js/laps-heading-what.js?v=1" defer></script>
 <style>
@@ -437,6 +437,7 @@
         <a href="my-analysis.html" data-btn="my-analysis" class="tp-lb-pill lh-pill lh-s1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/></svg>My Analysis</a>
         <a href="leaderboards.html" data-btn="leaderboards" class="tp-lb-pill lh-pill lh-s2"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
         <a href="track.html" data-btn="sessions" class="tp-lb-pill lh-pill lh-s3"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a>
+        <div data-laps-tip="bulb" data-laps-tip-title=".tp-hero-row h1"></div>
       </div>
     </div>
     <details class="fav-intro lh-intro lh-fold"><summary>What are Favourites?</summary><p>The Track sessions you have starred, grouped by type. Press a session to open it, or its star to take it off.</p></details>
@@ -444,6 +445,16 @@
 </section>
 <style>
   .fav-hero { background:#16233d; border-bottom:0; }
+  @media (min-width: 901px) { .fav-hero { padding: 6px 0 18px !important; } }
+  /* The ? button by the title on a phone, like Sessions and My Analysis; the line under it is opened from the button. */
+  .fav-intro > summary { display: none !important; }
+  .tp-dark-hero .laps-tip-bulbbtn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; margin-left: 12px; padding: 0; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: transparent; color: #ffd27a; cursor: pointer; flex: none; }
+  .tp-dark-hero .laps-tip-bulbbtn .icon { width: 18px; height: 18px; }
+  @media (max-width: 900px) {
+    .lh-hero .lh-title .tp-what-q { display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 12px; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
+    .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    .lh-title #tp-quota-ring { margin-left: auto; margin-right: 8px; }
+  }
   .fav-hero .wrap { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:16px; row-gap:0; align-items:center; }
   .fav-hero .tp-hero-row { display:flex; align-items:center; justify-content:space-between; gap:16px; grid-column:1 / -1; grid-row:1; margin:0; }
   .fav-hero h1 { color:#fff; margin:0; display:flex; align-items:center; }
@@ -454,7 +465,7 @@
   .fav-tools { display:flex; gap:10px; }
   /* Desktop: placed at the revised positions for a 1000 x 280 px heading (from the top left of the heading box). */
   @media (min-width: 901px) {
-    .fav-hero .wrap { position: relative !important; display: block !important; height: 280px !important; }
+    .fav-hero .wrap { position: relative !important; display: block !important; height: 146px !important; margin-top: -16px !important; }
     .fav-hero .tp-hero-row, .fav-hero .tp-hero-top, .fav-hero .fav-tools { display: contents !important; }
     .fav-hero h1, .fav-hero .back-link, .fav-hero .fav-tools .tp-lb-pill, .fav-hero .fav-intro {
       position: absolute !important; margin: 0 !important; box-sizing: border-box !important;
@@ -471,6 +482,8 @@
   .fav-hero .tp-lb-pill:hover { background:#eef1f6; color:var(--ink); }
   .fav-hero .tp-lb-pill .icon { width:20px; height:20px; color:#e8542a; stroke:#e8542a; fill:none; stroke-width:2; }
   .fav-hero .fav-intro { grid-column:1 / -1; grid-row:3; color:#d3d8e2; margin:14px 0 0; max-width:62ch; text-align:left; justify-self:start; }
+  /* Phone: the same 16px side gutter as the other Laps pages. */
+  @media (max-width: 780px) { .wrap { padding: 0 16px; } }
   /* Phone: Back and My Sessions on the first row, Leaderboards and My Analysis on the second. */
   @media (max-width: 900px) {
     .fav-hero .wrap { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
@@ -478,7 +491,7 @@
     .fav-hero h1 { grid-column:1 / -1; grid-row:1; margin:0 0 6px; font-size:clamp(1.6rem, 7vw, 2.1rem); }
     .fav-hero .tp-hero-top { grid-column:1; grid-row:2; margin:0; width:auto; justify-self:stretch; }
     .fav-tools { display:contents; }
-    .fav-hero .back-link, .fav-hero .tp-lb-pill { width:100%; min-width:0; min-height:52px; height:52px; margin:0; padding:0 10px; font-size:0.98rem; }
+    .fav-hero .back-link, .fav-hero .tp-lb-pill { width:100%; min-width:0; min-height:44px; height:auto; margin:0; padding:0 12px; font-size:0.92rem; }
     .fav-hero .fav-tools .tp-lb-pill:nth-child(3) { grid-column:2; grid-row:2; }
     .fav-hero .fav-tools .tp-lb-pill:nth-child(2) { grid-column:1; grid-row:3; }
     .fav-hero .fav-tools .tp-lb-pill:nth-child(1) { grid-column:2; grid-row:3; }
@@ -633,7 +646,9 @@
 </script>
 
 
-<script src="js/favourites-page.js?v=3" defer></script>
+<script src="js/laps-tip.js?v=20271018" defer></script>
+<script src="js/quota-ring.js?v=15" defer></script>
+<script src="js/favourites-page.js?v=4" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

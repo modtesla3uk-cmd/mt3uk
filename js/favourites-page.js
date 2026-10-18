@@ -87,7 +87,13 @@
   function signIn(text) {
     app.innerHTML = '<p class="fav-empty">' + esc(text) + ' <a href="laps-signin.html?next=favourites.html">Sign in to Laps</a>.</p>';
   }
+  // The usage ring beside the title and the tip's bulb, as on Sessions and the Leaderboard.
+  function heading() {
+    if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
+    if (token()) api('GET', '/track/tiers/access').then(function (t) { if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(t || {}); });
+  }
   function load() {
+    heading();
     if (!token()) { signIn('Sign in to see the sessions you have starred.'); return; }
     api('GET', '/track/favourites').then(function (d) {
       if (d.status === 401) { signIn('Please sign in again.'); return; }

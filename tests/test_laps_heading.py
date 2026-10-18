@@ -1,5 +1,5 @@
 """The four Laps heading pages (Sessions, Leaderboard, My Analysis, Favourites) place their parts in the same
-positions on desktop. The spec is css/laps-heading.css: a 1000 x 280 px heading box, the title at the top left,
+positions on desktop. The spec is css/laps-heading.css: a 1000 x 146 px heading box, the title at the top left,
 Back under it, and three button slots at the top right and under them (see the file for the numbers).
 
 Each page marks its parts with lh-* classes. These tests measure the rendered boxes against the spec, so a page
@@ -77,7 +77,7 @@ def test_the_heading_is_the_shared_box_on_desktop(page, name):
         # The Add a session button only shows for a member with a list; show it here to measure its slot.
         page.evaluate("() => { const a = document.getElementById('tp-hero-actions'); if (a) a.hidden = false; }")
     boxes = heading_boxes(page)
-    assert boxes["size"] == [1000, 280], boxes
+    assert boxes["size"] == [1000, 146], boxes
 
     for part in ("title", "back", "intro"):
         assert boxes[part] is not None, f"{name}: no {part}"

@@ -115,7 +115,8 @@ def test_sidecars_are_only_written_through_put_sidecar():
     rest = worker.replace(body, "")
     writes = re.findall(r"GALLERY_BUCKET\.put\(([^,]+),", rest)
     # shareKey is a link preview picture under share/<slot>/, never a sidecar.
-    allowed = {"msg.photo", "name", "carRecordKey(car.id)", "'gallery/' + filename", "shareKey"}
+    # shotKey is a feedback screenshot and key is the Laps video's sound; neither is a gallery sidecar.
+    allowed = {"msg.photo", "name", "carRecordKey(car.id)", "'gallery/' + filename", "shareKey", "shotKey", "key"}
     assert set(w.strip() for w in writes) <= allowed, writes
     # The manifest builder groups by the owner key, never the email.
     script = (ROOT / "scripts" / "build_gallery_manifest.py").read_text(encoding="utf-8")

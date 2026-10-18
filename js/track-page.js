@@ -2146,6 +2146,9 @@
     lapSelFor = view.s.id;
     var box = document.getElementById('tp-headline');
     if (box) box.innerHTML = headlineHtml(view.s);
+    // The Track Mode figures in Laps Pro follow the lap too.
+    var car = document.getElementById('car-data');
+    if (car) car.outerHTML = carDataHtml(view.s, chosenLap(view.s));
   });
   // The Saved message after an upload goes away when dismissed.
   document.addEventListener('click', function (e) {
@@ -3936,11 +3939,11 @@
       fig('Peak braking', s.brakeMax ? s.brakeMax.toFixed(2) + ' g' : '–', 'Hardest stop in this session') +
       fig('Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '–', s.gDerived ? 'Estimated from the speed' : 'Sideways, in this session');
     var tm = soc !== null || isFinite(mode.brakeTemp) || isFinite(mode.power);
-    var tmHtml = tm ? '<div class="tp-band-tm"><h5>Track Mode</h5><div class="tp-band-figs">' +
+    var tmHtml = carDataHtml(s, chosenLap(s)) || (tm ? '<div class="tp-band-tm"><h5>Track Mode</h5><div class="tp-band-figs">' +
       fig('Most charge', soc !== null ? soc + '%' : '–', soc !== null ? 'Battery, start to end' : 'Not recorded') +
       fig('Hottest brakes', isFinite(mode.brakeTemp) ? Math.round(mode.brakeTemp) + ' °C' : '–', isFinite(mode.brakeTemp) ? 'The car’s own figure' : 'Not recorded', 'is-hot') +
       fig('Peak power', isFinite(mode.power) ? Math.round(mode.power) + ' kW' : '–', isFinite(mode.power) ? 'Highest in this session' : 'Not recorded') +
-      '</div></div>' : '<p class="tp-band-note">No Track Mode data in this session.</p>';
+      '</div></div>' : '<p class="tp-band-note">No Track Mode data in this session.</p>');
     var say = [];
     if (lapOk) say.push('This session’s best lap is ' + V.fmtLap(s.bestTime) + '.');
     say.push('These figures come from this session’s own readings. Weather, tyres and driving changes are not taken out.');
@@ -3948,6 +3951,11 @@
       (s.time ? ', ' + esc(s.time) : '') + '. Figures from this session only.</p>' +
       '<div class="tp-band-figs">' + figs + '</div>' + tmHtml +
       '<div class="tp-band-box"><h5>What the figures say</h5>' + say.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div></div>';
+  }
+  // Laps Pro for a drive or a drag run (no lap layout, so no cards): its figures, Track Mode included. Owners only.
+  function lapsProSolo(s) {
+    var band = laprosBandHtml(s);
+    return band ? '<div class="tp-prohead tp-prohead-solo"><div class="tp-prohead-top"><h3>Laps Pro</h3>' + analysisLinkHtml(s) + '</div>' + band + '</div>' : '';
   }
   function analysisLinkHtml(s) {
     if (!s.mine || s.local || !s.venue || s.type === 'other') return '';
@@ -4079,7 +4087,7 @@
       ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
       ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
     ]);
-    h += carDataHtml(s);
+    h += lapsProSolo(s);
     h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg>' +
       '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Other sessions are mapped but not timed for a leaderboard.</span></div></div>';
     return h;
@@ -4187,17 +4195,16 @@
     if (!t.length && !(c.empty || []).length) return '';
     var hasPress = c.brakePressure || c.tyrePressure, held = powerHeldBack(c.power);
     // Folded away until opened, with the headline figures in the summary.
-    var gist = t.slice(0, 3).map(function (x) { return x[0] + ' ' + x[1]; }).join(', ');
-    return '<details class="card tp-cardata" id="car-data"' + (carOpen ? ' open' : '') + '><summary><h2>Track Mode</h2><span class="tp-small">' + esc(gist || 'The car\'s own data') + '</span><span class="tp-open">' + icon('chev') + '</span></summary><div class="tp-head">' +
+    return '<div class="tp-band-tm" id="car-data"><h5>Track Mode</h5><div class="tp-head">' +
       (hasPress ? '<div class="tp-chips" role="group" aria-label="Pressure in">' + ['bar', 'psi'].map(function (u) { return '<button type="button" class="chip chip-sm' + (u === pressUnit ? ' is-on' : '') + '" data-press="' + u + '" aria-pressed="' + (u === pressUnit) + '">' + u + '</button>'; }).join('') + '</div>' : '') +
       '</div>' +
       (runs ? '<div class="tp-chips tp-car-runs" role="group" aria-label="Show the figures for">' + [['all', 'Whole day']].concat(runs.map(function (r) { return [String(r.run), cap(word) + ' ' + r.run]; })).map(function (o) { return '<button type="button" class="chip chip-sm' + (o[0] === carRun ? ' is-on' : '') + '" data-car-run="' + o[0] + '" aria-pressed="' + (o[0] === carRun) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' : '') +
       '<p class="tp-sub tp-car-from" id="tp-car-from">' + icon('info') + esc(from) + '</p>' +
-      (t.length ? tiles(t) : '') +
+      (t.length ? '<div class="tp-band-figs">' + t.map(function (x) { return '<div class="tp-band-fig' + (x[4] ? ' ' + esc(x[4]) : '') + '"><span>' + esc(x[0]) + '</span><b>' + esc(x[1]) + '</b><small>' + esc(x[2]) + '</small></div>'; }).join('') + '</div>' : '') +
       (held ? '<div class="tp-note tp-held" id="tp-held">' + icon('warn') + '<p>Power held back? Flat out, your peak power fell from ' + held.early + ' kW early in the session to ' + held.late + ' kW late on.<small>The car limits power as parts get hot. Compare with the temperatures above.</small></p></div>' : '') +
       '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees. Their colours follow the Track Mode zones as owners describe them (yellow from 70%, orange from 85%, red at 100%).' +
       ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p>' +
-      (s.mine ? carAgainHtml() : '') + '</details>';
+      (s.mine ? carAgainHtml() : '') + '</div>';
   }
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + (t[4] ? ' ' + t[4] : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
@@ -4246,8 +4253,8 @@
         ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
       ]);
     }
-    // Track Mode figures straight after the headline tiles (nothing when the file had none).
-    return h + carDataHtml(s, sel);
+    // The Track Mode figures are in the Laps Pro section now (laprosBandHtml), not under the headline tiles.
+    return h;
   }
   // Choose a lap, or the whole session, for the figures below.
   function lapPickHtml(s) {
@@ -4487,9 +4494,9 @@
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
-        '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
+        '<details class="card tp-o-corner" data-tile="corners"><summary><h3>Corner by corner</h3><span class="tp-open">' + icon('chev') + '</span></summary><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></details>' +
         '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
-        '<div class="tp-prohead" id="tp-prohead" data-tile="prohead"><h3>Laps Pro</h3>' + (laprosBandHtml(s) ? analysisLinkHtml(s) + laprosBandHtml(s) : '<span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>' + analysisLinkHtml(s)) +
+        '<div class="tp-prohead" id="tp-prohead" data-tile="prohead"><div class="tp-prohead-top"><h3>Laps Pro</h3>' + analysisLinkHtml(s) + '</div>' + (laprosBandHtml(s) || '<span class="tp-small">What the laps say, what we spotted and what each mod did, in one place.</span>') +
         '<div class="tp-pro-cards"><div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>' + spottedHtml + '</div></div>';
       boardOpen = true;
       spottedInBoard = true;
@@ -5548,7 +5555,7 @@
       ['1/8 mile', b8 ? b8.eighth.toFixed(2) + ' s' : '-', b8 ? 'at ' + V.fmtV(b8.eighthSpeed) : ''],
       ['Runs', String(runs.length), '']
     ]);
-    h += carDataHtml(s);
+    h += lapsProSolo(s);
     // Street runs (admin testing) also show where the drive went.
     if (s.street && (s.outline || (s.trace && s.trace.outline) || []).length > 1) h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg><div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Street runs are private and never on a leaderboard.</span></div></div>';
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 12).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +

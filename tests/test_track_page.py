@@ -648,6 +648,7 @@ def test_add_a_session_from_the_racebox_file(page):
     box = page.locator("#tp-speed").bounding_box()
     page.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5)
     expect(page.locator(".tv-tip")).to_contain_text("L2")
+    page.locator('[data-tile="corners"] > summary').click()
     expect(page.locator("#tp-corners tbody tr").first).to_be_visible()
     # Compare with the earlier day is offered.
     expect(page.locator("#tp-cmp-b optgroup")).to_have_attribute("label", "Your other sessions at this track")
@@ -1494,7 +1495,7 @@ def test_choosing_a_lap_updates_the_tiles_and_the_track_mode_figures(page):
     # Whole session to begin with: the best lap, and the day's charge.
     expect(tiles.first).to_contain_text("Best lap")
     expect(tiles.first).to_contain_text("1:30.00")
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used")).to_contain_text("5%")
     # Lap 2: its own time, how far off the best, its own top speed and grip, and its own charge.
     page.locator("#tp-lap-pick").select_option("2")
     expect(tiles.first).to_contain_text("Lap time")
@@ -1502,13 +1503,13 @@ def test_choosing_a_lap_updates_the_tiles_and_the_track_mode_figures(page):
     expect(tiles.first).to_contain_text("+1.50 s on your best lap")
     expect(page.locator("#headline-top, #tp-headline .tp-tile", has_text="Most grip used")).to_contain_text("1.10 g")
     expect(page.locator("#tp-headline .tp-tile", has_text="Top speed")).to_contain_text(re.compile(r"87|140"))
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("3%")
-    expect(page.locator("#car-data .tp-tile", has_text="Peak power")).to_contain_text("340 kW")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used")).to_contain_text("3%")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Peak power")).to_contain_text("340 kW")
     expect(page.locator("#tp-car-from")).to_contain_text("Lap 2")
     # Back to the whole session.
     page.locator("#tp-lap-pick").select_option("")
     expect(tiles.first).to_contain_text("Best lap")
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used")).to_contain_text("5%")
 
 
 def test_a_lap_without_its_own_car_figures_says_so_and_shows_the_whole_session(page):
@@ -1521,7 +1522,7 @@ def test_a_lap_without_its_own_car_figures_says_so_and_shows_the_whole_session(p
     open_page(page, fake, path="/track.html?s=lp1")
     page.locator("#tp-lap-pick").select_option("1")
     expect(page.locator("#tp-car-from")).to_contain_text("this lap's own figures were not kept")
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used")).to_contain_text("5%")
 
 
 def test_a_session_with_one_lap_still_offers_its_figures_against_the_whole_session(page):
@@ -1539,7 +1540,7 @@ def test_a_session_with_one_lap_still_offers_its_figures_against_the_whole_sessi
     expect(pick.locator("option")).to_have_count(2)
     pick.select_option("1")
     expect(page.locator("#tp-headline .tp-tile").first).to_contain_text("Lap time")
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("2%")
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used")).to_contain_text("2%")
 
 
 def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(page):
@@ -1565,9 +1566,8 @@ def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(pag
     expect(page.locator("#tp-day-place")).to_have_text("Session 3 of 3 that day")
 
 
-def test_the_track_mode_card_stays_open_from_one_session_to_the_next(page):
-    """Opened once, the Track Mode and Laps cards stay open on the next session
-    picked, and after a reload, instead of folding away each time."""
+def test_the_track_mode_figures_stay_in_laps_pro_from_one_session_to_the_next(page):
+    """The Track Mode figures sit in Laps Pro on each session, and follow the lap picked, with no fold to open."""
     fake = FakeWorker(earlier=False)
     rec = car_lap_session()
     later = dict(rec, id="lp2", time="15:46", bestTime=86.063, laps=[dict(l) for l in rec["laps"]])
@@ -1575,22 +1575,16 @@ def test_the_track_mode_card_stays_open_from_one_session_to_the_next(page):
         fake.sessions[r["id"]] = r
         fake.index.append(summary(r))
     open_page(page, fake, path="/track.html?s=lp1")
-    car, laps = page.locator("#car-data"), page.locator("#tp-laps")
-    expect(car).not_to_have_attribute("open", re.compile(".*"))
-    car.locator("summary").click()
-    laps.locator("summary").click()
-    expect(car).to_have_attribute("open", "")
+    expect(page.locator("#tp-prohead #car-data")).to_be_visible()
+    expect(page.locator("#car-data")).to_be_visible()
     page.locator("#tp-lap-pick").select_option("x:lp2")
     expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
-    expect(page.locator("#car-data")).to_have_attribute("open", "")
-    expect(page.locator("#tp-laps")).to_have_attribute("open", "")
+    expect(page.locator("#car-data")).to_be_visible()
     page.reload()
-    expect(page.locator("#car-data")).to_have_attribute("open", "")
-    # Closed again, it stays closed.
-    page.locator("#car-data summary").click()
+    expect(page.locator("#tp-prohead #car-data")).to_be_visible()
     page.locator("#tp-lap-pick").select_option("x:lp1")
     expect(page).to_have_url(re.compile(r"track\.html\?s=lp1"))
-    expect(page.locator("#car-data")).not_to_have_attribute("open", re.compile(".*"))
+    expect(page.locator("#car-data")).to_be_visible()
 
 
 def test_the_leaderboard_hero_matches_the_sessions_page(page):
@@ -1905,13 +1899,13 @@ def test_the_battery_start_and_end_are_rounded_once(page):
     fake.index.append(summary(rec))
     open_page(page, fake, path="/track.html?s=lp1")
     # Under 10% the figures keep a decimal (a lap uses 1 to 2%, so 1.3% must not read as 1%); the ends match.
-    tile = page.locator("#car-data .tp-tile", has_text="Charge used")
+    tile = page.locator("#car-data .tp-band-fig", has_text="Charge used")
     expect(tile).to_contain_text("2.2%")
     expect(tile).to_contain_text("62.7% to 60.5%")
     # A whole day is shown in whole percentages, as the car does.
     rec["carData"]["soc"] = {"start": 89.01, "end": 74.97}
     page.reload()
-    tile = page.locator("#car-data .tp-tile", has_text="Charge used")
+    tile = page.locator("#car-data .tp-band-fig", has_text="Charge used")
     expect(tile).to_contain_text("14%")
     expect(tile).to_contain_text("89% to 75%")
 
@@ -4633,7 +4627,7 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     assert fake.saved[0]["session"]["carData"]["power"] == {"max": 250, "regen": 120, "early": 250, "late": 250}
     card = page.locator("#car-data")
-    expect(card.locator("h2")).to_have_text("Track Mode")
+    expect(card.locator("h5")).to_have_text("Track Mode")
     expect(card).to_contain_text("250 kW")
     expect(card).to_contain_text("Regeneration up to 120 kW")
     expect(card).to_contain_text("35.5 bar")
@@ -4641,18 +4635,13 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     expect(card).to_contain_text("not in degrees")
     expect(card).to_contain_text("In the file but empty: tyre pressure")
     # Charge used as a percentage of the battery.
-    expect(card.locator(".tp-tile", has_text="Charge used")).to_contain_text("5%")
+    expect(card.locator(".tp-band-fig", has_text="Charge used")).to_contain_text("5%")
     # Pressures in bar or psi, remembered.
-    card.locator("summary").click()
     card.locator("[data-press='psi']").click()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
     expect(page.locator("#car-data [data-press='psi']")).to_have_class(re.compile("is-on"))
-    # Still open after the redraw.
-    expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.reload()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
-    # Left open, it is open again after the reload.
-    expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.locator("#car-data [data-press='bar']").click()
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
 
@@ -5097,10 +5086,10 @@ def test_car_temperatures_are_coloured_by_zone_and_held_back_power_is_noted(page
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
     card = page.locator("#car-data")
-    battery = card.locator(".tp-tile", has_text="Battery temperature")
+    battery = card.locator(".tp-band-fig", has_text="Battery temperature")
     expect(battery).to_have_class(re.compile("is-orange"))
     expect(battery).to_contain_text("Orange: near the limit, the car may hold back power")
-    brakes = card.locator(".tp-tile", has_text="Hottest brakes")
+    brakes = card.locator(".tp-band-fig", has_text="Hottest brakes")
     expect(brakes).to_have_class(re.compile("is-yellow"))
     expect(brakes).to_contain_text("Yellow: warm")
     expect(card.locator("#tp-held")).to_contain_text("fell from 250 kW early in the session to 190 kW late on")
@@ -5114,7 +5103,7 @@ def test_no_held_back_note_when_power_holds_up(page):
     page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
-    expect(page.locator("#car-data .tp-tile", has_text="Battery temperature")).to_have_class(re.compile("is-ok"))
+    expect(page.locator("#car-data .tp-band-fig", has_text="Battery temperature")).to_have_class(re.compile("is-ok"))
     expect(page.locator("#tp-held")).to_have_count(0)
 
 
@@ -5131,12 +5120,11 @@ def test_car_figures_say_which_session_and_can_show_each_one(page):
     expect(card.locator("#tp-car-from")).to_contain_text("The whole day, all 2 sessions, 28 May 2026")
     chips = card.locator("[data-car-run]")
     expect(chips).to_have_text(["Whole day", "Session 1", "Session 2"])
-    card.locator("summary").click()
-    day_charge = card.locator(".tp-tile", has_text="Charge used").locator(".s").inner_text()
+    day_charge = card.locator(".tp-band-fig", has_text="Charge used").locator("small").inner_text()
     page.locator("#car-data [data-car-run='2']").click()
     expect(page.locator("#tp-car-from")).to_contain_text("Session 2 of 2, 28 May 2026")
     expect(page.locator("#car-data [data-car-run='2']")).to_have_class(re.compile("is-on"))
-    expect(page.locator("#car-data .tp-tile", has_text="Charge used").locator(".s")).not_to_have_text(day_charge)
+    expect(page.locator("#car-data .tp-band-fig", has_text="Charge used").locator("small")).not_to_have_text(day_charge)
     page.locator("#car-data [data-car-run='all']").click()
     expect(page.locator("#tp-car-from")).to_contain_text("The whole day")
 
@@ -5151,31 +5139,25 @@ def test_car_figures_from_one_file_say_so_and_brakes_are_estimated(page):
     card = page.locator("#car-data")
     expect(card.locator("#tp-car-from")).to_contain_text("This session, 28 May 2026")
     expect(card.locator("[data-car-run]")).to_have_count(0)
-    brakes = card.locator(".tp-tile", has_text="Hottest brakes")
-    expect(brakes.locator(".k")).to_have_text("Hottest brakes (estimated)")
+    brakes = card.locator(".tp-band-fig", has_text="Hottest brakes")
+    expect(brakes.locator("span")).to_have_text("Hottest brakes (estimated)")
     expect(brakes).to_contain_text("The car's own estimate, not a reading.")
 
 
-def test_track_mode_sits_under_the_best_lap_tiles_and_laps_are_folded(page):
+def test_track_mode_sits_in_laps_pro_and_laps_are_folded(page):
     fake = FakeWorker()
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
-    # Straight after the Best lap tiles, before the maps.
-    expect(page.locator("#car-data")).to_be_visible()
-    assert page.evaluate("document.getElementById('car-data').previousElementSibling.classList.contains('tp-tiles')")
-    assert page.evaluate("!!(document.getElementById('car-data').compareDocumentPosition(document.getElementById('tp-map2')) & Node.DOCUMENT_POSITION_FOLLOWING)")
-    # Track Mode is folded away too, with the headline figures and a highlighted arrow.
+    # Track Mode is in the Laps Pro section, with the session's own figures, not under the headline tiles.
     car = page.locator("#car-data")
-    expect(car).not_to_have_attribute("open", "")
-    expect(car.locator("summary")).to_contain_text("Track Mode")
-    expect(car.locator("summary")).to_contain_text("Charge used")
-    expect(car.locator(".tp-tile").first).to_be_hidden()
-    expect(car.locator(".tp-open")).to_be_visible()
-    car.locator("summary").click()
-    expect(car.locator(".tp-tile").first).to_be_visible()
+    expect(car).to_be_visible()
+    assert page.evaluate("!!document.getElementById('tp-prohead').contains(document.getElementById('car-data'))")
+    expect(car.locator("h5")).to_have_text("Track Mode")
+    expect(car.locator(".tp-band-fig", has_text="Charge used")).to_be_visible()
+    expect(car.locator(".tp-band-fig").first).to_be_visible()
     # The lap times are folded away, with a summary, and open on a tap.
     laps = page.locator("#tp-laps")
     expect(laps).not_to_have_attribute("open", "")
@@ -6446,7 +6428,6 @@ def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):
     card = page.locator("#car-data")
     expect(card).to_contain_text("1.0 bar")
     before = len(fake.sessions)
-    page.locator("#car-data").evaluate("el => el.open = true")
     card.locator("[data-car-file]").set_input_files(files=[csv])
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
     assert len(fake.car_updates) == 1 and len(fake.sessions) == before

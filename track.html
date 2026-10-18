@@ -567,17 +567,36 @@
   /* Laps Pro: a navy band with a large orange heading, its figures, then What the laps say and What we spotted as two cards
      (one column on a phone). */
   .tp-prohead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 18px 22px 22px; border-radius: 14px; background: #14213d; color: #fff; }
-  .tp-prohead > h3 { display: inline-flex; align-items: center; margin: 0; padding: 6px 22px; border-radius: 999px; background: var(--orange); color: #fff; font-family: var(--font-head); font-size: 1.9rem; font-weight: 700; line-height: 1.3; }
-  .tp-prohead-link { margin-left: auto; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; font-size: .9rem; color: #fff; text-decoration: underline; }
+  .tp-prohead-solo { margin: 14px 0 0; }
+  /* The pressure and run chips inside Laps Pro sit on the navy band. */
+  .tp-band .chip { background: #fff; color: #14213d; border-color: #fff; }
+  .tp-band .chip.is-on { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .tp-band .tp-small, .tp-band .tp-sub { color: #c8d0e0; }
+  .tp-band .tp-note { color: #fff; }
+  .tp-prohead-top { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tp-prohead-top > h3 { display: inline-flex; align-items: center; margin: 0; padding: 4px 18px; border-radius: 999px; background: var(--orange); color: #fff; font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
+  .tp-prohead-link { min-height: 44px; display: inline-flex; align-items: center; text-align: right; font-weight: 600; font-size: .9rem; color: #fff; text-decoration: underline; }
   .tp-prohead > .tp-small { color: #d3d8e2; }
   .tp-pro-cards { flex-basis: 100%; margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; color: #14213d; }
   .tp-pro-cards > [data-tile] { min-width: 0; box-sizing: border-box; margin: 0; padding: 16px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
   .tp-pro-cards > [data-tile] > .tp-chart-head h3 { margin: 0 0 8px; color: #14213d; font-size: 1.1rem; }
   @media (max-width: 780px) {
-    .tp-prohead > h3 { font-size: 1.5rem; }
+    .tp-prohead { padding: 14px; }
+    .tp-prohead-top > h3 { font-size: 1.1rem; padding: 4px 14px; }
+    .tp-prohead-link { font-size: .8rem; }
     .tp-pro-cards { grid-template-columns: minmax(0, 1fr); }
   }
-  .tp-band { flex-basis: 100%; margin-top: 10px; padding: 16px; background: #16233d; color: #fff; border-radius: var(--radius); display: grid; gap: 12px; }
+  /* Corner by corner: a folded list, opened by tapping its heading. */
+  .tp-o-corner > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+  .tp-o-corner > summary::-webkit-details-marker { display: none; }
+  .tp-o-corner > summary h3 { margin: 0; flex: none; }
+  .tp-o-corner > summary .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange); color: #fff; }
+  .tp-o-corner > summary .tp-open .icon { width: 18px; height: 18px; transition: transform .15s; }
+  .tp-o-corner[open] > summary { margin-bottom: 8px; }
+  .tp-o-corner[open] > summary .tp-open { background: transparent; color: var(--steel); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .tp-o-corner[open] > summary .tp-open .icon { transform: rotate(90deg); }
+  /* Laps Pro's figures and text fill the navy band's full width. */
+  .tp-band { flex-basis: 100%; margin-top: 4px; padding: 0; background: none; color: #fff; border-radius: 0; display: grid; gap: 12px; }
   .tp-band h4 { margin: 0; font-family: var(--font-head); font-size: 1.15rem; color: #fff; }
   .tp-band-note { margin: 0; font-size: 13px; color: #c8d0e0; }
   .tp-band-figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -1534,7 +1553,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=3"></script>
 <script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/track-page.js?v=20271156" defer></script>
+<script src="js/track-page.js?v=20271157" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

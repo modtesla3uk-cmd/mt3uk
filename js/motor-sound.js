@@ -19,12 +19,15 @@
   // follows the speed. Until it has loaded, and if it cannot be loaded, the tones below are used.
   var SAMPLE_URL = new URL('../audio/motor-session.mp3', document.currentScript ? document.currentScript.src : location.href).href;
   var SAMPLE_SPEED = [0.6, 1.3];
+  // The recording carries wind rumble below about 80 Hz and hiss above about 2 kHz. The high-pass removes the rumble, and
+  // the low-pass (which opens with the speed, as the tones' filter does) keeps the hiss out.
+  var SAMPLE_HIGH = 80;
   // The recording is quieter than the tones at the same setting, so it gets its own gain.
   var SAMPLE_GAIN = 2.5;
   // The recording is played as short overlapping grains taken from random places in it, so it does not repeat in a fixed
   // cycle. A grain lasts GRAIN_LEN seconds, a new one starts every GRAIN_EVERY seconds, and they are queued GRAIN_AHEAD
   // seconds ahead of the clock.
-  var GRAIN_LEN = 0.35, GRAIN_EVERY = 0.07, GRAIN_AHEAD = 0.15;
+  var GRAIN_LEN = 0.6, GRAIN_EVERY = 0.04, GRAIN_AHEAD = 0.15;
   var GRAIN_CURVE = (function () {
     var n = 64, c = new Float32Array(n);
     // Scaled so the overlapping grains add up to a steady level: a grain's window averages 0.5 and about 5 grains overlap.
@@ -103,6 +106,22 @@
     synthGain.gain.value = 1;
     sampleGain.gain.value = SAMPLE_GAIN;
     filter.connect(shaper).connect(pulse).connect(synthGain).connect(out);
+    var sampleHigh = ctx.createBiquadFilter(), sampleLow = ctx.createBiquadFilter();
+    sampleHigh.type = 'highpass';
+    sampleHigh.frequency.value = SAMPLE_HIGH;
+    sampleLow.type = 'lowpass';
+    sampleLow.frequency.value = CUT_IDLE;
+    sampleLow.Q.value = 0.7;
+    // A gentle compressor evens out the bursts in the recording, so the sound is steadier from moment to moment.
+    var sampleComp = ctx.createDynamicsCompressor();
+    sampleComp.threshold.value = -32;
+    sampleComp.knee.value = 12;
+    sampleComp.ratio.value = 4;
+    sampleComp.attack.value = 0.02;
+    sampleComp.release.value = 0.25;
+    sampleHigh.connect(sampleLow).connect(sampleComp).connect(sampleGain);
+    this.sampleInput = sampleHigh;
+    this.sampleLow = sampleLow;
     sampleGain.connect(out);
     out.connect(ctx.destination);
     this.synthGain = synthGain;
@@ -153,7 +172,7 @@
       var src = ctx.createBufferSource(), env = ctx.createGain();
       src.buffer = buf;
       src.playbackRate.value = rate;
-      src.connect(env).connect(this.sampleGain);
+      src.connect(env).connect(this.sampleInput);
       env.gain.setValueCurveAtTime(GRAIN_CURVE, at, GRAIN_LEN);
       src.start(at, Math.random() * Math.max(0, buf.duration - span), span);
       this.nextGrain += GRAIN_EVERY;
@@ -185,6 +204,7 @@
     this.rate = SAMPLE_SPEED[0] + (SAMPLE_SPEED[1] - SAMPLE_SPEED[0]) * frac;
     // The recording's level follows the speed closely (squared), so it swells as the car gets quicker and falls away as it slows.
     if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(SAMPLE_GAIN * (0.1 + 0.9 * frac * frac), now, tc);
+    if (this.sampleLow) this.sampleLow.frequency.setTargetAtTime(CUT_IDLE + (CUT_TOP - CUT_IDLE) * frac, now, tc);
     // Quiet at a standstill, fuller as the car gets quicker
     this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / DEFAULTS.volume), now, tc);
   };

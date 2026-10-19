@@ -320,7 +320,9 @@
   /* Add a session, at the top of the Leaderboard: the orange call to action. */
   .lb-hero .tp-lb-pill.lb-add { background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); }
   .lb-hero .tp-lb-pill.lb-add .icon { color: #fff; }
+  :root[data-theme="jade"] .lb-hero .tp-lb-pill.lb-add .icon { color: var(--on-accent, #0d3b33); }
   .lb-hero .tp-lb-pill.lb-add:hover { background: #d24a23; color: #fff; }
+  :root[data-theme="jade"] .lb-hero .tp-lb-pill.lb-add:hover { background: var(--icon-on-dark, #f58a68); color: var(--on-accent, #0d3b33); }
   /* Add a session sits under My Sessions, the same size, with the tip's light bulb at the far right. Shared with
      track.html, where Add a session sits under Leaderboards. */
   /* Add a session waits for the early preview answer (js/laps-strip.js) before it shows, so it is not seen changing into Join the early preview. It shows anyway after 2.5 seconds. */

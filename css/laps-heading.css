@@ -7,6 +7,7 @@
   body:not([data-tp-view="session"]) .lh-hero { padding-top: 6px !important; }
   body:not([data-tp-view="session"]) .lh-hero > .wrap {
     position: relative !important; display: block !important; height: 146px !important; margin-top: -16px !important;
+    width: calc(100% - 32px) !important; margin-left: auto !important; margin-right: auto !important;
   }
   body:not([data-tp-view="session"]) .lh-hero .lh-hero-row, body:not([data-tp-view="session"]) .lh-hero .lh-hero-top, body:not([data-tp-view="session"]) .lh-hero .lh-hero-left, body:not([data-tp-view="session"]) .lh-hero .lh-hero-right,
   body:not([data-tp-view="session"]) .lh-hero .lh-hero-actions:not([hidden]) {
@@ -29,13 +30,13 @@
   /* On a view other than the list, My Sessions sits on the right, under Leaderboards, the same size as its neighbours
      (tp-home is moved into the heading with Back). */
   body:not([data-tp-view="session"]) .lh-hero .tp-home {
-    position: absolute !important; left: 768px !important; top: 84px !important; width: 190px !important; height: 52px !important;
+    position: absolute !important; left: calc(100% - 232px) !important; top: 84px !important; width: 190px !important; height: 52px !important;
     min-width: 0 !important; margin: 0 !important; padding: 0 16px !important; font-size: 16px !important; justify-content: center !important;
   }
   /* The three slots every page uses for its buttons. */
-  body:not([data-tp-view="session"]) .lh-hero .lh-s1 { left: 572px !important; top: 24px !important; }
-  body:not([data-tp-view="session"]) .lh-hero .lh-s2 { left: 768px !important; top: 24px !important; }
-  body:not([data-tp-view="session"]) .lh-hero .lh-s3 { left: 768px !important; top: 84px !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-s1 { left: calc(100% - 428px) !important; top: 24px !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-s2 { left: calc(100% - 232px) !important; top: 24px !important; }
+  body:not([data-tp-view="session"]) .lh-hero .lh-s3 { left: calc(100% - 232px) !important; top: 84px !important; }
   /* The intro (or the What is...? fold on the pages that have one) sits under Back. */
   body:not([data-tp-view="session"]) .lh-hero .lh-intro, body:not([data-tp-view="session"]) .lh-hero .lh-fold {
     position: absolute !important; left: 0 !important; top: 170px !important; width: 640px !important; max-width: none !important;

@@ -348,7 +348,7 @@ nav {
   .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }
   /* The Laps logo on a phone: the mark beside the name, and "by MT3UK" on its own line under the name. */
-  .nav-center:has(> .laps-logo) { margin-right: 20px; }
+  .nav-center:has(> .laps-logo) { margin-right: auto; padding-right: 20px; }
   header .logo.laps-logo { display: grid; grid-template-columns: auto auto; column-gap: 6px; row-gap: 1px; align-items: center; }
   header .logo.laps-logo .laps-logo-mark { grid-column: 1; grid-row: 1 / span 2; width: 30px; height: 30px; }
   header .logo.laps-logo .laps-logo-name { grid-column: 2; grid-row: 1; font-size: 1.45rem; }
@@ -357,7 +357,7 @@ nav {
 /* The very narrowest phones have no room for the five header icons beside the logo. */
 @media (max-width: 340px) {
   .nav-bell-btn, .nav-chat, .nav-profile, .nav-search-toggle { width: 33px; }
-  .nav-center:has(> .laps-logo) { margin-right: 8px; }
+  .nav-center:has(> .laps-logo) { margin-right: auto; padding-right: 8px; }
 }
 .nav-bell-count {
   position: absolute;

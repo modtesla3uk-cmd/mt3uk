@@ -96,7 +96,7 @@
   #lb-my-analysis[hidden] { display: none; }
   #lb-my-analysis { justify-content: center; }
   @media (min-width: 901px) { #lb-my-analysis { display: none !important; } }
-  @media (max-width: 780px) { .page-hero { padding: 14px 0 6px; } .page-hero .back-link { margin-bottom: 10px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } }
+  @media (max-width: 780px) { .page-hero { padding: 14px 0 18px; } .page-hero .back-link { margin-bottom: 10px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } }
   /* The page's own button: bigger on desktop; on a phone it sits at the right of the Back row, above the title. */
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
@@ -467,6 +467,9 @@
   .lb-filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0 0 14px; }
   .lb-filter-top { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
   .lb-models { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  /* The chips still scroll sideways on a phone, but without the grey scrollbar under them. */
+  .lb-models { scrollbar-width: none; }
+  .lb-models::-webkit-scrollbar { display: none; }
   .lb-models .chip { flex: none; }
   /* A car with nothing on this board yet: greyed, still pressable. */
   .lb-models .chip.is-empty:not(.is-on) { background: #eceef2; color: #8a93a3; border-color: var(--hairline); font-weight: 500; }

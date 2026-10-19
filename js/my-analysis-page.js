@@ -533,7 +533,8 @@
     });
     var keys = Object.keys(byKey).sort(function (a, b) { return byKey[a] < byKey[b] ? -1 : 1; });
     if (state.track !== 'all' && keys.indexOf(state.track) === -1) state.track = 'all';
-    var trackPick = keys.length > 1 ? '<label class="tm-pick"><span>Track and layout</span><select id="ma-track" class="field"><option value="all"' + (state.track === 'all' ? ' selected' : '') + '>All tracks</option>' +
+    // The My Analysis icon (as in the header) beside the label, so the page is known while the choices stay in view.
+    var trackPick = keys.length > 1 ? '<label class="tm-pick"><span class="ma-pick-label">Track and layout<svg class="ma-pick-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg></span><select id="ma-track" class="field"><option value="all"' + (state.track === 'all' ? ' selected' : '') + '>All tracks</option>' +
       keys.map(function (k) { return '<option value="' + esc(k) + '"' + (state.track === k ? ' selected' : '') + '>' + esc(byKey[k]) + '</option>'; }).join('') + '</select></label>' : '';
     var body = '';
     if (!list.length) {

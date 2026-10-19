@@ -229,7 +229,7 @@
   // site (the Gallery, the Shop) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
   var SITES = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com', laps: ['laps.mt3uk.com'] };
   // Profile and My Garage are shared: on laps.mt3uk.com they stay there and show the Laps header (js/laps-shared.js).
-  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/track-mode.html', '/my-analysis.html', '/leaderboards.html', '/signin.html', '/laps-signin.html', '/profile.html', '/my-builds.html'];
+  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/track-mode.html', '/my-analysis.html', '/leaderboards.html', '/favourites.html', '/signin.html', '/laps-signin.html', '/profile.html', '/my-builds.html'];
   function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
   var hereSite = siteOf(location.hostname);
 

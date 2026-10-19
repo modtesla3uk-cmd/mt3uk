@@ -164,12 +164,13 @@
 
   // The key for the graph: only the colours this figure uses (the lap, speed and braking figures are against your best,
   // the heat figures by zone, the others are context), plus the dashed best so far where it applies.
-  function chartKeyHtml(m) {
+  // The key for the figure: under the graph it explains. noBest leaves out the best-so-far line (the grid's small cards have none).
+  function chartKeyHtml(m, noBest) {
     var kind = figureKind(m), items;
     if (kind === 'heat') items = [[HEAT.normal, 'Heat: normal'], [HEAT.yellow, 'Heat: yellow, from 70%'], [HEAT.orange, 'Heat: orange, from 85%'], [HEAT.red, 'Heat: red, 100% and over']];
     else if (kind === 'ctx') items = [[CONTEXT, 'Context: no good or bad']];
     else items = [[FAST, 'Fast: within 1% of your best here'], [MIDDLE, 'Middle'], [SLOW, 'Slow: 3% or more off your best']];
-    var best = kind === 'low' || kind === 'high' ? '<span><i style="background:none;height:0;border-top:2px dashed #4a5568;border-radius:0"></i>Your best so far</span>' : '';
+    var best = !noBest && (kind === 'low' || kind === 'high') ? '<span><i style="background:none;height:0;border-top:2px dashed #4a5568;border-radius:0"></i>Your best so far</span>' : '';
     return '<div class="ma-day-key ma-key">' + items.map(function (k) { return '<span><i style="background:' + k[0] + '"></i>' + esc(k[1]) + '</span>'; }).join('') + best + '</div>';
   }
   // One line graph for the figure picked: each session at its date, joined in date order, with the best so far for the
@@ -239,7 +240,7 @@
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[n - 1].s.date)) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">' + (toScale ? 'Date' : 'Session, in date order') + '</text>' +
       dots + '</svg>';
-    return '<div class="tm-card tm-chart">' + head + chips + metricNoteHtml(m) + chartKeyHtml(m) + svg + '</div>';
+    return '<div class="tm-card tm-chart">' + head + chips + metricNoteHtml(m) + svg + chartKeyHtml(m) + '</div>';
   }
 
   function setupBlock(list) {
@@ -334,12 +335,6 @@
   function dayColour(m, v, pool) { return figureColour(m, v, valuesOf(m, pool)); }
   function dayKey(s) { return trackKey(s) + '|' + s.date; }
   // The key under the graph and the grid: the same colours and heat zones as the day panel.
-  function keyHtml() {
-    var items = [[FAST, 'Fast: within 1% of your best here'], [MIDDLE, 'Middle'], [SLOW, 'Slow: 3% or more off your best'],
-      [HEAT.normal, 'Heat: normal'], [HEAT.yellow, 'Heat: yellow, from 70%'], [HEAT.orange, 'Heat: orange, from 85%'],
-      [HEAT.red, 'Heat: red, 100% and over'], [CONTEXT, 'Context: no good or bad']];
-    return '<div class="ma-day-key ma-key">' + items.map(function (k) { return '<span><i style="background:' + k[0] + '"></i>' + esc(k[1]) + '</span>'; }).join('') + '</div>';
-  }
   function dayPanel(list) {
     var rows = dayRows(list);
     if (!rows.length) return '';
@@ -395,15 +390,34 @@
       pts.forEach(function (p) { if (p.c === FAST) n.fast += 1; else if (p.c === SLOW) n.slow += 1; else n.middle += 1; });
       foot = 'Fast ' + n.fast + ', middle ' + n.middle + ', slow ' + n.slow + ' ' + unit;
     }
-    // Better is up: a faster lap, or a higher performance figure, sits at the top of its strip.
-    var W = 300, H = 56, P = 8;
+    // Axes: the figure up the side (a faster lap at the top, and for the other figures the highest value at the top) and
+    // the sessions along the bottom by date, as the Over time chart does. Gridlines at each level and each month.
+    var W = 320, H = 150, L = 52, R = 12, T = 12, B = 30;
     var lo = Math.min.apply(null, pts.map(function (p) { return p.v; })), hi = Math.max.apply(null, pts.map(function (p) { return p.v; }));
-    var span = (hi - lo) || 1;
-    var xy = pts.map(function (p, i) {
-      var x = P + (pts.length > 1 ? i / (pts.length - 1) : 0.5) * (W - 2 * P);
-      var frac = kind === 'low' ? (hi - p.v) / span : (p.v - lo) / span;
-      return { x: x.toFixed(1), y: (P + (1 - frac) * (H - 2 * P)).toFixed(1) };
+    if (hi - lo < 0.5) { lo -= 0.5; hi += 0.5; }
+    var top = kind === 'low' ? lo : hi, bottom = kind === 'low' ? hi : lo;
+    var days = pts.map(function (p) { return Date.parse(p.date + 'T00:00:00Z'); });
+    var toScale = days.every(isFinite) && days[days.length - 1] > days[0];
+    var d0 = days[0], dspan = days[days.length - 1] - d0;
+    function X(i) { return toScale ? L + (days[i] - d0) / dspan * (W - L - R) : L + (pts.length > 1 ? i / (pts.length - 1) : 0.5) * (W - L - R); }
+    function Y(v) { return T + (v - top) / (bottom - top) * (H - T - B); }
+    var xy = pts.map(function (p, i) { return { x: X(i).toFixed(1), y: Y(p.v).toFixed(1) }; });
+    var grid = '', ylab = '', xlab = '';
+    [0, 0.5, 1].forEach(function (f) {
+      var gy = (T + f * (H - T - B)).toFixed(1), val = top + f * (bottom - top);
+      grid += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + gy + '" y2="' + gy + '" stroke="#eef1f6"/>';
+      ylab += '<text x="' + (L - 6) + '" y="' + (+gy + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#4a5568">' + esc(m.fmt(val)) + '</text>';
     });
+    if (toScale) {
+      var first = new Date(days[0]), last = days[days.length - 1];
+      for (var mo = Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 1); mo < last; mo = Date.UTC(new Date(mo).getUTCFullYear(), new Date(mo).getUTCMonth() + 1, 1)) {
+        var mx = (L + (mo - d0) / dspan * (W - L - R)).toFixed(1);
+        grid += '<line x1="' + mx + '" x2="' + mx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#f3f5f9"/>';
+        xlab += '<text x="' + mx + '" y="' + (H - 10) + '" text-anchor="middle" font-size="10" fill="#4a5568">' + esc(new Date(mo).toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })) + '</text>';
+      }
+    }
+    var axes = '<line x1="' + L + '" x2="' + L + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>' +
+      '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#dcdfe6"/>';
     var line = xy.length > 1 ? '<polyline points="' + xy.map(function (q) { return q.x + ',' + q.y; }).join(' ') + '" fill="none" stroke="#d3d8e2" stroke-width="1.5"/>' : '';
     var dots = pts.map(function (p, i) {
       return '<circle class="ma-gdot" cx="' + xy[i].x + '" cy="' + xy[i].y + '" r="5.5" fill="' + p.c + '" stroke="#fff" stroke-width="1.5" data-session="' + esc(p.s.id) + '" data-day="' + esc(p.key) + '" tabindex="0" role="button"><title>' + esc(niceDate(p.date) + ': ' + m.fmt(p.v) + '. Press to see that day') + '</title></circle>';
@@ -411,12 +425,12 @@
     var hits = pts.map(function (p, i) {
       return '<circle class="ma-ghit" cx="' + xy[i].x + '" cy="' + xy[i].y + '" r="21" fill="transparent" data-session="' + esc(p.s.id) + '" data-day="' + esc(p.key) + '"/>';
     }).join('');
-    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.label + ', ' + unit) + '">' + line + hits + dots + '</svg>';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.label + ', ' + unit + ', by date') + '">' + grid + axes + ylab + xlab + line + hits + dots + '</svg>';
     var axis = '<div class="ma-axis"><span>' + esc(niceDate(pts[0].date)) + '</span><span>' + esc(niceDate(pts[pts.length - 1].date)) + '</span></div>';
     return '<div class="tm-card ma-fig-card" data-figure="' + m.id + '"' + (group !== 'All figures' && FIGURE_GROUP[m.id] !== group ? ' hidden' : '') + '>' +
       '<div class="ma-fig-top"><b>' + esc(m.label) + '</b><span class="ma-grp">' + esc(FIGURE_GROUP[m.id]) + '</span></div>' +
       '<div class="ma-fig-val">' + esc(headline) + '</div><div class="ma-fig-sub">' + esc(sub) + '</div>' +
-      svg + axis + '<div class="ma-fig-foot">' + esc(foot) + '</div></div>';
+      svg + axis + chartKeyHtml(m, true) + '<div class="ma-fig-foot">' + esc(foot) + '</div></div>';
   }
 
   // The All figures grid: one track at a time, its figures as cards, with the track and group choices above them.
@@ -444,7 +458,7 @@
     return '<div class="tm-card ma-grid-head"><h2>All figures</h2>' +
       '<p class="tm-note">One track at a time, one dot per session. Each figure is coloured against your best at this track. Press a dot to see that day under the figure.</p>' +
       '<div class="tm-chips ma-grid-chips" role="group" aria-label="Figures">' + groups + '</div>' +
-      keyHtml() + '</div>' +
+      '</div>' +
       '<div class="ma-grid" id="ma-grid">' + cards + '</div>';
   }
 

@@ -310,7 +310,7 @@ def test_full_access_and_the_switch_off_see_my_analysis(page):
     expect(page.locator("#ma-grid")).to_be_visible()
 
 
-def test_the_chart_key_sits_above_the_graph_and_the_dots_use_the_three_colours(page):
+def test_the_chart_key_sits_under_the_graph_and_the_dots_use_the_three_colours(page):
     fake = FakeWorker(earlier=False)
     for sid, date, best in [("a1", "2026-02-23", 79.4), ("a2", "2026-03-09", 78.1), ("a3", "2026-04-06", 76.9), ("a4", "2026-05-01", 75.8)]:
         add(fake, sid, date, best)
@@ -319,8 +319,8 @@ def test_the_chart_key_sits_above_the_graph_and_the_dots_use_the_three_colours(p
     key = chart.locator(".ma-key")
     expect(key.locator("span").first).to_contain_text("Fast: within 1% of your best here")
     expect(key.locator("span").nth(2)).to_contain_text("Slow: 3% or more off your best")
-    # The key comes before the graph, not under its axis labels.
-    assert key.bounding_box()["y"] < chart.locator("svg").bounding_box()["y"]
+    # The key comes under the graph it explains, after its axis labels.
+    assert key.bounding_box()["y"] > chart.locator("svg").bounding_box()["y"] + chart.locator("svg").bounding_box()["height"] - 2
     # The measure's name is over the vertical axis.
     expect(chart.locator("svg text").filter(has_text="Best lap")).to_have_count(1)
     # The same colours as the figures, in date order: slow, slow, middle, then fast for the quickest lap.

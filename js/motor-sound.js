@@ -27,7 +27,8 @@
   var GRAIN_LEN = 0.35, GRAIN_EVERY = 0.07, GRAIN_AHEAD = 0.15;
   var GRAIN_CURVE = (function () {
     var n = 64, c = new Float32Array(n);
-    for (var i = 0; i < n; i++) c[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1));
+    // Scaled so the overlapping grains add up to a steady level: a grain's window averages 0.5 and about 5 grains overlap.
+    for (var i = 0; i < n; i++) c[i] = (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))) * (2 * GRAIN_EVERY / GRAIN_LEN);
     return c;
   })();
 

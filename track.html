@@ -384,6 +384,8 @@
   .tp-dark-hero .back-link { color: #b9c0cf; }
   .tp-dark-hero .tp-lb-pill { background: #ffffff; color: var(--ink); }
   .tp-dark-hero .tp-lb-pill:hover { background: #eef1f6; color: var(--ink); }
+  /* The icon on a white pill is the dark orange, as on My Analysis: the light orange is hard to see on white. */
+  .tp-dark-hero .tp-lb-pill .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-dark-hero .tp-what summary { color: #b9c0cf; }
   .tm-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 0; font-size: .85rem; color: var(--ink-2); }
   .tm-key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
@@ -451,22 +453,22 @@
     @media (max-width: 780px) {
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top { display: contents; }
-      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
-      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: center; margin-top: 14px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
-      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-actions .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 3; justify-self: stretch; align-self: center; margin-top: 10px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: center; margin-top: 14px; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-actions .tp-lb-pill:not(.is-preview) { grid-column: 2; grid-row: 3; justify-self: stretch; align-self: center; margin-top: 10px; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
     }
     /* On a session the heading (option C, revised October 2026): a two-column grid of four equal buttons with their words.
        Row 1: Back, Leaderboards. Row 2: Add a session, My Sessions. Every button is the same width as Back. */
     @media (max-width: 780px) {
       .page-hero .wrap:has(.tp-home:not([hidden])) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
       .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top { display: contents; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link .icon { width: 16px; height: 16px; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link .icon { width: 20px; height: 20px; }
       .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link.tp-home { grid-column: 2; grid-row: 3; margin-top: 10px; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: center; margin-top: 14px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-row .tp-lb-pill.tp-round .icon { width: 16px; height: 16px; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-actions .tp-lb-pill:not(.is-preview) { grid-column: 1; grid-row: 3; justify-self: stretch; align-self: center; margin-top: 10px; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; justify-content: center; }
-      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 16px; height: 16px; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; align-self: center; margin-top: 14px; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-row .tp-lb-pill.tp-round .icon { width: 20px; height: 20px; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-actions .tp-lb-pill:not(.is-preview) { grid-column: 1; grid-row: 3; justify-self: stretch; align-self: center; margin-top: 10px; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+      .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 20px; height: 20px; }
       .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: inline; }
     }
     .page-hero .tp-hero-actions:not([hidden]) { display: contents; }
@@ -1245,10 +1247,10 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > h1.mt3uk-share-heading { grid-column: 1 / -1; grid-row: 1; justify-self: stretch; margin: 0; display: flex; align-items: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) h1.mt3uk-share-heading > .mt3uk-share-dot { float: none; margin: 0 0 0 auto; top: 0; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top { grid-column: 1; grid-row: 2; margin: 0; align-self: stretch; display: flex; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top .back-link { flex: 1 1 auto; width: 100%; height: 44px; min-height: 44px; padding: 0 10px; justify-content: center; border-radius: 22px; font-size: 0.88rem; white-space: nowrap; margin: 0; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; margin-top: 0; width: 100%; min-width: 0; height: 44px; min-height: 44px; padding: 0 10px; justify-content: center; font-size: 0.88rem; white-space: nowrap; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-hero-top .back-link { flex: 1 1 auto; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; justify-content: center; border-radius: 22px; font-size: 1rem; white-space: nowrap; margin: 0; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; margin-top: 0; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; justify-content: center; font-size: 1rem; white-space: nowrap; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions:not([hidden]) { display: contents; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 2; grid-row: 3; justify-self: stretch; width: 100%; min-width: 0; height: 44px; min-height: 44px; margin-top: 0; padding: 0 10px; justify-content: center; font-size: 0.88rem; white-space: nowrap; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 2; grid-row: 3; justify-self: stretch; width: 100%; min-width: 0; height: 48px; min-height: 48px; margin-top: 0; padding: 0 10px; justify-content: center; font-size: 1rem; white-space: nowrap; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 2; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
     .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn .laps-tip-bulb { width: 18px; height: 18px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: start; text-align: left; width: auto; max-width: none; margin-top: -4px; }
@@ -1277,7 +1279,7 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what.is-inline[open] { position: static !important; top: auto !important; left: auto !important; right: auto !important; width: auto !important; z-index: auto; box-shadow: none; grid-row: 3; grid-column: 1 / -1; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] li, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] b { color: var(--c-navy, #14213d); }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p { margin: 0; max-width: none; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { width: auto; height: 44px; min-height: 44px; padding: 0 16px; gap: 6px; border-radius: 999px; font-size: 1rem; justify-content: center; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { width: auto; height: 48px; min-height: 48px; padding: 0 16px; gap: 6px; border-radius: 999px; font-size: 1rem; justify-content: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link .icon { width: 18px; height: 18px; }
   }
   /* The star beside a Sessions row (js/track-page.js favRowButton): outside the row's link, painted once the list has loaded. */

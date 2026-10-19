@@ -24,3 +24,16 @@
   --c-slate: #4a5a55;
   --c-mist-grey: #b5c9c1;
 }
+
+/* Text on the orange-filled parts (buttons and badges) is the dark jade in Jade: white on the light jade fill is too faint. */
+:root[data-theme="jade"] .btn-accent,
+:root[data-theme="jade"] .early-badge,
+:root[data-theme="jade"] .hp-card-tag,
+:root[data-theme="jade"] .hp-join-primary,
+:root[data-theme="jade"] .botm-badge,
+:root[data-theme="jade"] .tee-shop-btn,
+:root[data-theme="jade"] .tee-offer-save,
+:root[data-theme="jade"] .ev-feature-cta,
+:root[data-theme="jade"] #app-install-btn,
+:root[data-theme="jade"] #hp-hero-eyebrow,
+:root[data-theme="jade"] .hp-hero-tag { color: var(--on-accent); }

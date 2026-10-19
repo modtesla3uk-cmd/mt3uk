@@ -366,25 +366,26 @@
   }
 
   /* ---------- LAPS FRONT PAGE ---------- */
-  .lh-hero { background: var(--ink); color: #fff; padding: 72px 0 52px; }
+  .lh-hero { background: var(--ink); color: #fff; padding: 48px 0 44px; }
   .lh-hero .wrap { display: grid; gap: 28px; align-items: center; }
-  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1fr 1.05fr; align-items: start; } }
+  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1.2fr 1fr; align-items: start; } }
   .lh-badge { display: table; margin-bottom: 14px; }
   .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
-  .lh-hero h1 { color: #fff; font-size: clamp(1.6rem, 3.6vw, 2.2rem); margin-bottom: 12px; }
-  .lh-hero p { color: #d3d8e2; font-size: 0.96rem; max-width: 52ch; }
-  .lh-hero .tp-actions { margin: 22px 0 10px; }
+  .lh-hero h1 { color: #fff; font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 12px; }
+  .lh-hero p { color: #d3d8e2; font-size: 0.95rem; max-width: 52ch; }
+  .lh-hero .tp-actions { margin: 20px 0 10px; }
+  .lh-hero .tp-actions .btn { font-size: 0.95rem; padding: 10px 16px; }
   .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
   .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
   .lh-free { margin-top: 18px; max-width: 560px; }
   @media (min-width: 900px) { .lh-free { margin-top: 0; max-width: none; } }
   .lh-free h2 { font-size: 1.2rem; margin: 0 0 8px; color: #fff; }
-  .lh-free-lead { font-size: 0.98rem; color: #dfe5f1; margin: 0 0 12px; }
+  .lh-free-lead { font-size: 0.95rem; color: #dfe5f1; margin: 0 0 12px; }
   .lh-free-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .lh-free-list li { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: var(--radius, 10px); background: rgba(255,255,255,.08); color: #fff; font-size: 1.05rem; }
+  .lh-free-list li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: var(--radius, 10px); background: rgba(255,255,255,.08); color: #fff; font-size: 0.98rem; }
   .lh-free-list .icon { flex: 0 0 22px; width: 22px; height: 22px; fill: none; stroke: #ff8a5c; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .lh-free-note { font-size: 1rem; color: #aeb7cb; margin: 12px 0 0; }
+  .lh-free-note { font-size: 0.92rem; color: #aeb7cb; margin: 12px 0 0; }
   .lh-free-btn { margin-top: 14px; }
   .lh-welcome { position: fixed; inset: 0; background: rgba(12,20,38,.6); display: grid; place-items: center; padding: 16px; z-index: 400; }
   .lh-welcome[hidden] { display: none; }
@@ -396,7 +397,7 @@
   .lh-skip-row { text-align: center; padding: 8px 16px 32px; font-size: 0.95rem; color: #3d4659; }
   .lh-skip-row input { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
-  .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 12px; max-width: 34em; }
+  .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 20px; max-width: 34em; }
   .lh-evs b { color: #fff; }
   @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
   /* The Laps video: a muted loop with a pause button, in the hero beside the words (it stacks under them on a phone). */

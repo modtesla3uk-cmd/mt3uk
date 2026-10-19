@@ -7845,6 +7845,11 @@ def test_at_the_end_of_a_playback_the_next_session_at_this_track_is_offered(page
     page.locator("#tp-speeds [data-speed='5']").click()
     page.locator("#tp-play-toggle").click()
     expect(page.locator("#tp-next")).to_be_visible(timeout=60000)
-    expect(page.locator("#tp-next a")).to_have_attribute("href", "track.html?s=next1")
+    page.evaluate("window.__stayed = 'same window'")
+    page.locator("#tp-next [data-next-id]").click()
+    expect(page.locator("#tp-next")).to_have_count(0)
+    expect(page.locator("#tp-play-toggle")).to_have_text("Pause", timeout=30000)
+    assert "s=next1" in page.url
+    assert page.evaluate("window.__stayed") == "same window"
     page.locator("#tp-play-toggle").click()
     expect(page.locator("#tp-next")).to_have_count(0)

@@ -4896,7 +4896,17 @@
     if (!n || !play || document.getElementById('tp-next')) return;
     play.insertAdjacentHTML('afterend', '<div class="tp-next" id="tp-next" role="region" aria-label="Next session">' +
       '<div><b>Play the next session here?</b><br>' + esc(niceDate(n.date)) + (n.bestTime ? ', best lap ' + V.fmtLap(n.bestTime) : '') + '</div>' +
-      '<a class="btn btn-primary" href="track.html?s=' + encodeURIComponent(n.id) + '">Play the next session</a></div>');
+      '<button type="button" class="btn btn-primary" data-next-id="' + esc(n.id) + '">Play the next session</button></div>');
+    var btn = play.parentNode.querySelector('#tp-next [data-next-id]');
+    if (btn) btn.addEventListener('click', function () { playNext(n.id); });
+  }
+  // Opens the next session in this window (no reload) and starts its playback once it has drawn.
+  var playNextOnDraw = false;
+  function playNext(id) {
+    stopPlay();
+    var old = document.getElementById('tp-next'); if (old) old.remove();
+    playNextOnDraw = true;
+    go('s=' + encodeURIComponent(id));
   }
   function startPlay(dir) {
     if (!pb.render) return;
@@ -5191,9 +5201,11 @@
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
         if (sc) { sc.value = t; scrubFill(sc); }
         if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
-        // The motor sound follows lap A's speed while playing, and is quiet when scrubbed or paused.
+        // The motor sound follows lap A's speed while playing, and is quiet when scrubbed or paused, or once lap A has
+        // finished (lap B can run on for a few seconds after it; the sound must not keep A's last speed going then).
         if (soundOn && window.MT3UKMotorSound) {
-          if (pb.playing) window.MT3UKMotorSound.setSpeed(speedAtTime(A.trace, t), motorTop);
+          var aEnd = A.trace.length ? A.trace[A.trace.length - 1][1] : 0;
+          if (pb.playing && t < aEnd) window.MT3UKMotorSound.setSpeed(speedAtTime(A.trace, t), motorTop);
           else window.MT3UKMotorSound.quiet();
         }
       }
@@ -5415,6 +5427,7 @@
         if (resume.active) renderAt(pb.t);
         if (resume.playing) startPlay(resume.dir);
       }
+      if (playNextOnDraw) { playNextOnDraw = false; startPlay(1); }
       var total = B.time - A.time;
       document.getElementById('tp-gap-cap').textContent = 'Below the line, A is faster. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'faster' : 'slower') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];

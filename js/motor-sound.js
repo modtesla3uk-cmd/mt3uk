@@ -18,7 +18,7 @@
   // The recorded motor (audio/motor-session.mp3, a 12 second loop of the loud part of the recording), played at a pitch that
   // follows the speed. Until it has loaded, and if it cannot be loaded, the tones below are used.
   var SAMPLE_URL = new URL('../audio/motor-session.mp3', document.currentScript ? document.currentScript.src : location.href).href;
-  var SAMPLE_SPEED = [0.7, 1.1];
+  var SAMPLE_SPEED = [0.6, 1.3];
   // The recording is quieter than the tones at the same setting, so it gets its own gain.
   var SAMPLE_GAIN = 2.5;
 
@@ -156,6 +156,8 @@
     this.filter.frequency.setTargetAtTime(CUT_IDLE + (CUT_TOP - CUT_IDLE) * frac, now, tc);
     if (this.lfo) this.lfo.frequency.setTargetAtTime(f * s.pulseRatio, now, tc);
     if (this.src) this.src.playbackRate.setTargetAtTime(SAMPLE_SPEED[0] + (SAMPLE_SPEED[1] - SAMPLE_SPEED[0]) * frac, now, tc);
+    // The recording's level follows the speed closely (squared), so it swells as the car gets quicker and falls away as it slows.
+    if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(SAMPLE_GAIN * (0.1 + 0.9 * frac * frac), now, tc);
     // Quiet at a standstill, fuller as the car gets quicker
     this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / DEFAULTS.volume), now, tc);
   };

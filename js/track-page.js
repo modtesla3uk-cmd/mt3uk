@@ -4879,8 +4879,28 @@
     pb.t = 0;
     pb.render(0);
   }
+  // At the end of a playback, offer the member's next session at the same track and layout (by date) to play next.
+  function nextSession() {
+    var s = view && view.s, list = view && view.mine && view.mine.sessions;
+    if (!s || !s.mine || !s.venueId || !list) return null;
+    var best = null;
+    list.forEach(function (x) {
+      if (x.id === s.id || x.venueId !== s.venueId || (x.layoutId || '') !== (s.layoutId || '')) return;
+      if (whenOf(x) <= whenOf(s)) return;
+      if (!best || whenOf(x) < whenOf(best)) best = x;
+    });
+    return best;
+  }
+  function offerNext() {
+    var n = nextSession(), play = document.getElementById('tp-play');
+    if (!n || !play || document.getElementById('tp-next')) return;
+    play.insertAdjacentHTML('afterend', '<div class="tp-next" id="tp-next" role="region" aria-label="Next session">' +
+      '<div><b>Play the next session here?</b><br>' + esc(niceDate(n.date)) + (n.bestTime ? ', best lap ' + V.fmtLap(n.bestTime) : '') + '</div>' +
+      '<a class="btn btn-primary" href="track.html?s=' + encodeURIComponent(n.id) + '">Play the next session</a></div>');
+  }
   function startPlay(dir) {
     if (!pb.render) return;
+    var old = document.getElementById('tp-next'); if (old) old.remove();
     if (pb.playing && pb.dir === dir) { stopPlay(); return; }
     if (dir > 0 && pb.t >= pb.tEnd) pb.t = 0;
     if (dir < 0 && pb.t <= 0) pb.t = pb.tEnd;
@@ -4903,6 +4923,7 @@
       pb.t = pb.dir > 0 ? pb.tEnd : 0;
       pb.render(pb.t);
       stopPlay();
+      if (pb.dir > 0) offerNext();
       return;
     }
     pb.render(pb.t);

@@ -7827,3 +7827,24 @@ def test_the_laps_pro_heading_links_to_my_analysis_for_the_track_and_car_of_the_
     expect(link).to_have_attribute("href", re.compile(r"my-analysis\.html\?track=Thruxton%7CThruxton&car="))
     link.click()
     page.wait_for_url(re.compile(r".*my-analysis\.html\?track=Thruxton%7CThruxton.*"), timeout=5000)
+
+
+def test_at_the_end_of_a_playback_the_next_session_at_this_track_is_offered(page):
+    """Playing a session to its end offers the member's next session at the same track and layout (by date), to play next."""
+    import copy
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    first = fake.sessions["new1"]
+    later = copy.deepcopy(first)
+    later.update(id="next1", date="2030-01-01", time="10:00")
+    fake.sessions["next1"] = later
+    fake.index.append(dict(summary(later), carId=later.get("carId")))
+    open_page(page, fake, "/track.html?s=new1")
+    expect(page.locator("#tp-play-toggle")).to_be_visible()
+    expect(page.locator("#tp-next")).to_have_count(0)
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-next")).to_be_visible(timeout=60000)
+    expect(page.locator("#tp-next a")).to_have_attribute("href", "track.html?s=next1")
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-next")).to_have_count(0)

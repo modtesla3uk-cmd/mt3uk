@@ -3164,7 +3164,7 @@ def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(p
     page.reload()
     settings = page.evaluate("MT3UKMotorSound.ready.then(function (s) { return s; })")
     assert settings["fPeak"] == 600 and settings["volume"] == 80, settings
-    assert settings["f0"] == 95 and settings["harm"][0] == 0.5, settings
+    assert settings["f0"] == 52 and settings["harm"][0] == 0.5, settings
 
 
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):

@@ -161,6 +161,8 @@
   .ma-grid-head > .tm-note { margin: 0 0 8px; }
   .ma-grid-chips { margin: 8px 0 0; }
   .ma-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  /* Desktop: two wide cards, so each graph and its labels are about half as big again. */
+  @media (min-width: 901px) { .ma-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
   .ma-grid > #ma-day { grid-column: 1 / -1; margin-top: 0; }
   .ma-fig-card { min-width: 0; }
   .ma-fig-card { scroll-margin-top: 100px; }

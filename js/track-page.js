@@ -486,7 +486,8 @@
     heroAddCar = null; heroAddAny = false;
     heroAdd();
     if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
-    if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
+    // The next session from the playback card keeps full screen (it is set again once the session has drawn).
+    if (cmpFull && !playNextOnDraw) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
     // Sessions and builds have their own share button, so the page one steps aside.
@@ -5431,9 +5432,11 @@
       }
       if (playNextOnDraw) {
         playNextOnDraw = false;
-        var cmp = document.getElementById('compare');
-        if (cmp) cmp.scrollIntoView({ block: 'start' });
-        startPlay(1);
+        // Full screen stays full screen; otherwise the map is brought into view. Then playback starts (after full screen
+        // has redrawn, so it does not toggle off).
+        if (cmpFull) setFull(true);
+        else { var mc = document.getElementById('tp-mapcard'); if (mc) mc.scrollIntoView({ block: 'start' }); }
+        setTimeout(function () { if (!pb.playing) startPlay(1); }, 0);
       }
       var total = B.time - A.time;
       document.getElementById('tp-gap-cap').textContent = 'Below the line, A is faster. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'faster' : 'slower') + '.';

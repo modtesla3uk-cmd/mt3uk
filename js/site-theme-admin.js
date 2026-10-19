@@ -37,7 +37,7 @@
       }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
         if (!d.success) { note(d.message || 'Could not save the theme. Check the admin key.', 'error'); return; }
         paint(d.themes);
-        note((site === 'laps' ? 'laps.mt3uk.com' : 'mt3uk.com') + ' is now ' + (theme === 'jade' ? 'Jade and mist' : 'Navy and orange') + '. Visitors see it when their next page loads.', '');
+        note((site === 'laps' ? 'laps.mt3uk.com' : 'mt3uk.com') + ' is now ' + (theme === 'gold' ? 'Green and gold' : theme === 'jade' ? 'Jade and mist' : 'Navy and orange') + '. Visitors see it when their next page loads.', '');
       }).catch(function () { note('Could not reach the site. Try again.', 'error'); })
         .then(function () { buttons.forEach(function (x) { x.disabled = false; }); });
     });

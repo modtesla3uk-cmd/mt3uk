@@ -10150,7 +10150,7 @@ async function handleCardSharesRebuild(request, env) {
 
 // The colour theme of each site (mt3uk.com and laps.mt3uk.com), one KV key. Current is the colours the pages were built with.
 var SITE_THEME_KEY = 'site-theme';
-var SITE_THEMES = ['current', 'jade'];
+var SITE_THEMES = ['current', 'jade', 'gold'];
 async function siteThemes(env) {
   var t = await getJsonKey(env, SITE_THEME_KEY, {});
   return {

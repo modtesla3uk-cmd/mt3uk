@@ -23,7 +23,7 @@
   var RGB = RGB_CURRENT;
   function rgba(name, a) { return 'rgba(' + RGB[name] + ',' + a + ')'; }
   function setPalette() {
-    var jade = document.documentElement.getAttribute('data-theme') === 'jade';
+    var theme = document.documentElement.getAttribute('data-theme'), jade = theme === 'jade' || theme === 'gold';
     var p = jade ? JADE : CURRENT;
     RGB = jade ? RGB_JADE : RGB_CURRENT;
     NAVY = p.navy; NAVY2 = p.navy2; ORANGE = p.orange; CREAM = p.cream; MUTED = p.muted; BLUE = p.blue;

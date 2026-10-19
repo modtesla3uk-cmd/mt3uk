@@ -4,7 +4,7 @@
   pages and css/site-header.css read. Each variable has a fallback to the current colour where it is used, so a page
   without these rules keeps the current colours. The admin pages never load this file.
 */
-:root[data-theme="jade"] {
+:root:is([data-theme="jade"], [data-theme="gold"]) {
   --orange: #6fd1b0;
   --orange-text: #14705c;
   --on-accent: #0d3b33;
@@ -33,15 +33,26 @@
   --icon-on-dark: #f58a68;
 }
 
+/* Green and gold: the Jade and mist greens, with gold buttons. Dark text and icons sit on the gold. */
+:root:is([data-theme="gold"]) {
+  --orange: #e0b44a;
+  --orange-text: #a87a12;
+  --on-accent: #06201c;
+  --c-orange-light: #e0b44a;
+  --quota-ok: #e0b44a;
+}
+:root:is([data-theme="gold"]) body .page-hero .tp-lb-pill.tp-add-pill:hover, :root:is([data-theme="gold"]) body .lb-hero .tp-lb-pill.lb-add:hover, :root:is([data-theme="gold"]) body .tm-pill-accent:hover { background: #f0c85a; color: #06201c; }
+:root:is([data-theme="gold"]) body .page-hero .tp-lb-pill.tp-add-pill .icon, :root:is([data-theme="gold"]) body .lb-hero .tp-lb-pill.lb-add .icon, :root:is([data-theme="gold"]) body .tm-pill-accent .icon { width: 22px; height: 22px; stroke-width: 2.6; }
+
 /* Text on the orange-filled parts (buttons and badges) is the dark jade in Jade: white on the light jade fill is too faint. */
-:root[data-theme="jade"] .btn-accent,
-:root[data-theme="jade"] .early-badge,
-:root[data-theme="jade"] .hp-card-tag,
-:root[data-theme="jade"] .hp-join-primary,
-:root[data-theme="jade"] .botm-badge,
-:root[data-theme="jade"] .tee-shop-btn,
-:root[data-theme="jade"] .tee-offer-save,
-:root[data-theme="jade"] .ev-feature-cta,
-:root[data-theme="jade"] #app-install-btn,
-:root[data-theme="jade"] #hp-hero-eyebrow,
-:root[data-theme="jade"] .hp-hero-tag { color: var(--on-accent); }
+:root:is([data-theme="jade"], [data-theme="gold"]) .btn-accent,
+:root:is([data-theme="jade"], [data-theme="gold"]) .early-badge,
+:root:is([data-theme="jade"], [data-theme="gold"]) .hp-card-tag,
+:root:is([data-theme="jade"], [data-theme="gold"]) .hp-join-primary,
+:root:is([data-theme="jade"], [data-theme="gold"]) .botm-badge,
+:root:is([data-theme="jade"], [data-theme="gold"]) .tee-shop-btn,
+:root:is([data-theme="jade"], [data-theme="gold"]) .tee-offer-save,
+:root:is([data-theme="jade"], [data-theme="gold"]) .ev-feature-cta,
+:root:is([data-theme="jade"], [data-theme="gold"]) #app-install-btn,
+:root:is([data-theme="jade"], [data-theme="gold"]) #hp-hero-eyebrow,
+:root:is([data-theme="jade"], [data-theme="gold"]) .hp-hero-tag { color: var(--on-accent); }

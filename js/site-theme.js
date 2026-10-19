@@ -12,7 +12,7 @@
     try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
   }
   function apply(theme) {
-    if (theme === 'jade') root.setAttribute('data-theme', 'jade');
+    if (theme === 'jade' || theme === 'gold') root.setAttribute('data-theme', theme);
     else root.removeAttribute('data-theme');
   }
   apply(read()[site]);

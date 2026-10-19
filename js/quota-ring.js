@@ -81,7 +81,7 @@
     if (!h1 || !ringOn) { if (ring) ring.hidden = true; return; }
     var cap = d.total || (d.allowance && d.allowance.cap) || 6, used = Math.max(0, cap - d.balance);
     // Lighter tints: the ring sits on the dark page heading, where the old darker colours were hard to see.
-    var colour = d.balance <= 1 ? '#ff8a7a' : used >= cap / 2 ? '#ffd166' : '#6fd1b0';
+    var colour = d.balance <= 1 ? '#ff8a7a' : used >= cap / 2 ? '#ffd166' : 'var(--quota-ok, #6fd1b0)';
     if (!ring) {
       ring = document.createElement('span');
       ring.id = 'tp-quota-ring';
@@ -100,7 +100,7 @@
     var deg = 100 * used / cap, c = 2 * Math.PI * 9;
     var b = ring.querySelector('.tp-quota-ring-btn');
     b.setAttribute('aria-label', used + ' of ' + cap + ' free days used. Tap to see what this means.');
-    b.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" stroke="' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + used + '/' + cap + '</span>';
+    b.innerHTML = '<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style="transform:rotate(-90deg);flex:none"><circle cx="11" cy="11" r="9" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3"/><circle cx="11" cy="11" r="9" fill="none" style="stroke:' + colour + '" stroke-width="3" stroke-dasharray="' + (c * deg / 100).toFixed(2) + ' ' + c.toFixed(2) + '"/></svg><span>' + used + '/' + cap + '</span>';
     ring.querySelector('.tp-quota-ring-pop').innerHTML = usagePanel(d, used, cap);
   }
 

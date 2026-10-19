@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=2"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Analysis - Laps by MT3UK</title>
@@ -79,9 +79,9 @@
   .tm-pill { gap:8px; }
   .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .tm-pill-accent .icon { stroke:#fff; }
-  :root[data-theme="jade"] .tm-pill-accent .icon { stroke: var(--on-accent, #0d3b33); }
+  :root:is([data-theme="jade"], [data-theme="gold"]) .tm-pill-accent .icon { stroke: var(--on-accent, #0d3b33); }
   .tm-pill-accent:hover { background:#cf4d0a; }
-  :root[data-theme="jade"] .tm-pill-accent:hover { background: var(--icon-on-dark, #f58a68); color: var(--on-accent, #0d3b33); }
+  :root:is([data-theme="jade"], [data-theme="gold"]) .tm-pill-accent:hover { background: var(--icon-on-dark, #f58a68); color: var(--on-accent, #0d3b33); }
   /* Desktop: the same heading as Sessions and the Leaderboard. Back at the left, the title centred, the buttons at the right at the same size. */
   /* Desktop: Back is the same width as the other heading buttons. */
   @media (min-width: 901px) { .page-hero .back-link { min-width: 190px; justify-content: center; } }
@@ -360,7 +360,7 @@
 </footer>
 
 <script src="js/track-view.js?v=20270115" defer></script>
-<script src="js/quota-ring.js?v=16" defer></script>
+<script src="js/quota-ring.js?v=17" defer></script>
 <script src="js/my-analysis-page.js?v=45" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>

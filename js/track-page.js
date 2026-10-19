@@ -4400,7 +4400,7 @@
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
-        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button></div>' +
+        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
@@ -4862,6 +4862,8 @@
     tog.setAttribute('aria-label', fw ? 'Pause' : 'Play');
     back.innerHTML = icon(bw ? 'pause' : 'rewind') + '<span class="tp-bl">' + (bw ? 'Pause' : 'Rewind') + '</span>';
     back.setAttribute('aria-label', bw ? 'Pause rewinding' : 'Rewind');
+    var pdy = document.getElementById('tp-play-day');
+    if (pdy) { pdy.hidden = !nextSession(true); pdy.classList.toggle('is-on', playDay); pdy.setAttribute('aria-pressed', playDay ? 'true' : 'false'); }
     document.querySelectorAll('#tp-speeds [data-speed]').forEach(function (b) {
       var on = parseFloat(b.getAttribute('data-speed')) === pb.speed;
       b.classList.toggle('is-on', on);
@@ -4883,12 +4885,13 @@
     pb.render(0);
   }
   // At the end of a playback, offer the member's next session at the same track and layout (by date) to play next.
-  function nextSession() {
+  function nextSession(sameDay) {
     var s = view && view.s, list = view && view.mine && view.mine.sessions;
     if (!s || !s.mine || !s.venueId || !list) return null;
     var best = null;
     list.forEach(function (x) {
       if (x.id === s.id || x.venueId !== s.venueId || (x.layoutId || '') !== (s.layoutId || '')) return;
+      if (sameDay && x.date !== s.date) return;
       if (whenOf(x) <= whenOf(s)) return;
       if (!best || whenOf(x) < whenOf(best)) best = x;
     });
@@ -4905,6 +4908,7 @@
   }
   // Opens the next session in this window (no reload) and starts its playback once it has drawn.
   var playNextOnDraw = false;
+  var playDay = false;
   function playNext(id) {
     stopPlay();
     var old = document.getElementById('tp-next'); if (old) old.remove();
@@ -4936,7 +4940,7 @@
       pb.t = pb.dir > 0 ? pb.tEnd : 0;
       pb.render(pb.t);
       stopPlay();
-      if (pb.dir > 0) offerNext();
+      if (pb.dir > 0) { var nd = playDay ? nextSession(true) : null; if (nd) playNext(nd.id); else offerNext(); }
       return;
     }
     pb.render(pb.t);
@@ -5030,6 +5034,8 @@
     if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
     var snd = document.getElementById('tp-sound');
     if (snd) { snd.addEventListener('click', function () { setSound(!soundOn); }); setSound(soundOn); }
+    var pdy = document.getElementById('tp-play-day');
+    if (pdy) pdy.addEventListener('click', function () { playDay = !playDay; playUi(); });
     var fb = document.getElementById('tp-full');
     if (fb) fb.addEventListener('click', function () { setFull(!cmpFull); });
     var sc = document.getElementById('tp-speedcol');
@@ -5419,6 +5425,7 @@
       pb.active = false; pb.t = 0;
       pb.tEnd = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       pb.render = renderAt;
+      playUi();
       var motorTop = A.trace.reduce(function (m, p) { return Math.max(m, p[4]); }, 0);
       drawG();
       var scrub = document.getElementById('tp-scrub'), clk = document.getElementById('tp-clock');

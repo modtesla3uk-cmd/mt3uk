@@ -7853,3 +7853,26 @@ def test_at_the_end_of_a_playback_the_next_session_at_this_track_is_offered(page
     assert page.evaluate("window.__stayed") == "same window"
     page.locator("#tp-play-toggle").click()
     expect(page.locator("#tp-next")).to_have_count(0)
+
+
+def test_play_the_day_goes_on_to_the_next_session_of_that_day_when_a_playback_ends(page):
+    """With Play the day on, a playback that reaches its end goes on to the next session at this track and layout on the same day, and plays it."""
+    import copy
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    first = fake.sessions["new1"]
+    later = copy.deepcopy(first)
+    later.update(id="next1", time="23:59")
+    fake.sessions["next1"] = later
+    fake.index.append(dict(summary(later), carId=later.get("carId")))
+    open_page(page, fake, "/track.html?s=new1")
+    day = page.locator("#tp-play-day")
+    expect(day).to_be_visible()
+    expect(day).to_have_attribute("aria-pressed", "false")
+    day.click()
+    expect(day).to_have_attribute("aria-pressed", "true")
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-play-toggle")).to_have_text("Pause", timeout=60000)
+    page.wait_for_url("**/track.html?s=next1", timeout=90000)
+    expect(page.locator("#tp-play-toggle")).to_have_text("Pause", timeout=30000)

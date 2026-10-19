@@ -17,7 +17,7 @@ API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 PAGES = ["admin.html", "events-admin.html", "device-checklist.html"]
 ALL_PAGES = PAGES + ["track-admin.html"]
 GROUPS = [
-    ("grp-editors", "Page editors", ["editors-wrap"]),
+    ("grp-editors", "Page editors", ["editors-wrap", "theme-wrap"]),
     ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "garage-asks-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap", "feedback-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap", "passkey-nudge-wrap"]),
@@ -129,9 +129,10 @@ def test_admin_pages_fit_a_phone(page, name):
 def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     open_admin(page, "admin.html")
     sub = page.locator("#admin-subnav")
-    # The first group is Page editors: one panel and no headings, so there is nothing to list and the sub menu is hidden.
+    # The first group is Page editors: two panels (Layout editors and Site theme), so its sub menu lists them.
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Page editors")
-    expect(sub).to_be_hidden()
+    expect(sub).to_be_visible()
+    assert sub.locator("a").all_inner_texts() == ["Layout editors", "Site theme"]
     # Gallery and builds lists its four panels.
     page.locator('.admin-nav a[href="admin.html#grp-gallery"]').click()
     expect(sub).to_be_visible()

@@ -10148,6 +10148,35 @@ async function handleCardSharesRebuild(request, env) {
   return json({ success: true, requestedAt: new Date().toISOString() });
 }
 
+// The colour theme of each site (mt3uk.com and laps.mt3uk.com), one KV key. Current is the colours the pages were built with.
+var SITE_THEME_KEY = 'site-theme';
+var SITE_THEMES = ['current', 'jade'];
+async function siteThemes(env) {
+  var t = await getJsonKey(env, SITE_THEME_KEY, {});
+  return {
+    main: SITE_THEMES.indexOf(t.main) > -1 ? t.main : 'current',
+    laps: SITE_THEMES.indexOf(t.laps) > -1 ? t.laps : 'current'
+  };
+}
+async function handleSiteThemePublic(env) {
+  var res = json({ success: true, themes: await siteThemes(env) });
+  res.headers.set('Cache-Control', 'no-cache');
+  return res;
+}
+async function handleSiteThemeAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, themes: await siteThemes(env) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var site = body && body.site, theme = body && body.theme;
+  if (site !== 'main' && site !== 'laps') return json({ success: false, message: 'Choose mt3uk.com or laps.mt3uk.com.' }, 400);
+  if (SITE_THEMES.indexOf(theme) === -1) return json({ success: false, message: 'Choose a theme the site has.' }, 400);
+  var themes = await siteThemes(env);
+  themes[site] = theme;
+  await env.VOTES.put(SITE_THEME_KEY, JSON.stringify(themes));
+  return json({ success: true, themes: themes });
+}
+
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
   // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
@@ -13462,6 +13491,8 @@ export default {
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);
     if (url.pathname === '/home/members/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeMembersAdmin(request, env);
     if (url.pathname === '/home/cards/rebuild' && request.method === 'POST') return handleCardSharesRebuild(request, env);
+    if (url.pathname === '/site/theme' && request.method === 'GET') return handleSiteThemePublic(env);
+    if (url.pathname === '/site/theme/admin' && (request.method === 'GET' || request.method === 'POST')) return handleSiteThemeAdmin(request, env);
     if (url.pathname === '/shop/home/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopHomeAdmin(request, env);
     if (url.pathname === '/laps/news' && request.method === 'GET') {
       return handleLapsNewsPublic(request, env);

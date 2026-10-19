@@ -1,5 +1,5 @@
 /* Offline mode on the Laps pages (js/laps-offline.js): the bar that says so, the offer, and the queue card. */
-.lo-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2500; display: flex; align-items: flex-start; gap: 10px; max-width: 760px; margin: 0 auto; padding: 12px 14px; border-radius: var(--radius); background: #16233d; color: #fff; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; box-shadow: 0 6px 24px rgba(22, 35, 61, 0.35); }
+.lo-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2500; display: flex; align-items: flex-start; gap: 10px; max-width: 760px; margin: 0 auto; padding: 12px 14px; border-radius: var(--radius); background: var(--ink, #16233d); color: #fff; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; box-shadow: 0 6px 24px color-mix(in srgb, var(--ink, #16233d) 35.0%, transparent); }
 .lo-bar[hidden], .lo-offer[hidden], .lo-pending[hidden] { display: none; }
 .lo-bar.is-ok { background: #17663f; }
 .lo-bar.is-warn { background: #8a3a12; }
@@ -10,7 +10,7 @@
 .lo-x:focus-visible, .lo-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .lo-link { background: none; border: 0; padding: 0; font: inherit; color: #ffc9b3; text-decoration: underline; cursor: pointer; min-height: 24px; }
 
-.lo-offer { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2400; max-width: 460px; margin: 0 auto; padding: 16px; font-family: var(--font-body); box-shadow: 0 6px 24px rgba(22, 35, 61, 0.28); }
+.lo-offer { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2400; max-width: 460px; margin: 0 auto; padding: 16px; font-family: var(--font-body); box-shadow: 0 6px 24px color-mix(in srgb, var(--ink, #16233d) 28.0%, transparent); }
 .lo-offer h3 { margin: 0 0 6px; font-size: 1rem; }
 .lo-offer p { margin: 0 0 12px; font-size: 0.9rem; line-height: 1.5; }
 .lo-offer .lo-small { margin: 10px 0 0; }
@@ -21,7 +21,7 @@
 .lo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lo-small { font-size: 0.82rem; color: #5b6577; }
 
-.lo-pending { margin-bottom: 16px; padding: 16px; font-family: var(--font-body); border-color: #e8542a; }
+.lo-pending { margin-bottom: 16px; padding: 16px; font-family: var(--font-body); border-color: var(--orange, #e8542a); }
 .lo-pending h3 { margin: 0 0 4px; font-size: 1rem; }
 .lo-pending .lo-small { margin: 0 0 10px; }
 .lo-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
@@ -50,11 +50,11 @@
 .nav-offline:hover { opacity: 0.8; }
 .nav-offline[hidden] { display: none; }
 .nav-offline[aria-checked="true"] { color: #2e9d4a; }
-.nav-offline.is-offline[aria-checked="false"] { color: var(--orange, #e8542a); }
+.nav-offline.is-offline[aria-checked="false"] { color: var(--orange, var(--orange-text, var(--orange, #e8542a))); }
 .nav-offline:disabled { cursor: progress; opacity: 0.45; }
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 @media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }
-.lo-bar.is-info { background: #16233d; }
+.lo-bar.is-info { background: var(--ink, #16233d); }
 /* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
 [data-offline-toggle][hidden] { display: none !important; }
 .lo-field { display: grid; gap: 4px; margin: 10px 0; font-size: 0.9rem; }

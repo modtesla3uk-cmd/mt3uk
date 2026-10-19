@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Full Gallery &mdash; MT3UK</title>
@@ -81,7 +81,7 @@
 
   /* ---------- NAV: shared, see css/site-header.css ---------- */
 
-  .promo-banner { background: var(--orange); }
+  .promo-banner { background: var(--orange, #e8542a); }
   .promo-banner-inner {
     display: flex;
     align-items: center;
@@ -97,7 +97,7 @@
     position: absolute;
     top: 0; right: 0; bottom: 0;
     width: 48px;
-    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    background: linear-gradient(to right, color-mix(in srgb, var(--orange, #e8542a) 0.0%, transparent), var(--orange, #e8542a) 70%);
     pointer-events: none;
   }
   .promo-banner-track {
@@ -132,7 +132,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -144,7 +144,7 @@
     border: 1px solid var(--ink);
     white-space: nowrap;
   }
-  .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+  .nav-cta:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
 
   /* ---------- SECTION SHELL ---------- */
   section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
@@ -165,7 +165,7 @@
   .section-num {
     font-family: var(--font-body);
     font-size: 0.86rem;
-    color: var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
     margin-bottom: 10px;
     display: block;
   }
@@ -187,10 +187,10 @@
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
 
   .inline-link {
-    color: var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
     font-weight: 600;
     text-decoration: none;
-    border-bottom: 1px solid var(--orange);
+    border-bottom: 1px solid var(--orange, #e8542a);
   }
   .inline-link:hover { color: var(--ink); border-color: var(--ink); }
 
@@ -209,7 +209,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -281,7 +281,7 @@
     position: absolute;
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
-    background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
+    background: linear-gradient(0deg, color-mix(in srgb, var(--ink, #16233d) 82.0%, transparent), color-mix(in srgb, var(--ink, #16233d) 0.0%, transparent));
     font-family: var(--font-body);
     font-size: 0.76rem;
     color: var(--paper);
@@ -318,7 +318,7 @@
     top: 8px; right: 8px;
     z-index: 2;
     display: flex; align-items: center; gap: 4px;
-    background: rgba(22,35,61,0.82);
+    background: color-mix(in srgb, var(--ink, #16233d) 82.0%, transparent);
     border: 1px solid rgba(243,241,234,0.35);
     color: var(--paper);
     padding: 4px 7px;
@@ -326,10 +326,10 @@
     font-family: var(--font-body);
     font-size: 0.7rem;
   }
-  .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
+  .g-mods-badge:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
   .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-  .g-claim-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(232,84,42,0.9); border: 1px solid var(--orange); color: var(--paper); padding: 4px 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.68rem; }
-  .g-claim-badge:hover { background: var(--orange); }
+  .g-claim-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: color-mix(in srgb, var(--orange, #e8542a) 90.0%, transparent); border: 1px solid var(--orange, #e8542a); color: var(--paper); padding: 4px 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.68rem; }
+  .g-claim-badge:hover { background: var(--orange, #e8542a); }
   .gallery-note {
     margin-top: 20px;
     font-size: 0.85rem;
@@ -337,10 +337,10 @@
     text-align: center;
   }
 
-  .gallery-only-note { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--ink); border-left: 3px solid var(--orange); background: var(--paper-2); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: var(--ink); }
+  .gallery-only-note { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--ink); border-left: 3px solid var(--orange, #e8542a); background: var(--paper-2); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: var(--ink); }
   .gallery-only-note[hidden] { display: none; }
   .gallery-only-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
-  .gallery-only-note a { color: var(--orange); font-weight: 600; white-space: nowrap; }
+  .gallery-only-note a { color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; white-space: nowrap; }
   .gallery-member { font-family: var(--font-body); font-size: 0.8rem; background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 7px 30px 7px 12px; cursor: pointer; max-width: 100%; appearance: none; -webkit-appearance: none; border-radius: 0;
     background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
   .gallery-member.active { background-color: var(--ink); color: var(--paper); background-image: linear-gradient(45deg, transparent 50%, var(--paper) 50%), linear-gradient(135deg, var(--paper) 50%, transparent 50%); }
@@ -411,12 +411,12 @@
 
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
   .page-hero .back-link {
     min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm);
     color: var(--ink); font-size: 0.88rem; font-weight: 600;
   }
-  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .page-hero .back-link:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); color: var(--ink); }
   .refresh-btn, .gallery-filters .filter-btn, .gallery-pagination .page-btn, .gallery-member {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px;
     border: 1px solid var(--hairline-strong); background-color: var(--white); color: var(--ink);
@@ -440,13 +440,13 @@
   .gallery-slot.filled { border: 0; }
   .gallery-slot .g-name { font-size: 0.7rem; }
   .g-mods-badge, .g-claim-badge { border-radius: var(--radius-pill); border: 0; padding: 4px 9px; }
-  .gallery-only-note { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; padding: 10px 16px; }
+  .gallery-only-note { border: 1px solid color-mix(in srgb, var(--orange, #e8542a) 25.0%, transparent); border-radius: var(--radius); background: #fdf3ef; padding: 10px 16px; }
   .gallery-only-note a { display: inline-flex; align-items: center; gap: 4px; }
   .gallery-only-note .icon { width: 16px; height: 16px; }
   .promo-banner-close .icon { width: 18px; height: 18px; }
 
   :focus-visible {
-    outline: 2px solid var(--orange);
+    outline: 2px solid var(--orange, #e8542a);
     outline-offset: 2px;
   }
 </style>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MT3UK Shop: Merch & Upgrades</title>
@@ -80,7 +80,7 @@
 
   /* ---------- NAV: shared, see css/site-header.css ---------- */
 
-  .promo-banner { background: var(--orange); }
+  .promo-banner { background: var(--orange, #e8542a); }
   .promo-banner-inner {
     display: flex;
     align-items: center;
@@ -96,7 +96,7 @@
     position: absolute;
     top: 0; right: 0; bottom: 0;
     width: 48px;
-    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    background: linear-gradient(to right, color-mix(in srgb, var(--orange, #e8542a) 0.0%, transparent), var(--orange, #e8542a) 70%);
     pointer-events: none;
   }
   .promo-banner-track {
@@ -131,7 +131,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -143,7 +143,7 @@
     border: 1px solid var(--ink);
     white-space: nowrap;
   }
-  .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+  .nav-cta:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
 
   /* ---------- SECTION SHELL ---------- */
   section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
@@ -164,7 +164,7 @@
   .section-num {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.86rem;
-    color: var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
     margin-bottom: 10px;
     display: block;
   }
@@ -187,10 +187,10 @@
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .inline-link {
-    color: var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
     font-weight: 600;
     text-decoration: none;
-    border-bottom: 1px solid var(--orange);
+    border-bottom: 1px solid var(--orange, #e8542a);
   }
   .inline-link:hover { color: var(--ink); border-color: var(--ink); }
 
@@ -209,7 +209,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -244,7 +244,7 @@
     color: var(--paper);
   }
   .shop-band .section-head p { color: #aeb8cc; }
-  .shop-band .section-num { color: var(--orange); }
+  .shop-band .section-num { color: var(--orange-text, var(--orange, #e8542a)); }
   .shop-band h2 { color: var(--paper); }
   #merch { padding-bottom: 32px; }
   #parts { padding-top: 32px; }
@@ -315,13 +315,13 @@
     text-decoration: none;
     transition: border-color 0.15s ease;
   }
-  .offer-card:hover { border-color: var(--orange); }
+  .offer-card:hover { border-color: var(--orange, #e8542a); }
   .offer-card .tag {
     display: inline-block;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange);
-    border: 1px solid var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
+    border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
   }
   .offer-card h4 { color: var(--paper); font-size: 1.05rem; margin: 12px 0 6px; }
@@ -340,7 +340,7 @@
   .img-lightbox {
     position: fixed;
     inset: 0;
-    background: rgba(22,35,61,0.94);
+    background: color-mix(in srgb, var(--ink, #16233d) 94.0%, transparent);
     display: none;
     align-items: center;
     justify-content: center;
@@ -362,7 +362,7 @@
     line-height: 1;
     cursor: pointer;
   }
-  .img-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
+  .img-lightbox-close:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
   .shop-preview-hint {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.74rem;
@@ -393,7 +393,7 @@
   }
   .shop-preview-trigger.shop-preview-dark,
   .shop-live-card .shop-preview-trigger.shop-preview-dark { background: var(--ink); }
-  .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
+  .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange, #e8542a); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
   #brace-trigger img, #brace-trigger-2 img { transition: transform 0.2s ease; }
@@ -415,7 +415,7 @@
     box-sizing: border-box;
     overflow: hidden;
   }
-  .shop-preview-thumb:hover, .shop-preview-thumb:focus-visible { border-color: var(--orange); }
+  .shop-preview-thumb:hover, .shop-preview-thumb:focus-visible { border-color: var(--orange, #e8542a); }
   .shop-preview-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease; }
   .shop-preview-row-lg .shop-preview-trigger,
   .shop-preview-row-lg .shop-preview-thumb { height: auto; aspect-ratio: 8 / 5; }
@@ -427,8 +427,8 @@
     margin-top: 14px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange);
-    border: 1px solid var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
+    border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
   }
 
@@ -478,7 +478,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: var(--orange);
+    background: var(--orange, #e8542a);
     color: var(--paper);
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.86rem;
@@ -499,13 +499,13 @@
     font-size: 0.7rem;
     font-weight: 700;
     color: var(--paper);
-    background: var(--orange);
+    background: var(--orange, #e8542a);
     padding: 2px 5px;
     margin-left: 6px;
     vertical-align: middle;
   }
   .tee-offer-save {
-    background: var(--orange);
+    background: var(--orange, #e8542a);
     color: var(--paper);
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.82rem;
@@ -513,7 +513,7 @@
     padding: 5px 10px;
   }
   .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
-  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange); }
+  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, var(--orange, #e8542a)); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: #aeb8cc; }
   .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
@@ -532,15 +532,15 @@
     align-items: center;
     gap: 6px;
     background: transparent;
-    border: 1px solid var(--orange);
-    color: var(--orange);
+    border: 1px solid var(--orange, #e8542a);
+    color: var(--orange-text, var(--orange, #e8542a));
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.83rem;
     padding: 5px 9px;
     cursor: pointer;
     margin: 4px 0 0;
   }
-  .detail-toggle:hover { background: var(--orange); color: var(--paper); }
+  .detail-toggle:hover { background: var(--orange, #e8542a); color: var(--paper); }
   .detail-toggle::after { content: '\25BE'; font-size: 0.7rem; transition: transform 0.2s ease; }
   .detail-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
   .detail-content { margin-top: 12px; }
@@ -549,8 +549,8 @@
   .tee-offer-actions .tee-shop-btn {
     display: inline-block;
     margin-left: auto;
-    background: var(--orange);
-    border: 1px solid var(--orange);
+    background: var(--orange, #e8542a);
+    border: 1px solid var(--orange, #e8542a);
     color: var(--paper);
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.86rem;
@@ -567,7 +567,7 @@
   .tee-modal {
     position: fixed;
     inset: 0;
-    background: rgba(22, 35, 61, 0.94);
+    background: color-mix(in srgb, var(--ink, #16233d) 94.0%, transparent);
     display: none;
     align-items: center;
     justify-content: center;
@@ -600,7 +600,7 @@
     line-height: 1;
     cursor: pointer;
   }
-  .tee-modal-close:hover { background: var(--orange); border-color: var(--orange); }
+  .tee-modal-close:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
   .tee-modal-media {
     background: var(--white);
     border: 1px solid #3a4a6b;
@@ -626,7 +626,7 @@
     line-height: 1;
     cursor: pointer;
   }
-  .tee-modal-arrow:hover { background: var(--orange); border-color: var(--orange); }
+  .tee-modal-arrow:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
   .tee-modal-arrow-prev { left: 10px; }
   .tee-modal-arrow-next { right: 10px; }
   .tee-modal-tag {
@@ -636,8 +636,8 @@
     display: inline-block;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange);
-    border: 1px solid var(--orange);
+    color: var(--orange-text, var(--orange, #e8542a));
+    border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
     background: #0d1526;
   }
@@ -646,7 +646,7 @@
   .tee-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; }
   .tee-modal-features { list-style: none; padding: 0; margin: 0; }
   .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; }
-  .tee-modal-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--orange); font-weight: 700; }
+  .tee-modal-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 700; }
   .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; }
   .tee-modal-thumbs button {
     width: 56px;
@@ -657,7 +657,7 @@
     cursor: pointer;
     box-sizing: border-box;
   }
-  .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange); }
+  .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange, #e8542a); }
   .tee-modal-thumbs img { display: block; width: 100%; height: 100%; object-fit: contain; }
   @media (max-width: 600px) { .tee-modal-panel { padding: 24px 18px; } }
 
@@ -673,7 +673,7 @@
   .footer-row .mono { font-size: 0.72rem; }
 
   :focus-visible {
-    outline: 2px solid var(--orange);
+    outline: 2px solid var(--orange, #e8542a);
     outline-offset: 2px;
   }
 
@@ -691,7 +691,7 @@
     margin: 0 auto;
     background: var(--ink);
     color: var(--paper);
-    border: 1px solid var(--orange);
+    border: 1px solid var(--orange, #e8542a);
     padding: 14px 18px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85rem;
@@ -707,16 +707,16 @@
     background: transparent;
     color: var(--paper);
   }
-  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 12px; }
+  .a2hs-banner .a2hs-install { background: var(--orange, #e8542a); color: var(--paper); padding: 8px 12px; }
   .a2hs-banner .a2hs-close { font-size: 1.2rem; line-height: 1; padding: 0 4px; }
   @media (max-width: 480px) {
     .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
-  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .page-hero .back-link:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); color: var(--ink); }
   .specs { border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden; }
   .spec-row { border-bottom: 1px solid var(--hairline); }
   .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
@@ -728,7 +728,7 @@
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; }
   .tee-offer-actions .tee-shop-btn, .tee-modal-tag { border-radius: var(--radius); }
   .tee-offer-save { border-radius: var(--radius-pill); }
-  .img-lightbox-close { display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(22,35,61,0.8); }
+  .img-lightbox-close { display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink, #16233d) 80.0%, transparent); }
   .img-lightbox-close .icon { width: 22px; height: 22px; }
   .tevo-panel, .shop-live-card { border-radius: var(--radius); }
   .shop-preview-trigger, .shop-preview-thumb, .tee-modal-media { border-radius: var(--radius-sm); overflow: hidden; }
@@ -995,7 +995,7 @@
       <h3>In partnership with EVOffer</h3>
       <p>EVOffer specializes in high-end Tesla performance upgrades and cabin retrofits, bringing factory-inspired styling and next-level ergonomics to your interior. Premium materials and custom configurations designed specifically for enthusiasts.</p>
       <div class="tevo-panel-logo">
-        <span class="tag" style="background:var(--orange); color:var(--paper); font-weight:700;">20% off with code MT3UKEVO20</span>
+        <span class="tag" style="background:var(--orange, #e8542a); color:var(--paper); font-weight:700;">20% off with code MT3UKEVO20</span>
       </div>
       <p class="detail-desc" style="margin-top:10px;">Orders for these upgrade seats are handled directly via EVOffer. Remember to apply coupon code <strong>MT3UKEVO20</strong> at checkout to claim your 20% member discount.</p>
     </div>

@@ -135,6 +135,10 @@
       ['Offer', 'Shows the offer on the Offers card while it is switched on and today is between its start and end dates. Each item can show its reduced price from the percentage.'],
       ['Shop card highlights', 'One highlight per line, shown as text on the Shop card.'],
     ] },
+    'theme-wrap': { t: 'Site theme', p: 'The colours of mt3uk.com and laps.mt3uk.com. Each site can be set on its own.', i: [
+      ['Current', 'The navy and orange the sites have used so far.'],
+      ['Jade and mist', 'The new theme: pale jade backgrounds, deep jade surfaces and jade buttons. Visitors see it when their next page loads.'],
+    ] },
     'editors-wrap': { t: 'Layout editors', p: 'Opens the layout editor on each page. The editor is on when the page address ends with ?layout=edit.', i: [
       ['Open editor', 'Opens that page with its editor on. There is one address for each site: mt3uk.com, laps.mt3uk.com and the test copy.'],
     ] },

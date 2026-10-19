@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-GB">
-<head>
+<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -17,9 +17,9 @@
     --white: #ffffff;
     --green: #2a8a5a;
     --red: #c13a3a;
-    --line: rgba(22, 35, 61, 0.14);
-    --line-strong: rgba(22, 35, 61, 0.3);
-    --hover: rgba(22, 35, 61, 0.05);
+    --line: color-mix(in srgb, var(--ink, #16233d) 14.0%, transparent);
+    --line-strong: color-mix(in srgb, var(--ink, #16233d) 30.0%, transparent);
+    --hover: color-mix(in srgb, var(--ink, #16233d) 5.0%, transparent);
     --field: #ffffff;
   }
   * { box-sizing: border-box; }
@@ -33,15 +33,15 @@
   }
   a { color: var(--ink); }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 60px; }
-  h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--orange); }
-  h2 { font-size: 1.05rem; margin: 0 0 6px; color: var(--orange); }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--orange-text, var(--orange, #e8542a)); }
+  h2 { font-size: 1.05rem; margin: 0 0 6px; color: var(--orange-text, var(--orange, #e8542a)); }
   .intro { color: var(--steel); margin: 0 0 14px; }
   .card { border: 1px solid var(--line); background: var(--card); padding: 16px; margin: 0 0 26px; }
   button {
     background: var(--card); color: var(--ink); border: 1px solid var(--line);
     padding: 8px 12px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
   }
-  button.primary { background: var(--orange); border-color: var(--orange); }
+  button.primary { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
 
   /* Automated checks */
   .run-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; }
@@ -72,7 +72,7 @@
     display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
     border: 1px solid var(--line); background: var(--card); padding: 6px 10px; border-radius: 999px; font-size: 0.88rem;
   }
-  .chips input { accent-color: var(--orange); }
+  .chips input { accent-color: var(--orange, #e8542a); }
   .run-form details { margin-bottom: 12px; }
   .run-form summary { cursor: pointer; color: var(--steel); font-size: 0.88rem; }
   .run-form details .chips { margin-top: 8px; }

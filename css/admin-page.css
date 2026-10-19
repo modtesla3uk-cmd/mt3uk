@@ -736,3 +736,5 @@ h3.sub-head[id], .tk-fold { scroll-margin-top: calc(var(--nav-h, 64px) + 70px); 
 .fbp-card { margin: 0 0 18px; padding: 14px; border: 1px solid var(--hairline, #d9d6cc); border-radius: var(--radius, 10px); background: #fff; }
 .fbp-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
 .fbp-text { width: 100%; box-sizing: border-box; min-height: 120px; padding: 10px 12px; border: 1px solid var(--hairline-strong, #b9b6ab); border-radius: var(--radius-sm, 8px); font: inherit; line-height: 1.45; }
+/* The site theme choice in use (admin.html, Site theme panel). */
+[data-theme-site][aria-pressed="true"] { background: var(--ink, #16233d); color: #fff; border-color: var(--ink, #16233d); }

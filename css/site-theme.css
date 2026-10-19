@@ -1,0 +1,16 @@
+/*
+  The site themes (js/site-theme.js sets data-theme on <html>, per site: mt3uk.com and laps.mt3uk.com). Current is the
+  navy and orange the pages were built with, so it needs no rules here. Jade and mist overrides the colour variables the
+  pages and css/site-header.css read. Each variable has a fallback to the current colour where it is used, so a page
+  without these rules keeps the current colours. The admin pages never load this file.
+*/
+:root[data-theme="jade"] {
+  --orange: #6fd1b0;
+  --orange-text: #14705c;
+  --on-accent: #0d3b33;
+  --ink: #0d3b33;
+  --ink-2: #145a4d;
+  --paper: #f1f6f3;
+  --paper-2: #e2ede8;
+  --steel: #4a5a55;
+}

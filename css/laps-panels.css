@@ -8,7 +8,7 @@
   @media (min-width: 640px) { .lh-grid { grid-template-columns: 1fr 1fr; } }
   @media (min-width: 900px) { .lh-grid.lh-4 { grid-template-columns: repeat(4, 1fr); } .lh-grid.lh-3 { grid-template-columns: repeat(3, 1fr); } }
   .lh-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; align-content: start; }
-  .lh-card .icon { width: 28px; height: 28px; color: var(--orange); }
+  .lh-card .icon { width: 28px; height: 28px; color: var(--orange-text, var(--orange, #e8542a)); }
   .lh-card h3 { margin: 0; font-size: 1rem; }
   .lh-card p { color: var(--ink-2); font-size: 0.93rem; }
   .lh-timers { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -47,16 +47,16 @@
 .lh-fast-pop .lh-where b, .lh-fast-pop .lh-time { color: #fff; }
 .lh-fast-pop .lh-where span { color: #b9c0cf; }
 .lh-fast-all { justify-self: start; color: #ffd27a; font-weight: 600; font-size: 0.9rem; }
-.lh-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.7rem; font-weight: 700; vertical-align: 1px; }
-.laps-tip-bulbbtn.is-lit { position: relative; background: #ffd27a !important; color: #16233d !important; border-color: #ffd27a !important; box-shadow: 0 0 0 4px rgba(255,210,122,.25), 0 0 18px rgba(255,210,122,.55); }
-.laps-tip-bulbbtn.is-lit::after { content: ''; position: absolute; top: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); border: 2px solid #16233d; }
+.lh-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-size: 0.7rem; font-weight: 700; vertical-align: 1px; }
+.laps-tip-bulbbtn.is-lit { position: relative; background: #ffd27a !important; color: var(--ink, #16233d) !important; border-color: #ffd27a !important; box-shadow: 0 0 0 4px rgba(255,210,122,.25), 0 0 18px rgba(255,210,122,.55); }
+.laps-tip-bulbbtn.is-lit::after { content: ''; position: absolute; top: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange, #e8542a); border: 2px solid var(--ink, #16233d); }
 /* The close button at the top right of the bulb's box (js/laps-tip.js). */
 .laps-tip-pop.laps-tip-pop:has(> .laps-tip-x) { padding-right: 58px; }
 .laps-tip-pop > .laps-tip-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: inherit; cursor: pointer; }
 .laps-tip-pop > .laps-tip-x .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 /* The close X on the What are Sessions? and What is the Leaderboard? panels: shown while the panel is open. */
 .tp-what { position: relative; }
-.tp-what > .tp-what-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(22,35,61,.08); color: inherit; cursor: pointer; }
+.tp-what > .tp-what-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink, #16233d) 8.0%, transparent); color: inherit; cursor: pointer; }
 .tp-what > .tp-what-x .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 .tp-what:not([open]) > .tp-what-x { display: none; }
 .tp-what[open] > .tp-what-body { padding-right: 52px; }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>You're offline – MT3UK</title>
@@ -12,7 +12,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: #f3f1ea;
-    color: #16233d;
+    color: var(--ink, #16233d);
     font-family: 'IBM Plex Sans', sans-serif;
     min-height: 100vh;
     display: flex;
@@ -25,7 +25,7 @@
   .mono {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.83rem;
-    color: #e8542a;
+    color: var(--orange-text, var(--orange, #e8542a));
     display: block;
     margin-bottom: 12px;
   }
@@ -40,13 +40,13 @@
     font-family: 'IBM Plex Sans', sans-serif;
     font-weight: 600;
     font-size: 0.9rem;
-    background: #16233d;
+    background: var(--ink, #16233d);
     color: #f3f1ea;
-    border: 1px solid #16233d;
+    border: 1px solid var(--ink, #16233d);
     padding: 12px 24px;
     cursor: pointer;
   }
-  button:hover { background: #e8542a; border-color: #e8542a; }
+  button:hover { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); }
 </style>
 </head>
 <body>

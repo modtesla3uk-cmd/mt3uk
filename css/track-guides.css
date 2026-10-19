@@ -18,7 +18,7 @@
 .tg-fold > div { padding: 0 14px 12px; display: grid; gap: 8px; }
 .tg-fold p { margin: 0; color: var(--ink-2); font-size: 0.93rem; }
 /* The Laps card: record your day, upload it afterwards. */
-.tg-laps { margin: 14px 0 24px; padding: 16px; border-radius: var(--radius); background: #16233d; color: #d3d8e2; display: grid; gap: 10px; break-inside: avoid; }
+.tg-laps { margin: 14px 0 24px; padding: 16px; border-radius: var(--radius); background: var(--ink, #16233d); color: #d3d8e2; display: grid; gap: 10px; break-inside: avoid; }
 .tg-laps b { color: #fff; font-size: 1.02rem; }
 .tg-laps p { margin: 0; color: #d3d8e2; font-size: 0.93rem; }
 .tg-laps .tg-actions { display: flex; flex-wrap: wrap; gap: 8px; }

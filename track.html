@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="stylesheet" href="css/site-theme.css?v=1"><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track sessions: map and compare every lap - Laps by MT3UK</title>
@@ -72,7 +72,7 @@
   /* ---------- PAGE HERO ---------- */
   .page-hero { padding: 40px 0 28px; border-bottom: 1px solid var(--hairline); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: var(--steel); margin-bottom: 16px; }
-  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
   .tp-what { margin: 0; }
@@ -137,10 +137,10 @@
   .tp-sub { color: var(--steel); font-size: 0.92rem; margin: 4px 0 12px; max-width: 64ch; }
   .tp-small { color: var(--steel); font-size: 0.8rem; margin-top: 8px; }
   .tp-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; font-size: 0.9rem; }
-  .tp-link:hover { color: var(--orange); }
+  .tp-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
   .tp-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px; margin-bottom: 14px; background: #ffffff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2; text-decoration: none; }
   .tp-back:hover { border-color: var(--ink); color: var(--ink); }
-  .tp-back .icon { width: 18px; height: 18px; color: var(--orange); stroke-width: 2.4; }
+  .tp-back .icon { width: 18px; height: 18px; color: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2.4; }
   .tp-units { flex: none; }
   .tp-refresh { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
   .tp-refresh .icon { width: 16px; height: 16px; }
@@ -157,7 +157,7 @@
   .tp-ticks li { display: flex; gap: 8px; align-items: center; font-size: 0.94rem; }
   .tp-ticks .icon { color: var(--ok-ink); }
   .tp-empty { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: var(--steel); }
-  .tp-empty .icon { color: var(--orange); }
+  .tp-empty .icon { color: var(--orange-text, var(--orange, #e8542a)); }
   .tp-empty p { flex: 1; min-width: 200px; }
   .tp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip-sm { min-height: 32px; padding: 4px 11px; font-size: 0.8rem; }
@@ -186,7 +186,7 @@
   .tp-daygroup-title, .tp-daygroup-count { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
   .tp-daygroup-title { flex: 1; min-width: 0; text-align: left; }
   .tp-daygroup-share { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; background: none; border: 0; font: inherit; font-size: 0.88rem; font-weight: 600; color: var(--ink); cursor: pointer; }
-  .tp-daygroup-share[aria-checked="true"] .tp-track { background: var(--orange); }
+  .tp-daygroup-share[aria-checked="true"] .tp-track { background: var(--orange, #e8542a); }
   .tp-daygroup-share[aria-checked="true"] .tp-track::after { transform: translateX(18px); }
   .tp-daygroup-share:disabled { opacity: 0.6; cursor: wait; }
   .tp-daygroup-best .tp-daygroup-count { display: inline; }
@@ -357,7 +357,7 @@
   .tp-title-tools .tp-rank { margin-top: 0; }
   body[data-tp-view="session"] .page-hero .mt3uk-share-dot, body[data-tp-view="car"] .page-hero .mt3uk-share-dot { display: none; }
   /* The announcement (drawNews in js/track-page.js), above Since you were last here: navy, one line and a close. */
-  .tp-news { margin: 14px 0 0; padding: 10px 6px 10px 14px; background: #16233d; border-color: #16233d; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .tp-news { margin: 14px 0 0; padding: 10px 6px 10px 14px; background: var(--ink, #16233d); border-color: var(--ink, #16233d); color: #fff; display: flex; align-items: center; gap: 8px; }
   .tp-news[hidden] { display: none; }
   .tp-news p { flex: 1; margin: 0; display: flex; gap: 10px; align-items: flex-start; color: #fff; }
   .tp-news p .icon { flex: none; width: 18px; height: 18px; margin-top: 2px; color: #ffd27a; }
@@ -368,7 +368,7 @@
   .tp-since[hidden] { display: none; }
   .tp-since-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .tp-since-head b { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
-  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange); }
+  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange-text, var(--orange, #e8542a)); }
   .tp-since-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -10px -8px 0; border: 0; background: none; color: var(--steel); cursor: pointer; }
   .tp-since-close .icon { width: 18px; height: 18px; }
   .tp-since ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
@@ -378,7 +378,7 @@
   .tp-since li.is-up a::before { border-bottom: 8px solid #2e8b57; }
   .tp-since .tp-small { margin: 0; }
   /* The navy heading, the same as the Leaderboard's (.lb-hero in leaderboards.html). */
-  .tp-dark-hero { background: #16233d; border-bottom: 0; }
+  .tp-dark-hero { background: var(--ink, #16233d); border-bottom: 0; }
   .tp-dark-hero h1 { color: #ffffff; }
   .tp-dark-hero p { color: #d3d8e2; }
   .tp-dark-hero .back-link { color: #b9c0cf; }
@@ -416,7 +416,7 @@
   @keyframes tp-wait { 50% { opacity: .45; } }
   @media (prefers-reduced-motion: reduce) { .page-hero .tp-lb-pill.tp-add-pill.is-wait { animation: none; } }
   .page-hero .tp-hero-row .tp-lb-pill { min-width: 176px; justify-content: center; }
-  .page-hero .tp-lb-pill.tp-add-pill { background: var(--orange); color: #fff; }
+  .page-hero .tp-lb-pill.tp-add-pill { background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); }
   .page-hero .tp-lb-pill.tp-add-pill .icon { color: #fff; }
   .page-hero .tp-lb-pill.tp-add-pill:hover { background: #d24a23; color: #fff; }
   @media (min-width: 901px) {
@@ -517,11 +517,11 @@
   .tp-ruler span.is-first { transform: none; }
   /* The slider: an orange fill to where the lap is, and a thin upright line as the marker */
   #tp-scrub { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
-  #tp-scrub::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--orange) var(--p, 0%), var(--hairline-strong) var(--p, 0%)); }
-  #tp-scrub::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--orange) var(--p, 0%), var(--hairline-strong) var(--p, 0%)); }
+  #tp-scrub::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--orange, #e8542a) var(--p, 0%), var(--hairline-strong) var(--p, 0%)); }
+  #tp-scrub::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--orange, #e8542a) var(--p, 0%), var(--hairline-strong) var(--p, 0%)); }
   #tp-scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 4px; height: 26px; margin-top: -10px; border: 0; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px #ffffff; }
   #tp-scrub::-moz-range-thumb { width: 4px; height: 26px; border: 0; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px #ffffff; }
-  #tp-scrub:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 4px; }
+  #tp-scrub:focus-visible { outline: 2px solid var(--orange, #e8542a); outline-offset: 2px; border-radius: 4px; }
   /* Phone: Start and Rewind as icon buttons, smaller speed chips */
   @media (max-width: 559px), (min-width: 781px) and (max-width: 1100px) {
     #tp-play-start .tp-bl, #tp-play-back .tp-bl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -572,11 +572,11 @@
   .tp-prohead-solo { margin: 14px 0 0; }
   /* The pressure and run chips inside Laps Pro sit on the navy band. */
   .tp-band .chip { background: #fff; color: #14213d; border-color: #fff; }
-  .tp-band .chip.is-on { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .tp-band .chip.is-on { background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); border-color: var(--orange, #e8542a); }
   .tp-band .tp-small, .tp-band .tp-sub { color: #c8d0e0; }
   .tp-band .tp-note { color: #fff; }
   .tp-prohead-top { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .tp-prohead-top > h3 { display: inline-flex; align-items: center; margin: 0; padding: 4px 18px; border-radius: 999px; background: var(--orange); color: #fff; font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
+  .tp-prohead-top > h3 { display: inline-flex; align-items: center; margin: 0; padding: 4px 18px; border-radius: 999px; background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
   .tp-prohead-link { min-height: 44px; display: inline-flex; align-items: center; text-align: right; font-weight: 600; font-size: .9rem; color: #fff; text-decoration: underline; }
   .tp-prohead > .tp-small { color: #d3d8e2; }
   .tp-pro-cards { flex-basis: 100%; margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; color: #14213d; }
@@ -592,7 +592,7 @@
   .tp-o-corner > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
   .tp-o-corner > summary::-webkit-details-marker { display: none; }
   .tp-o-corner > summary h3 { margin: 0; flex: none; }
-  .tp-o-corner > summary .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange); color: #fff; }
+  .tp-o-corner > summary .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); }
   .tp-o-corner > summary .tp-open .icon { width: 18px; height: 18px; transition: transform .15s; }
   .tp-o-corner[open] > summary { margin-bottom: 8px; }
   .tp-o-corner[open] > summary .tp-open { background: transparent; color: var(--steel); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
@@ -622,7 +622,7 @@
   .tp-more-body { padding: 2px 0 6px; }
   .tp-more-body p { margin: 4px 0; }
   .tp-more-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .tp-laps-jump { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; padding: 0 16px; border-radius: 999px; background: var(--orange); color: #fff; font-weight: 600; font-size: 14px; text-decoration: none; }
+  .tp-laps-jump { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; padding: 0 16px; border-radius: 999px; background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-weight: 600; font-size: 14px; text-decoration: none; }
   /* Start and finish lines come after the paid sections, so the board runs: free tiles, Session settings, paid, then the lines. */
   .tp-board > [data-tile="lineedit"] { order: 11; }
   /* Layout name and Session settings go last, after Start and finish lines. */
@@ -712,7 +712,7 @@
   .tp-splith { display: none; }
   .tp-mapcard.is-full .tp-splith { display: block; order: 2; flex: none; height: 22px; margin: -10px 0; position: relative; z-index: 4; cursor: row-resize; touch-action: none; }
   .tp-mapcard.is-full .tp-splith::before { content: ""; position: absolute; top: 9px; left: 50%; width: 56px; height: 4px; margin-left: -28px; border-radius: 2px; background: var(--steel, #6b7480); opacity: 0.7; }
-  .tp-mapcard.is-full .tp-splith.is-dragging::before { background: var(--orange); opacity: 1; }
+  .tp-mapcard.is-full .tp-splith.is-dragging::before { background: var(--orange, #e8542a); opacity: 1; }
   .tp-mapcard.is-full.has-maph .tp-mapwrap { flex: 0 0 var(--tp-maph); }
   .tp-mapcard.is-full.has-maph .tp-gbox { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
   .tp-mapcard.is-full.has-maph #tp-gforce { flex: 1 1 0; min-height: 0; }
@@ -727,7 +727,7 @@
     /* The divider between the map and the charts: drag it to give the map more or less of the screen. */
     .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split { display: block; position: absolute; top: 0; bottom: 0; left: calc(var(--tp-map, 60%) - 9px); width: 18px; z-index: 4; cursor: col-resize; touch-action: none; }
     .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split::before { content: ""; position: absolute; left: 7px; top: 50%; width: 4px; height: 44px; margin-top: -22px; border-radius: 2px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
-    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split.is-dragging::before { background: var(--orange); }
+    .tp-mapcard.is-full[data-layout="wide"].has-charts .tp-split.is-dragging::before { background: var(--orange, #e8542a); }
     .tp-mapcard.is-full[data-layout="wide"] .tp-map-head, .tp-mapcard.is-full[data-layout="wide"] .tp-play, .tp-mapcard.is-full[data-layout="wide"] .tp-metrics { position: absolute; z-index: 2; margin: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
     .tp-mapcard.is-full[data-layout="wide"] .tp-map-head { top: 6px; right: 58px; width: auto; gap: 14px; padding: 0 4px 0 10px; }
     /* With the charts on, the colour switch and Exit sit in the panel's second row, beside the Show switch, so the
@@ -835,11 +835,11 @@
   @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }
   .tp-board-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; align-content: start; }
   .tp-board-card b { color: var(--ink); }
-  .tp-board-card.is-busy { border-color: var(--orange); box-shadow: 0 0 0 1px rgba(232,84,42,.25); }
+  .tp-board-card.is-busy { border-color: var(--orange, #e8542a); box-shadow: 0 0 0 1px color-mix(in srgb, var(--orange, #e8542a) 25.0%, transparent); }
   .tp-board-name { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   .tp-board-name .tp-small { margin: 0; }
-  .chip.is-busy { border-color: var(--orange); }
-  .tp-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.74rem; font-weight: 700; }
+  .chip.is-busy { border-color: var(--orange, #e8542a); }
+  .tp-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-size: 0.74rem; font-weight: 700; }
 
   /* Add a session */
   .tp-add-grid { display: grid; gap: 14px; align-items: start; }
@@ -854,8 +854,8 @@
   .tp-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
-  .tp-drop.is-over { border-color: var(--orange); background: #fdf3ef; }
-  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange); }
+  .tp-drop.is-over { border-color: var(--orange, #e8542a); background: #fdf3ef; }
+  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, var(--orange, #e8542a)); }
   .tp-drop small { color: var(--steel); }
   .tp-file { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
   .tp-file .icon { color: var(--ok-ink); flex: none; margin-top: 1px; }
@@ -909,7 +909,7 @@
   .tp-pads .tp-pad-same { margin: 0; min-height: 44px; }
   .tp-track { width: 46px; height: 28px; border-radius: 14px; background: var(--hairline-strong); position: relative; flex: none; transition: background .15s; }
   .tp-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
-  .tp-switch[aria-checked="true"] .tp-track { background: var(--orange); }
+  .tp-switch[aria-checked="true"] .tp-track { background: var(--orange, #e8542a); }
   .tp-switch[aria-checked="true"] .tp-track::after { transform: translateX(18px); }
   .tp-tap { cursor: crosshair; margin-bottom: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
 
@@ -975,7 +975,7 @@
   .tp-mapcard:not(.is-full) .tp-map-head .tp-speedsw { margin-left: auto; }
   /* A hint to turn the phone, only in full screen on an upright phone. */
   .tp-rotate-hint { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: none; border: 0; border-radius: var(--radius-sm); color: var(--ink); cursor: pointer; }
-  .tp-rotate-hint:hover { background: rgba(22,35,61,0.06); }
+  .tp-rotate-hint:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); }
   .tp-rotate-hint .icon { width: 22px; height: 22px; }
   @media (max-width: 780px) and (orientation: portrait) { .tp-mapcard.is-full .tp-rotate-hint { display: inline-flex; } }
   /* Full screen: no title, and just the colour key, so the map keeps its room */
@@ -994,7 +994,7 @@
   #tp-result .tp-notice { scroll-margin-top: 80px; }
   .tp-confirm { background: #fff; color: var(--ink); }
   .tp-confirm .icon { width: 18px; height: 18px; color: var(--hairline-strong); }
-  .tp-confirm.is-on { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); color: #fff; }
+  .tp-confirm.is-on { background: var(--orange, var(--orange, #e8542a)); border-color: var(--orange, var(--orange, #e8542a)); color: var(--on-accent, #ffffff); }
   .tp-confirm.is-on .icon { color: #fff; }
   .tp-tapbox .tp-tap-step { margin: 0 0 8px; font-weight: 600; }
   .tp-tapbox.is-full .tp-tapmap { flex: 1 1 auto; min-height: 0; }
@@ -1005,7 +1005,7 @@
   .tp-cardata summary::-webkit-details-marker { display: none; }
   .tp-cardata summary h2 { margin: 0; flex: none; }
   .tp-cardata summary .tp-small { margin: 0; min-width: 0; }
-  .tp-cardata .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange); color: #fff; }
+  .tp-cardata .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); }
   .tp-cardata .tp-open .icon { width: 18px; height: 18px; transition: transform .15s; }
   .tp-cardata[open] .tp-open { background: transparent; color: var(--steel); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
   .tp-cardata[open] .tp-open .icon { transform: rotate(90deg); }
@@ -1036,7 +1036,7 @@
   .tp-key i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
   .tp-key i.is-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #2a78d6; background: #fff; }
   .tp-key .is-mod { color: #b8421f; }
-  .tp-key i.is-dash { height: 2px; background: repeating-linear-gradient(90deg, #e8542a 0 4px, transparent 4px 7px); }
+  .tp-key i.is-dash { height: 2px; background: repeating-linear-gradient(90deg, var(--orange, #e8542a) 0 4px, transparent 4px 7px); }
   .tv-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
   /* Maps zoom (js/track-view.js): lines keep their width, buttons top right. */
   .tv-zoom-wrap { position: relative; }
@@ -1063,7 +1063,7 @@
   .tv-map.is-zoomed { touch-action: none; cursor: grab; }
   .tv-map.is-zoomed.tp-tap { cursor: crosshair; }
   .tv-zoom-btns { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
-  .tv-zoom-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--hairline-strong); border-radius: 50%; background: rgba(255, 255, 255, 0.94); color: var(--ink); cursor: pointer; box-shadow: 0 2px 6px rgba(22, 35, 61, 0.12); }
+  .tv-zoom-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--hairline-strong); border-radius: 50%; background: rgba(255, 255, 255, 0.94); color: var(--ink); cursor: pointer; box-shadow: 0 2px 6px color-mix(in srgb, var(--ink, #16233d) 12.0%, transparent); }
   .tv-zoom-btn::before { content: ""; position: absolute; inset: -2px; }
   .tv-zoom-btn { position: relative; }
   .tv-zoom-btn .icon { width: 18px; height: 18px; }
@@ -1112,16 +1112,16 @@
   .tp-day-tile .tp-day-titles h3 { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
   /* Picking some of a day's sessions (hold on a row): the picked rows are tinted and outlined, and the bulk edit changes only them. */
   .tp-daygroup .tp-pickable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
-  .tp-daygroup .tp-pickable.is-picked { background: color-mix(in srgb, var(--orange) 14%, var(--paper)); box-shadow: inset 4px 0 0 var(--orange), 0 0 0 2px var(--orange); }
+  .tp-daygroup .tp-pickable.is-picked { background: color-mix(in srgb, var(--orange, #e8542a) 14%, var(--paper)); box-shadow: inset 4px 0 0 var(--orange, #e8542a), 0 0 0 2px var(--orange, #e8542a); }
   .tp-pick-hint { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--steel); }
   .tp-pick-hint .icon { width: 16px; height: 16px; flex: none; }
-  .tp-pickbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; padding: 4px 4px 4px 12px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--orange) 14%, var(--paper)); font-weight: 600; }
+  .tp-pickbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; padding: 4px 4px 4px 12px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--orange, #e8542a) 14%, var(--paper)); font-weight: 600; }
   .tp-pickbar[hidden] { display: none; }
   .tp-sess-more { margin-top: 10px; }
   /* The day that a bulk edit just changed flashes once it is scrolled into view. */
-  .tp-row.is-flash { outline: 3px solid var(--orange); outline-offset: -1px; }
-  .tp-daygroup.is-flash { outline: 3px solid var(--orange); outline-offset: 2px; transition: outline-color 1.5s ease; }
-  .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px rgba(22,35,61,.16); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }
+  .tp-row.is-flash { outline: 3px solid var(--orange, #e8542a); outline-offset: -1px; }
+  .tp-daygroup.is-flash { outline: 3px solid var(--orange, #e8542a); outline-offset: 2px; transition: outline-color 1.5s ease; }
+  .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px color-mix(in srgb, var(--ink, #16233d) 16.0%, transparent); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }
   .tv-tip b { display: block; margin-bottom: 2px; }
   .tv-r { display: flex; justify-content: space-between; gap: 12px; }
   .tv-r i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
@@ -1146,7 +1146,7 @@
   .tp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .tp-notes { display: grid; gap: 10px; align-content: start; }
   .tp-note { display: flex; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .tp-note > .icon { color: var(--orange); margin-top: 2px; }
+  .tp-note > .icon { color: var(--orange-text, var(--orange, #e8542a)); margin-top: 2px; }
   .tp-note p { font-size: 0.92rem; color: var(--ink); }
   .tp-note small { display: block; color: var(--steel); font-size: 0.8rem; margin-top: 3px; }
   .tp-cmp-pick { margin-bottom: 14px; }
@@ -1213,11 +1213,11 @@
   .tp-weather-row .tp-src { margin: 0; flex: 1; min-width: 200px; }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
-  .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
+  .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange, #e8542a); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
   .a2hs-banner.show { bottom: 16px; }
   .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .a2hs-banner .a2hs-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--paper); }
-  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 14px; border-radius: var(--radius-sm); }
+  .a2hs-banner .a2hs-install { background: var(--orange, #e8542a); color: var(--paper); padding: 8px 14px; border-radius: var(--radius-sm); }
   .a2hs-banner .a2hs-close { padding: 0 4px; }
   .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
   @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
@@ -1283,9 +1283,9 @@
   .tp-rowwrap > .tp-row { flex: 1 1 auto; min-width: 0; }
   .tp-favrow { flex: 0 0 44px; width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: #fff; color: var(--steel); cursor: pointer; }
   .tp-favrow .icon { width: 20px; height: 20px; display: block; }
-  .tp-favrow.is-fav { color: var(--orange); border-color: var(--orange); }
+  .tp-favrow.is-fav { color: var(--orange-text, var(--orange, #e8542a)); border-color: var(--orange, #e8542a); }
   .tp-favrow[hidden] { display: none; }
-  .tp-favrow:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .tp-favrow:focus-visible { outline: 2px solid var(--orange, #e8542a); outline-offset: 2px; }
   /* Where a session stands on its leaderboard (js/track-page.js paintRanks): a tag on each list row, a line under a session's details, the trophy after its title (as the Leaderboard heading has), and the note when starred. */
   .tp-rank { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 700; color: var(--ink); }
   .tp-rank.is-off { font-weight: 500; color: var(--steel); }
@@ -1301,8 +1301,8 @@
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */
   .tp-fav { gap: 6px; }
   .tp-fav .icon { width: 16px; height: 16px; }
-  .tp-fav.is-fav .icon { fill: var(--orange); stroke: var(--orange); }
-  .tp-fav.is-fav { border-color: var(--orange); color: var(--orange); }
+  .tp-fav.is-fav .icon { fill: var(--orange, #e8542a); stroke: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-fav.is-fav { border-color: var(--orange, #e8542a); color: var(--orange-text, var(--orange, #e8542a)); }
   @media (max-width: 780px) { .tp-fav span { display: none; } .tp-fav { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; } }
 </style>
 

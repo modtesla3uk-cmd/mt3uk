@@ -540,9 +540,11 @@
       body = '<div class="tm-card"><p>No sessions here yet. Once you have saved a track session with this car, its analysis appears here.</p></div>';
     } else {
       var says = findings(list);
-      body = gridSection() +
+      body = '<div id="ma-sec-grid">' + gridSection() + '</div>' +
         '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
-        chart(list) + beneathChart(list) + setupBlock(list) + detailsTable(list);
+        '<div id="ma-sec-time">' + chart(list) + beneathChart(list) + '</div>' +
+        '<div id="ma-sec-setup">' + setupBlock(list) + '</div>' +
+        '<div id="ma-sec-sessions">' + detailsTable(list) + '</div>';
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     // (The title's badge on desktop and the copy under the buttons on a phone.)
@@ -562,7 +564,13 @@
       if (tick) { tick.style.animation = 'none'; void tick.getBoundingClientRect(); tick.style.animation = ''; }
     });
     // The badge sits beside the Track and layout drop-down on desktop (a phone shows its own copy under the buttons).
-    app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + '<div class="ma-track-cell">' + trackPick + '<span class="ma-tm-slot"></span></div></div>' + body;
+    // Quick links to each section sit in the sticky block with the choices, so they stay in reach as the page scrolls.
+    var jump = list.length ? '<div class="ma-jump" role="navigation" aria-label="Sections">' +
+      [['ma-sec-grid', 'All figures'], ['ma-sec-time', 'Over time'], ['ma-sec-setup', 'Setups'], ['ma-sec-sessions', 'Sessions']].map(function (x) {
+        return '<a href="#' + x[0] + '">' + x[1] + '</a>';
+      }).join('') + '</div>' : '';
+    app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + '<div class="ma-track-cell">' + trackPick + '<span class="ma-tm-slot"></span></div>' + jump + '</div>' + body;
+    setControlsTop();
     var slot = app.querySelector('.ma-tm-slot');
     if (slot && tmDesk) slot.replaceWith(tmDesk);
     placeGridDay(list);
@@ -613,9 +621,12 @@
     if (e.target.id === 'ma-track') { state.track = e.target.value; rememberTrack(); clearDay(); draw(); }
   });
   // The track and car choices stay in view under the page header as the page scrolls: their top sits just below the header.
+  // Sections land just under the header and the sticky choices, so a link never hides its heading behind them.
   function setControlsTop() {
-    var h = document.querySelector('header');
-    if (h) document.documentElement.style.setProperty('--ma-top', Math.ceil(h.getBoundingClientRect().height) + 'px');
+    var h = document.querySelector('header'), root = document.documentElement.style;
+    if (h) root.setProperty('--ma-top', Math.ceil(h.getBoundingClientRect().height) + 'px');
+    var c = app.querySelector('.ma-controls');
+    root.setProperty('--ma-stick', (Math.ceil(h ? h.getBoundingClientRect().height : 0) + (c ? Math.ceil(c.getBoundingClientRect().height) : 0) + 12) + 'px');
   }
   setControlsTop();
   // Redraw the graph at a new width (a phone turned sideways).

@@ -129,6 +129,25 @@ def test_picking_a_figure_in_over_time_says_what_it_is_and_how_it_relates_to_per
     expect(page.locator('button[data-metric="slip"]')).to_have_attribute("aria-pressed", "true")
 
 
+def test_the_section_links_jump_to_each_section_and_the_track_choice_stays_in_view(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker(earlier=False)
+    for i, d in enumerate(["2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05"]):
+        add(fake, "s%d" % i, d, 60.0 + i * 0.3, tyres="Michelin" if i % 2 else "Toyo", brake_g=1.1, temp=12, mode={"brakeTemp": 60 + i * 4, "power": 240, "batteryTemp": 50})
+    open_page(page, fake, "/my-analysis.html")
+    links = page.locator(".ma-jump a")
+    expect(links).to_have_count(4)
+    for name, sec in [("Setups", "ma-sec-setup"), ("Sessions", "ma-sec-sessions"), ("Over time", "ma-sec-time"), ("All figures", "ma-sec-grid")]:
+        page.locator(".ma-jump a", has_text=name).click()
+        page.wait_for_timeout(400)
+        top = page.evaluate("document.getElementById('%s').getBoundingClientRect().top" % sec)
+        stick = page.evaluate("document.querySelector('.ma-controls').getBoundingClientRect().bottom")
+        # The section starts just under the sticky block, not behind it.
+        assert stick - 4 <= top <= stick + 80, (name, top, stick)
+        # The sticky choices stay on screen under the header.
+        assert page.evaluate("document.querySelector('.ma-controls').getBoundingClientRect().top") <= page.evaluate("document.querySelector('header').getBoundingClientRect().bottom") + 2
+
+
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
     open_page(page, FakeWorker(earlier=False), "/my-analysis.html", signed_in=False)
     expect(page.locator("#ma-app")).to_contain_text("Sign in to see your own analysis")

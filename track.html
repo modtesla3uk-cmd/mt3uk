@@ -693,6 +693,13 @@
   .tp-mapcard.is-full .tp-play { order: 3; margin: 6px 0 0; gap: 6px; }
   .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
   .tp-mapcard.is-full .tp-play .chip { min-height: 36px; }
+  /* Less folds the speed and option chips, the size handle and the figures under the map, so the graphs can sit near the map (not
+     in full screen, where the controls are arranged for the map). */
+  .tp-fold { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 10px; font-size: 0.85rem; flex: none; }
+  .tp-fold .icon { width: 18px; height: 18px; transition: transform .2s; }
+  .tp-mapcard.is-folded .tp-fold .icon { transform: rotate(180deg); }
+  .tp-mapcard.is-full .tp-fold { display: none; }
+  .tp-mapcard:not(.is-full).is-folded #tp-speeds, .tp-mapcard:not(.is-full).is-folded #tp-follow, .tp-mapcard:not(.is-full).is-folded #tp-sound, .tp-mapcard:not(.is-full).is-folded #tp-play-day, .tp-mapcard:not(.is-full).is-folded .tp-pn-size, .tp-mapcard:not(.is-full).is-folded .tp-metrics, .tp-mapcard:not(.is-full).is-folded .tp-sync-note { display: none; }
   .tp-mapcard.is-full .tp-metrics { order: 4; margin: 4px 0 0; gap: 2px; }
   /* The numbers on one line each, so the chart below gets the room. */
   .tp-mapcard.is-full .tp-metrics .tp-mv small { display: none; }
@@ -1546,7 +1553,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=5"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271163" defer></script>
+<script src="js/track-page.js?v=20271164" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

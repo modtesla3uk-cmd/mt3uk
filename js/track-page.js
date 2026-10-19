@@ -4398,7 +4398,7 @@
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + '</div>' +
         '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><select class="field tp-layoutsel" id="tp-layout" aria-label="Screen layout" title="Screen layout"><option value="auto">Layout: Auto</option><option value="upright">Layout: Upright</option><option value="wide">Layout: Wide</option></select><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
-        '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
+        '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div><button type="button" class="btn btn-ghost tp-fold" id="tp-fold" aria-expanded="true" aria-controls="tp-speeds" title="Hide the speed and option chips"><span>Less</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
@@ -4909,6 +4909,8 @@
   // Opens the next session in this window (no reload) and starts its playback once it has drawn.
   var playNextOnDraw = false;
   var playDay = false;
+  // Whether the speed and option chips and the figures under the map are folded away (not in full screen).
+  var foldOn = false;
   function playNext(id) {
     stopPlay();
     var old = document.getElementById('tp-next'); if (old) old.remove();
@@ -5043,6 +5045,19 @@
     if (snd) { snd.addEventListener('click', function () { setSound(!soundOn); }); setSound(soundOn); }
     var pdy = document.getElementById('tp-play-day');
     if (pdy) pdy.addEventListener('click', function () { playDay = !playDay; playUi(); });
+    var fold = document.getElementById('tp-fold'), foldCard = document.getElementById('tp-mapcard');
+    if (foldCard) foldCard.classList.toggle('is-folded', foldOn);
+    if (fold && foldCard) {
+      foldUi();
+      fold.addEventListener('click', function () { foldOn = !foldOn; foldCard.classList.toggle('is-folded', foldOn); foldUi(); });
+    }
+    function foldUi() {
+      var f = document.getElementById('tp-fold');
+      if (!f) return;
+      f.setAttribute('aria-expanded', foldOn ? 'false' : 'true');
+      f.title = foldOn ? 'Show the speed and option chips' : 'Hide the speed and option chips';
+      f.querySelector('span').textContent = foldOn ? 'More' : 'Less';
+    }
     var fb = document.getElementById('tp-full');
     if (fb) fb.addEventListener('click', function () { setFull(!cmpFull); });
     var sc = document.getElementById('tp-speedcol');

@@ -553,7 +553,7 @@
     var tmShow = recorded > 0;
     var tmBadges = [tmDesk, document.getElementById('ma-tm-phone')].filter(Boolean);
     // With no track picked the badge counts the sessions recorded with Track Mode; with a track it names the feature.
-    var tmWords = state.track !== 'all' ? 'Recorded with Track Mode' : recorded + (recorded === 1 ? ' session was' : ' sessions were') + ' recorded with Track Mode';
+    var tmWords = state.track !== 'all' ? 'Recorded with Track Mode' : recorded + (recorded === 1 ? ' session with Track Mode' : ' sessions with Track Mode');
     tmBadges.forEach(function (b) {
       b.hidden = !tmShow;
       var text = Array.prototype.find.call(b.childNodes, function (n) { return n.nodeType === 3 && n.nodeValue.trim(); });

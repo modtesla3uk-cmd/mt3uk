@@ -229,7 +229,8 @@
   /* The Track and layout drop-down, with the Track Mode badge beside it, on the bottom edge of the drop-down. */
   .ma-track-cell { display:flex; align-items:flex-end; gap:12px; min-width:0; }
   .ma-track-cell > .tm-pick { flex:1 1 200px; min-width:0; }
-  .ma-track-cell .ma-tm { margin:0 0 4px; flex:none; max-width:230px; white-space:normal; line-height:1.25; text-align:left; color:var(--ink); background:#fff; border-color:var(--hair); }
+  /* The same height and text as the section buttons beside it, in an accent tint so it stands out. One line in both states. */
+  .ma-track-cell .ma-tm { margin:0; flex:none; min-height:40px; padding:0 14px 0 12px; max-width:none; white-space:nowrap; line-height:1.2; font-size:.86rem; text-align:left; color:var(--ink); background:color-mix(in srgb, var(--orange, #e8542a) 14%, #fff); border-color:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .ma-track-cell .ma-tm-icon { stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tm-pick { display:grid; gap:4px; font-size:.8rem; color:var(--steel); min-width:0; }
   .tm-pick select { font:inherit; font-size:.95rem; min-height:44px; padding:6px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); width:100%; min-width:0; }
@@ -355,8 +356,8 @@
 </footer>
 
 <script src="js/track-view.js?v=20270115" defer></script>
-<script src="js/quota-ring.js?v=15" defer></script>
-<script src="js/my-analysis-page.js?v=44" defer></script>
+<script src="js/quota-ring.js?v=16" defer></script>
+<script src="js/my-analysis-page.js?v=45" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

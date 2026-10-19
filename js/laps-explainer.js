@@ -16,9 +16,10 @@
   var NAVY = '#14213d', NAVY2 = '#1d2d52', ORANGE = '#e8572a', CREAM = '#f4f1ea', MUTED = '#a9b6cf', BLUE = '#5aa9e6', LINE = 'rgba(244,241,234,0.14)';
   // The picture follows the site's theme: Jade and mist on a page with data-theme="jade", and the navy and orange otherwise.
   var CURRENT = { navy: '#14213d', navy2: '#1d2d52', orange: '#e8572a', cream: '#f4f1ea', muted: '#a9b6cf', blue: '#5aa9e6' };
-  var JADE = { navy: '#0d3b33', navy2: '#145a4d', orange: '#6fd1b0', cream: '#f1f6f3', muted: '#b5c9c1', blue: '#5fb89a' };
+  // Jade keeps the navy background and the cream, but the accents are warm orange and sky blue, not more green.
+  var JADE = { navy: '#0d3b33', navy2: '#145a4d', orange: '#f58a68', cream: '#f1f6f3', muted: '#b5c9c1', blue: '#7fb8f0' };
   var RGB_CURRENT = { navy: '20,33,61', cream: '244,241,234', orange: '232,87,42', blue: '90,169,230' };
-  var RGB_JADE = { navy: '13,59,51', cream: '241,246,243', orange: '111,209,176', blue: '95,184,154' };
+  var RGB_JADE = { navy: '13,59,51', cream: '241,246,243', orange: '245,138,104', blue: '127,184,240' };
   var RGB = RGB_CURRENT;
   function rgba(name, a) { return 'rgba(' + RGB[name] + ',' + a + ')'; }
   function setPalette() {

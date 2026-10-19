@@ -255,7 +255,7 @@ def test_the_track_mode_badge_shows_only_when_the_sessions_have_track_mode_figur
     open_page(page, fake2, "/my-analysis.html")
     expect(page.locator("#ma-tm")).to_be_visible()
     # With no track picked the badge counts the sessions recorded with Track Mode.
-    expect(page.locator("#ma-tm")).to_contain_text("1 session was recorded with Track Mode")
+    expect(page.locator("#ma-tm")).to_contain_text("1 session with Track Mode")
 
 
 def test_the_track_mode_page_is_out_of_the_laps_menus(page):
@@ -411,7 +411,7 @@ def test_the_track_mode_badge_counts_the_sessions_until_a_track_is_picked(page):
     fake.index.append(dict(summary(r), carId="car1", tyres="", pads="", drive="", temp=None, brakeG=None, mode={"brakeTemp": 70, "power": 240}))
     open_page(page, fake, "/my-analysis.html")
     # Three of the four sessions carry Track Mode figures, and no track is picked yet.
-    expect(page.locator("#ma-tm")).to_contain_text("3 sessions were recorded with Track Mode")
+    expect(page.locator("#ma-tm")).to_contain_text("3 sessions with Track Mode")
     page.locator("#ma-track").select_option(label="Thruxton · Track day")
     expect(page.locator("#ma-tm")).to_contain_text("Recorded with Track Mode")
     expect(page.locator("#ma-tm")).not_to_contain_text("sessions were")

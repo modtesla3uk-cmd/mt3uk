@@ -84,13 +84,13 @@
   .tp-hero-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
   .tp-hero-row h1 { margin: 0; flex: 1 1 auto; min-width: 0; }
   .tp-lb-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.92rem; white-space: nowrap; text-decoration: none; }
-  .tp-lb-pill .icon { width: 20px; height: 20px; color: #f58a68; }
-  .tp-lb-pill:hover { background: #22345a; color: #fff; }
+  .tp-lb-pill .icon { width: 20px; height: 20px; color: var(--c-orange-light, #f58a68); }
+  .tp-lb-pill:hover { background: var(--c-navy, #22345a); color: #fff; }
   /* Play intro: shows the Laps front page (laps.html) again. */
   /* Back, Play intro and the Early preview badge: one evenly spaced row above the heading. */
   .tp-hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 16px; }
   .page-hero .tp-hero-top .back-link, .tp-hero-top .early-badge-lg { margin: 0; }
-  .page-hero .tp-hero-top .tp-home .icon { color: #f58a68; }
+  .page-hero .tp-hero-top .tp-home .icon { color: var(--c-orange-light, #f58a68); }
   @media (max-width: 780px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
   /* Phone: My Analysis sits under Back, in the left column with Add a session in the right. */
   @media (max-width: 900px) { #tp-analysis-pill { display: flex; grid-column: 1; grid-row: 3; justify-self: stretch; align-self: start; width: auto; min-width: 0; height: 44px; min-height: 44px; margin: 10px 0 0; padding: 0 10px; border-radius: 22px; justify-content: center; box-sizing: border-box; font-size: 0.85rem; gap: 6px; } #tp-analysis-pill .icon { width: 16px; height: 16px; } }
@@ -263,7 +263,7 @@
   .tp-admin-banner { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--paper-2); border: 1px solid var(--hairline-strong); font-size: 0.9rem; font-weight: 600; }
   .tp-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
   .tp-pill .icon { width: 13px; height: 13px; }
-  .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
+  .tp-pill-admin { background: var(--c-peach, #fdf3ef); color: var(--c-orange-deep, #b8421f); }
   .tp-filter { max-width: 320px; margin: 14px 0; }
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
@@ -396,14 +396,14 @@
   .tp-dark-hero .tp-what-list { color: #d3d8e2; }
   .tp-dark-hero .tp-what-list b { color: #fff; }
   /* Add a session sits under Leaderboards on the list of sessions, the same size and orange, as on the Leaderboard. */
-  .page-hero h1 .tp-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; stroke-width: 2.2; }
+  .page-hero h1 .tp-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: var(--c-orange-light, #f58a68); stroke-width: 2.2; }
   .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; position: relative; }
   /* The tip: a light bulb beside Add a session that opens the tip in a box under it, over the page, as on the Leaderboard. */
   .tp-hero-actions [data-laps-tip], .tp-hero-actions .laps-tip-bulbmode { display: contents; }
   .tp-dark-hero .laps-tip-bulbbtn { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: transparent; color: #ffd27a; cursor: pointer; }
   .tp-dark-hero .laps-tip-bulbbtn:hover, .tp-dark-hero .laps-tip-bulbbtn[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
   .tp-dark-hero .laps-tip-bulbbtn .laps-tip-bulb { width: 24px; height: 24px; color: inherit; }
-  .tp-dark-hero .laps-tip-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(440px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); background: #22324f; box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; }
+  .tp-dark-hero .laps-tip-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(440px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); background: var(--c-navy, #22324f); box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; }
   .tp-dark-hero .laps-tip-pop[hidden] { display: none; }
   .tp-dark-hero .laps-tip-pop b { color: #fff; }
   .tp-dark-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
@@ -568,10 +568,10 @@
   }
   /* Laps Pro: a navy band with a large orange heading, its figures, then What the laps say and What we spotted as two cards
      (one column on a phone). */
-  .tp-prohead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 18px 22px 22px; border-radius: 14px; background: #14213d; color: #fff; }
+  .tp-prohead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 18px 22px 22px; border-radius: 14px; background: var(--c-navy, #14213d); color: #fff; }
   .tp-prohead-solo { margin: 14px 0 0; }
   /* The pressure and run chips inside Laps Pro sit on the navy band. */
-  .tp-band .chip { background: #fff; color: #14213d; border-color: #fff; }
+  .tp-band .chip { background: #fff; color: var(--c-navy, #14213d); border-color: #fff; }
   .tp-band .chip.is-on { background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); border-color: var(--orange, #e8542a); }
   .tp-band .tp-small, .tp-band .tp-sub { color: #c8d0e0; }
   .tp-band .tp-note { color: #fff; }
@@ -579,9 +579,9 @@
   .tp-prohead-top > h3 { display: inline-flex; align-items: center; margin: 0; padding: 4px 18px; border-radius: 999px; background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; line-height: 1.3; }
   .tp-prohead-link { min-height: 44px; display: inline-flex; align-items: center; text-align: right; font-weight: 600; font-size: .9rem; color: #fff; text-decoration: underline; }
   .tp-prohead > .tp-small { color: #d3d8e2; }
-  .tp-pro-cards { flex-basis: 100%; margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; color: #14213d; }
+  .tp-pro-cards { flex-basis: 100%; margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; color: var(--c-navy, #14213d); }
   .tp-pro-cards > [data-tile] { min-width: 0; box-sizing: border-box; margin: 0; padding: 16px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .tp-pro-cards > [data-tile] > .tp-chart-head h3 { margin: 0 0 8px; color: #14213d; font-size: 1.1rem; }
+  .tp-pro-cards > [data-tile] > .tp-chart-head h3 { margin: 0 0 8px; color: var(--c-navy, #14213d); font-size: 1.1rem; }
   @media (max-width: 780px) {
     .tp-prohead { padding: 14px; }
     .tp-prohead-top > h3 { font-size: 1.1rem; padding: 4px 14px; }
@@ -674,7 +674,7 @@
   .tp-mapcard:not(.is-full) > .tp-mapwrap { order: 2; }
   .tp-mapcard:not(.is-full) > .tp-play { order: 3; margin: 10px 0 8px; }
   .tp-mapcard:not(.is-full) > .tp-metrics { order: 4; }
-  .tp-mapcard.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; height: 100vh; height: 100dvh; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: var(--paper, #f3f1ea); overflow: hidden; }
+  .tp-mapcard.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; height: 100vh; height: 100dvh; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: var(--paper, var(--c-paper, #f3f1ea)); overflow: hidden; }
   .tp-mapcard.is-full .tp-map-head { order: 0; margin-bottom: 6px; }
   .tp-mapcard.is-full .tp-sync-note { display: none; }
   .tp-mapcard.is-full .tp-mapwrap { order: 1; flex: 1 1 auto; min-height: 0; }
@@ -849,12 +849,12 @@
   .tp-field { display: grid; gap: 6px; margin-bottom: 14px; }
   .tp-field label, .tp-lbl { font-size: 0.82rem; font-weight: 600; color: var(--steel); }
   .tp-field label .tp-req { font-weight: 400; }
-  .tp-err { color: #b8361a; font-size: 0.8rem; margin-top: 6px; }
-  .tp-field .field[aria-invalid="true"] { border-color: #b8361a; box-shadow: 0 0 0 2px rgba(184, 54, 26, 0.15); }
+  .tp-err { color: var(--c-orange-deep, #b8361a); font-size: 0.8rem; margin-top: 6px; }
+  .tp-field .field[aria-invalid="true"] { border-color: var(--c-orange-deep, #b8361a); box-shadow: 0 0 0 2px rgba(184, 54, 26, 0.15); }
   .tp-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
-  .tp-drop.is-over { border-color: var(--orange, #e8542a); background: #fdf3ef; }
+  .tp-drop.is-over { border-color: var(--orange, #e8542a); background: var(--c-peach, #fdf3ef); }
   .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, var(--orange, #e8542a)); }
   .tp-drop small { color: var(--steel); }
   .tp-file { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
@@ -873,7 +873,7 @@
   .tp-src-steps { margin: 8px 0 0; }
   .tp-chans { margin: 0 0 10px; }
   .tp-status { margin-top: 10px; font-size: 0.88rem; color: var(--steel); min-height: 1.2em; }
-  .tp-status.is-error { color: #b8361a; }
+  .tp-status.is-error { color: var(--c-orange-deep, #b8361a); }
   .tp-status.is-ok { color: var(--ok-ink); }
   .tp-mapping { margin-top: 14px; border-top: 1px solid var(--hairline); padding-top: 14px; display: grid; gap: 10px; }
   .tp-mapping p { color: var(--steel); font-size: 0.88rem; }
@@ -885,7 +885,7 @@
   .tp-saved .tp-link { color: inherit; text-decoration: underline; }
   .tp-saved-x { position: absolute; top: 4px; right: 4px; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; border-radius: var(--radius-sm); }
   .tp-notice.is-warn { background: var(--warn-bg); color: var(--warn-ink); }
-  .tp-notice.is-admin { background: #fdf3ef; color: #b8421f; }
+  .tp-notice.is-admin { background: var(--c-peach, #fdf3ef); color: var(--c-orange-deep, #b8421f); }
   .tp-mini { width: 64px; height: 48px; flex: none; }
   .tp-privacy { display: grid; gap: 8px; }
   .tp-opt { display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 12px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font: inherit; color: inherit; cursor: pointer; }
@@ -934,7 +934,7 @@
   .tp-gate h2 { margin: 0 0 8px; }
   .tp-gate > p { max-width: 62ch; color: var(--ink-2); }
   .tp-gate-top { display: grid; gap: 8px; }
-  .tp-gate-form { max-width: 520px; margin: 14px 0 8px; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--paper-2, #f3f1ea); }
+  .tp-gate-form { max-width: 520px; margin: 14px 0 8px; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--paper-2, var(--c-paper, #f3f1ea)); }
   .tp-gate-form h3 { margin: 0 0 10px; }
   .tp-gate-see { margin: 22px 0 2px; }
   .tp-gate-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 10px 0 8px; }
@@ -1035,7 +1035,7 @@
   .tp-key { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--steel); }
   .tp-key i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
   .tp-key i.is-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #2a78d6; background: #fff; }
-  .tp-key .is-mod { color: #b8421f; }
+  .tp-key .is-mod { color: var(--c-orange-deep, #b8421f); }
   .tp-key i.is-dash { height: 2px; background: repeating-linear-gradient(90deg, var(--orange, #e8542a) 0 4px, transparent 4px 7px); }
   .tv-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
   /* Maps zoom (js/track-view.js): lines keep their width, buttons top right. */
@@ -1059,7 +1059,7 @@
   .tp-day i { width: 18px; border-top: 2.5px dashed; }
   .tp-day-x { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; background: none; color: var(--steel); cursor: pointer; border-radius: 50%; }
   .tp-day-x .icon { width: 14px; height: 14px; }
-  .tp-day-x:hover { color: var(--ink); background: var(--paper-2, #f3f1ea); }
+  .tp-day-x:hover { color: var(--ink); background: var(--paper-2, var(--c-paper, #f3f1ea)); }
   .tv-map.is-zoomed { touch-action: none; cursor: grab; }
   .tv-map.is-zoomed.tp-tap { cursor: crosshair; }
   .tv-zoom-btns { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
@@ -1161,7 +1161,7 @@
   .tp-addcar .tp-field { display: grid; gap: 4px; }
   .tp-addcar label { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
   .tp-addcar .field { min-height: 44px; width: 100%; box-sizing: border-box; }
-  .tp-addcar-msg { min-height: 1.2em; margin: 0; color: #b8421f; font-weight: 600; font-size: 0.9rem; }
+  .tp-addcar-msg { min-height: 1.2em; margin: 0; color: var(--c-orange-deep, #b8421f); font-weight: 600; font-size: 0.9rem; }
   .tp-addcar-msg:empty { display: none; }
   .tp-addcar-missing { margin: 0; }
   .tp-addcar-missing a { color: var(--ink); text-decoration: underline; font-weight: 600; }
@@ -1196,11 +1196,11 @@
   .tp-row-car { display: block; font-weight: 600; color: var(--ink-2); }
   .tp-for { margin: 2px 0 0; font-weight: 600; color: var(--ink); }
   .tp-boards-link { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-top: 30px; padding: 12px 16px; border-radius: var(--radius); background: var(--ink); color: #fff; }
-  .tp-boards-link > .icon:first-child { color: #f58a68; width: 24px; height: 24px; }
+  .tp-boards-link > .icon:first-child { color: var(--c-orange-light, #f58a68); width: 24px; height: 24px; }
   .tp-boards-link > span { flex: 1; display: grid; }
   .tp-boards-link b { font-size: 1rem; }
   .tp-boards-link span span { font-size: 0.84rem; color: #d3d8e2; }
-  .tp-boards-link:hover { background: #22345a; }
+  .tp-boards-link:hover { background: var(--c-navy, #22345a); }
   /* Above Your cars for members; the end of the page otherwise. */
   .tp-cars-wrap + .tp-boards-link, .tp-section + .tp-boards-link { margin-top: 30px; }
   #tp-app > .tp-boards-link:first-child { margin: 0 0 26px; }
@@ -1271,9 +1271,9 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .mt3uk-share-dot { margin: 0 0 0 8px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what > summary { display: none; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what:not([open]) { display: none; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] { grid-row: auto; position: absolute; top: 58px; left: 16px; right: 16px; z-index: 30; margin: 0; background: #f7f5ef; color: #14213d; border: 1px solid #d9d5ca; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.28); padding: 14px 16px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] { grid-row: auto; position: absolute; top: 58px; left: 16px; right: 16px; z-index: 30; margin: 0; background: #f7f5ef; color: var(--c-navy, #14213d); border: 1px solid #d9d5ca; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.28); padding: 14px 16px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what.is-inline[open] { position: static !important; top: auto !important; left: auto !important; right: auto !important; width: auto !important; z-index: auto; box-shadow: none; grid-row: 3; grid-column: 1 / -1; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] li, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] b { color: #14213d; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] li, .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] b { color: var(--c-navy, #14213d); }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what[open] p { margin: 0; max-width: none; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { width: auto; height: 44px; min-height: 44px; padding: 0 16px; gap: 6px; border-radius: 999px; font-size: 1rem; justify-content: center; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link .icon { width: 18px; height: 18px; }
@@ -1289,13 +1289,13 @@
   /* Where a session stands on its leaderboard (js/track-page.js paintRanks): a tag on each list row, a line under a session's details, the trophy after its title (as the Leaderboard heading has), and the note when starred. */
   .tp-rank { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 700; color: var(--ink); }
   .tp-rank.is-off { font-weight: 500; color: var(--steel); }
-  .tp-rank-line { margin-top: 4px; font-size: 0.92rem; color: var(--ink-2, #223257); }
+  .tp-rank-line { margin-top: 4px; font-size: 0.92rem; color: var(--ink-2, var(--c-navy, #223257)); }
   .tp-member { color: inherit; text-decoration: underline; text-decoration-color: var(--hairline-strong, #cfc9bb); text-underline-offset: 3px; }
   .tp-medal { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px 1px 6px; margin-right: 2px; border: 1px solid; border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 700; font-style: normal; vertical-align: middle; }
   .tp-medal .icon { width: 14px; height: 14px; }
   .tp-title-link { color: inherit; text-decoration: none; }
   .tp-title-link:hover, .tp-title-link:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
-  .tp-title-trophy { display: inline-block; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; stroke-width: 2.2; }
+  .tp-title-trophy { display: inline-block; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: var(--c-orange-light, #f58a68); stroke-width: 2.2; }
   .tp-fav-note { margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: #fff; border: 1px solid var(--hairline); color: var(--ink); font-size: 0.92rem; }
   @media (max-width: 780px) { .tp-rowwrap { gap: 6px; } .tp-favrow { flex-basis: 36px; width: 36px; min-width: 36px; height: 36px; min-height: 36px; } .tp-favrow .icon { width: 18px; height: 18px; } }
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */

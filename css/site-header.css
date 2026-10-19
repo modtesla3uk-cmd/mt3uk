@@ -493,7 +493,7 @@ a.back-link:hover, .page-hero a.back-link:hover { background: #ffffff; border-co
 a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2.4; }
 .btn-ghost { background: transparent; color: var(--ink); padding-inline: 10px; }
 .btn-ghost:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); }
-.btn-danger { background: #ffffff; color: #b8361a; border-color: rgba(184, 54, 26, 0.35); }
+.btn-danger { background: #ffffff; color: var(--c-orange-deep, #b8361a); border-color: rgba(184, 54, 26, 0.35); }
 .btn-danger:hover { background: #fdf0ec; }
 .btn-sm { min-height: 36px; padding: 7px 12px; font-size: 0.86rem; border-radius: var(--radius-sm); }
 .btn-block { width: 100%; }
@@ -519,7 +519,7 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, var(
 .footer-links .icon { width: 14px; height: 14px; }
 
 /* Early preview badge: a feature that is open to a few members while it is tested */
-.early-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--orange, #e8542a) 35.0%, transparent); border-radius: var(--radius-pill, 999px); background: #fff4ec; color: #b8421f; font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; line-height: 1.35; white-space: nowrap; vertical-align: middle; letter-spacing: 0; text-transform: none; }
+.early-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--orange, #e8542a) 35.0%, transparent); border-radius: var(--radius-pill, 999px); background: #fff4ec; color: var(--c-orange-deep, #b8421f); font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; line-height: 1.35; white-space: nowrap; vertical-align: middle; letter-spacing: 0; text-transform: none; }
 .early-badge-lg { margin: 0 0 12px; padding: 3px 10px; font-size: 0.8rem; }
 
 /* Laps pages (track.html, leaderboards.html): a text wordmark, "Laps by MT3UK". */

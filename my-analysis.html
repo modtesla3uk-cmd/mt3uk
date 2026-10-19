@@ -33,7 +33,7 @@
 <script src="js/laps-heading-what.js?v=1" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-  :root { --ink:#16233d; --ink-2:#223257; --charcoal:#1c1c1c; --paper:#f3f1ea; --steel:#5b6475; --hair:#dcdfe6; --orange:#e8590c; --content-max:1000px; }
+  :root { --ink:#16233d; --ink-2:var(--c-navy, #223257); --charcoal:#1c1c1c; --paper:var(--c-paper, #f3f1ea); --steel:#5b6475; --hair:#dcdfe6; --orange:#e8590c; --content-max:1000px; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', system-ui, sans-serif; line-height:1.5; }
   h1, h2, h3 { font-family:'Archivo Expanded', sans-serif; font-weight:800; letter-spacing:-0.01em; color:var(--ink); margin:0; }
@@ -141,7 +141,7 @@
     .tm-lab { display:block; }
   }
 
-  .tm-heroes h1 .ma-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .tm-heroes h1 .ma-title-icon { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: var(--c-orange-light, #f58a68); fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .tm-heroes .tm-what { text-align: center; }
   .tm-heroes .tm-what summary { display: block; text-align: center; }
   .tm-heroes .tm-what p { margin: 4px auto 0; max-width: 60ch; }
@@ -213,7 +213,7 @@
     .ma-tm-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; }
     .ma-tm-tick { width: 16px; height: 16px; }
   }
-  .ma-tm-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: #f58a68; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .ma-tm-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--c-orange-light, #f58a68); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   /* The Track Mode badge: on a phone it sits under the buttons (a copy after Sessions); on desktop it stays in the title. */
   .ma-tm-phone { display: none; }
   .tm-what > summary { display: none !important; }

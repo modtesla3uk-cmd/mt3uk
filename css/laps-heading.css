@@ -82,7 +82,7 @@
   body:not([data-tp-view="session"]) .lh-hero .lh-fold:not([open]) > summary { display: none !important; }
   body:not([data-tp-view="session"]) .lh-hero .lh-fold[open].lh-fold {
     position: absolute !important; top: 150px !important; left: 0 !important; width: min(640px, 100%) !important; height: auto !important; min-height: 0 !important;
-    z-index: 60; background: #22324f; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); padding: 16px 18px;
+    z-index: 60; background: var(--c-navy, #22324f); border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); padding: 16px 18px;
     box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; color: #d3d8e2; margin: 0;
   }
   /* A fold opened by itself (a member with no cars yet) sits in the page and pushes the list down; the ? button still opens it as a popover. */
@@ -115,7 +115,7 @@
   body[data-tp-view="session"] .lh-hero > .wrap { position: relative; }
   body[data-tp-view="session"] .lh-hero .lh-fold[open].lh-fold {
     display: block !important; position: absolute !important; top: 76px !important; left: 0 !important; right: auto !important; width: min(640px, 100%) !important;
-    z-index: 60; margin: 0 !important; padding: 16px 18px; background: #22324f; color: #d3d8e2; text-align: left;
+    z-index: 60; margin: 0 !important; padding: 16px 18px; background: var(--c-navy, #22324f); color: #d3d8e2; text-align: left;
     border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); box-shadow: 0 12px 30px rgba(0,0,0,.35);
   }
   body[data-tp-view="session"] .lh-hero .lh-fold[open] .tp-what-body { max-width: none; margin: 0; padding: 0; }
@@ -137,11 +137,11 @@
   body[data-tp-view="session"] .lh-hero > .wrap { position: relative; }
   body[data-tp-view="session"] .lh-hero .lh-fold[open].lh-fold {
     display: block !important; position: absolute !important; top: 58px !important; left: 16px !important; right: 16px !important; width: auto !important;
-    z-index: 30; margin: 0 !important; padding: 14px 16px; background: #f7f5ef; color: #14213d; text-align: left;
+    z-index: 30; margin: 0 !important; padding: 14px 16px; background: #f7f5ef; color: var(--c-navy, #14213d); text-align: left;
     border: 1px solid #d9d5ca; border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.28);
   }
   body[data-tp-view="session"] .lh-hero .lh-fold[open] .tp-what-body { max-width: none; margin: 0; padding: 0; }
-  body[data-tp-view="session"] .lh-hero .lh-fold[open] p, body[data-tp-view="session"] .lh-hero .lh-fold[open] li { color: #14213d !important; max-width: none; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] p, body[data-tp-view="session"] .lh-hero .lh-fold[open] li { color: var(--c-navy, #14213d) !important; max-width: none; }
   body[data-tp-view="session"] .lh-hero .lh-fold[open] p { margin: 0 0 8px; }
-  body[data-tp-view="session"] .lh-hero .lh-fold[open] b, body[data-tp-view="session"] .lh-hero .lh-fold[open] strong { color: #14213d !important; }
+  body[data-tp-view="session"] .lh-hero .lh-fold[open] b, body[data-tp-view="session"] .lh-hero .lh-fold[open] strong { color: var(--c-navy, #14213d) !important; }
 }

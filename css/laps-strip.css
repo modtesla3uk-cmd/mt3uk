@@ -19,7 +19,7 @@
 .laps-preview-note { margin: 0; padding: 10px 12px; border-left: 3px solid var(--orange, #e8542a); border-radius: var(--radius-sm, 8px); background: #fff4ec; color: var(--ink); font-family: var(--font-body); font-size: 0.9rem; line-height: 1.45; }
 .laps-preview-note[hidden] { display: none; }
 .ls-head .early-badge { margin-left: 0; }
-.laps-preview-note b { color: #b8421f; }
+.laps-preview-note b { color: var(--c-orange-deep, #b8421f); }
 .is-preview .icon { width: 16px; height: 16px; }
 
 /* A heading's Join preview button is the same width as My Sessions and Leaderboards on desktop. */

@@ -1345,14 +1345,16 @@ def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_th
     page.route("**/sound/session/admin**", session_admin)
     page.locator("#session-sound-wrap summary").click()
     rows = page.locator("#ss-controls .snd-row")
-    expect(rows).to_have_count(10)
-    expect(rows.first.locator("output")).to_have_text("95")
+    expect(rows).to_have_count(20)
+    expect(rows.first.locator("output")).to_have_text("52")
     page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[1];
         r.value = '600'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
     page.locator("#ss-save").click()
     expect(page.locator("#ss-note")).to_contain_text("Saved")
     assert len(posted) == 1 and posted[0]["fPeak"] == 600, posted
     assert "sub" in posted[0] and len(posted[0]["harm"]) == 4, posted[0]
+    # The recording's own sliders (pitch, level, filters, grains, evening out) are saved with the rest
+    assert "rateHigh" in posted[0] and "recLevel" in posted[0] and "grainEvery" in posted[0] and "compRatio" in posted[0], posted[0]
     assert "fEnd" not in posted[0] and "length" not in posted[0], posted[0]
     # The Sound panel above keeps its own settings
     sub = page.locator("#admin-subnav")

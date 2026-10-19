@@ -3827,13 +3827,15 @@
     });
   }
   function showSession(id) {
-    loading();
+    // Opened from the next-session card: the current view stays on screen until the next session has drawn, so the
+    // page does not flash a loading screen and jump to the top.
+    if (!playNextOnDraw) loading();
     var my = routeSeq;
     var isLocal = /^local-\d+$/.test(id);
     Promise.all([isLocal ? localGet(id) : api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
       if (stale(my)) return;
       var d = r[0];
-      if (!d.success) return failed(isLocal ? 'This session is not on this device any more. It has been sent or removed: open it from your list.' : 'This session isn\'t available. It may be private or removed.');
+      if (!d.success) { playNextOnDraw = false; return failed(isLocal ? 'This session is not on this device any more. It has been sent or removed: open it from your list.' : 'This session isn\'t available. It may be private or removed.'); }
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
       VW = d.session.vehicleType === 'bike' ? 'bike' : 'car';
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };

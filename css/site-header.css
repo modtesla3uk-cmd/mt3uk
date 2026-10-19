@@ -570,3 +570,10 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, colo
 .nav-signout { align-items: center; gap: 10px; width: calc(100% - 32px); font: inherit; cursor: pointer; }
 .nav-signout[hidden] { display: none !important; }
 .nav-signout .icon { width: 20px; height: 20px; }
+
+/* Desktop, Laps header: the icons (Sessions, Leaderboard, Favourites, bell, Messages, Profile, search) are 26px, so they
+   read at the size of the heading icons. The menu's three bars and the phone are left as they are. */
+@media (min-width: 901px) {
+  header:has(.laps-logo) .navlinks > a > svg, header:has(.laps-logo) .nav-bell-btn svg, header:has(.laps-logo) .nav-chat svg,
+  header:has(.laps-logo) .nav-profile svg, header:has(.laps-logo) .nav-search-toggle svg { width: 26px; height: 26px; }
+}

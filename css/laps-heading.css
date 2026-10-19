@@ -43,6 +43,14 @@
   }
 }
 
+/* Desktop: the icons in the heading (the buttons, Back and the What is...? button) are 22px on every heading page, so they
+   read at the same size as the words beside them. The session view has its own heading and is left alone. */
+@media (min-width: 901px) {
+  body:not([data-tp-view="session"]) .lh-hero .lh-pill .icon, body:not([data-tp-view="session"]) .lh-hero .tp-lb-pill .icon,
+  body:not([data-tp-view="session"]) .lh-hero .lh-back .icon, body:not([data-tp-view="session"]) .lh-hero .tp-back .icon,
+  body:not([data-tp-view="session"]) .lh-hero .lh-title .tp-what-q svg { width: 22px; height: 22px; }
+}
+
 /* An open fold (What are Sessions?, What is the Leaderboard?, What is My Analysis?) takes its own room in the heading
    and pushes the page below it down, rather than being laid over the content underneath. */
 @media (min-width: 901px) {

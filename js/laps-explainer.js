@@ -14,6 +14,20 @@
   // How fast the picture runs. Slow (0.77) is the default: the 17 second loop takes about 22 seconds.
   var PACES = { slowest: { name: 'Slowest', rate: 0.6 }, slow: { name: 'Slow', rate: 0.77 }, normal: { name: 'Normal', rate: 1 }, quick: { name: 'Quick', rate: 1.3 } };
   var NAVY = '#14213d', NAVY2 = '#1d2d52', ORANGE = '#e8572a', CREAM = '#f4f1ea', MUTED = '#a9b6cf', BLUE = '#5aa9e6', LINE = 'rgba(244,241,234,0.14)';
+  // The picture follows the site's theme: Jade and mist on a page with data-theme="jade", and the navy and orange otherwise.
+  var CURRENT = { navy: '#14213d', navy2: '#1d2d52', orange: '#e8572a', cream: '#f4f1ea', muted: '#a9b6cf', blue: '#5aa9e6' };
+  var JADE = { navy: '#0d3b33', navy2: '#145a4d', orange: '#6fd1b0', cream: '#f1f6f3', muted: '#b5c9c1', blue: '#5fb89a' };
+  var RGB_CURRENT = { navy: '20,33,61', cream: '244,241,234', orange: '232,87,42', blue: '90,169,230' };
+  var RGB_JADE = { navy: '13,59,51', cream: '241,246,243', orange: '111,209,176', blue: '95,184,154' };
+  var RGB = RGB_CURRENT;
+  function rgba(name, a) { return 'rgba(' + RGB[name] + ',' + a + ')'; }
+  function setPalette() {
+    var jade = document.documentElement.getAttribute('data-theme') === 'jade';
+    var p = jade ? JADE : CURRENT;
+    RGB = jade ? RGB_JADE : RGB_CURRENT;
+    NAVY = p.navy; NAVY2 = p.navy2; ORANGE = p.orange; CREAM = p.cream; MUTED = p.muted; BLUE = p.blue;
+    LINE = rgba('cream', 0.14);
+  }
   var FONT = '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif';
   var HEAD = '"Archivo", "Arial Black", Arial, sans-serif';
 
@@ -125,7 +139,7 @@
   }
   function drawTrack(ctx, path, alpha) {
     ctx.save(); ctx.globalAlpha = alpha;
-    ctx.strokeStyle = 'rgba(244,241,234,0.22)'; ctx.lineWidth = 26; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = rgba('cream', 0.22); ctx.lineWidth = 26; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath();
     path.forEach(function (p, i) { i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); });
     ctx.closePath(); ctx.stroke(); ctx.restore();
@@ -159,12 +173,12 @@
       ctx.save(); ctx.globalAlpha = a * ease(clamp(local / 0.9));
       roundRect(ctx, 300, y, 360, 200, 18); ctx.fillStyle = NAVY2; ctx.fill();
       ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
-      text(ctx, 'Your session', 330, y + 56, 24, CREAM, FONT, 600, 'left');
-      text(ctx, 'RaceBox import', 330, y + 88, 18, MUTED, FONT, 400, 'left');
+      text(ctx, 'Your session', 480, y + 56, 24, CREAM, FONT, 600, 'center');
+      text(ctx, 'RaceBox import', 480, y + 88, 18, MUTED, FONT, 400, 'center');
       var p = ease(clamp((local - 0.9) / 2.0));
-      roundRect(ctx, 330, y + 130, 300, 12, 6); ctx.fillStyle = 'rgba(244,241,234,0.12)'; ctx.fill();
+      roundRect(ctx, 330, y + 130, 300, 12, 6); ctx.fillStyle = rgba('cream', 0.12); ctx.fill();
       roundRect(ctx, 330, y + 130, Math.max(12, 300 * p), 12, 6); ctx.fillStyle = ORANGE; ctx.fill();
-      text(ctx, p >= 1 ? 'Done: 9 laps, 412 readings' : 'Reading the file…', 330, y + 172, 18, p >= 1 ? CREAM : MUTED, FONT, 500, 'left');
+      text(ctx, p >= 1 ? 'Done: 9 laps, 412 readings' : 'Reading the file…', 480, y + 172, 18, p >= 1 ? CREAM : MUTED, FONT, 500, 'center');
       ctx.restore();
     },
     map: function (ctx, local, a, S) {
@@ -173,7 +187,7 @@
       ctx.save(); drawTrack(ctx, path, a);
       var reveal = clamp(local / 2.4), laps = [[0, 0.25], [0.25, 0.5], [0.5, 0.75], [0.75, 1]];
       laps.forEach(function (l, i) {
-        drawTrace(ctx, path, l[0], l[0] + (l[1] - l[0]) * reveal, i === 2 ? ORANGE : 'rgba(90,169,230,0.85)', 6);
+        drawTrace(ctx, path, l[0], l[0] + (l[1] - l[0]) * reveal, i === 2 ? ORANGE : rgba('blue', 0.85), 6);
       });
       dot(ctx, path, reveal, CREAM, 10);
       ctx.restore();
@@ -215,7 +229,7 @@
       caption(ctx, S.texts.compare, a);
       var path = pathFor(S.map), s = clamp(local / 4.5);
       ctx.save(); drawTrack(ctx, path, a);
-      drawTrace(ctx, path, 0, 1, 'rgba(90,169,230,0.35)', 4);
+      drawTrace(ctx, path, 0, 1, rgba('blue', 0.35), 4);
       dot(ctx, path, s, BLUE, 12);
       dot(ctx, path, s * 0.985, ORANGE, 12);
       ctx.restore();
@@ -229,7 +243,7 @@
         var y = 210 + i * 70, p = ease(clamp((local - i * 0.25) / 1.4));
         ctx.save(); ctx.globalAlpha = a;
         text(ctx, b[0], 80, y + 4, 22, CREAM, FONT, 500, 'left');
-        roundRect(ctx, 330, y - 14, 540, 22, 11); ctx.fillStyle = 'rgba(244,241,234,0.1)'; ctx.fill();
+        roundRect(ctx, 330, y - 14, 540, 22, 11); ctx.fillStyle = rgba('cream', 0.1); ctx.fill();
         roundRect(ctx, 330, y - 14, Math.max(22, 540 * b[1] * p), 22, 11); ctx.fillStyle = i === 0 ? ORANGE : BLUE; ctx.fill();
         ctx.restore();
       });
@@ -245,9 +259,10 @@
   };
 
   function drawFrame(ctx, t, S) {
+    setPalette();
     ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, H);
     var g = ctx.createRadialGradient(480, 260, 40, 480, 260, 520);
-    g.addColorStop(0, 'rgba(232,87,42,0.10)'); g.addColorStop(1, 'rgba(20,33,61,0)');
+    g.addColorStop(0, rgba('orange', 0.10)); g.addColorStop(1, rgba('navy', 0));
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     var k = sceneIndex(t);
     SCENES.forEach(function (sc, i) {
@@ -257,7 +272,7 @@
       SCENE_DRAW[sc.id](ctx, t - sc.t0, a, S);
     });
     SCENES.forEach(function (sc, i) {
-      ctx.beginPath(); ctx.fillStyle = i === k ? ORANGE : 'rgba(244,241,234,0.25)';
+      ctx.beginPath(); ctx.fillStyle = i === k ? ORANGE : rgba('cream', 0.25);
       ctx.arc(48 + i * 18, 500, 5, 0, Math.PI * 2); ctx.fill();
     });
   }
@@ -367,14 +382,14 @@
     }
   }
 
-  var css = '.lxe{position:relative;background:' + NAVY + ';overflow:hidden;line-height:0}' +
+  var css = '.lxe{position:relative;background:var(--lxe-bg, ' + NAVY + ');overflow:hidden;line-height:0}' +
     '.lxe canvas{display:block;width:100%;height:auto}' +
-    '.lxe-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 12px;background:' + NAVY + ';line-height:1}' +
+    '.lxe-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 12px;background:var(--lxe-bg, ' + NAVY + ');line-height:1}' +
     '.lxe-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}' +
-    '.lxe-btn:hover,.lxe-btn:focus-visible{background:' + NAVY2 + ';border-color:#fff}' +
+    '.lxe-btn:hover,.lxe-btn:focus-visible{background:var(--lxe-bg2, ' + NAVY2 + ');border-color:#fff}' +
     '.lxe-btn svg,.lxe-sound svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}' +
     '.lxe-sound{height:44px;border-radius:22px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font:600 14px ' + FONT + ';cursor:pointer}' +
-    '.lxe-sound:hover,.lxe-sound:focus-visible{background:' + NAVY2 + ';border-color:#fff}';
+    '.lxe-sound:hover,.lxe-sound:focus-visible{background:var(--lxe-bg2, ' + NAVY2 + ');border-color:#fff}';
   var styled = false;
   function addStyle() {
     if (styled || !document.head) return;

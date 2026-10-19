@@ -396,7 +396,7 @@
 
     var style = document.createElement('style');
     style.textContent =
-      '.mt3uk-account-bar{background:#16233d;color:#d3d8e2;font-family:"IBM Plex Sans",sans-serif;font-size:.84rem;line-height:1.4}' +
+      '.mt3uk-account-bar{background:var(--ink, #16233d);color:#d3d8e2;font-family:"IBM Plex Sans",sans-serif;font-size:.84rem;line-height:1.4}' +
       '.mt3uk-account-bar-inner{max-width:var(--content-max,1000px);margin:0 auto;padding:7px 16px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}' +
       '.mt3uk-account-bar p{margin:0;flex:1;min-width:0}' +
       '.mt3uk-account-bar strong{color:#fff;font-weight:600}' +

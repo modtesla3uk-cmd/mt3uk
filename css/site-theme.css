@@ -24,6 +24,8 @@
   --c-slate: #4a5a55;
   --c-mist-grey: #b5c9c1;
   --c-muted: #4a5a55;
+  --lxe-bg: #0d3b33;
+  --lxe-bg2: #145a4d;
 }
 
 /* Text on the orange-filled parts (buttons and badges) is the dark jade in Jade: white on the light jade fill is too faint. */

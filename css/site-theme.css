@@ -26,6 +26,7 @@
   --c-muted: #4a5a55;
   --lxe-bg: #0d3b33;
   --lxe-bg2: #145a4d;
+  --tile-bg: #0d3b33;
 }
 
 /* Icons on a dark panel keep the light orange in both themes (about 6.5 to 1 on navy and on jade). Not for light backgrounds. */

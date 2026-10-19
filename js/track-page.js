@@ -3859,9 +3859,10 @@
     });
   }
   // Skip to section: lists the sections this session page has and scrolls to the one chosen.
-  var SKIP_TO = [['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'], ['#tp-mapcard', 'Map'], ['#tp-gbox', 'G-force and speed'], ['[data-tile="corners"]', 'Corner by corner'],
-    ['[data-tile="grip"]', 'How much grip you used'], ['[data-tile="cmpnotes"]', 'What the laps say'], ['#tp-laps', 'Laps'], ['[data-tile="spotted"]', 'What we spotted'],
-    ['#tp-impact', 'What each mod did'], ['#lineedit', 'Start and finish lines'], ['#settings', 'Session settings']];
+  var SKIP_TO = [['#tp-more', 'Session details'], ['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'],
+    ['[data-tile="speed"]', 'Speed through the lap'], ['#tp-gbox', 'G-force and speed'], ['#tp-mapcard', 'Map'], ['[data-tile="corners"]', 'Corner by corner'],
+    ['[data-tile="grip"]', 'How much grip you used'], ['#tp-prohead', 'Laps Pro'], ['[data-tile="cmpnotes"]', 'What the laps say'], ['[data-tile="spotted"]', 'What we spotted'],
+    ['#tp-impact', 'What each mod did'], ['#tp-laps', 'Laps'], ['#lineedit', 'Start and finish lines'], ['#rename', 'Layout name'], ['#settings', 'Session settings']];
   function wireSkip(s) {
     var sel = document.getElementById('tp-skip');
     if (!sel) return;
@@ -3945,12 +3946,12 @@
       fig('Peak power', isFinite(mode.power) ? Math.round(mode.power) + ' kW' : '–', isFinite(mode.power) ? 'Highest in this session' : 'Not recorded') +
       '</div></div>' : '<p class="tp-band-note">No Track Mode data in this session.</p>');
     var say = [];
-    if (lapOk) say.push('This session’s best lap is ' + V.fmtLap(s.bestTime) + '.');
-    say.push('These figures come from this session’s own readings. Weather, tyres and driving changes are not taken out.');
+    if (lapOk) say.push('Your best lap in this session was ' + V.fmtLap(s.bestTime) + '.');
+    say.push('The figures are not adjusted for the weather, the tyres or how you drove, so compare them with other sessions with care.');
     return '<div class="tp-band"><h4>This session’s figures</h4><p class="tp-band-note">' + esc(trackOf(s)) + ', ' + esc(shortDate(s.date)) +
       (s.time ? ', ' + esc(s.time) : '') + '. Figures from this session only.</p>' +
       '<div class="tp-band-figs">' + figs + '</div>' + tmHtml +
-      '<div class="tp-band-box"><h5>What the figures say</h5>' + say.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div></div>';
+      '<div class="tp-band-box"><h5>How to read these figures</h5>' + say.map(function (x) { return '<p>' + x + '</p>'; }).join('') + '</div></div>';
   }
   // Laps Pro for a drive or a drag run (no lap layout, so no cards): its figures, Track Mode included. Owners only.
   function lapsProSolo(s) {
@@ -3975,9 +3976,9 @@
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
     h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Skip to section</option></select></label>' +
-      '<span class="tp-bar-right">' + likeHtml(s) + (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
+      '<span class="tp-bar-right">' + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + (token() && !s.local && !s.adminView ? favButton(s.id, false) : '') +
       '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && !s.local && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && !s.local && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></span></div>';
-    h += '<div class="tp-head tp-session-head"><div><div class="tp-title-row"><h2>' + (boardHref(s) ? '<a class="tp-title-link" href="' + esc(boardHref(s)) + '">' + esc(trackName(s)) + '</a>' : esc(trackName(s))) + '</h2>' + '<div class="tp-title-tools">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by ' + (s.carId ? '<a class="tp-member" href="member.html?car=' + esc(s.carId) + '"><b>' + esc(s.ownerName) + '</b></a>' : '<b>' + esc(s.ownerName) + '</b>') + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + '</p>' + (s.type !== 'drag' && s.type !== 'other' ? '<a class="tp-laps-jump" href="#tp-prohead">Laps Pro: your best laps and figures</a>' : '') + sessionFoldHtml(s) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><div class="tp-title-row"><h2>' + (boardHref(s) ? '<a class="tp-title-link" href="' + esc(boardHref(s)) + '">' + esc(trackName(s)) + '</a>' : esc(trackName(s))) + '</h2>' + '<div class="tp-title-tools">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + '</div></div>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by ' + (s.carId ? '<a class="tp-member" href="member.html?car=' + esc(s.carId) + '"><b>' + esc(s.ownerName) + '</b></a>' : '<b>' + esc(s.ownerName) + '</b>') + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + '</p>' + (s.type !== 'drag' && s.type !== 'other' ? '<a class="tp-laps-jump" href="#tp-prohead">Laps Pro: your best laps and figures</a>' : '') + sessionFoldHtml(s) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3996,7 +3997,6 @@
     if (s.mine && !s.local) drawQuota();
     wireSkip(s);
     markFavs();
-    markLikes(s);
     markPaidTiles(app);
     lockPaidTiles(app);
     if (token() && !s.local) {
@@ -4283,86 +4283,6 @@
   // on a session's page; the list itself is on its own page, favourites.html (js/favourites-page.js).
   var favIds = null;
   var FAV_STAR = 'Favourite';
-  // Likes on a shared session (GET and POST /track/likes): a round heart with its count. The heart likes or unlikes
-  // (signed-in members, on someone else's session); the count opens a pop-out list of who likes it.
-  var LIKE_HEART = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.4-9.3-9A5.2 5.2 0 0 1 12 6.5 5.2 5.2 0 0 1 21.3 12C19 16.6 12 21 12 21Z"/></svg>';
-  function likeHtml(s) {
-    if (s.local || s.adminView || s.privacy === 'private' || s.street) return '';
-    return '<span class="tp-like" id="tp-like" data-like-id="' + esc(s.id) + '" hidden>' +
-      '<button type="button" class="tp-like-heart" data-like-toggle aria-pressed="false" aria-label="Like this session">' + LIKE_HEART + '</button>' +
-      '<span class="tp-like-wrap"><button type="button" class="tp-like-count" data-like-who aria-expanded="false" aria-controls="tp-like-pop" aria-label="See who likes this session"><span id="tp-like-n">0</span></button>' +
-      '<div class="tp-like-pop" id="tp-like-pop" hidden></div></span></span>';
-  }
-  function markLikes(s) {
-    var wrap = document.getElementById('tp-like');
-    if (!wrap) return;
-    api('GET', '/track/likes?id=' + encodeURIComponent(s.id)).then(function (d) {
-      if (!d || !d.success) return;
-      wrap._like = d;
-      wrap.hidden = false;
-      paintLike(wrap);
-    }).catch(function () {});
-  }
-  function paintLike(wrap) {
-    var d = wrap._like;
-    if (!d) return;
-    var heart = wrap.querySelector('[data-like-toggle]');
-    heart.classList.toggle('is-on', !!d.liked);
-    heart.setAttribute('aria-pressed', d.liked ? 'true' : 'false');
-    heart.disabled = !d.canLike;
-    heart.title = d.canLike ? (d.liked ? 'Unlike this session' : 'Like this session') : (d.mine ? 'Your own session' : 'Sign in to like sessions');
-    wrap.querySelector('#tp-like-n').textContent = String(d.count);
-    wrap.querySelector('.tp-like-pop').innerHTML = likerListHtml(d);
-  }
-  function likerListHtml(d) {
-    if (!d.likers) return '<p class="tp-like-note">Sign in to see who likes this session.</p>';
-    if (!d.likers.length) return '<p class="tp-like-note">No likes yet.</p>';
-    return '<h4>Liked by ' + d.count + '</h4>' + d.likers.map(function (l) {
-      return '<div class="tp-like-who"><span class="tp-like-av" aria-hidden="true">' + esc(likerLetters(l.name)) + '</span>' +
-        '<span><b>' + esc(l.name || 'Member') + (l.mine ? ' (you)' : '') + '</b><small>' + esc(likedWhen(l.at)) + '</small></span></div>';
-    }).join('') + (d.count > d.likers.length ? '<p class="tp-like-note">and ' + (d.count - d.likers.length) + ' more</p>' : '');
-  }
-  // Two letters for a liker's circle: the first letter of the first two words (Sam Carter gives SC).
-  function likerLetters(name) {
-    var words = String(name || '').trim().split(/\s+/).filter(Boolean);
-    return words.slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('') || '?';
-  }
-  function likedWhen(iso) {
-    var days = Math.floor((Date.now() - Date.parse(iso)) / 86400000);
-    return days < 1 ? 'Today' : days === 1 ? 'Yesterday' : days + ' days ago';
-  }
-  function toggleLike(wrap) {
-    var d = wrap._like;
-    if (!d || !d.canLike) return;
-    var id = wrap.getAttribute('data-like-id'), heart = wrap.querySelector('[data-like-toggle]');
-    heart.disabled = true;
-    api('POST', '/track/likes', { id: id, on: !d.liked }).then(function (r) {
-      if (r && r.success) { markLikes({ id: id }); return; }
-      heart.disabled = false;
-      heart.title = (r && r.message) || 'Could not like this session';
-    }).catch(function () { heart.disabled = false; heart.title = 'Could not reach Laps. Try again when you are online.'; });
-  }
-  app.addEventListener('click', function (e) {
-    var wrap = e.target.closest('#tp-like');
-    if (!wrap) return;
-    if (e.target.closest('[data-like-toggle]')) { e.preventDefault(); if (!e.target.closest('[data-like-toggle]').disabled) toggleLike(wrap); return; }
-    var who = e.target.closest('[data-like-who]');
-    if (who) {
-      var pop = wrap.querySelector('.tp-like-pop'), open = pop.hidden;
-      pop.hidden = !open;
-      who.setAttribute('aria-expanded', String(open));
-    }
-  });
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('#tp-like')) return;
-    document.querySelectorAll('.tp-like-pop').forEach(function (pop) {
-      if (!pop.hidden) { pop.hidden = true; var b = pop.parentNode.querySelector('[data-like-who]'); if (b) b.setAttribute('aria-expanded', 'false'); }
-    });
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
-    document.querySelectorAll('.tp-like-pop').forEach(function (pop) { pop.hidden = true; });
-  });
   function favButton(id, on) {
     return '<button type="button" class="btn btn-secondary btn-sm tp-fav' + (on ? ' is-fav' : '') + '" data-fav-toggle data-id="' + esc(id) + '" aria-pressed="' + (on ? 'true' : 'false') + '" title="' + (on ? 'Remove from favourites' : 'Add to favourites') + '" aria-label="' + (on ? 'Remove from favourites' : 'Add to favourites') + '">' + icon('star') + '<span>' + FAV_STAR + '</span></button>';
   }

@@ -3435,12 +3435,12 @@ def test_a_shared_session_and_a_build_page_have_their_own_share_button(page):
     expect(page.locator(".tp-session-head")).to_be_visible()
     expect(page.locator("[data-tp-share]")).to_have_count(0)
     expect(page.locator(".page-hero .mt3uk-share-dot")).to_be_hidden()
-    # Shared: the button is there, top right, beside the units chip.
+    # Shared: the button is in the session bar, where the like heart used to be.
     page.locator("#settings [data-privacy] [data-v='board']").click()
     page.get_by_role("button", name="Save changes").click()
-    expect(page.locator(".tp-session-head [data-tp-share]")).to_be_visible()
+    expect(page.locator(".tp-session-bar [data-tp-share]")).to_be_visible()
     expect(page.locator(".page-hero .mt3uk-share-dot")).to_be_hidden()
-    page.locator(".tp-session-head [data-tp-share]").click()
+    page.locator(".tp-session-bar [data-tp-share]").click()
     pop = page.locator(".mt3uk-share-pop")
     expect(pop).to_be_visible()
     expect(pop.locator(".mt3uk-share-title")).to_have_text("Share this session")
@@ -7814,7 +7814,8 @@ def test_the_laps_pro_card_in_a_session_shows_this_sessions_track_mode_figures(p
     expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Most grip used")
     expect(card).not_to_contain_text("Where you have driven")
     expect(card).to_contain_text("No Track Mode data in this session")
-    expect(card).to_contain_text("This session’s best lap is 1:39.79")
+    expect(card).to_contain_text("Your best lap in this session was 1:39.79")
+    expect(card).to_contain_text("How to read these figures")
 
 
 def test_the_laps_pro_heading_links_to_my_analysis_for_the_track_and_car_of_the_session(page):

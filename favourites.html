@@ -335,8 +335,9 @@
   .fav-link b { font-size: 0.98rem; }
   .fav-link span { font-size: 0.8rem; color: var(--muted, #5a6276); }
   .fav-res { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 1rem; text-align: right; white-space: nowrap; }
-  .fav-star { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--orange, #e8572a); background: var(--orange, #e8572a); display: grid; place-items: center; cursor: pointer; padding: 0; }
-  .fav-star svg { width: 18px; height: 18px; fill: #fff; stroke: #fff; stroke-width: 2; stroke-linejoin: round; }
+  /* A smaller star: a white button with a thin border and the accent star, so it is a marker rather than a solid block. */
+  .fav-star { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--orange-text, #a13c1c); background: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .fav-star svg { width: 16px; height: 16px; fill: var(--orange-text, #a13c1c); stroke: var(--orange-text, #a13c1c); stroke-width: 2; stroke-linejoin: round; }
   .fav-star:disabled { opacity: 0.6; }
   .fav-empty, .fav-note { color: var(--muted, #5a6276); font-size: 0.95rem; }
   .fav-rank { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 700; color: var(--ink); }

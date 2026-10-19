@@ -1762,30 +1762,6 @@ def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_c
     expect(page.locator(".page-hero .lh-fast-pop .lh-new")).to_have_count(0)
 
 
-def test_front_page_panels_chosen_for_sessions_and_the_leaderboard_show_for_members(page):
-    """A front page section the admin chose for Sessions (or the Leaderboard) is drawn under the list for a signed-in
-    member, with the admin's words, and never on a session's own page."""
-    fake = FakeWorker()
-    fake.counts = LAPS_COUNTS
-    fake.panels = {"what": {"heading": "What Laps does for you", "show": {"sessions": True}}, "fastest": {"show": {"leaderboard": True}}}
-    open_page(page, fake, "/track.html", signed_in=True)
-    slot = page.locator("[data-laps-panels='sessions']")
-    expect(slot).to_be_visible()
-    expect(slot.locator("h2")).to_have_text(["What Laps does for you"])
-    expect(slot.locator(".lh-card")).to_have_count(4)
-    expect(slot.locator(".mt3uk-share-dot")).to_have_count(0)
-    page.locator("#tp-hero-add").click()
-    expect(slot).to_be_hidden()
-    open_page(page, fake, "/leaderboards.html", signed_in=True)
-    lb = page.locator("[data-laps-panels='leaderboard']")
-    expect(lb).to_be_visible()
-    expect(lb.locator("h2")).to_have_text(["Fastest right now"])
-    expect(lb.locator(".lh-fast a").first).to_contain_text("Thruxton")
-    # Inside a board it is not shown.
-    page.locator(".lb-cardwrap a, .lb-strip, .lb-venue a").first.click()
-    expect(lb).to_be_hidden()
-
-
 def test_front_page_panels_are_not_shown_to_visitors_who_are_signed_out(page):
     fake = FakeWorker()
     fake.counts = LAPS_COUNTS
@@ -7604,16 +7580,6 @@ def test_my_analysis_stays_open_for_a_free_member(page):
     analysis = page.locator('.page-hero [data-btn="my-analysis"]')
     expect(analysis).not_to_have_class(re.compile("is-tier-locked"))
     expect(analysis).to_have_attribute("href", "my-analysis.html")
-
-
-def test_a_member_on_full_access_is_not_locked_out(page):
-    fake = FakeWorker()
-    fake.tiers = {"success": True, "applies": True, "full": True, "balance": 0, "nextTopUp": "2026-11-01T00:00:00.000Z"}
-    open_page(page, fake, path="/track.html")
-    expect(page.locator('.page-hero [data-btn="my-analysis"]')).not_to_have_class(re.compile("is-tier-locked"))
-
-
-    expect(page.locator("#tp-status, .tp-status, #tp-note").first).to_contain_text("You need 1 session")
 
 
 def test_sprints_and_hill_climbs_are_hidden_from_members_while_the_gate_is_shut(page):

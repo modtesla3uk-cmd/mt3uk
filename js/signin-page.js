@@ -125,7 +125,7 @@
         btn.disabled = false;
         if (!PK.hasOnThisDevice()) {
           explainPasskey();
-          setStatus($('si-passkey-status'), 'No MT3UK passkey on this device yet. Sign in with an email code first, then tap Set up a passkey.', 'err');
+          setStatus($('si-passkey-status'), 'No ' + (SITE === 'laps' ? 'Laps' : 'MT3UK') + ' passkey on this device yet. Sign in with an email code first, then tap Set up a passkey.', 'err');
         } else {
           setStatus($('si-passkey-status'), err.message + ' You can sign in with an email code instead.', 'err');
         }

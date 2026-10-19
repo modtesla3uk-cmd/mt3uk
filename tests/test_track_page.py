@@ -425,7 +425,7 @@ def test_a_member_can_add_a_different_layout_to_a_listed_circuit(page):
     # Never the lines of a listed layout: this file has its own line, so that is used and can be moved.
     expect(page.locator("#tp-result .tp-notice.is-ok").first).not_to_contain_text("official")
     expect(page.locator(".tp-move-lines")).to_be_visible()
-    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the Laps track list yet")
     page.locator("#tp-addnow").click()
     # The new layout needs a name, which is asked for before saving.
     expect(page.locator("#tp-layout-name")).to_be_visible()
@@ -457,7 +457,7 @@ def test_a_different_layout_in_a_file_with_no_line_offers_the_line_found_to_conf
     expect(page.locator(".tp-confirm")).to_be_visible()
     expect(page.locator("#tp-layout-field")).to_contain_text("We found the line from your laps")
     page.locator(".tp-confirm").click()
-    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the Laps track list yet")
 
 
 def test_adding_a_layout_does_not_carry_over_to_the_next_file(page):
@@ -4181,7 +4181,7 @@ def test_a_member_can_add_a_new_track_now_instead_of_waiting_for_the_admin(page)
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-venue-name")).to_have_value("Thruxton Circuit")
     box = page.locator("#tp-addnow-box")
-    expect(box).to_contain_text("Thruxton Circuit is not in the MT3UK track list yet")
+    expect(box).to_contain_text("Thruxton Circuit is not in the Laps track list yet")
     sw = page.locator("#tp-addnow")
     expect(sw).to_have_attribute("aria-checked", "false")
     expect(sw).to_contain_text("MT3UK reviews the track afterwards")

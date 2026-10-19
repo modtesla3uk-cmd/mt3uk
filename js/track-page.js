@@ -3282,7 +3282,7 @@
     var what = isSprint ? 'course' : s.venueId ? 'layout' : 'track', name = a.venueName || s.venue || ('this ' + what);
     var lines = isSprint ? 'start and finish lines' : 'start line';
     var layoutBox = !isSprint && s.venueId && a.addNow ? '<div class="tp-field"><label for="tp-layout-name">Layout name' + REQ + '</label><input class="field" id="tp-layout-name" data-layout-req maxlength="40" placeholder="For example, Short Circuit" value="' + esc(a.layoutName || '') + '" required aria-required="true"></div>' : '';
-    return layoutBox + '<div class="tp-notice is-warn" id="tp-addnow-box">' + icon('pin') + '<div><b>' + (s.venueId ? 'This layout at ' + esc(s.venue) + ' is not in the MT3UK track list yet.' : (a.venueName || s.venue ? esc(name) : 'This ' + what) + ' is not in the MT3UK track list yet.') + '</b><br>' +
+    return layoutBox + '<div class="tp-notice is-warn" id="tp-addnow-box">' + icon('pin') + '<div><b>' + (s.venueId ? 'This layout at ' + esc(s.venue) + ' is not in the Laps track list yet.' : (a.venueName || s.venue ? esc(name) : 'This ' + what) + ' is not in the Laps track list yet.') + '</b><br>' +
       'Normally MT3UK checks the ' + lines + ' and adds the ' + what + ', and your session joins its leaderboard then. You can add it now instead.</div></div>' +
       '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.addNow ? 'true' : 'false') + '" id="tp-addnow"><span><b>Add this ' + what + ' now</b><br><small>' +
       (a.addNow ? 'Saving adds ' + esc(name) + ' to the list with your ' + lines + ' as its official ' + (isSprint ? 'lines' : 'line') + ', times this session on ' + (isSprint ? 'them' : 'it') + ' and puts it on the leaderboard straight away. MT3UK will still review the ' + what + ' and may adjust the ' + lines + '.'
@@ -3692,7 +3692,7 @@
         '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Suggest a different name</button>';
     } else {
       h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, suggest a new one. MT3UK checks it before it changes for everyone with a session on this layout.</p>'
-        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, suggest a new name. MT3UK checks it before it changes.</p>') +
+        : '<p class="tp-sub">This track is not in the Laps track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, suggest a new name. MT3UK checks it before it changes.</p>') +
         '<div class="tp-field"><label for="tp-rename-name">' + (lay ? 'Layout name' : 'Track name') + '</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(cur) + '"></div>' +
         '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
     }

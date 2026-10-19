@@ -4910,9 +4910,9 @@
   var playNextOnDraw = false;
   var playDay = false;
   // Whether the speed and option chips and the figures under the map are folded away (not in full screen).
+  // Whether the speed and option chips, the figures and the size handle are folded away: one setting for the normal page and
+  // full screen, so Less pressed in either carries to the other (in full screen the panel is then cut down to its buttons).
   var foldOn = false;
-  // Whether the full screen playback panel is cut down to its buttons (Less in full screen), so it does not cover the map.
-  var compactOn = false;
   function playNext(id) {
     stopPlay();
     var old = document.getElementById('tp-next'); if (old) old.remove();
@@ -5048,24 +5048,22 @@
     var pdy = document.getElementById('tp-play-day');
     if (pdy) pdy.addEventListener('click', function () { playDay = !playDay; playUi(); });
     var fold = document.getElementById('tp-fold'), foldCard = document.getElementById('tp-mapcard');
-    if (foldCard) { foldCard.classList.toggle('is-folded', foldOn); foldCard.classList.toggle('is-compact', compactOn); }
-    // In full screen the button cuts the panel to its buttons; elsewhere it folds the chips and figures away.
-    function foldOnNow() { return foldCard && foldCard.classList.contains('is-full') ? compactOn : foldOn; }
+    if (foldCard) { foldCard.classList.toggle('is-folded', foldOn); foldCard.classList.toggle('is-compact', foldOn); }
     function foldUi() {
       var f = document.getElementById('tp-fold');
       if (!f) return;
-      var on = foldOnNow();
-      f.setAttribute('aria-expanded', on ? 'false' : 'true');
-      f.title = on ? 'Show the speed and option chips' : 'Hide the speed and option chips';
-      f.querySelector('span').textContent = on ? 'More' : 'Less';
+      f.setAttribute('aria-expanded', foldOn ? 'false' : 'true');
+      f.title = foldOn ? 'Show the speed and option chips' : 'Hide the speed and option chips';
+      f.querySelector('span').textContent = foldOn ? 'More' : 'Less';
     }
     if (fold && foldCard) {
       foldUi();
       // The label follows the card when it goes into or out of full screen.
       new MutationObserver(foldUi).observe(foldCard, { attributes: true, attributeFilter: ['class'] });
       fold.addEventListener('click', function () {
-        if (foldCard.classList.contains('is-full')) { compactOn = !compactOn; foldCard.classList.toggle('is-compact', compactOn); }
-        else { foldOn = !foldOn; foldCard.classList.toggle('is-folded', foldOn); }
+        foldOn = !foldOn;
+        foldCard.classList.toggle('is-folded', foldOn);
+        foldCard.classList.toggle('is-compact', foldOn);
         foldUi();
       });
     }

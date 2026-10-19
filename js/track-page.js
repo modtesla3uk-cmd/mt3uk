@@ -5415,7 +5415,7 @@
         H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
-        tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
+        tip: tipF, onMove: holdAt, onLeave: leave
       });
       var dp = [];
       // Lap A against lap B as the reference, as racing apps show a delta: below the line A is quicker (negative), above it slower.
@@ -5424,10 +5424,13 @@
       var gyt = V.nice(Math.min(-0.5, gmin), Math.max(0, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(A.trace, x)[1] - at(B.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(A.trace, x)[1] - at(B.trace, x)[1]; } }], tip: tipF, onMove: holdAt, onLeave: leave
       });
       // Hovering a chart takes over from playback.
       function userHover() { stopPlay(); pb.active = false; }
+      // Held on the speed or time-gap chart: the playback moves to that point of the lap, and stays there when the finger lifts
+      // (leave() redraws pb.t), like the G-force charts.
+      function holdAt(x) { stopPlay(); if (!mo) return; var w = move(x); pb.active = true; pb.t = w; renderAt(w); }
       stopPlay();
       pb.active = false; pb.t = 0;
       pb.tEnd = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);

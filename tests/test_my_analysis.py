@@ -116,6 +116,19 @@ def test_over_time_puts_the_fastest_lap_at_the_top_of_the_axis(page):
     assert float(top_label) <= 40, top_label
 
 
+def test_picking_a_figure_in_over_time_says_what_it_is_and_how_it_relates_to_performance(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, mode={"slip": 0.6, "brakeTemp": 61})
+    add(fake, "a2", "2026-05-08", 60.5, mode={"slip": 0.9, "brakeTemp": 84})
+    open_page(page, fake, "/my-analysis.html")
+    note = page.locator("#ma-metric-note")
+    expect(note).to_contain_text("Your quickest timed lap in the session")
+    page.locator('button[data-metric="slip"]').click()
+    expect(note).to_contain_text("Slip.")
+    expect(note).to_contain_text("estimate from the car of how much the tyres spun or slid")
+    expect(page.locator('button[data-metric="slip"]')).to_have_attribute("aria-pressed", "true")
+
+
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
     open_page(page, FakeWorker(earlier=False), "/my-analysis.html", signed_in=False)
     expect(page.locator("#ma-app")).to_contain_text("Sign in to see your own analysis")

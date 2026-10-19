@@ -66,6 +66,27 @@
     { id: 'slip', label: 'Slip', get: function (s) { return num(mode(s).slip); }, fmt: function (v) { return v.toFixed(1); } },
     { id: 'laps', label: 'Laps', get: function (s) { return s.type !== 'drag' && s.laps ? s.laps : null; }, fmt: function (v) { return String(v); } }
   ];
+  // What each figure is, and how it relates to performance, shown under the chips when the figure is picked.
+  var METRIC_NOTE = {
+    lap: 'Your quickest timed lap in the session. Lower is faster, and this is the figure the leaderboards rank by.',
+    speed: 'The highest speed the car reached. Higher usually means more pull on the straights, but a track with short straights may never show the car’s real top speed.',
+    brakeg: 'The hardest the car slowed, in g. Higher means you braked harder, which can shorten a braking zone if the tyres and brakes can cope.',
+    temp: 'The air temperature when the session was driven. It is context rather than a score: cooler air is denser and can mean more grip, so compare like with like.',
+    used: 'How much of the battery one session used, from start to end. Using less for the same lap means more efficient driving.',
+    power: 'The most power the motor produced, in kW. More power gives more pull out of corners and onto the straights, but the car can hold power back once parts get hot.',
+    regen: 'The most power the car put back into the battery while slowing, in kW. It shows how much braking energy was recovered, and it does not make the car quicker.',
+    brakes: 'The hottest brakes reached, as a percentage, using the car’s own estimate. Under 70% is normal. Brakes that get too hot lose bite, so a lower figure is safer over a long session.',
+    battemp: 'The hottest battery reached, as a percentage. Cooler helps the car keep its full power, and above 85% the car may hold power back.',
+    inverter: 'The hottest inverter reached, as a percentage. Like the battery, a hot inverter can make the car hold back power.',
+    press: 'The average tyre pressure at the start and at the end, as the car reports it. Pressure rises as the tyres warm up. Keeping it within the range the tyre maker gives helps grip, and a large rise can mean the tyres are running hot.',
+    brakep: 'The highest brake pressure the car reports, in bar or psi. It shows how hard the pedal was pressed, not how hard the car slowed; Peak braking shows that.',
+    throttle: 'The share of the timed laps with the throttle at 95% or more. Higher means more of the lap is spent flat out.',
+    slip: 'An estimate from the car of how much the tyres spun or slid. It is context rather than a score: a higher figure can mean more power in use or a slippery surface.',
+    laps: 'How many laps were in the session. It is context rather than a score: more laps is not faster, but it shows how much running the session had.'
+  };
+  function metricNoteHtml(m) {
+    return METRIC_NOTE[m.id] ? '<p class="ma-metric-note" id="ma-metric-note"><b>' + esc(m.label) + '.</b> ' + esc(METRIC_NOTE[m.id]) + '</p>' : '';
+  }
   // The setups a session can be compared by. get() gives the label, '' when not set.
   var SETUPS = [
     { id: 'tyres', label: 'Tyres', get: function (s) { return s.tyres || ''; } },
@@ -162,7 +183,7 @@
     }).join('') + '</div>';
     var head = '<h2>Over time</h2><p class="tm-note">Each dot is a session, placed on its date, and the line joins them in order. The dashed line is your best so far. Press a dot to see that day’s sessions below the graph. Pick a figure to plot.</p>';
     var pts = sortByWhen(list).map(function (s) { return { s: s, v: m.get(s) }; }).filter(function (x) { return x.v != null; });
-    if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + '<p class="tm-note">Not enough sessions with this figure yet.</p></div>';
+    if (pts.length < 2) return '<div class="tm-card tm-chart">' + head + chips + metricNoteHtml(m) + '<p class="tm-note">Not enough sessions with this figure yet.</p></div>';
     var W = Math.round(Math.min(900, Math.max(320, (app.clientWidth || 800) - 48))), H = 278, L = 58, R = 12, T = 30, B = 54;
     var vs = pts.map(function (x) { return x.v; }), n = pts.length;
     var y0 = Math.min.apply(null, vs), y1 = Math.max.apply(null, vs);
@@ -218,7 +239,7 @@
       '<text x="' + (W - R) + '" y="' + (H - 30) + '" text-anchor="end">' + esc(niceDate(pts[n - 1].s.date)) + '</text>' +
       '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle" style="font-weight:600">' + (toScale ? 'Date' : 'Session, in date order') + '</text>' +
       dots + '</svg>';
-    return '<div class="tm-card tm-chart">' + head + chips + chartKeyHtml(m) + svg + '</div>';
+    return '<div class="tm-card tm-chart">' + head + chips + metricNoteHtml(m) + chartKeyHtml(m) + svg + '</div>';
   }
 
   function setupBlock(list) {

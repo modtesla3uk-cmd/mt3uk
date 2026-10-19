@@ -96,6 +96,11 @@
   #lb-my-analysis[hidden] { display: none; }
   #lb-my-analysis { justify-content: center; }
   @media (min-width: 901px) { #lb-my-analysis { display: none !important; } }
+  /* On a phone it is the same size as the other buttons in the 2x2 heading grid (Back, My Sessions, Add a session). */
+  @media (max-width: 780px) {
+    .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) #lb-my-analysis:not([hidden]) { height: 48px; min-height: 48px; margin-top: 10px; padding: 0 10px; gap: 6px; border-radius: 24px; font-size: 1rem; white-space: nowrap; justify-content: center; }
+    .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) #lb-my-analysis:not([hidden]) .icon { width: 20px; height: 20px; }
+  }
   @media (max-width: 780px) { .page-hero { padding: 14px 0 18px; } .page-hero .back-link { margin-bottom: 10px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } }
   /* The page's own button: bigger on desktop; on a phone it sits at the right of the Back row, above the title. */
   @media (min-width: 901px) {

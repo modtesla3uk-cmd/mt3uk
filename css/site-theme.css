@@ -28,6 +28,11 @@
   --lxe-bg2: #145a4d;
 }
 
+/* Icons on a dark panel keep the light orange in both themes (about 6.5 to 1 on navy and on jade). Not for light backgrounds. */
+:root {
+  --icon-on-dark: #f58a68;
+}
+
 /* Text on the orange-filled parts (buttons and badges) is the dark jade in Jade: white on the light jade fill is too faint. */
 :root[data-theme="jade"] .btn-accent,
 :root[data-theme="jade"] .early-badge,

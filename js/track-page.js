@@ -4894,10 +4894,10 @@
   function offerNext() {
     var n = nextSession(), play = document.getElementById('tp-play');
     if (!n || !play || document.getElementById('tp-next')) return;
-    play.insertAdjacentHTML('afterend', '<div class="tp-next" id="tp-next" role="region" aria-label="Next session">' +
+    play.insertAdjacentHTML('afterbegin', '<div class="tp-next" id="tp-next" role="region" aria-label="Next session">' +
       '<div><b>Play the next session here?</b><br>' + esc(niceDate(n.date)) + (n.bestTime ? ', best lap ' + V.fmtLap(n.bestTime) : '') + '</div>' +
       '<button type="button" class="btn btn-primary" data-next-id="' + esc(n.id) + '">Play the next session</button></div>');
-    var btn = play.parentNode.querySelector('#tp-next [data-next-id]');
+    var btn = play.querySelector('#tp-next [data-next-id]');
     if (btn) btn.addEventListener('click', function () { playNext(n.id); });
   }
   // Opens the next session in this window (no reload) and starts its playback once it has drawn.
@@ -4906,7 +4906,7 @@
     stopPlay();
     var old = document.getElementById('tp-next'); if (old) old.remove();
     playNextOnDraw = true;
-    go('s=' + encodeURIComponent(id));
+    go('s=' + encodeURIComponent(id), true);
   }
   function startPlay(dir) {
     if (!pb.render) return;
@@ -5427,7 +5427,12 @@
         if (resume.active) renderAt(pb.t);
         if (resume.playing) startPlay(resume.dir);
       }
-      if (playNextOnDraw) { playNextOnDraw = false; startPlay(1); }
+      if (playNextOnDraw) {
+        playNextOnDraw = false;
+        var cmp = document.getElementById('compare');
+        if (cmp) cmp.scrollIntoView({ block: 'start' });
+        startPlay(1);
+      }
       var total = B.time - A.time;
       document.getElementById('tp-gap-cap').textContent = 'Below the line, A is faster. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'faster' : 'slower') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];

@@ -6166,15 +6166,17 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     panel = page.locator("#tp-play")
     start = panel.bounding_box()
     assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom
-    assert start["width"] > 844 - 24  # spanning the full width of the screen until it is moved
+    # With the charts on it rests under the map, so the chart panel's time labels stay clear (until it is moved)
+    charts_box = page.locator("#tp-gbox").bounding_box()
+    assert start["x"] + start["width"] <= charts_box["x"] + 2, (start, charts_box)
     # Narrow it from the corner so there is room to move it sideways.
     s0 = page.locator("#tp-pn-size").bounding_box()
     page.mouse.move(s0["x"] + s0["width"] / 2, s0["y"] + s0["height"] / 2)
     page.mouse.down()
-    page.mouse.move(s0["x"] + s0["width"] / 2 - 400, s0["y"] + s0["height"] / 2, steps=6)
+    page.mouse.move(s0["x"] + s0["width"] / 2 - 150, s0["y"] + s0["height"] / 2, steps=6)
     page.mouse.up()
     narrow = panel.bounding_box()
-    assert narrow["width"] < start["width"] - 300
+    assert narrow["width"] < start["width"] - 100
     # The grip along the top moves the controls.
     g = page.locator("#tp-pn-grip").bounding_box()
     gx, gy = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
@@ -6189,10 +6191,10 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     sx, sy = s["x"] + s["width"] / 2, s["y"] + s["height"] / 2
     page.mouse.move(sx, sy)
     page.mouse.down()
-    page.mouse.move(sx - 100, sy, steps=6)
+    page.mouse.move(sx - 60, sy, steps=6)
     page.mouse.up()
     resized = panel.bounding_box()
-    assert abs(resized["width"] - (moved["width"] - 100)) < 6, (moved, resized)
+    assert abs(resized["width"] - (moved["width"] - 60)) < 6, (moved, resized)
     # Kept in this browser, and still on the screen after a reload.
     page.reload()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -6218,13 +6220,8 @@ def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons
     # The drivers and their date and time are in the same row as the main buttons.
     play, who = page.locator("#tp-play-toggle").bounding_box(), page.locator("#tp-when").bounding_box()
     assert who["x"] > play["x"] + play["width"] and abs((who["y"] + who["height"] / 2) - (play["y"] + play["height"] / 2)) < play["height"], (play, who)
-    # Holding the panel anywhere that is not a button moves it, not just the grip. (It starts full width, so narrow it first.)
+    # Holding the panel anywhere that is not a button moves it, not just the grip. (It starts under the map, so there is room.)
     panel = page.locator("#tp-play")
-    s0 = page.locator("#tp-pn-size").bounding_box()
-    page.mouse.move(s0["x"] + s0["width"] / 2, s0["y"] + s0["height"] / 2)
-    page.mouse.down()
-    page.mouse.move(s0["x"] + s0["width"] / 2 - 300, s0["y"] + s0["height"] / 2, steps=6)
-    page.mouse.up()
     who = page.locator("#tp-when").bounding_box()
     before = panel.bounding_box()
     x, y = who["x"] + who["width"] / 2, who["y"] + who["height"] / 2

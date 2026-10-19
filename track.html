@@ -768,6 +768,8 @@
     .tp-mapcard.is-full[data-layout="wide"] .tp-map-head .tp-speedsw > span:first-child { display: none; }
     /* Until it is moved, the controls span the full width of the screen, with the charts' time bar just above them. */
     .tp-mapcard.is-full[data-layout="wide"] .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: 6px; padding: 4px 6px; box-sizing: border-box; }
+    /* With the charts on, the controls rest under the map, so they do not cover the charts' time labels (a dragged panel keeps its place). */
+    #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-play { right: calc(100% - var(--tp-map, 60%) + 6px); }
     #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-gbox { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
     .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn { min-height: 40px; }
     /* The map's own full screen button (top right) is the one way out of full screen here, and the Exit button is left out: the
@@ -1081,6 +1083,11 @@
   .tv-zoom-btn[hidden] { display: none; }
   .tv-chart text { font-family: var(--font-body); font-size: 12px; fill: #6b7385; font-variant-numeric: tabular-nums; }
   .tv-chart text.tp-gtitle { font-size: 12px; font-weight: 600; fill: var(--ink); stroke: var(--paper); stroke-width: 3px; paint-order: stroke; pointer-events: none; }
+  /* On a phone, held in the hand or on its side, the G charts are narrow, so their figures and names are larger. */
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
+    .tv-chart.tp-gchart text { font-size: 14px; }
+    .tv-chart.tp-gchart text.tp-gtitle, .tv-chart text.tp-gspeed { font-size: 14px; font-weight: 700; }
+  }
   .tp-gg { max-width: 420px; margin: 0 auto; }
   /* The bar at the top of a session: Skip to section on the left, Exit session on the right. */
   .tp-session-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; margin: 0 0 12px; }

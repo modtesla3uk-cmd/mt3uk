@@ -38,7 +38,7 @@
     --charcoal: #1c1c1c;
     --orange: #e8542a;
     --line: var(--c-slate, #4a6491);
-    --steel: #7c8798;
+    --steel: var(--c-muted, #5b6475);
     --white: #ffffff;
     --content-max: 1000px;
   }
@@ -131,7 +131,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -168,7 +168,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -282,7 +282,7 @@
   }
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
   .page-hero .back-link:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); color: var(--ink); }
   .specs { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); overflow: hidden; }

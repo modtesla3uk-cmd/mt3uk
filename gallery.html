@@ -39,7 +39,7 @@
     --charcoal: #1c1c1c;
     --orange: #e8542a;
     --line: var(--c-slate, #4a6491);
-    --steel: #7c8798;
+    --steel: var(--c-muted, #5b6475);
     --white: #ffffff;
     --content-max: 1000px;
   }
@@ -132,7 +132,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -165,7 +165,7 @@
   .section-num {
     font-family: var(--font-body);
     font-size: 0.86rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     margin-bottom: 10px;
     display: block;
   }
@@ -187,7 +187,7 @@
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
 
   .inline-link {
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-weight: 600;
     text-decoration: none;
     border-bottom: 1px solid var(--orange, #e8542a);
@@ -209,7 +209,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -340,7 +340,7 @@
   .gallery-only-note { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--ink); border-left: 3px solid var(--orange, #e8542a); background: var(--paper-2); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: var(--ink); }
   .gallery-only-note[hidden] { display: none; }
   .gallery-only-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
-  .gallery-only-note a { color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; white-space: nowrap; }
+  .gallery-only-note a { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; white-space: nowrap; }
   .gallery-member { font-family: var(--font-body); font-size: 0.8rem; background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 7px 30px 7px 12px; cursor: pointer; max-width: 100%; appearance: none; -webkit-appearance: none; border-radius: 0;
     background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
   .gallery-member.active { background-color: var(--ink); color: var(--paper); background-image: linear-gradient(45deg, transparent 50%, var(--paper) 50%), linear-gradient(135deg, var(--paper) 50%, transparent 50%); }
@@ -411,7 +411,7 @@
 
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .back-link {
     min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm);
     color: var(--ink); font-size: 0.88rem; font-weight: 600;

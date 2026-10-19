@@ -77,7 +77,7 @@
   .tm-hero-top .tm-pill, .page-hero .tm-hero-top a.back-link { white-space:nowrap; }
   @media (max-width:780px) { .tm-hero-top .tm-pill, .page-hero .tm-hero-top a.back-link { padding:0 12px; font-size:.92rem; } }
   .tm-pill { gap:8px; }
-  .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange-text, var(--orange, #e8542a)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .tm-pill .icon { width:20px; height:20px; flex:none; fill:none; stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .tm-pill-accent .icon { stroke:#fff; }
   .tm-pill-accent:hover { background:#cf4d0a; }
   /* Desktop: the same heading as Sessions and the Leaderboard. Back at the left, the title centred, the buttons at the right at the same size. */
@@ -113,7 +113,7 @@
   .tm-note { color:var(--steel); font-size:.8rem; margin:10px 2px 0; }
   .tm-finds { list-style:none; margin:0; padding:0; }
   .tm-finds li { display:flex; gap:12px; align-items:flex-start; margin:0 0 10px; }
-  .tm-fi { width:24px; height:24px; flex:none; margin-top:2px; fill:none; stroke:var(--orange-text, var(--orange, #e8542a)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .tm-fi { width:24px; height:24px; flex:none; margin-top:2px; fill:none; stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .tm-sub-h { font-size:.95rem; margin:14px 0 6px; }
   .tm-pads .tm-row { grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr)); }
   @media (max-width:780px) { .tm-pads .tm-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
@@ -145,7 +145,7 @@
   .tm-heroes .tm-what { text-align: center; }
   .tm-heroes .tm-what summary { display: block; text-align: center; }
   .tm-heroes .tm-what p { margin: 4px auto 0; max-width: 60ch; }
-  .ma-fi { width: 24px; height: 24px; flex: none; margin-top: 2px; fill: none; stroke: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .ma-fi { width: 24px; height: 24px; flex: none; margin-top: 2px; fill: none; stroke: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .ma-dot { cursor: pointer; outline: none; }
   .ma-dot:focus-visible, .ma-dot.is-picked { stroke: var(--ink, #16233d); stroke-width: 2.5; stroke-opacity: 1; }
   .ma-row { cursor: pointer; }
@@ -230,13 +230,13 @@
   .ma-track-cell { display:flex; align-items:flex-end; gap:12px; min-width:0; }
   .ma-track-cell > .tm-pick { flex:1 1 200px; min-width:0; }
   .ma-track-cell .ma-tm { margin:0 0 4px; flex:none; max-width:230px; white-space:normal; line-height:1.25; text-align:left; color:var(--ink); background:#fff; border-color:var(--hair); }
-  .ma-track-cell .ma-tm-icon { stroke:var(--orange-text, var(--orange, #e8542a)); }
+  .ma-track-cell .ma-tm-icon { stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tm-pick { display:grid; gap:4px; font-size:.8rem; color:var(--steel); min-width:0; }
   .tm-pick select { font:inherit; font-size:.95rem; min-height:44px; padding:6px 10px; border:1px solid var(--hair); border-radius:8px; background:#fff; color:var(--ink); width:100%; min-width:0; }
   .ma-metric-note { position:relative; margin:16px 0 12px; padding:12px 16px; background:var(--ink, #16233d); color:#fff; border-radius:16px; font-size:.82rem; line-height:1.45; }
   .tm-card p.ma-metric-note, .tm-card p.ma-metric-note b { color:#fff; }
   .ma-pick-label { display:inline-flex; align-items:center; gap:6px; }
-  .ma-pick-icon { width:18px; height:18px; fill:none; stroke:var(--orange-text, var(--orange, #e8542a)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .ma-pick-icon { width:18px; height:18px; fill:none; stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
   .ma-controls > .ma-jump { grid-column:1 / -1; width:100%; min-width:0; box-sizing:border-box; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
   .ma-jump a { flex:none; display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid var(--hair); background:#fff; color:var(--ink); font-size:.86rem; font-weight:600; text-decoration:none; }
   .ma-jump a:hover { background:#eef1f6; }

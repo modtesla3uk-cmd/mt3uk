@@ -38,7 +38,7 @@
     --charcoal: #1c1c1c;
     --orange: #e8542a;
     --line: var(--c-slate, #4a6491);
-    --steel: #7c8798;
+    --steel: var(--c-muted, #5b6475);
     --white: #ffffff;
     --content-max: 1000px;
   }
@@ -131,7 +131,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -164,7 +164,7 @@
   .section-num {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.86rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     margin-bottom: 10px;
     display: block;
   }
@@ -187,7 +187,7 @@
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .inline-link {
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-weight: 600;
     text-decoration: none;
     border-bottom: 1px solid var(--orange, #e8542a);
@@ -209,7 +209,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -244,7 +244,7 @@
     color: var(--paper);
   }
   .shop-band .section-head p { color: var(--c-mist-grey, #aeb8cc); }
-  .shop-band .section-num { color: var(--orange-text, var(--orange, #e8542a)); }
+  .shop-band .section-num { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .shop-band h2 { color: var(--paper); }
   #merch { padding-bottom: 32px; }
   #parts { padding-top: 32px; }
@@ -320,7 +320,7 @@
     display: inline-block;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
   }
@@ -427,7 +427,7 @@
     margin-top: 14px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
   }
@@ -513,7 +513,10 @@
     padding: 5px 10px;
   }
   .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
-  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, var(--orange, #e8542a)); }
+  /* The dark Parts band: its labels and tags read in the light orange (the theme's orange on dark), and the old price is light grey. */
+  .shop-band .section-num, .shop-band .tag { color: var(--orange, #e8542a); }
+  .tee-offer-was { color: var(--c-mist-grey, #aeb8cc); }
+  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: var(--c-mist-grey, #aeb8cc); }
   .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
@@ -533,7 +536,7 @@
     gap: 6px;
     background: transparent;
     border: 1px solid var(--orange, #e8542a);
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.83rem;
     padding: 5px 9px;
@@ -636,7 +639,7 @@
     display: inline-block;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
     background: #0d1526;
@@ -646,7 +649,7 @@
   .tee-modal-body p { color: var(--c-mist-grey, #aeb8cc); font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; }
   .tee-modal-features { list-style: none; padding: 0; margin: 0; }
   .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; }
-  .tee-modal-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 700; }
+  .tee-modal-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 700; }
   .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; }
   .tee-modal-thumbs button {
     width: 56px;
@@ -714,7 +717,7 @@
   }
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
   .page-hero .back-link:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); color: var(--ink); }
   .specs { border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden; }
@@ -995,7 +998,7 @@
       <h3>In partnership with EVOffer</h3>
       <p>EVOffer specializes in high-end Tesla performance upgrades and cabin retrofits, bringing factory-inspired styling and next-level ergonomics to your interior. Premium materials and custom configurations designed specifically for enthusiasts.</p>
       <div class="tevo-panel-logo">
-        <span class="tag" style="background:var(--orange, #e8542a); color:var(--paper); font-weight:700;">20% off with code MT3UKEVO20</span>
+        <span class="tag" style="background:var(--orange, #e8542a); color:var(--on-accent, var(--paper)); font-weight:700;">20% off with code MT3UKEVO20</span>
       </div>
       <p class="detail-desc" style="margin-top:10px;">Orders for these upgrade seats are handled directly via EVOffer. Remember to apply coupon code <strong>MT3UKEVO20</strong> at checkout to claim your 20% member discount.</p>
     </div>

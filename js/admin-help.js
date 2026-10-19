@@ -136,7 +136,7 @@
       ['Shop card highlights', 'One highlight per line, shown as text on the Shop card.'],
     ] },
     'theme-wrap': { t: 'Site theme', p: 'The colours of mt3uk.com and laps.mt3uk.com. Each site can be set on its own.', i: [
-      ['Current', 'The navy and orange the sites have used so far.'],
+      ['Navy and orange', 'The navy and orange the sites have used so far.'],
       ['Jade and mist', 'The new theme: pale jade backgrounds, deep jade surfaces and jade buttons. Visitors see it when their next page loads.'],
     ] },
     'editors-wrap': { t: 'Layout editors', p: 'Opens the layout editor on each page. The editor is on when the page address ends with ?layout=edit.', i: [

@@ -36,7 +36,7 @@
     --charcoal: #1c1c1c;
     --orange: #e8542a;
     --line: var(--c-slate, #4a6491);
-    --steel: #7c8798;
+    --steel: var(--c-muted, #5b6475);
     --white: #ffffff;
     --content-max: 1000px;
   }
@@ -74,7 +74,7 @@
   .section-num {
     font-family: var(--font-body);
     font-size: 0.78rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     margin-bottom: 10px;
     display: block;
   }
@@ -99,7 +99,7 @@
       var(--ink-2);
     border: 1px dashed rgba(243,241,234,0.35);
   }
-  .ph strong { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 500; }
+  .ph strong { display: block; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 500; }
   .ph.on-light {
     color: var(--ink-2);
     background:
@@ -120,7 +120,7 @@
     color: rgba(243,241,234,0.65);
     margin-bottom: 22px;
   }
-  .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .ev-hero-top { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 26px; }
   .ev-date {
     flex: none;
@@ -211,7 +211,7 @@
   .schedule li { position: relative; display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 0 0 22px 24px; }
   .schedule li:last-child { padding-bottom: 0; }
   .schedule li::before { content: ''; position: absolute; left: -7px; top: 5px; width: 12px; height: 12px; background: var(--orange, #e8542a); border: 2px solid var(--paper); }
-  .schedule .t { font-family: var(--font-body); font-size: 0.85rem; color: var(--orange-text, var(--orange, #e8542a)); padding-top: 2px; }
+  .schedule .t { font-family: var(--font-body); font-size: 0.85rem; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); padding-top: 2px; }
   .schedule strong { display: block; color: var(--ink); }
   .schedule p { color: var(--ink-2); font-size: 0.93rem; }
 
@@ -237,7 +237,7 @@
   .faq details:last-child { border-bottom: none; }
   .faq summary { list-style: none; cursor: pointer; padding: 16px 48px 16px 18px; font-weight: 600; color: var(--ink); position: relative; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: '+'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-family: var(--font-body); font-size: 1.2rem; color: var(--orange-text, var(--orange, #e8542a)); }
+  .faq summary::after { content: '+'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-family: var(--font-body); font-size: 1.2rem; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .faq details[open] summary::after { content: '\2212'; }
   .faq details p { padding: 0 18px 18px; color: var(--ink-2); font-size: 0.95rem; }
 

@@ -38,7 +38,7 @@
     --charcoal: #1c1c1c;
     --orange: #e8542a;
     --line: var(--c-slate, #4a6491);
-    --steel: #7c8798;
+    --steel: var(--c-muted, #5b6475);
     --white: #ffffff;
     --content-max: 1000px;
   }
@@ -131,7 +131,7 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-  a.nav-sublink-offer { display: block; color: var(--orange-text, var(--orange, #e8542a)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
+  a.nav-sublink-offer { display: block; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink, #16233d) 15.0%, transparent); }
 
 
   .nav-cta {
@@ -174,7 +174,7 @@
     gap: 8px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.83rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     border: 1px solid var(--orange, #e8542a);
     padding: 5px 10px;
     margin-bottom: 22px;
@@ -316,7 +316,7 @@
   .section-num {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.86rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     margin-bottom: 10px;
     display: block;
   }
@@ -361,7 +361,7 @@
     text-decoration: none;
     margin-bottom: 18px;
   }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
@@ -374,7 +374,7 @@
   }
 
   .inline-link {
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-weight: 600;
     text-decoration: none;
     border-bottom: 1px solid var(--orange, #e8542a);
@@ -391,7 +391,7 @@
     display: block;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     margin: 34px 0 12px;
   }
   .track-prep-list {
@@ -411,7 +411,7 @@
     position: absolute;
     left: 0;
     top: 1px;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-weight: 700;
   }
   .track-prep-list.numbered { counter-reset: track-step; }
@@ -540,7 +540,7 @@
     text-align: center;
     max-width: 340px;
   }
-  .hero-media-note a { color: var(--orange-text, var(--orange, #e8542a)); }
+  .hero-media-note a { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .bf-progress {
     position: absolute;
     top: 12px; left: 14px; right: 14px;
@@ -661,7 +661,7 @@
     color: rgba(255,255,255,0.9);
     font-variant-numeric: tabular-nums;
   }
-  .bf-like-btn.bf-liked { color: var(--orange-text, var(--orange, #e8542a)); }
+  .bf-like-btn.bf-liked { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .bf-like-btn.bf-liked svg { animation: bf-likepulse 360ms ease; }
   @keyframes bf-likepulse {
     0% { transform: scale(1); }
@@ -669,7 +669,7 @@
     100% { transform: scale(1); }
   }
   .bf-save-btn .bf-icon-save { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-  .bf-save-btn[data-saved="true"] { color: var(--orange-text, var(--orange, #e8542a)); }
+  .bf-save-btn[data-saved="true"] { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .bf-save-btn[data-saved="true"] .bf-icon-save { fill: currentColor; }
 
   .bf-caption {
@@ -885,7 +885,7 @@
     margin-top: -6px;
   }
   .fb-join-link svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .fb-join-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .fb-join-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 
   /* ---------- EVENTS ---------- */
   .events-list { border-top: 1px solid var(--ink); }
@@ -903,7 +903,7 @@
   .event-date {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
   }
   .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 4px; }
   .event-info p { color: var(--steel); font-size: 0.88rem; }
@@ -923,7 +923,7 @@
     color: var(--paper);
   }
   .shop-band .section-head p { color: var(--c-mist-grey, #aeb8cc); }
-  .shop-band .section-num { color: var(--orange-text, var(--orange, #e8542a)); }
+  .shop-band .section-num { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .shop-band h2 { color: var(--paper); }
 
   .shop-grid {
@@ -1000,7 +1000,7 @@
     margin-top: 14px;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     border: 1px solid var(--orange, #e8542a);
     padding: 3px 8px;
   }
@@ -1034,7 +1034,7 @@
     padding: 4px 8px;
   }
   .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
-  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, var(--orange, #e8542a)); }
+  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: var(--c-mist-grey, #aeb8cc); }
   .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
@@ -1050,7 +1050,7 @@
     display: inline-block;
     background: transparent;
     border: 1px solid var(--orange, #e8542a);
-    color: var(--orange-text, var(--orange, #e8542a));
+    color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.76rem;
     padding: 3px 8px;
@@ -1183,7 +1183,7 @@
   .interview .track-prep-list li { font-size: 1rem; }
   /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
      Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
-  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
   .page-hero .back-link:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); color: var(--ink); }
   .specs { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); overflow: hidden; }

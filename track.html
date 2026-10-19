@@ -72,7 +72,7 @@
   /* ---------- PAGE HERO ---------- */
   .page-hero { padding: 40px 0 28px; border-bottom: 1px solid var(--hairline); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: var(--steel); margin-bottom: 16px; }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
   .tp-what { margin: 0; }
@@ -137,10 +137,10 @@
   .tp-sub { color: var(--steel); font-size: 0.92rem; margin: 4px 0 12px; max-width: 64ch; }
   .tp-small { color: var(--steel); font-size: 0.8rem; margin-top: 8px; }
   .tp-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; font-size: 0.9rem; }
-  .tp-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px; margin-bottom: 14px; background: #ffffff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2; text-decoration: none; }
   .tp-back:hover { border-color: var(--ink); color: var(--ink); }
-  .tp-back .icon { width: 18px; height: 18px; color: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2.4; }
+  .tp-back .icon { width: 18px; height: 18px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width: 2.4; }
   .tp-units { flex: none; }
   .tp-refresh { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
   .tp-refresh .icon { width: 16px; height: 16px; }
@@ -157,7 +157,7 @@
   .tp-ticks li { display: flex; gap: 8px; align-items: center; font-size: 0.94rem; }
   .tp-ticks .icon { color: var(--ok-ink); }
   .tp-empty { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: var(--steel); }
-  .tp-empty .icon { color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-empty .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-empty p { flex: 1; min-width: 200px; }
   .tp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip-sm { min-height: 32px; padding: 4px 11px; font-size: 0.8rem; }
@@ -368,7 +368,7 @@
   .tp-since[hidden] { display: none; }
   .tp-since-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .tp-since-head b { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
-  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-since-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -10px -8px 0; border: 0; background: none; color: var(--steel); cursor: pointer; }
   .tp-since-close .icon { width: 18px; height: 18px; }
   .tp-since ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
@@ -857,7 +857,7 @@
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
   .tp-drop.is-over { border-color: var(--orange, #e8542a); background: var(--c-peach, #fdf3ef); }
-  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-drop small { color: var(--steel); }
   .tp-file { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
   .tp-file .icon { color: var(--ok-ink); flex: none; margin-top: 1px; }
@@ -1148,7 +1148,7 @@
   .tp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .tp-notes { display: grid; gap: 10px; align-content: start; }
   .tp-note { display: flex; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .tp-note > .icon { color: var(--orange-text, var(--orange, #e8542a)); margin-top: 2px; }
+  .tp-note > .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); margin-top: 2px; }
   .tp-note p { font-size: 0.92rem; color: var(--ink); }
   .tp-note small { display: block; color: var(--steel); font-size: 0.8rem; margin-top: 3px; }
   .tp-cmp-pick { margin-bottom: 14px; }
@@ -1285,7 +1285,7 @@
   .tp-rowwrap > .tp-row { flex: 1 1 auto; min-width: 0; }
   .tp-favrow { flex: 0 0 44px; width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: #fff; color: var(--steel); cursor: pointer; }
   .tp-favrow .icon { width: 20px; height: 20px; display: block; }
-  .tp-favrow.is-fav { color: var(--orange-text, var(--orange, #e8542a)); border-color: var(--orange, #e8542a); }
+  .tp-favrow.is-fav { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); border-color: var(--orange, #e8542a); }
   .tp-favrow[hidden] { display: none; }
   .tp-favrow:focus-visible { outline: 2px solid var(--orange, #e8542a); outline-offset: 2px; }
   /* Where a session stands on its leaderboard (js/track-page.js paintRanks): a tag on each list row, a line under a session's details, the trophy after its title (as the Leaderboard heading has), and the note when starred. */
@@ -1303,8 +1303,8 @@
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */
   .tp-fav { gap: 6px; }
   .tp-fav .icon { width: 16px; height: 16px; }
-  .tp-fav.is-fav .icon { fill: var(--orange, #e8542a); stroke: var(--orange-text, var(--orange, #e8542a)); }
-  .tp-fav.is-fav { border-color: var(--orange, #e8542a); color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-fav.is-fav .icon { fill: var(--orange, #e8542a); stroke: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
+  .tp-fav.is-fav { border-color: var(--orange, #e8542a); color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   @media (max-width: 780px) { .tp-fav span { display: none; } .tp-fav { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; } }
 </style>
 

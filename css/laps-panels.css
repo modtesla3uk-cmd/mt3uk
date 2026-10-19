@@ -8,7 +8,7 @@
   @media (min-width: 640px) { .lh-grid { grid-template-columns: 1fr 1fr; } }
   @media (min-width: 900px) { .lh-grid.lh-4 { grid-template-columns: repeat(4, 1fr); } .lh-grid.lh-3 { grid-template-columns: repeat(3, 1fr); } }
   .lh-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; align-content: start; }
-  .lh-card .icon { width: 28px; height: 28px; color: var(--orange-text, var(--orange, #e8542a)); }
+  .lh-card .icon { width: 28px; height: 28px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .lh-card h3 { margin: 0; font-size: 1rem; }
   .lh-card p { color: var(--ink-2); font-size: 0.93rem; }
   .lh-timers { display: flex; flex-wrap: wrap; gap: 8px; }

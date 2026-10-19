@@ -1,7 +1,7 @@
 /* Laps strips on MT3UK pages (js/laps-strip.js): a track's live Laps data, and More tracks on Laps. */
 .laps-strip { margin: 16px 0 34px; padding: 14px 16px 16px; background: #fff; border: 1px solid var(--hairline); border-left: 4px solid var(--ink, #16233d); border-radius: var(--radius); display: grid; gap: 10px; font-family: var(--font-body); }
 .ls-head { display: flex; align-items: center; gap: 8px; color: var(--ink); }
-.ls-head .icon { width: 20px; height: 20px; color: var(--orange-text, var(--orange, #e8542a)); }
+.ls-head .icon { width: 20px; height: 20px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 .ls-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .ls-rows a { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px 8px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: #f8f7f3; color: var(--ink); text-decoration: none; }
 .ls-rows a:hover { border-color: var(--hairline-strong); }

@@ -51,7 +51,7 @@ nav {
   line-height: 1;
 }
 .navlinks a:hover { opacity: 0.65; }
-.navlinks a.active { color: var(--orange-text, var(--orange, #e8542a)); }
+.navlinks a.active { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 .nav-item { position: relative; display: flex; align-items: center; }
 .nav-dropdown {
   display: none;
@@ -126,7 +126,7 @@ nav {
   display: block;
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--orange-text, var(--orange, #e8542a));
+  color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
 }
 .nav-search-result-title { display: block; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
 .nav-search-result-desc { display: block; font-size: 0.78rem; color: var(--steel); margin-top: 2px; }
@@ -290,7 +290,7 @@ nav {
 /* Comment alert beside My Garage */
 .nav-comment-alert {
   display: inline-flex; align-items: center; gap: 4px;
-  color: var(--orange-text, var(--orange, #e8542a));
+  color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000));
 }
 .nav-comment-alert-icon {
   display: inline-flex; align-items: center; justify-content: center;
@@ -400,11 +400,11 @@ nav {
 .nav-bell-item { display: block; padding: 10px 14px; border-bottom: 1px solid color-mix(in srgb, var(--ink, #16233d) 8.0%, transparent); text-decoration: none; color: var(--ink); }
 .nav-bell-item:hover { background: color-mix(in srgb, var(--ink, #16233d) 5.0%, transparent); }
 .nav-bell-item.is-unread { background: #fdf3ec; }
-.nav-bell-item-name { display: block; font-size: 0.8rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); }
+.nav-bell-item-name { display: block; font-size: 0.8rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 .nav-bell-item-text { display: block; font-size: 0.84rem; margin-top: 2px; overflow-wrap: anywhere; }
 .nav-bell-item-date { display: block; font-size: 0.74rem; color: var(--steel); margin-top: 4px; }
 .nav-bell-empty { margin: 0; padding: 16px 14px; font-size: 0.84rem; color: var(--steel); }
-.nav-bell-all { display: block; padding: 10px 14px; font-size: 0.84rem; font-weight: 600; color: var(--orange-text, var(--orange, #e8542a)); text-decoration: none; }
+.nav-bell-all { display: block; padding: 10px 14px; font-size: 0.84rem; font-weight: 600; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); text-decoration: none; }
 .nav-bell-all:hover { text-decoration: underline; }
 .nav-bell-signin { padding: 16px; }
 .nav-bell-signin p { margin: 0 0 12px; font-size: 0.88rem; line-height: 1.5; color: var(--ink); }
@@ -421,7 +421,7 @@ nav {
   .nav-bell-panel { position: fixed; top: 64px; left: 16px; right: 16px; width: auto; max-width: none; }
 }
 .nav-bell-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.nav-bell-clear-all { background: none; border: 0; padding: 0; font: inherit; color: var(--orange-text, var(--orange, #e8542a)); cursor: pointer; text-decoration: underline; text-transform: none; letter-spacing: 0; }
+.nav-bell-clear-all { background: none; border: 0; padding: 0; font: inherit; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); cursor: pointer; text-decoration: underline; text-transform: none; letter-spacing: 0; }
 .nav-bell-row { position: relative; }
 .nav-bell-row .nav-bell-item { padding-right: 40px; }
 .nav-bell-dismiss {
@@ -490,7 +490,7 @@ a.back-link[hidden] { display: none; }
   .page-hero .wrap:has(> a.back-link:not([hidden])) > h1 + * { margin-top: 12px; }
 }
 a.back-link:hover, .page-hero a.back-link:hover { background: #ffffff; border-color: var(--ink); color: var(--ink); }
-a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2.4; }
+a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width: 2.4; }
 .btn-ghost { background: transparent; color: var(--ink); padding-inline: 10px; }
 .btn-ghost:hover { background: color-mix(in srgb, var(--ink, #16233d) 6.0%, transparent); }
 .btn-danger { background: #ffffff; color: var(--c-orange-deep, #b8361a); border-color: rgba(184, 54, 26, 0.35); }
@@ -530,7 +530,7 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, var(
 .laps-logo-by { align-self: flex-end; padding-bottom: 3px; }
 /* "Early preview" in small writing above the Laps logo in the header (partials/laps-header.html). Take it off when Laps opens to everyone. */
 .laps-logo:has(> .laps-logo-early) { position: relative; }
-.laps-logo-early { position: absolute; left: 0; bottom: 100%; margin-bottom: 3px; white-space: nowrap; font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; line-height: 1; color: var(--orange-text, var(--orange, #e8542a)); }
+.laps-logo-early { position: absolute; left: 0; bottom: 100%; margin-bottom: 3px; white-space: nowrap; font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; line-height: 1; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 .laps-logo-name { font-family: var(--font-head); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
 .laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
 .logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }
@@ -550,7 +550,7 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, var(
 .laps-tip { margin: 14px 0 18px; padding: 0; background: #fff7ee; border-color: #f3cfae; overflow: hidden; }
 .laps-tip-head { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 10px 14px; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
 .laps-tip-head:hover { background: rgba(232,86,42,.06); }
-.laps-tip-bulb { flex: none; width: 24px; height: 24px; color: var(--orange-text, var(--orange, #e8542a)); }
+.laps-tip-bulb { flex: none; width: 24px; height: 24px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
 .laps-tip-head b { flex: 1 1 auto; }
 .laps-tip-chev { flex: none; width: 20px; height: 20px; color: var(--steel); transition: transform .15s; }
 .laps-tip.is-closed .laps-tip-chev { transform: rotate(-90deg); }

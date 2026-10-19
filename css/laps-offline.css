@@ -50,7 +50,7 @@
 .nav-offline:hover { opacity: 0.8; }
 .nav-offline[hidden] { display: none; }
 .nav-offline[aria-checked="true"] { color: #2e9d4a; }
-.nav-offline.is-offline[aria-checked="false"] { color: var(--orange, var(--orange-text, var(--orange, #e8542a))); }
+.nav-offline.is-offline[aria-checked="false"] { color: var(--orange, var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000))); }
 .nav-offline:disabled { cursor: progress; opacity: 0.45; }
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 @media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }

@@ -116,7 +116,7 @@
   /* ---------- PAGE HERO ---------- */
   .page-hero { padding: 40px 0 28px; border-bottom: 1px solid var(--hairline); }
   .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: var(--steel); margin-bottom: 16px; }
-  .page-hero .back-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .page-hero .back-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
@@ -135,10 +135,10 @@
   .tp-sub { color: var(--steel); font-size: 0.92rem; margin: 4px 0 12px; max-width: 64ch; }
   .tp-small { color: var(--steel); font-size: 0.8rem; margin-top: 8px; }
   .tp-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; font-size: 0.9rem; }
-  .tp-link:hover { color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-link:hover { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px; margin-bottom: 14px; background: #ffffff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2; text-decoration: none; }
   .tp-back:hover { border-color: var(--ink); color: var(--ink); }
-  .tp-back .icon { width: 18px; height: 18px; color: var(--orange-text, var(--orange, #e8542a)); stroke-width: 2.4; }
+  .tp-back .icon { width: 18px; height: 18px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width: 2.4; }
   .tp-units { flex: none; }
   .card { padding: 16px; }
   .tp-intro { padding: 22px; display: grid; gap: 12px; justify-items: start; }
@@ -147,7 +147,7 @@
   .tp-ticks li { display: flex; gap: 8px; align-items: center; font-size: 0.94rem; }
   .tp-ticks .icon { color: var(--ok-ink); }
   .tp-empty { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: var(--steel); }
-  .tp-empty .icon { color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-empty .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-empty p { flex: 1; min-width: 200px; }
   .tp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip-sm { min-height: 32px; padding: 4px 11px; font-size: 0.8rem; }
@@ -185,7 +185,7 @@
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
   .tp-drop.is-over { border-color: var(--orange, #e8542a); background: var(--c-peach, #fdf3ef); }
-  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, var(--orange, #e8542a)); }
+  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-drop small { color: var(--steel); }
   .tp-file { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
   .tp-file .icon { color: var(--ok-ink); }
@@ -271,7 +271,7 @@
   .tp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .tp-notes { display: grid; gap: 10px; align-content: start; }
   .tp-note { display: flex; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .tp-note > .icon { color: var(--orange-text, var(--orange, #e8542a)); margin-top: 2px; }
+  .tp-note > .icon { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); margin-top: 2px; }
   .tp-note p { font-size: 0.92rem; color: var(--ink); }
   .tp-note small { display: block; color: var(--steel); font-size: 0.8rem; margin-top: 3px; }
   .tp-cmp-pick { margin-bottom: 14px; }

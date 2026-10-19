@@ -347,12 +347,12 @@ nav {
   nav:has(.laps-logo) { gap: 4px; }
   .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }
-  /* The Laps wordmark is a little smaller so the bell never touches "by MT3UK". */
+  /* The Laps wordmark is sized so the bell never touches "by MT3UK" (the header icons take the rest of the row). */
   .nav-center:has(> .laps-logo) { margin-right: 20px; }
   .logo.laps-logo { gap: 6px; }
-  .logo.laps-logo .laps-logo-mark { width: 24px; height: 24px; }
-  .logo.laps-logo .laps-logo-name { font-size: 1.2rem; }
-  .logo.laps-logo .laps-logo-by { font-size: 0.68rem; }
+  .logo.laps-logo .laps-logo-mark { width: 30px; height: 30px; }
+  .logo.laps-logo .laps-logo-name { font-size: 1.45rem; }
+  .logo.laps-logo .laps-logo-by { font-size: 0.76rem; }
 }
 /* Phones up to 380px wide have no room for "by MT3UK" beside the header icons (the wordmark is still Laps). */
 @media (max-width: 380px) { .logo.laps-logo .laps-logo-by { display: none; } }

@@ -21,6 +21,15 @@
   var SAMPLE_SPEED = [0.6, 1.3];
   // The recording is quieter than the tones at the same setting, so it gets its own gain.
   var SAMPLE_GAIN = 2.5;
+  // The recording is played as short overlapping grains taken from random places in it, so it does not repeat in a fixed
+  // cycle. A grain lasts GRAIN_LEN seconds, a new one starts every GRAIN_EVERY seconds, and they are queued GRAIN_AHEAD
+  // seconds ahead of the clock.
+  var GRAIN_LEN = 0.35, GRAIN_EVERY = 0.07, GRAIN_AHEAD = 0.15;
+  var GRAIN_CURVE = (function () {
+    var n = 64, c = new Float32Array(n);
+    for (var i = 0; i < n; i++) c[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1));
+    return c;
+  })();
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   // The distortion curve: a tanh bend, scaled so the full-scale input stays at full scale.
@@ -54,7 +63,9 @@
     this.lfo = null;
     this.s = merge(settings);
     this.timer = 0;
-    this.src = null;
+    this.grain = null;
+    this.nextGrain = 0;
+    this.rate = SAMPLE_SPEED[0];
     this.buffer = null;
     this.bytes = fetch(SAMPLE_URL).then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; });
     if (settings) { this.ready = Promise.resolve(this.s); return; }
@@ -122,15 +133,30 @@
     }).catch(function () {});
   };
   Engine.prototype.attachSample = function () {
-    if (this.src || !this.buffer || !this.ctx) return;
-    var src = this.ctx.createBufferSource();
-    src.buffer = this.buffer;
-    src.loop = true;
-    src.playbackRate.value = SAMPLE_SPEED[0];
-    src.connect(this.sampleGain);
-    src.start();
-    this.src = src;
+    if (this.grain || !this.buffer || !this.ctx) return;
+    this.nextGrain = this.ctx.currentTime;
     this.synthGain.gain.value = 0;
+    this.scheduleGrains();
+    this.grain = setInterval(this.scheduleGrains.bind(this), GRAIN_EVERY * 1000);
+  };
+  // Queues the grains that start before the next scheduling pass. Each takes its pitch from the current rate, so the
+  // sound follows the speed as the playback moves.
+  Engine.prototype.scheduleGrains = function () {
+    var ctx = this.ctx, buf = this.buffer;
+    if (!ctx || ctx.state === 'closed') { if (this.grain) clearInterval(this.grain); this.grain = null; return; }
+    if (!buf) return;
+    var limit = ctx.currentTime + GRAIN_AHEAD;
+    if (this.nextGrain < ctx.currentTime) this.nextGrain = ctx.currentTime;
+    while (this.nextGrain < limit) {
+      var at = this.nextGrain, rate = this.rate, span = GRAIN_LEN * rate;
+      var src = ctx.createBufferSource(), env = ctx.createGain();
+      src.buffer = buf;
+      src.playbackRate.value = rate;
+      src.connect(env).connect(this.sampleGain);
+      env.gain.setValueCurveAtTime(GRAIN_CURVE, at, GRAIN_LEN);
+      src.start(at, Math.random() * Math.max(0, buf.duration - span), span);
+      this.nextGrain += GRAIN_EVERY;
+    }
   };
   Engine.prototype.tone = function (ratio, level) {
     var ctx = this.ctx, osc = ctx.createOscillator(), g = ctx.createGain();
@@ -155,7 +181,7 @@
     this.oscs.forEach(function (o) { o.osc.frequency.setTargetAtTime(f * o.ratio, now, tc); });
     this.filter.frequency.setTargetAtTime(CUT_IDLE + (CUT_TOP - CUT_IDLE) * frac, now, tc);
     if (this.lfo) this.lfo.frequency.setTargetAtTime(f * s.pulseRatio, now, tc);
-    if (this.src) this.src.playbackRate.setTargetAtTime(SAMPLE_SPEED[0] + (SAMPLE_SPEED[1] - SAMPLE_SPEED[0]) * frac, now, tc);
+    this.rate = SAMPLE_SPEED[0] + (SAMPLE_SPEED[1] - SAMPLE_SPEED[0]) * frac;
     // The recording's level follows the speed closely (squared), so it swells as the car gets quicker and falls away as it slows.
     if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(SAMPLE_GAIN * (0.1 + 0.9 * frac * frac), now, tc);
     // Quiet at a standstill, fuller as the car gets quicker

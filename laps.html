@@ -419,7 +419,8 @@
     .lh-reel.is-skipped .lh-reel-box { display: none; }
     .lh-hero .wrap { gap: 14px; }
     .lh-copy { display: contents; }
-    .lh-reel { order: 1; width: min(100%, 260px); }
+    .lh-reel { order: 1; width: min(100%, 340px); }
+    .lh-reel-video.is-playing { filter: url(#lh-reel-fix); }
     .lh-copy > p:first-of-type { order: 2; }
     .lh-copy > #lh-actions { order: 3; }
     .lh-copy > .lh-evs { order: 4; }
@@ -518,6 +519,7 @@
         <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
     </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="lh-reel-fix" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.3 0 0 0 0  0 1.09 0 0 0  0 0 0.96 0 0  0 0 0 1 0"/></filter></svg>
     <figure class="lh-reel">
       <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button></div>
       <div class="lh-reel-box" id="lh-reel-box">
@@ -525,7 +527,13 @@
       <figcaption>Tap play to watch with sound. Laps in 25 seconds, on a made-up circuit with example data.</figcaption>
       </div>
     </figure>
-    <script>document.querySelector('.lh-reel-video').volume = 0.4;</script>
+    <script>
+      (function () {
+        var v = document.querySelector('.lh-reel-video');
+        v.volume = 0.4;
+        v.addEventListener('playing', function () { v.classList.add('is-playing'); });
+      })();
+    </script>
     <script>
       (function () {
         var reel = document.querySelector('.lh-reel'), btn = document.getElementById('lh-reel-skip'), vid = reel.querySelector('video');

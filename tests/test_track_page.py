@@ -7931,6 +7931,31 @@ def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page
     assert not errors, errors
 
 
+def test_on_a_phone_on_its_side_the_speed_and_g_meter_sit_at_the_bottom_of_the_map_and_the_figures_are_big(page):
+    """Full screen on a phone on its side (charts off): the G meter sits at the bottom left of the map, the speed figures at the
+    bottom right and big, the lap times top left, and the controls rest bottom centre."""
+    page.set_viewport_size({"width": 844, "height": 390})
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    page.locator("#tp-gshow").click()  # the charts off, as on the phone screen
+    if page.locator("#tp-fold").text_content().strip() == "More":
+        page.locator("#tp-fold").click()
+    expect(page.locator("#tp-speed-read")).to_be_visible()
+    wrap = page.locator("#tp-mapwrap").bounding_box()
+    speed = page.locator("#tp-speed-read").bounding_box()
+    meter = page.locator("#tp-gmeter").bounding_box()
+    lap = page.locator("#tp-laptimes").bounding_box()
+    play = page.locator("#tp-play").bounding_box()
+    centre = wrap["x"] + wrap["width"] / 2
+    assert speed["x"] > centre and wrap["y"] + wrap["height"] - (speed["y"] + speed["height"]) < 20, (speed, wrap)
+    assert meter["x"] < centre and wrap["y"] + wrap["height"] - (meter["y"] + meter["height"]) < 20, (meter, wrap)
+    assert lap["y"] < wrap["y"] + wrap["height"] / 2, (lap, wrap)
+    assert abs((play["x"] + play["width"] / 2) - centre) < 12, (play, wrap)
+    size = page.evaluate("getComputedStyle(document.querySelector('#tp-speed-vals .tp-spd b')).fontSize")
+    assert float(size[:-2]) >= 24, size
+
+
 def test_a_track_overview_shows_the_whole_lap_and_both_cars_when_zoomed_in(page):
     """A small overview shows the whole track and both cars, in full screen (the whole track when the map is not zoomed in).
     It is not in the normal view, on a desktop or a phone."""

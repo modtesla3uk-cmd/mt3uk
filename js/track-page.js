@@ -4705,7 +4705,7 @@
     var gm = document.getElementById('tp-gmeter'), wrap = document.getElementById('tp-mapwrap'), speedBox = document.getElementById('tp-speed-read');
     if (!gm || !wrap || !speedBox) return;
     if (!speedBox.__home) { speedBox.__home = speedBox.parentNode; speedBox.__next = speedBox.nextSibling; }
-    var onMap = cmpFull && landFull() && window.matchMedia('(min-width: 1000px) and (min-height: 501px)').matches;
+    var onMap = cmpFull && landFull();
     if (onMap) {
       if (gm.parentNode !== wrap) wrap.appendChild(gm);
       if (speedBox.parentNode !== wrap) wrap.appendChild(speedBox);

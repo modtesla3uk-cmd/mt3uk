@@ -729,20 +729,46 @@
     .tp-lt-row span { font-size: .9rem; }
     .tp-lt-row b { font-size: 1.4rem; }
   }
+  /* In the wide full screen (a desktop, or a phone on its side) the G meter, the lap times, the overview and the speed box sit
+     on the map: the meter and the speed box along the bottom, the lap times top left (placeGMeter in js/track-page.js moves them). */
+  #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: auto; right: 330px; top: auto; bottom: 34px; width: 140px; }
+  #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 10px; right: auto; bottom: 34px; width: 240px; height: 240px; }
+  #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { left: 10px; bottom: auto; top: 96px; width: 240px; }
+  /* The speed box on the map, bottom right: the lap's speed big, the other lap beside it, as on the VBOX mock-up. */
+  #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { position: absolute; left: auto; right: 10px; top: auto; bottom: 34px; z-index: 3; margin: 0; padding: 8px 14px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); color: #ffffff; text-shadow: none; font-size: 1.1rem; align-items: flex-end; gap: 16px; pointer-events: none; }
+  #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read #tp-speed-vals { gap: 16px; align-items: flex-end; }
+  #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 3rem; line-height: 1; }
+  #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1.5rem; }
+  #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: 0.9rem; }
   @media (min-width: 1000px) {
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: auto; right: 330px; top: auto; bottom: 34px; width: 140px; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-gm-read { font-size: 0.9rem; }
-    #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 10px; right: auto; bottom: 34px; width: 240px; height: 240px; }
-    #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { left: 10px; bottom: auto; top: 96px; width: 240px; }
-    /* The speed box on the map, bottom right: the lap's speed big, the other lap beside it, as on the VBOX mock-up. */
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { position: absolute; left: auto; right: 10px; top: auto; bottom: 34px; z-index: 3; margin: 0; padding: 8px 14px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); color: #ffffff; text-shadow: none; font-size: 1.1rem; align-items: flex-end; gap: 16px; pointer-events: none; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read #tp-speed-vals { gap: 16px; align-items: flex-end; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 3rem; line-height: 1; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1.5rem; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: 0.9rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-now b { font-size: 2.8rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row span { font-size: 1rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row b { font-size: 1.7rem; }
+  }
+  /* A phone on its side in full screen: the same places, smaller. The controls rest bottom centre (until they are moved), so the
+     G meter and the speed box have the bottom corners, and the overview sits above the speed box. */
+  @media (max-height: 500px) {
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: 10px; right: auto; bottom: 10px; width: 112px; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-overview { right: 10px; left: auto; bottom: 92px; width: 96px; height: 96px; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { top: 96px; bottom: auto; left: 10px; width: 124px; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-now b { font-size: 1.2rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row span { font-size: .66rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row b { font-size: .9rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { bottom: 10px; right: 10px; padding: 4px 8px; gap: 8px; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals { gap: 8px; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 1.6rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: .7rem; }
+    /* The G meter gets the dark green box on a phone, so its rings read over the imagery. */
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { background: rgba(13, 59, 51, .92); border-radius: var(--radius-sm); padding: 4px 6px; }
+    /* The numbered corners are left off the map on a phone on its side (they crowd the speed and the meter). */
+    #tp-mapcard.is-full[data-layout="wide"] #tp-map2 g:has(> circle[r="11"]) { display: none; }
+    /* With the charts off the controls rest bottom centre; with them on they stay under the map, so the meter and the figures lift above them. */
+    #tp-mapcard.is-full[data-layout="wide"]:not(.has-charts):not([data-pn="on"]) .tp-play { left: 50%; right: auto; transform: translateX(-50%); width: min(360px, 52%); }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mapwrap > #tp-speed-read { bottom: 124px; }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mini { display: none; }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mapwrap > #tp-gmeter { left: auto; right: 130px; bottom: 124px; }
   }
   /* The speed figures, the G meter, the lap times and the overview only show in full screen, on a phone and on a desktop. The
      map and the charts are all there is otherwise. */
@@ -1643,7 +1669,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=5"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271201" defer></script>
+<script src="js/track-page.js?v=20271202" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

@@ -5295,8 +5295,9 @@
         ['a', 'b'].forEach(function (k) {
           var g = document.createElementNS(NS, 'g'), d = document.createElementNS(NS, 'circle');
           g.setAttribute('id', 'tp-mini-' + k);
-          d.setAttribute('fill', k === 'a' ? c1 : c2);
-          d.setAttribute('stroke', '#ffffff');
+          // Lap A is a filled dot; lap B is a ring round it, so both show when the cars are on top of each other.
+          d.setAttribute('fill', k === 'a' ? c1 : 'none');
+          d.setAttribute('stroke', k === 'a' ? '#ffffff' : c2);
           g.appendChild(d);
           svg.appendChild(g);
         });
@@ -5319,8 +5320,8 @@
           mg.setAttribute('transform', 'translate(' + m[1] + ' ' + m[2] + ')');
           var d = mg.firstChild;
           // Big enough to pick out on the overview: about 11 pixels across, with a white outline 2 pixels wide.
-          d.setAttribute('r', (W / 22).toFixed(1));
-          d.setAttribute('stroke-width', '2');
+          d.setAttribute('r', (k === 'a' ? W / 22 : W / 15).toFixed(1));
+          d.setAttribute('stroke-width', k === 'a' ? '2' : '3');
         });
       }
       function renderAt(t) {

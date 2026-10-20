@@ -278,6 +278,8 @@ def test_skip_intro_collapses_the_video_so_the_page_moves_up_and_show_intro_brin
     """Skip intro sits above the video and collapses it, so the words and buttons move up; Show intro brings it back."""
     page.set_viewport_size({"width": 390, "height": 844})
     open_home(page)
+    heading = page.locator(".lh-hero h1")
+    assert heading.bounding_box()["width"] <= 1, "the heading is hidden while the intro plays"
     box = page.locator("#lh-reel-box")
     actions = page.locator("#lh-actions")
     expect(box).to_be_visible()
@@ -286,6 +288,8 @@ def test_skip_intro_collapses_the_video_so_the_page_moves_up_and_show_intro_brin
     expect(box).to_be_hidden()
     expect(page.locator("#lh-reel-skip")).to_have_text("Show intro")
     expect(page.locator("#lh-reel-skip")).to_have_attribute("aria-expanded", "false")
+    expect(heading).to_be_visible()
+    assert heading.bounding_box()["width"] > 100, "with the intro skipped the heading shows"
     assert actions.bounding_box()["y"] < before, "the page moves up once the video is skipped"
     page.locator("#lh-reel-skip").click()
     expect(box).to_be_visible()

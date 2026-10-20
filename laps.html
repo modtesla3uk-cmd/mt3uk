@@ -410,6 +410,8 @@
   .lh-reel { margin: 0; justify-self: center; width: min(100%, 380px); }
   .lh-reel-video { display: block; width: 100%; height: auto; aspect-ratio: 9 / 16; object-fit: cover; object-position: 50% 50%; border-radius: 0; background: var(--ink, #0d3b33); border: 0; box-shadow: none; }
   .lh-reel figcaption { margin: 8px 0 0; font-size: 0.82rem; color: #b9c0cf; text-align: center; }
+  /* Full screen shows the whole frame, not the cropped card: the cover crop above is for the small card only. */
+  .lh-reel-video:fullscreen, .lh-reel-video:-webkit-full-screen { object-fit: contain; }
   .lh-reel-bar { display: none; justify-content: flex-start; margin: 0 0 8px; }
   .lh-skip { min-height: 36px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 0.88rem/1 var(--font-body, sans-serif); cursor: pointer; }
   .lh-skip:hover { background: rgba(255,255,255,.1); border-color: #fff; }
@@ -420,7 +422,10 @@
     .lh-hero .wrap { gap: 14px; }
     .lh-copy { display: contents; }
     .lh-reel { order: 1; width: min(100%, 260px); }
+    .lh-copy > h1 { order: 1; }
     .lh-copy > p:first-of-type { order: 2; }
+    /* With the intro skipped the heading shows as a heading, under the Show intro button */
+    .lh-hero.is-skipped .lh-copy > h1.lh-sr { position: static; width: auto; height: auto; margin: 0 0 12px; padding: 0; overflow: visible; clip: auto; white-space: normal; border: 0; }
     .lh-copy > #lh-actions { order: 3; }
     .lh-copy > .lh-evs { order: 4; }
     .lh-copy > #lh-note { order: 5; }
@@ -533,10 +538,11 @@
     </script>
     <script>
       (function () {
-        var reel = document.querySelector('.lh-reel'), btn = document.getElementById('lh-reel-skip'), vid = reel.querySelector('video');
+        var reel = document.querySelector('.lh-reel'), hero = document.querySelector('.lh-hero'), btn = document.getElementById('lh-reel-skip'), vid = reel.querySelector('video');
         btn.addEventListener('click', function () {
           var skip = !reel.classList.contains('is-skipped');
           reel.classList.toggle('is-skipped', skip);
+          hero.classList.toggle('is-skipped', skip);
           btn.textContent = skip ? 'Show intro' : 'Skip intro';
           btn.setAttribute('aria-expanded', String(!skip));
           if (skip) vid.pause();

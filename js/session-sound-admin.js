@@ -26,7 +26,7 @@
   ];
   // Presets fill the sliders above. Save puts the filled-in settings on the site.
   var PRESETS = [
-    { label: 'As built (F2)', values: { pitch: 1, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 } },
+    { label: 'Default (built in)', values: { pitch: 1, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 } },
     { label: 'A step softer (F1)', values: { pitch: 1, bassDrive: 3, growl: 1.2, growlDrive: 6, rasp: 0.07, wobble: 0.35, volume: 90 } },
     { label: 'Octave down', values: { pitch: 0.5, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 } },
     { label: 'Heavier', values: { pitch: 1, bassDrive: 8, growl: 1.6, growlDrive: 11, rasp: 0.15, wobble: 0.7, volume: 95 } }
@@ -74,7 +74,7 @@
     lab.appendChild(hint);
     controls.appendChild(lab);
     inputs[row.key] = { input: input, out: out };
-    input.addEventListener('input', function () { out.textContent = String(Number(input.value)); say(''); });
+    input.addEventListener('input', function () { out.textContent = String(Number(input.value)); say(''); showPreset(read()); });
   });
 
   function read() {
@@ -89,6 +89,28 @@
       it.input.value = String(s[row.key]);
       it.out.textContent = String(Number(it.input.value));
     });
+    showPreset(s);
+  }
+  // The preset whose values the settings match, if any (the first one listed when two match)
+  function presetName(s) {
+    var hit = null;
+    PRESETS.forEach(function (p) {
+      var same = Object.keys(p.values).every(function (k) { return Math.abs(Number(s[k]) - p.values[k]) < 1e-6; });
+      if (same && !hit) hit = p;
+    });
+    return hit;
+  }
+  // Says which preset the sliders are on, and marks its button, so the admin can see what Save puts on the site
+  var current = null, presetBtns = [];
+  function showPreset(s) {
+    if (!current) return;
+    var hit = presetName(s);
+    current.textContent = hit ? 'Using the ' + hit.label + ' preset.' : 'Using custom settings, not a preset.';
+    presetBtns.forEach(function (b) {
+      var on = b.preset === hit;
+      b.setAttribute('aria-pressed', String(on));
+      b.style.fontWeight = on ? '700' : '';
+    });
   }
 
   // The preset buttons sit above the sliders. A press fills the sliders in; nothing is saved until Save.
@@ -102,12 +124,18 @@
     b.type = 'button';
     b.className = 'btn btn-secondary btn-sm';
     b.textContent = preset.label;
+    b.preset = preset;
+    presetBtns.push(b);
     b.addEventListener('click', function () {
       fill(preset.values);
       say('Filled in the ' + preset.label.toLowerCase() + ' preset. Hear it, then Save to put it on the site.');
     });
     presets.appendChild(b);
   });
+  current = document.createElement('p');
+  current.className = 'ss-current';
+  current.style.margin = '0 0 4px';
+  controls.parentNode.insertBefore(current, controls);
   controls.parentNode.insertBefore(presets, controls);
 
   function load() {
@@ -140,11 +168,11 @@
     }).catch(function () { saveBtn.disabled = false; say('Could not reach the server.', true); });
   });
   resetBtn.addEventListener('click', function () {
-    if (!window.confirm('Use the built-in session sound again?')) return;
+    if (!window.confirm('Put the default settings back on the site? Sessions will use the built-in sound again.')) return;
     call('POST', '/sound/session/admin', { reset: true }).then(function (d) {
       if (!d.success) { say(d.message || 'Could not reset it.', true); return; }
       fill({});
-      say('Reset to the built-in sound.');
+      say('The default settings are back on the site. Sliders show them now.');
     }).catch(function () { say('Could not reach the server.', true); });
   });
 })();

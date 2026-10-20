@@ -1362,25 +1362,64 @@ def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_th
     expect(sub.locator("a", has_text="Session playback sound")).to_have_count(1)
 
 
+def test_admin_session_sound_default_fills_the_sliders_and_reset_puts_it_back_on_the_site(page):
+    """Default (built in) fills the sliders with the default settings without saving anything. Put the default back on the site
+    saves the default (a reset) and the sliders show it."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def session_admin(route):
+        settings = {}
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data or "{}")
+            posted.append(body)
+            settings = {} if body.get("reset") else dict(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/session/admin**", session_admin)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#session-sound-wrap summary").click()
+    page.locator("#session-sound-wrap .ss-presets button", has_text="Octave down").click()
+    page.locator("#session-sound-wrap .ss-presets button", has_text="Default (built in)").click()
+    expect(page.locator("#ss-controls .snd-row output").first).to_have_text("1")
+    expect(page.locator("#session-sound-wrap .ss-current")).to_have_text("Using the Default (built in) preset.")
+    assert posted == [], posted
+    page.locator("#ss-reset").click()
+    expect(page.locator("#ss-note")).to_contain_text("default settings are back on the site")
+    assert posted == [{"reset": True}], posted
+    expect(page.locator("#session-sound-wrap .ss-current")).to_have_text("Using the Default (built in) preset.")
+
+
 def test_admin_session_sound_presets_fill_the_sliders_and_save_nothing_until_saved(page):
     """The presets above the sliders fill them in (Octave down lowers the pitch to 0.5), and nothing is sent until Save."""
     cors = {"Access-Control-Allow-Origin": "*"}
     posted = []
 
     def session_admin(route):
+        settings = {}
         if route.request.method == "POST":
-            posted.append(json.loads(route.request.post_data or "{}"))
-        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+            settings = json.loads(route.request.post_data or "{}")
+            posted.append(settings)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": settings}), headers=cors)
 
     open_admin(page, "track-admin.html")
     page.route("**/sound/session/admin**", session_admin)
     page.locator("#session-sound-wrap summary").click()
     page.locator("#session-sound-wrap .ss-presets button", has_text="Octave down").click()
     expect(page.locator("#ss-controls .snd-row output").first).to_have_text("0.5")
+    expect(page.locator("#session-sound-wrap .ss-current")).to_have_text("Using the Octave down preset.")
+    expect(page.locator("#session-sound-wrap .ss-presets button", has_text="Octave down")).to_have_attribute("aria-pressed", "true")
     assert posted == [], posted
     page.locator("#ss-save").click()
     expect(page.locator("#ss-note")).to_contain_text("Saved")
     assert len(posted) == 1 and posted[0]["pitch"] == 0.5 and posted[0]["growlDrive"] == 9, posted
+    expect(page.locator("#session-sound-wrap .ss-current")).to_have_text("Using the Octave down preset.")
+    # Moving one slider takes the sliders off the presets, and the line says so
+    page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[5];
+        r.value = '0.2'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(page.locator("#session-sound-wrap .ss-current")).to_have_text("Using custom settings, not a preset.")
+    expect(page.locator("#session-sound-wrap .ss-presets button", has_text="Octave down")).to_have_attribute("aria-pressed", "false")
 
 
 LINES_API = "**/track/lines/admin**"

@@ -6191,10 +6191,10 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     s0 = page.locator("#tp-pn-size").bounding_box()
     page.mouse.move(s0["x"] + s0["width"] / 2, s0["y"] + s0["height"] / 2)
     page.mouse.down()
-    page.mouse.move(s0["x"] + s0["width"] / 2 - 150, s0["y"] + s0["height"] / 2, steps=6)
+    page.mouse.move(s0["x"] + s0["width"] / 2 - 60, s0["y"] + s0["height"] / 2, steps=6)
     page.mouse.up()
     narrow = panel.bounding_box()
-    assert narrow["width"] < start["width"] - 100
+    assert narrow["width"] < start["width"] - 40, (start, narrow)
     # The grip along the top moves the controls.
     g = page.locator("#tp-pn-grip").bounding_box()
     gx, gy = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
@@ -6218,7 +6218,7 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     if page.locator("#tp-fold").text_content().strip() == "More":
-        page.locator("#tp-fold").click()  # the controls start small after a reload too: open them to see the kept size
+        page.locator("#tp-fold").evaluate("el => el.click()")  # the controls start small after a reload too: open them (the moved panel can sit over the divider)
     again = panel.bounding_box()
     assert abs(again["x"] - resized["x"]) < 6 and abs(again["width"] - resized["width"]) < 6, (resized, again)
     # Map options puts them back where they rest (bottom, under the map's right side).

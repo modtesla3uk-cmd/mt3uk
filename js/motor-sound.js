@@ -12,11 +12,13 @@
   // The built-in values, and the range each setting accepts (the worker, cleanSessionSound, uses the same ranges)
   // The defaults are a V8 with an electric whine on top: a low, rich note with grit (drive, a light distortion) and a firing
   // pulse (pulse, how far the volume wobbles, at pulseRatio times the note).
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 900, recTop: 2000, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
+  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 600, recTop: 900, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
   var LIMITS = { f0: [40, 400], fPeak: [60, 1200], harm: [0, 1], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], drive: [0, 10], pulse: [0, 0.9], pulseRatio: [0.25, 1], rateLow: [0.2, 1.5], rateHigh: [0.3, 2.5], recLevel: [0, 6], recLow: [200, 3000], recTop: [500, 6000], recHigh: [20, 400], grainLen: [0.1, 2], grainEvery: [0.01, 0.3], compThreshold: [-60, 0], compRatio: [1, 20] };
   var CUT_IDLE = 900, CUT_TOP = 2000, MASTER = 0.5;
   // The level at which the engine's master gain is 1 (the volume setting divided by this). The default is louder than this.
   var VOLUME_REF = 60;
+  // A fixed lift on top of the level, so the session sound is clearly louder than before (about 8 dB).
+  var SESSION_BOOST = 2.5;
   // The member's level on this device, kept in the browser (0 to 100, all of it by default).
   function savedLevel() { try { var v = parseFloat(localStorage.getItem('mt3ukTrackSoundLevel')); return isFinite(v) ? Math.max(0, Math.min(100, v)) / 100 : 1; } catch (e) { return 1; } }
   // The recorded motor (audio/motor-session.mp3, a 12 second loop of the loud part of the recording), played at a pitch that
@@ -207,7 +209,7 @@
     if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(s.recLevel * (0.1 + 0.9 * frac * frac), now, tc);
     if (this.sampleLow) this.sampleLow.frequency.setTargetAtTime(s.recLow + (s.recTop - s.recLow) * frac, now, tc);
     // Quiet at a standstill, fuller as the car gets quicker
-    this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / VOLUME_REF) * this.level, now, tc);
+    this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / VOLUME_REF) * SESSION_BOOST * this.level, now, tc);
   };
   // The member's own level on this device (0 to 1), scaling the session's level. The slider on the track page sets it.
   Engine.prototype.setLevel = function (v) { this.level = Math.max(0, Math.min(1, v)); };

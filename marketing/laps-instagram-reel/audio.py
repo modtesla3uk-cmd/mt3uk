@@ -1,8 +1,10 @@
 import subprocess, sys
+from pathlib import Path
 import numpy as np
 SR = 44100
 DUR = 25.0
-MOTOR = '/home/user/mt3uk/audio/motor-session.mp3'
+# The motor loop of the first reel (the same sound as the uploaded first reel, kept here so the reel can be rebuilt)
+MOTOR = str(Path(__file__).resolve().parent / 'motor-reel-loop.mp3')
 
 def decode(path):
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', path, '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'],

@@ -5400,12 +5400,13 @@
           if (ch.tagName === 'polyline' && ch.getAttribute('class') !== 'tv-line-edge') svg.appendChild(ch.cloneNode(true));
           else if (ch.tagName === 'g' && ch.getAttribute('class') === 'tv-segs') svg.appendChild(ch.cloneNode(true));
         });
-        ['a', 'b'].forEach(function (k) {
+        // Both cars are the same dot, lap A in its colour and lap B in orange, with the same white outline. Lap A is drawn last, so
+        // it is on top where the two cars meet.
+        ['b', 'a'].forEach(function (k) {
           var g = document.createElementNS(NS, 'g'), d = document.createElementNS(NS, 'circle');
           g.setAttribute('id', 'tp-mini-' + k);
-          // Lap A is a filled dot; lap B is a ring round it, so both show when the cars are on top of each other.
-          d.setAttribute('fill', k === 'a' ? c1 : 'none');
-          d.setAttribute('stroke', k === 'a' ? '#ffffff' : c2);
+          d.setAttribute('fill', k === 'a' ? c1 : c2);
+          d.setAttribute('stroke', '#ffffff');
           g.appendChild(d);
           svg.appendChild(g);
         });
@@ -5431,9 +5432,9 @@
           mg.setAttribute('visibility', 'visible');
           mg.setAttribute('transform', 'translate(' + m[1] + ' ' + m[2] + ')');
           var d = mg.firstChild;
-          // Big enough to pick out on the overview: about 11 pixels across, with a white outline 2 pixels wide.
-          d.setAttribute('r', (k === 'a' ? W / 22 : W / 15).toFixed(1));
-          d.setAttribute('stroke-width', k === 'a' ? '2' : '3');
+          // Big enough to pick out on the overview: about 11 pixels across, with a white outline 2 pixels wide, for both cars.
+          d.setAttribute('r', (W / 22).toFixed(1));
+          d.setAttribute('stroke-width', '2');
         });
       }
       function renderAt(t) {

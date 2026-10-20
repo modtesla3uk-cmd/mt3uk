@@ -1,6 +1,6 @@
 # Laps Instagram reel
 
-A 25 second vertical reel (each slide holds for a second before it goes, so it can be read) (1080 x 1920) for Instagram, with the sound from the motor recording in `audio/motor-session.mp3` and synthesised lap beeps, whooshes and an end-card chime.
+A 25 second vertical reel (each slide holds for a second before it goes, so it can be read) (1080 x 1920) for Instagram, with the sound from the motor recording in `motor-reel-loop.mp3` (the first reel's loop) and synthesised lap beeps, whooshes and an end-card chime.
 
 - `laps-instagram-reel.mp4`: the finished reel, H.264 video and AAC audio.
 - `cover.jpg`: the end card, for the grid cover.

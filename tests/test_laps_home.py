@@ -323,8 +323,9 @@ def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_si
     expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4")
     expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg")
     assert video.get_attribute("loop") is None, "the intro plays once and stops on the end card"
+    assert video.get_attribute("autoplay") is None and video.get_attribute("muted") is None, "the intro waits for a tap, and plays with sound"
     assert page.evaluate("document.querySelector('.lh-reel-video').volume") == 0.4, "the intro starts at a lower volume, and its volume control is the native one"
-    assert page.evaluate("document.querySelector('.lh-reel-video').controlsList.contains('nofullscreen')"), "the intro has no full screen button, so it cannot leave the page"
+    assert not page.evaluate("document.querySelector('.lh-reel-video').controlsList.contains('nofullscreen')"), "the intro can go full screen"
     page.set_viewport_size({"width": 1240, "height": 1000})
     copy = page.locator(".lh-hero .lh-copy").bounding_box()
     reel = page.locator(".lh-hero .lh-reel").bounding_box()

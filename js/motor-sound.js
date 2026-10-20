@@ -12,8 +12,8 @@
   // The built-in values, and the range each setting accepts (the worker, cleanSessionSound, uses the same ranges)
   // The defaults are a V8 with an electric whine on top: a low, rich note with grit (drive, a light distortion) and a firing
   // pulse (pulse, how far the volume wobbles, at pulseRatio times the note).
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, recLevel: 2.5, recTop: 900, recHigh: 80, compThreshold: -32, compRatio: 4 };
-  var LIMITS = { f0: [40, 400], fPeak: [60, 1200], harm: [0, 1], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], drive: [0, 10], pulse: [0, 0.9], pulseRatio: [0.25, 1], recLevel: [0, 6], recTop: [500, 6000], recHigh: [20, 400], compThreshold: [-60, 0], compRatio: [1, 20] };
+  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 600, recTop: 900, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
+  var LIMITS = { f0: [40, 400], fPeak: [60, 1200], harm: [0, 1], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], drive: [0, 10], pulse: [0, 0.9], pulseRatio: [0.25, 1], rateLow: [0.2, 1.5], rateHigh: [0.3, 2.5], recLevel: [0, 6], recLow: [200, 3000], recTop: [500, 6000], recHigh: [20, 400], grainLen: [0.1, 2], grainEvery: [0.01, 0.3], compThreshold: [-60, 0], compRatio: [1, 20] };
   var CUT_IDLE = 900, CUT_TOP = 2000, MASTER = 0.5;
   // The level at which the engine's master gain is 1 (the volume setting divided by this). The default is louder than this.
   var VOLUME_REF = 60;
@@ -21,9 +21,20 @@
   var SESSION_BOOST = 2.5;
   // The member's level on this device, kept in the browser (0 to 100, all of it by default).
   function savedLevel() { try { var v = parseFloat(localStorage.getItem('mt3ukTrackSoundLevel')); return isFinite(v) ? Math.max(0, Math.min(100, v)) / 100 : 1; } catch (e) { return 1; } }
-  // The recorded motor (audio/motor-session.mp3, a 12 second loop of the recording), played as one steady loop at its own pitch.
-  // The speed sets its level only. Until it has loaded, and if it cannot be loaded, the tones below are used.
+  // The recorded motor (audio/motor-session.mp3, a 12 second loop of the loud part of the recording), played at a pitch that
+  // follows the speed. Until it has loaded, and if it cannot be loaded, the tones below are used.
   var SAMPLE_URL = new URL('../audio/motor-session.mp3', document.currentScript ? document.currentScript.src : location.href).href;
+  // The recording is played as short overlapping grains taken from random places in it, so it does not repeat in a fixed
+  // cycle. Its pitch, level, filters, grains and compression are the rateLow to compRatio settings. Grains are queued
+  // GRAIN_AHEAD seconds ahead of the clock.
+  var GRAIN_AHEAD = 0.15;
+  // The fade of one grain. Scaled so the overlapping grains add up to a steady level: a grain's window averages 0.5, so the
+  // scale is 2 over the number of grains sounding at once (grainLen over grainEvery).
+  function grainCurve(len, every) {
+    var n = 64, c = new Float32Array(n);
+    for (var i = 0; i < n; i++) c[i] = (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))) * (2 * every / len);
+    return c;
+  }
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   // The distortion curve: a tanh bend, scaled so the full-scale input stays at full scale.
@@ -58,6 +69,9 @@
     this.s = merge(settings);
     this.timer = 0;
     this.level = 1;
+    this.grain = null;
+    this.nextGrain = 0;
+    this.rate = this.s.rateLow;
     this.buffer = null;
     this.bytes = fetch(SAMPLE_URL).then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; });
     if (settings) { this.ready = Promise.resolve(this.s); return; }
@@ -98,7 +112,7 @@
     sampleHigh.type = 'highpass';
     sampleHigh.frequency.value = this.s.recHigh;
     sampleLow.type = 'lowpass';
-    sampleLow.frequency.value = this.s.recTop;
+    sampleLow.frequency.value = this.s.recLow;
     sampleLow.Q.value = 0.7;
     // A gentle compressor evens out the bursts in the recording, so the sound is steadier from moment to moment.
     var sampleComp = ctx.createDynamicsCompressor();
@@ -109,6 +123,7 @@
     sampleComp.release.value = 0.25;
     sampleHigh.connect(sampleLow).connect(sampleComp).connect(sampleGain);
     this.sampleInput = sampleHigh;
+    this.grainCurve = grainCurve(this.s.grainLen, this.s.grainEvery);
     this.sampleLow = sampleLow;
     sampleGain.connect(out);
     out.connect(ctx.destination);
@@ -140,15 +155,31 @@
       self.attachSample();
     }).catch(function () {});
   };
-  // The recording starts as one steady loop, at its own pitch, once it has loaded (the tones are muted then).
   Engine.prototype.attachSample = function () {
-    if (this.loop || !this.buffer || !this.ctx) return;
-    this.loop = this.ctx.createBufferSource();
-    this.loop.buffer = this.buffer;
-    this.loop.loop = true;
-    this.loop.connect(this.sampleInput);
-    this.loop.start(this.ctx.currentTime);
+    if (this.grain || !this.buffer || !this.ctx) return;
+    this.nextGrain = this.ctx.currentTime;
     this.synthGain.gain.value = 0;
+    this.scheduleGrains();
+    this.grain = setInterval(this.scheduleGrains.bind(this), this.s.grainEvery * 1000);
+  };
+  // Queues the grains that start before the next scheduling pass. Each takes its pitch from the current rate, so the
+  // sound follows the speed as the playback moves.
+  Engine.prototype.scheduleGrains = function () {
+    var ctx = this.ctx, buf = this.buffer;
+    if (!ctx || ctx.state === 'closed') { if (this.grain) clearInterval(this.grain); this.grain = null; return; }
+    if (!buf) return;
+    var limit = ctx.currentTime + GRAIN_AHEAD;
+    if (this.nextGrain < ctx.currentTime) this.nextGrain = ctx.currentTime;
+    while (this.nextGrain < limit) {
+      var at = this.nextGrain, rate = this.rate, span = this.s.grainLen * rate;
+      var src = ctx.createBufferSource(), env = ctx.createGain();
+      src.buffer = buf;
+      src.playbackRate.value = rate;
+      src.connect(env).connect(this.sampleInput);
+      env.gain.setValueCurveAtTime(this.grainCurve, at, this.s.grainLen);
+      src.start(at, Math.random() * Math.max(0, buf.duration - span), span);
+      this.nextGrain += this.s.grainEvery;
+    }
   };
   Engine.prototype.tone = function (ratio, level) {
     var ctx = this.ctx, osc = ctx.createOscillator(), g = ctx.createGain();
@@ -173,8 +204,10 @@
     this.oscs.forEach(function (o) { o.osc.frequency.setTargetAtTime(f * o.ratio, now, tc); });
     this.filter.frequency.setTargetAtTime(CUT_IDLE + (CUT_TOP - CUT_IDLE) * frac, now, tc);
     if (this.lfo) this.lfo.frequency.setTargetAtTime(f * s.pulseRatio, now, tc);
+    this.rate = s.rateLow + (s.rateHigh - s.rateLow) * frac;
     // The recording's level follows the speed closely (squared), so it swells as the car gets quicker and falls away as it slows.
     if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(s.recLevel * (0.1 + 0.9 * frac * frac), now, tc);
+    if (this.sampleLow) this.sampleLow.frequency.setTargetAtTime(s.recLow + (s.recTop - s.recLow) * frac, now, tc);
     // Quiet at a standstill, fuller as the car gets quicker
     this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / VOLUME_REF) * SESSION_BOOST * this.level, now, tc);
   };

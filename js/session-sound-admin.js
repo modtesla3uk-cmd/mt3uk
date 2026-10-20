@@ -14,7 +14,7 @@
   var loaded = false, inputs = {};
 
   // The built-in values and ranges, as in js/motor-sound.js
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, recLevel: 2.5, recTop: 900, recHigh: 80, compThreshold: -32, compRatio: 4 };
+  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 600, recTop: 900, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
   var ROWS = [
     { key: 'f0', label: 'Lowest note (Hz)', min: 40, max: 400, step: 1, hint: 'The note when the car is standing still' },
     { key: 'fPeak', label: 'Highest note (Hz)', min: 60, max: 1200, step: 5, hint: 'The note at the car\'s top speed on the lap' },
@@ -26,9 +26,14 @@
     { key: 'whine', label: 'Whine', min: 0, max: 0.3, step: 0.005, hint: 'The high inverter whine' },
     { key: 'cut', label: 'Top cut (Hz)', min: 400, max: 4000, step: 50, hint: 'Lower is warmer and less shrill' },
     { key: 'volume', label: 'Level (0 to 100)', min: 0, max: 100, step: 5, hint: 'How loud the sound is on a session' },
+    { key: 'rateLow', label: 'Recording pitch, standing still (x)', min: 0.2, max: 1.5, step: 0.05, hint: 'How far the recording is pitched down when the car is still. 1 is its own pitch' },
+    { key: 'rateHigh', label: 'Recording pitch, top speed (x)', min: 0.3, max: 2.5, step: 0.05, hint: 'How far the recording is pitched up at the top speed on the lap' },
     { key: 'recLevel', label: 'Recording level', min: 0, max: 6, step: 0.1, hint: 'How loud the recording is, before the Level above' },
-    { key: 'recTop', label: 'Recording top cut (Hz)', min: 200, max: 6000, step: 50, hint: 'Lower is less hiss and less bite' },
+    { key: 'recLow', label: 'Recording top cut, standing still (Hz)', min: 200, max: 3000, step: 50, hint: 'Lower cuts more of the hiss when the car is still' },
+    { key: 'recTop', label: 'Recording top cut, top speed (Hz)', min: 500, max: 6000, step: 50, hint: 'Lower is less hiss and less bite at top speed' },
     { key: 'recHigh', label: 'Recording rumble cut (Hz)', min: 20, max: 400, step: 5, hint: 'Removes the low wind rumble below this' },
+    { key: 'grainLen', label: 'Grain length (s)', min: 0.1, max: 2, step: 0.05, hint: 'Longer grains blend more smoothly' },
+    { key: 'grainEvery', label: 'Grain spacing (s)', min: 0.01, max: 0.3, step: 0.005, hint: 'How often a new grain starts. Smaller is smoother' },
     { key: 'compThreshold', label: 'Evening out: threshold (dB)', min: -60, max: 0, step: 1, hint: 'The louder parts above this are pulled down' },
     { key: 'compRatio', label: 'Evening out: ratio', min: 1, max: 20, step: 0.5, hint: 'How hard the louder parts are pulled down' }
   ];

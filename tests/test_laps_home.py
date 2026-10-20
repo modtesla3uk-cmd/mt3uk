@@ -274,6 +274,42 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
 
 
 
+def test_skip_intro_collapses_the_video_so_the_page_moves_up_and_show_intro_brings_it_back(page):
+    """Skip intro sits above the video and collapses it, so the words and buttons move up; Show intro brings it back."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    open_home(page)
+    box = page.locator("#lh-reel-box")
+    actions = page.locator("#lh-actions")
+    expect(box).to_be_visible()
+    before = actions.bounding_box()["y"]
+    page.locator("#lh-reel-skip").click()
+    expect(box).to_be_hidden()
+    expect(page.locator("#lh-reel-skip")).to_have_text("Show intro")
+    expect(page.locator("#lh-reel-skip")).to_have_attribute("aria-expanded", "false")
+    assert actions.bounding_box()["y"] < before, "the page moves up once the video is skipped"
+    page.locator("#lh-reel-skip").click()
+    expect(box).to_be_visible()
+    expect(page.locator("#lh-reel-skip")).to_have_text("Skip intro")
+    # Skip intro is for phones: on a desktop there is no skip control, and the video stays beside the words
+    page.set_viewport_size({"width": 1240, "height": 900})
+    expect(page.locator("#lh-reel-skip")).to_be_hidden()
+    expect(box).to_be_visible()
+
+
+def test_the_intro_has_a_share_button_that_shares_the_laps_share_page(page):
+    """The Share button beside the intro's buttons opens the share panel for the Laps share page (its picture and words)."""
+    open_home(page)
+    button = page.locator("#lh-share")
+    expect(button).to_be_visible()
+    button.click()
+    whatsapp = page.locator('a[data-channel="whatsapp"]').first
+    whatsapp.wait_for(state="attached")
+    from urllib.parse import unquote
+    href = unquote(whatsapp.get_attribute("href"))
+    assert "https://laps.mt3uk.com/share/section/laps.html" in href, href
+    assert "Every lap, mapped and measured on Laps by MT3UK" in href, href
+
+
 def test_the_front_page_heading_is_for_screen_readers_only_and_has_no_share_button(page):
     """The Every lap, mapped and measured heading is not shown on the front page any more: it stays in the page for screen
     readers, with no share button on it."""

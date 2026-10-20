@@ -380,6 +380,8 @@
   .lh-hero .tp-actions .btn { font-size: 0.95rem; padding: 10px 16px; }
   .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
   .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+  .lh-hero .lh-share { display: inline-flex; align-items: center; gap: 8px; }
+  .lh-hero .lh-share .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
   /* Free to access: under the words in the left column, kept short so the reel can sit beside it. */
   .lh-free { margin-top: 20px; }
@@ -408,7 +410,13 @@
   .lh-reel { margin: 0; justify-self: center; width: min(100%, 380px); }
   .lh-reel-video { display: block; width: 100%; height: auto; border-radius: 0; background: var(--ink, #0d3b33); border: 0; box-shadow: none; }
   .lh-reel figcaption { margin: 8px 0 0; font-size: 0.82rem; color: #b9c0cf; text-align: center; }
+  .lh-reel-bar { display: none; justify-content: flex-start; margin: 0 0 8px; }
+  .lh-skip { min-height: 36px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 0.88rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .lh-skip:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+  /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
   @media (max-width: 780px) {
+    .lh-reel-bar { display: flex; }
+    .lh-reel.is-skipped .lh-reel-box { display: none; }
     .lh-hero .wrap { gap: 14px; }
     .lh-copy { display: contents; }
     .lh-reel { order: 1; width: min(100%, 260px); }
@@ -492,6 +500,7 @@
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
+        <button type="button" class="btn btn-secondary lh-share" id="lh-share" aria-label="Share Laps by MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
       </div>
       <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche and more.</p>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
@@ -510,10 +519,28 @@
       </div>
     </div>
     <figure class="lh-reel">
+      <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button></div>
+      <div class="lh-reel-box" id="lh-reel-box">
       <video class="lh-reel-video" src="images/laps/laps-reel.mp4" poster="images/laps/laps-reel-poster.jpg" width="1080" height="1920" playsinline controls preload="metadata" aria-label="Laps in 25 seconds: a lap drawn on a track, with the words for each scene"></video>
       <figcaption>Tap play to watch with sound. Laps in 25 seconds, on a made-up circuit with example data.</figcaption>
+      </div>
     </figure>
     <script>document.querySelector('.lh-reel-video').volume = 0.4;</script>
+    <script>
+      (function () {
+        var reel = document.querySelector('.lh-reel'), btn = document.getElementById('lh-reel-skip'), vid = reel.querySelector('video');
+        btn.addEventListener('click', function () {
+          var skip = !reel.classList.contains('is-skipped');
+          reel.classList.toggle('is-skipped', skip);
+          btn.textContent = skip ? 'Show intro' : 'Skip intro';
+          btn.setAttribute('aria-expanded', String(!skip));
+          if (skip) vid.pause();
+        });
+      })();
+      document.getElementById('lh-share').addEventListener('click', function () {
+        if (window.mt3ukSharePage) window.mt3ukSharePage({ url: 'https://laps.mt3uk.com/share/section/laps.html', heading: 'Share Laps by MT3UK', subject: 'Laps by MT3UK', text: 'Every lap, mapped and measured on Laps by MT3UK', campaign: 'laps_intro' }, this);
+      });
+    </script>
   </div>
 </section>
 <main data-no-share>

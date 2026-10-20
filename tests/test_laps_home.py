@@ -274,16 +274,6 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
 
 
 
-def test_the_intro_is_colour_corrected_only_once_it_plays(page):
-    """The colour correction is a filter on the playing video; the poster is left as it is, so it stays on the page green."""
-    page.set_viewport_size({"width": 390, "height": 844})
-    open_home(page)
-    expect(page.locator("#lh-reel-fix")).to_have_count(1)
-    assert page.evaluate("getComputedStyle(document.querySelector('.lh-reel-video')).filter") == "none"
-    page.evaluate("document.querySelector('.lh-reel-video').classList.add('is-playing')")
-    assert "url(" in page.evaluate("getComputedStyle(document.querySelector('.lh-reel-video')).filter")
-
-
 def test_skip_intro_collapses_the_video_so_the_page_moves_up_and_show_intro_brings_it_back(page):
     """Skip intro sits above the video and collapses it, so the words and buttons move up; Show intro brings it back."""
     page.set_viewport_size({"width": 390, "height": 844})

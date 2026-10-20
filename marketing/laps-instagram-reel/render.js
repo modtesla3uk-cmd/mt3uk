@@ -3,7 +3,7 @@ const { chromium } = require(require.resolve('playwright', { paths: ['/node-tool
 const FPS = 30, DUR = 25, FRAMES = FPS * DUR;
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
+  const page = await browser.newPage({ viewport: { width: 1520, height: 1920 } });
   await page.goto('file://' + path.resolve(__dirname, 'index.html'));
   await page.waitForFunction(() => window.ready);
   for (let i = 0; i < FRAMES; i++) {

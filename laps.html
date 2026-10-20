@@ -404,7 +404,7 @@
   /* The Laps reel: the vertical video in the right column, beside the words. On a phone it comes after the buttons and the
      notes, and before the Free to access panel. The copy column is laid out as its own items on a phone. */
   .lh-reel { margin: 0; justify-self: center; width: min(100%, 380px); }
-  .lh-reel-video { display: block; width: 100%; height: auto; border-radius: var(--radius); background: #06201c; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  .lh-reel-video { display: block; width: 100%; height: auto; border-radius: var(--radius); background: var(--ink, #0d3b33); border: 0; box-shadow: none; }
   .lh-reel figcaption { margin: 8px 0 0; font-size: 0.82rem; color: #b9c0cf; text-align: center; }
   @media (max-width: 780px) {
     .lh-hero .wrap { gap: 14px; }
@@ -508,9 +508,10 @@
       </div>
     </div>
     <figure class="lh-reel">
-      <video class="lh-reel-video" src="images/laps/laps-reel.mp4" poster="images/laps/laps-reel-poster.jpg" width="1080" height="1920" muted autoplay loop playsinline controls preload="metadata" aria-label="Laps in 25 seconds: a lap drawn on a track, with the words for each scene"></video>
+      <video class="lh-reel-video" src="images/laps/laps-reel.mp4" poster="images/laps/laps-reel-poster.jpg" width="1080" height="1920" muted autoplay playsinline controls controlsList="nofullscreen" disablePictureInPicture preload="metadata" aria-label="Laps in 25 seconds: a lap drawn on a track, with the words for each scene"></video>
       <figcaption>Laps in 25 seconds, on a made-up circuit with example data.</figcaption>
     </figure>
+    <script>document.querySelector('.lh-reel-video').volume = 0.4;</script>
   </div>
 </section>
 <main data-no-share>

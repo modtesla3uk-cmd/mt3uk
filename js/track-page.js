@@ -4843,6 +4843,8 @@
     try { localStorage.setItem('mt3ukTrackSound', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
     var b = document.getElementById('tp-sound');
     if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sound on' : 'Sound off'); b.title = on ? 'Turn the sound off' : 'Turn the sound on'; }
+    var volSlider = document.getElementById('tp-sound-vol');
+    if (volSlider) volSlider.hidden = !on;
     if (!window.MT3UKMotorSound) return;
     if (on && pb.playing) window.MT3UKMotorSound.start();
     if (!on) window.MT3UKMotorSound.quiet();
@@ -5075,6 +5077,24 @@
       if (mw && snd.parentNode !== mw) mw.appendChild(snd);
       snd.className = 'tp-sound-btn';
       snd.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="none" d="M3 9h4l5-4.5v15L7 15H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      // The level slider beside the speaker: shown only while the sound is on, kept on this device.
+      var vol = document.getElementById('tp-sound-vol');
+      if (!vol) {
+        vol = document.createElement('input');
+        vol.type = 'range'; vol.id = 'tp-sound-vol'; vol.className = 'tp-sound-vol';
+        vol.min = '0'; vol.max = '100'; vol.step = '5';
+        vol.setAttribute('aria-label', 'Sound level'); vol.title = 'Sound level';
+        vol.addEventListener('input', function () {
+          var v = parseFloat(vol.value);
+          if (window.MT3UKMotorSound) window.MT3UKMotorSound.setLevel(v / 100);
+          try { localStorage.setItem('mt3ukTrackSoundLevel', String(v)); } catch (e) { /* storage blocked */ }
+        });
+      }
+      var savedVol = null;
+      try { savedVol = localStorage.getItem('mt3ukTrackSoundLevel'); } catch (e) { /* storage blocked */ }
+      vol.value = savedVol === null ? '100' : savedVol;
+      if (window.MT3UKMotorSound) window.MT3UKMotorSound.setLevel(parseFloat(vol.value) / 100);
+      if (mw && vol.parentNode !== mw) mw.appendChild(vol);
       snd.addEventListener('click', function () { setSound(!soundOn); });
       setSound(soundOn);
     }

@@ -701,6 +701,10 @@
   .tp-sound-btn .icon { width: 22px; height: 22px; }
   .tp-sound-btn.is-on { background: #0d3b33; border-color: #0d3b33; color: #ffffff; }
   #tp-mapcard.is-full .tp-sound-btn { top: 44px; left: 58px; }
+  /* The level slider beside the speaker, shown while the sound is on. */
+  .tp-sound-vol { position: absolute; top: 10px; left: 58px; z-index: 5; width: 80px; height: 44px; margin: 0; padding: 0 12px; box-sizing: border-box; background: rgba(255,255,255,.95); border: 1px solid var(--hairline-strong); border-radius: var(--radius); box-shadow: 0 1px 6px rgba(0,0,0,.35); accent-color: #0d3b33; cursor: pointer; }
+  .tp-sound-vol[hidden] { display: none; }
+  #tp-mapcard.is-full .tp-sound-vol { top: 44px; left: 102px; }
   .tp-gmeter svg { display: block; width: 100%; height: auto; overflow: visible; }
   .tp-gm-ring { fill: none; stroke: #c9d2cd; stroke-width: 1.2; }
   .tp-gm-axis { fill: none; stroke: #b5c0ba; stroke-width: 1; }
@@ -1686,9 +1690,9 @@
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
-<script src="js/motor-sound.js?v=7"></script>
+<script src="js/motor-sound.js?v=10"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271206" defer></script>
+<script src="js/track-page.js?v=20271207" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

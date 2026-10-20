@@ -8000,3 +8000,21 @@ def test_hovering_a_chart_does_not_move_playback_but_a_click_does(page):
     after = page.locator("#tp-clock").text_content()
     assert after != before, (before, after)
     assert not errors, errors
+
+
+def test_the_sound_level_slider_sits_beside_the_speaker_and_sets_the_level_kept_on_the_device(page):
+    """The level slider is beside the speaker: hidden while the sound is off, shown when it is on. It sets the motor sound's level
+    (0 to 1) and keeps the setting on this device."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    slider = page.locator("#tp-sound-vol")
+    expect(slider).to_be_hidden()
+    page.locator("#tp-sound").click()
+    expect(slider).to_be_visible()
+    slider.evaluate("el => { el.value = '40'; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    assert page.evaluate("localStorage.getItem('mt3ukTrackSoundLevel')") == "40"
+    assert abs(page.evaluate("window.MT3UKMotorSound.level") - 0.4) < 1e-6, page.evaluate("window.MT3UKMotorSound.level")
+    page.locator("#tp-sound").click()
+    expect(slider).to_be_hidden()
+    assert not errors, errors

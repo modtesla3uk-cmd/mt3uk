@@ -12,7 +12,7 @@
   // The built-in values, and the range each setting accepts (the worker, cleanSessionSound, uses the same ranges)
   // The defaults are a V8 with an electric whine on top: a low, rich note with grit (drive, a light distortion) and a firing
   // pulse (pulse, how far the volume wobbles, at pulseRatio times the note).
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 600, recTop: 900, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
+  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 450, recTop: 650, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
   var LIMITS = { f0: [40, 400], fPeak: [60, 1200], harm: [0, 1], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], drive: [0, 10], pulse: [0, 0.9], pulseRatio: [0.25, 1], rateLow: [0.2, 1.5], rateHigh: [0.3, 2.5], recLevel: [0, 6], recLow: [200, 3000], recTop: [500, 6000], recHigh: [20, 400], grainLen: [0.1, 2], grainEvery: [0.01, 0.3], compThreshold: [-60, 0], compRatio: [1, 20] };
   var CUT_IDLE = 900, CUT_TOP = 2000, MASTER = 0.5;
   // The level at which the engine's master gain is 1 (the volume setting divided by this). The default is louder than this.

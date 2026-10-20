@@ -14,7 +14,7 @@
   var loaded = false, inputs = {};
 
   // The built-in values and ranges, as in js/motor-sound.js
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 600, recTop: 900, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
+  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 450, recTop: 650, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
   var ROWS = [
     { key: 'f0', label: 'Lowest note (Hz)', min: 40, max: 400, step: 1, hint: 'The note when the car is standing still' },
     { key: 'fPeak', label: 'Highest note (Hz)', min: 60, max: 1200, step: 5, hint: 'The note at the car\'s top speed on the lap' },

@@ -4403,7 +4403,7 @@
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
-        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter" aria-hidden="true"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
@@ -5233,9 +5233,22 @@
       }
       // Played or scrubbed to t seconds into the lap: the leader's place sets
       // the chart cursors, and each lap's dot goes where it was at that time.
+      // The G meter on the map: where each lap's sideways (across) and lengthways (across the car) g are at this moment, one dot
+      // per lap on rings at half a g. Lengthways is up for acceleration and down for braking.
+      function drawGMeter(t) {
+        var el = document.getElementById('tp-gmeter'); if (!el || !gaT.length) return;
+        var ra = nearRow(gaT, t), rb = nearRow(gbT, t), pxg = 28;
+        var place = function (id, r, col) { var d = document.getElementById(id); if (!d) return; var x = Math.max(-1.6, Math.min(1.6, r[2])), y = Math.max(-1.6, Math.min(1.6, r[1])); d.setAttribute('cx', (50 + x * pxg).toFixed(1)); d.setAttribute('cy', (50 - y * pxg).toFixed(1)); d.setAttribute('fill', col); };
+        place('tp-gm-a', ra, c1); place('tp-gm-b', rb, c2);
+        var mag = function (r) { return Math.hypot(r[1], r[2]).toFixed(1) + ' g'; };
+        var a = document.getElementById('tp-gm-ra'), b = document.getElementById('tp-gm-rb');
+        if (a) { a.textContent = (A === B ? '' : 'A ') + mag(ra); a.style.color = c1; }
+        if (b) { b.textContent = A === B ? '' : 'B ' + mag(rb); b.style.color = c2; }
+      }
       function renderAt(t) {
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
         move(x);
+        drawGMeter(t);
         [sp, dl].forEach(function (o) { if (o) o.show(x); });
         gls.forEach(function (g) { g.show(Math.min(t, tEndG)); });
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
@@ -5267,6 +5280,7 @@
       // the ruler for the slider underneath.
       function onTime(trace, rows) { return trace.map(function (p, i) { return [p[1], rows[i][1], rows[i][2]]; }); }
       var gaT = onTime(A.trace, ga), gbT = A === B ? gaT : onTime(B.trace, gb);
+      drawGMeter(0);
       var spA = A.trace.map(function (p) { return [p[1], p[4]]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], p[4]]; });  // km/h: V.fmtV does the unit
       var tEndG = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       function timeTicks(fitPx) {

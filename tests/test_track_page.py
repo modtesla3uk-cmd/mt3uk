@@ -7873,3 +7873,20 @@ def test_play_the_day_goes_on_to_the_next_session_of_that_day_when_a_playback_en
     expect(page.locator("#tp-play-toggle")).to_have_text("Pause", timeout=60000)
     page.wait_for_url("**/track.html?s=next1", timeout=90000)
     expect(page.locator("#tp-play-toggle")).to_have_text("Pause", timeout=30000)
+
+
+def test_the_map_has_a_g_meter_that_follows_playback(page):
+    """The map has a G meter: a dot for each lap's sideways and lengthways g at the moment shown, with each lap's total g beside
+    it. It follows the slider, and it is not on the map's controls."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    meter = page.locator("#tp-gmeter")
+    expect(meter).to_be_visible()
+    expect(page.locator("#tp-gm-ra")).to_have_text(re.compile(r"^A \d+\.\d g$"))
+    before = page.locator("#tp-gm-a").get_attribute("cx"), page.locator("#tp-gm-a").get_attribute("cy")
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.wait_for_timeout(200)
+    after = page.locator("#tp-gm-a").get_attribute("cx"), page.locator("#tp-gm-a").get_attribute("cy")
+    assert before != after, (before, after)
+    assert not errors, errors

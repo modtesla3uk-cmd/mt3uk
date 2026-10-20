@@ -5366,6 +5366,19 @@
       setGMeter(gmOff);
       var gmBtn = document.getElementById('tp-gm-toggle');
       if (gmBtn) gmBtn.addEventListener('click', function () { setGMeter(!document.getElementById('tp-gmeter').classList.contains('is-off')); });
+      // The G meter and the overview sit at the bottom of the map itself, not of the box round it (which runs lower, under the
+      // map's key). They are placed from the map's size, and again whenever the map changes size. Full screen keeps its own place.
+      function placeOverlays() {
+        var mapEl = document.getElementById('tp-map2'), wrap = document.getElementById('tp-mapwrap'), card = document.getElementById('tp-mapcard');
+        var gm = document.getElementById('tp-gmeter'), ov = document.getElementById('tp-mini');
+        [gm, ov].forEach(function (e) { if (e) { e.style.top = ''; e.style.bottom = ''; } });
+        if (!mapEl || !wrap || !card || card.classList.contains('is-full')) return;
+        var bottom = mapEl.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top;
+        if (gm) { gm.style.bottom = 'auto'; gm.style.top = (bottom - (gm.offsetHeight || 110) - 10) + 'px'; }
+        if (ov) { ov.style.bottom = 'auto'; ov.style.top = (bottom - (ov.offsetHeight || 120) - 10) + 'px'; }
+      }
+      placeOverlays();
+      if (window.ResizeObserver) new ResizeObserver(placeOverlays).observe(document.getElementById('tp-map2'));
       var spA = A.trace.map(function (p) { return [p[1], p[4]]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], p[4]]; });  // km/h: V.fmtV does the unit
       var tEndG = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       function timeTicks(fitPx) {

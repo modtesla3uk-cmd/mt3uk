@@ -5234,16 +5234,46 @@
       // Played or scrubbed to t seconds into the lap: the leader's place sets
       // the chart cursors, and each lap's dot goes where it was at that time.
       // The G meter on the map: where each lap's sideways (across) and lengthways (across the car) g are at this moment, one dot
-      // per lap on rings at half a g. Lengthways is up for acceleration and down for braking.
-      function drawGMeter(t) {
-        var el = document.getElementById('tp-gmeter'); if (!el || !gaT.length) return;
-        var ra = nearRow(gaT, t), rb = nearRow(gbT, t), pxg = 28;
-        var place = function (id, r, col) { var d = document.getElementById(id); if (!d) return; var x = Math.max(-1.6, Math.min(1.6, r[2])), y = Math.max(-1.6, Math.min(1.6, r[1])); d.setAttribute('cx', (50 + x * pxg).toFixed(1)); d.setAttribute('cy', (50 - y * pxg).toFixed(1)); d.setAttribute('fill', col); };
-        place('tp-gm-a', ra, c1); place('tp-gm-b', rb, c2);
-        var mag = function (r) { return Math.hypot(r[1], r[2]).toFixed(1) + ' g'; };
+      // per lap on rings at half a g. Lengthways is up for acceleration and down for braking. The readings are blended between
+      // the two recorded either side of the moment, and the dots ease toward them, so the meter moves smoothly.
+      var gmT = { a: [0, 0], b: [0, 0] }, gmS = { a: null, b: null }, gmRaf = 0;
+      function gAt(rows, t) {
+        if (!rows.length) return [t, 0, 0];
+        var lo = 0, hi = rows.length - 1;
+        if (t <= rows[0][0]) return rows[0];
+        if (t >= rows[hi][0]) return rows[hi];
+        while (hi - lo > 1) { var m = (lo + hi) >> 1; if (rows[m][0] <= t) lo = m; else hi = m; }
+        var p = rows[lo], q = rows[hi], f = (t - p[0]) / ((q[0] - p[0]) || 1);
+        return [t, p[1] + (q[1] - p[1]) * f, p[2] + (q[2] - p[2]) * f];
+      }
+      function paintGMeter() {
+        gmRaf = 0;
+        var moving = false, pxg = 28;
+        ['a', 'b'].forEach(function (k) {
+          var g = gmT[k], sm = gmS[k] = gmS[k] || { x: g[0], y: g[1] };
+          sm.x += (g[0] - sm.x) * 0.35; sm.y += (g[1] - sm.y) * 0.35;
+          if (Math.abs(g[0] - sm.x) > 0.002 || Math.abs(g[1] - sm.y) > 0.002) moving = true;
+          var d = document.getElementById('tp-gm-' + k);
+          if (d) { d.setAttribute('cx', (50 + sm.x * pxg).toFixed(1)); d.setAttribute('cy', (50 - sm.y * pxg).toFixed(1)); }
+        });
         var a = document.getElementById('tp-gm-ra'), b = document.getElementById('tp-gm-rb');
-        if (a) { a.textContent = (A === B ? '' : 'A ') + mag(ra); a.style.color = c1; }
-        if (b) { b.textContent = A === B ? '' : 'B ' + mag(rb); b.style.color = c2; }
+        if (a) a.textContent = (A === B ? '' : 'A ') + Math.hypot(gmS.a.x, gmS.a.y).toFixed(1) + ' g';
+        if (b) b.textContent = A === B ? '' : 'B ' + Math.hypot(gmS.b.x, gmS.b.y).toFixed(1) + ' g';
+        if (moving) gmRaf = requestAnimationFrame(paintGMeter);
+      }
+      // snap: the first reading of a map (no easing from the last session's dots).
+      function drawGMeter(t, snap) {
+        var el = document.getElementById('tp-gmeter'); if (!el || !gaT.length) return;
+        var ra = gAt(gaT, t), rb = gAt(gbT, t), lim = function (v) { return Math.max(-1.6, Math.min(1.6, v)); };
+        gmT.a = [lim(ra[2]), lim(ra[1])]; gmT.b = [lim(rb[2]), lim(rb[1])];
+        if (snap || !gmS.a) gmS = { a: { x: gmT.a[0], y: gmT.a[1] }, b: { x: gmT.b[0], y: gmT.b[1] } };
+        var da = document.getElementById('tp-gm-a'), db = document.getElementById('tp-gm-b');
+        if (da) da.setAttribute('fill', c1);
+        if (db) db.setAttribute('fill', c2);
+        var ra2 = document.getElementById('tp-gm-ra'), rb2 = document.getElementById('tp-gm-rb');
+        if (ra2) ra2.style.color = c1;
+        if (rb2) rb2.style.color = c2;
+        if (!gmRaf) gmRaf = requestAnimationFrame(paintGMeter);
       }
       function renderAt(t) {
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
@@ -5280,7 +5310,7 @@
       // the ruler for the slider underneath.
       function onTime(trace, rows) { return trace.map(function (p, i) { return [p[1], rows[i][1], rows[i][2]]; }); }
       var gaT = onTime(A.trace, ga), gbT = A === B ? gaT : onTime(B.trace, gb);
-      drawGMeter(0);
+      drawGMeter(0, true);
       var spA = A.trace.map(function (p) { return [p[1], p[4]]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], p[4]]; });  // km/h: V.fmtV does the unit
       var tEndG = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       function timeTicks(fitPx) {

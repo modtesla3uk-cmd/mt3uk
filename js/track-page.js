@@ -4934,11 +4934,11 @@
     if (!pb.raf) pb.raf = requestAnimationFrame(tick);
   }
   // The playback slows as the map is zoomed in, so the turns can be followed. At a full view it runs at the chosen speed; zoomed
-  // in, the cars cover more of the screen each second, so the clock runs slower (the square root of the zoom, and never below a
-  // fifth). Both laps share the clock, so they stay in step.
+  // in, the cars cover more of the screen each second, so the clock runs slower (the fourth root of the zoom, and never below
+  // half). Both laps share the clock, so they stay in step.
   function zoomPace() {
     var k = cmpMap && cmpMap.zoom && cmpMap.zoom.k ? cmpMap.zoom.k() : 1;
-    return Math.max(0.2, Math.min(1, 1 / Math.sqrt(Math.max(1, k))));
+    return Math.max(0.5, Math.min(1, 1 / Math.pow(Math.max(1, k), 0.25)));
   }
   function tick(now) {
     pb.raf = 0;

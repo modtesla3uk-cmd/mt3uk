@@ -46,6 +46,9 @@ jobs:
       - name: Strip markdown docs (CLAUDE.md, README.md, etc.) so they aren't published
         run: find . -name '*.md' -not -path './.git/*' -delete
 
+      - name: Leave the marketing folder out of the Pages site
+        run: rm -rf marketing
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

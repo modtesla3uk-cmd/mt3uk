@@ -3138,10 +3138,10 @@ def test_the_sound_on_switch_makes_the_motor_sound_while_the_lap_plays(page):
     page.get_by_role("button", name="Save session").click()
     expect(page.locator("#tp-speed path")).to_have_count(2)
     sound = page.locator("#tp-sound")
-    expect(sound).to_have_text("Sound off")
+    expect(sound).to_have_attribute("aria-label", "Sound off")
     expect(sound).to_have_attribute("aria-pressed", "false")
     sound.click()
-    expect(sound).to_have_text("Sound on")
+    expect(sound).to_have_attribute("aria-label", "Sound on")
     expect(sound).to_have_attribute("aria-pressed", "true")
     assert page.evaluate("localStorage.getItem('mt3ukTrackSound')") == "on"
     page.locator("#tp-play-toggle").click()
@@ -3154,7 +3154,7 @@ def test_the_sound_on_switch_makes_the_motor_sound_while_the_lap_plays(page):
     expect(page.locator("#tp-play-toggle")).to_have_text("Play")
     assert page.evaluate("window.MT3UKMotorSound.on") is False
     sound.click()
-    expect(sound).to_have_text("Sound off")
+    expect(sound).to_have_attribute("aria-label", "Sound off")
     assert page.evaluate("localStorage.getItem('mt3ukTrackSound')") == "off"
 
 

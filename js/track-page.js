@@ -4400,7 +4400,7 @@
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div><button type="button" class="btn btn-ghost tp-fold" id="tp-fold" aria-expanded="true" aria-controls="tp-speeds" title="Hide the speed and option chips"><span>Less</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
-        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
+        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="-12 -12 124 124" aria-hidden="true"><circle cx="50" cy="50" r="10.5" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="21" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><text class="tp-gm-scale" x="50" y="-3" text-anchor="middle">2 g</text><text class="tp-gm-scale" x="50" y="109" text-anchor="middle">2 g</text><text class="tp-gm-scale" x="-11" y="53">2</text><text class="tp-gm-scale" x="111" y="53" text-anchor="end">2</text><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg><span class="tp-overview-name" id="tp-mini-name"></span></div><div class="tp-laptimes" id="tp-laptimes" aria-live="off"><div class="tp-lt-now"><b id="tp-lt-cur"></b></div><div class="tp-lt-row"><span>Lap</span><b id="tp-lt-lap"></b></div><div class="tp-lt-row"><span>Best</span><b id="tp-lt-best"></b></div><div class="tp-lt-row"><span>Last</span><b id="tp-lt-last"></b></div></div>' +
@@ -4842,7 +4842,7 @@
     soundOn = on;
     try { localStorage.setItem('mt3ukTrackSound', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
     var b = document.getElementById('tp-sound');
-    if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Sound on' : 'Sound off'; }
+    if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sound on' : 'Sound off'); b.title = on ? 'Turn the sound off' : 'Turn the sound on'; }
     if (!window.MT3UKMotorSound) return;
     if (on && pb.playing) window.MT3UKMotorSound.start();
     if (!on) window.MT3UKMotorSound.quiet();
@@ -5069,7 +5069,15 @@
     var fol = document.getElementById('tp-follow');
     if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
     var snd = document.getElementById('tp-sound');
-    if (snd) { snd.addEventListener('click', function () { setSound(!soundOn); }); setSound(soundOn); }
+    if (snd) {
+      // The sound switch is a speaker on the map, by the settings button, not a button in the playback panel.
+      var mw = document.getElementById('tp-mapwrap');
+      if (mw && snd.parentNode !== mw) mw.appendChild(snd);
+      snd.className = 'tp-sound-btn';
+      snd.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="none" d="M3 9h4l5-4.5v15L7 15H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      snd.addEventListener('click', function () { setSound(!soundOn); });
+      setSound(soundOn);
+    }
     var pdy = document.getElementById('tp-play-day');
     if (pdy) pdy.addEventListener('click', function () { playDay = !playDay; playUi(); });
     var fold = document.getElementById('tp-fold'), foldCard = document.getElementById('tp-mapcard');

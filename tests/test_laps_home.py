@@ -274,19 +274,14 @@ def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
 
 
 
-def test_the_laps_share_button_says_laps_by_mt3uk_and_links_to_the_laps_address(page):
-    """Sharing a Laps page uses Laps by MT3UK in the words and laps.mt3uk.com in the link, not MT3UK and mt3uk.com."""
-    from urllib.parse import unquote
+def test_the_front_page_heading_is_for_screen_readers_only_and_has_no_share_button(page):
+    """The Every lap, mapped and measured heading is not shown on the front page any more: it stays in the page for screen
+    readers, with no share button on it."""
     open_home(page)
-    page.locator(".lh-hero h1 .mt3uk-share-dot").click()
-    whatsapp = page.locator('.mt3uk-share-panel a[data-channel="whatsapp"], a[data-channel="whatsapp"]').first
-    whatsapp.wait_for(state="attached")
-    href = unquote(whatsapp.get_attribute("href"))
-    assert "Every lap, mapped and measured on Laps by MT3UK: Upload files from your lap timer" in href, href
-    assert "https://laps.mt3uk.com/share/section/laps.html?utm_source=whatsapp" in href, href
-    assert "https://mt3uk.com" not in href and "on MT3UK" not in href, href
-    email = unquote(page.locator('a[data-channel="email"]').first.get_attribute("href"))
-    assert "subject=Every lap, mapped and measured. | Laps by MT3UK" in email, email
+    heading = page.locator(".lh-hero h1")
+    expect(heading).to_have_text("Every lap, mapped and measured.")
+    assert heading.bounding_box()["width"] <= 1
+    expect(page.locator(".lh-hero h1 .mt3uk-share-dot")).to_have_count(0)
 
 
 def test_every_explainer_sound_plays_without_an_error(page):
@@ -317,6 +312,28 @@ def test_every_explainer_sound_plays_without_an_error(page):
     # Silent offers no Sound button at all.
     silent = page.evaluate("() => { const el = document.createElement('div'); document.body.appendChild(el); window.MT3UKExplainer.mount(el, { soundStyle: 'silent' }, { autoplay: false }); return el.querySelectorAll('.lxe-sound').length; }")
     assert silent == 0
+
+
+def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_sits_under_them(page):
+    """The reel (images/laps/laps-reel.mp4) is the intro video in the right column, and the Free to access panel is in the left
+    column under the words. On a phone the reel comes after the buttons and before the Free panel. No animated map is mounted."""
+    open_home(page)
+    expect(page.locator(".lh-hero [data-laps-explainer]")).to_have_count(0)
+    video = page.locator(".lh-hero .lh-reel video")
+    expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4")
+    expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg")
+    page.set_viewport_size({"width": 1240, "height": 1000})
+    copy = page.locator(".lh-hero .lh-copy").bounding_box()
+    reel = page.locator(".lh-hero .lh-reel").bounding_box()
+    free = page.locator(".lh-hero #free").bounding_box()
+    assert reel["x"] >= copy["x"] + copy["width"] - 1, (reel, copy)
+    assert free["x"] >= copy["x"] - 1 and free["x"] + free["width"] <= copy["x"] + copy["width"] + 1, (free, copy)
+    page.set_viewport_size({"width": 390, "height": 844})
+    actions_y = page.locator("#lh-actions").bounding_box()["y"]
+    reel_y = page.locator(".lh-hero .lh-reel").bounding_box()["y"]
+    free_y = page.locator(".lh-hero #free").bounding_box()["y"]
+    assert reel_y < actions_y < free_y, (reel_y, actions_y, free_y)
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
 
 
 def test_the_sound_fades_out_in_the_second_before_the_end_card(page):

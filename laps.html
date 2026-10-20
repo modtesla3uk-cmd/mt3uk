@@ -368,6 +368,7 @@
   /* ---------- LAPS FRONT PAGE ---------- */
   .lh-hero { background: var(--ink); color: #fff; padding: 48px 0 44px; }
   .lh-hero .wrap { display: grid; gap: 28px; align-items: center; }
+  .lh-hero .lh-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1.2fr 1fr; align-items: start; } }
   .lh-badge { display: table; margin-bottom: 14px; }
   .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
@@ -378,15 +379,15 @@
   .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
   .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
-  .lh-free { margin-top: 18px; max-width: 560px; }
-  @media (min-width: 900px) { .lh-free { margin-top: 0; max-width: none; } }
-  .lh-free h2 { font-size: 1.2rem; margin: 0 0 8px; color: #fff; }
-  .lh-free-lead { font-size: 0.95rem; color: #dfe5f1; margin: 0 0 12px; }
-  .lh-free-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .lh-free-list li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.18); border-radius: var(--radius, 10px); background: rgba(255,255,255,.08); color: #fff; font-size: 0.98rem; }
-  .lh-free-list .icon { flex: 0 0 22px; width: 22px; height: 22px; fill: none; stroke: var(--icon-on-dark, #f58a68); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .lh-free-note { font-size: 0.92rem; color: #aeb7cb; margin: 12px 0 0; }
-  .lh-free-btn { margin-top: 14px; }
+  /* Free to access: under the words in the left column, kept short so the reel can sit beside it. */
+  .lh-free { margin-top: 20px; }
+  .lh-free h2 { font-size: 1.05rem; margin: 0 0 4px; color: #fff; }
+  .lh-free-lead { font-size: 0.88rem; color: #dfe5f1; margin: 0 0 8px; }
+  .lh-free-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  .lh-free-list li { display: flex; align-items: center; gap: 10px; padding: 5px 10px; border: 1px solid rgba(255,255,255,.18); border-radius: var(--radius, 10px); background: rgba(255,255,255,.08); color: #fff; font-size: 0.9rem; line-height: 1.35; }
+  .lh-free-list .icon { flex: 0 0 18px; width: 18px; height: 18px; fill: none; stroke: var(--icon-on-dark, #f58a68); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .lh-free-note { font-size: 0.84rem; color: #aeb7cb; margin: 8px 0 0; }
+  .lh-free-btn { margin-top: 10px; padding: 8px 14px; font-size: 0.9rem; }
   .lh-welcome { position: fixed; inset: 0; background: rgba(12,20,38,.6); display: grid; place-items: center; padding: 16px; z-index: 400; }
   .lh-welcome[hidden] { display: none; }
   .lh-welcome-card { background: #fff; color: var(--ink); border-radius: var(--radius); padding: 26px 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 18px 40px rgba(0,0,0,.25); }
@@ -400,31 +401,21 @@
   .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 20px; max-width: 34em; }
   .lh-evs b { color: #fff; }
   @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
-  /* The Laps video: a muted loop with a pause button, in the hero beside the words (it stacks under them on a phone). */
-  /* On a phone the video comes straight after the buttons, so it fits on the first screen; the notes go under it. */
+  /* The Laps reel: the vertical video in the right column, beside the words. On a phone it comes after the buttons and the
+     notes, and before the Free to access panel. The copy column is laid out as its own items on a phone. */
+  .lh-reel { margin: 0; justify-self: center; width: min(100%, 380px); }
+  .lh-reel-video { display: block; width: 100%; height: auto; border-radius: var(--radius); background: #06201c; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  .lh-reel figcaption { margin: 8px 0 0; font-size: 0.82rem; color: #b9c0cf; text-align: center; }
   @media (max-width: 780px) {
     .lh-hero .wrap { gap: 14px; }
-    .lh-hero .wrap > div:first-child { display: contents; }
-    .lh-hero .wrap > div:first-child > h1 { order: 1; }
-    .lh-hero .wrap > div:first-child > p:first-of-type { order: 2; }
-    .lh-hero .wrap > div:first-child > #lh-actions { order: 3; }
-    .lh-hero .wrap > .lh-free { order: 7; }
-    .lh-hero .wrap > div:first-child > .lh-video { order: 8; }
-    .lh-hero .wrap > div:first-child > .lh-video-cap { order: 9; }
-    .lh-hero .wrap > div:first-child > .lh-evs { order: 5; }
-    .lh-hero .wrap > div:first-child > #lh-note { order: 6; }
+    .lh-copy { display: contents; }
+    .lh-reel { order: 1; width: min(100%, 260px); }
+    .lh-copy > p:first-of-type { order: 2; }
+    .lh-copy > #lh-actions { order: 3; }
+    .lh-copy > .lh-evs { order: 4; }
+    .lh-copy > #lh-note { order: 5; }
+    .lh-copy > .lh-free { order: 7; }
   }
-  /* No frame: the animation fades into the page at its edges. */
-  .lh-hero .lh-video { max-width: none; margin: 0; background: none; border: 0; padding: 0; box-shadow: none; -webkit-mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); mask-image: radial-gradient(ellipse 86% 86% at 50% 50%, #000 66%, transparent 100%); }
-  .lh-hero .lh-video [data-laps-explainer], .lh-hero .lh-video canvas { border-radius: 8px; }
-  .lh-hero .lh-video-cap { max-width: none; margin: 8px 0 0; text-align: left; color: #b9c0cf; font-size: 0.78rem; line-height: 1.4; }
-  .lh-hero .lxe-bar { padding: 6px 8px; gap: 6px; }
-  .lh-hero .lxe-btn { width: 34px; height: 34px; }
-  .lh-hero .lxe-sound { height: 34px; padding: 0 10px; font-size: 12px; }
-  .lh-hero .lxe-btn svg, .lh-hero .lxe-sound svg { width: 16px; height: 16px; }
-  .lh-video { max-width: 760px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline-strong, rgba(20,33,61,.2)); box-shadow: 0 18px 40px rgba(0,0,0,.25); }
-  .lh-video img { display: block; width: 100%; height: auto; }
-  .lh-video-cap { max-width: 760px; margin: 12px auto 0; font-size: 0.9rem; color: #5a6276; text-align: center; }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
   .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange, #e8542a); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
@@ -493,8 +484,8 @@
 
 <section class="lh-hero">
   <div class="wrap">
-    <div>
-      <h1>Every lap, mapped and measured.</h1>
+    <div class="lh-copy">
+      <h1 class="lh-sr" data-no-share>Every lap, mapped and measured.</h1>
       <p>Upload files from your lap timer and see every lap on the track, where you gained and lost time, and how each change moved your times.</p>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
@@ -502,11 +493,6 @@
       </div>
       <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche and more.</p>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
-        <div class="lh-video" data-laps-explainer data-zoom="1.15" data-shift="70">
-          <img src="images/laps/explainer-poster.jpg" alt="Laps in 17 seconds: a lap drawn on a track, with the words for each scene" width="960" height="540">
-        </div>
-        <p class="lh-video-cap">Laps in 17 seconds. Shown with example data, not a real session.</p>
-    </div>
       <div class="lh-free" id="free">
         <h2>Free to access</h2>
         <p class="lh-free-lead">Every member starts on Free access, whatever EV you drive.</p>
@@ -520,6 +506,11 @@
         <p class="lh-free-note">Need more sessions? Ask us. What is included may change, so check back.</p>
         <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
+    </div>
+    <figure class="lh-reel">
+      <video class="lh-reel-video" src="images/laps/laps-reel.mp4" poster="images/laps/laps-reel-poster.jpg" width="1080" height="1920" muted autoplay loop playsinline controls preload="metadata" aria-label="Laps in 25 seconds: a lap drawn on a track, with the words for each scene"></video>
+      <figcaption>Laps in 25 seconds, on a made-up circuit with example data.</figcaption>
+    </figure>
   </div>
 </section>
 <main data-no-share>

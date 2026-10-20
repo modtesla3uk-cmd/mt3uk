@@ -1,6 +1,6 @@
 const path = require('path');
 const { chromium } = require(require.resolve('playwright', { paths: ['/node-tools/node_modules', '/opt/node22/lib/node_modules'] }));
-const FPS = 30, DUR = 20, FRAMES = FPS * DUR;
+const FPS = 30, DUR = 25, FRAMES = FPS * DUR;
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });

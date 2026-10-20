@@ -1,7 +1,7 @@
 import subprocess, sys
 import numpy as np
 SR = 44100
-DUR = 20.0
+DUR = 25.0
 MOTOR = '/home/user/mt3uk/audio/motor-session.mp3'
 
 def decode(path):
@@ -61,19 +61,25 @@ def chime(start):                                   # end card: three rising not
     for k, f in enumerate([880, 1320, 1760]):
         tone(f, start + k * 0.12, 0.9, 0.22, 3.5)
 
+# Each slide holds for a second before it goes (index.html, PAUSE), so the cues after it move on by that much.
+PAUSE = 1.0
+SLIDE_ENDS = [2.4, 6.4, 9.6, 13.4, 16.6]
+def at(x):                                          # a time in the slides' own timing, moved on for the pauses before it
+    return x + PAUSE * sum(1 for b in SLIDE_ENDS if b <= x)
+
 # Lap completions (from the scenes): lap 1, lap 2, A and B finish in "Compared".
-beep(6.2)
-beep(9.4)
-beep(13.04)
-beep(13.1)
+beep(at(6.2))
+beep(at(9.4))
+beep(at(13.04))
+beep(at(13.1))
 # Scene changes: a soft whoosh.
 for s in [2.4, 6.4, 9.6, 13.4]:
-    whoosh(s)
+    whoosh(at(s))
 # Make chips pop in.
 for s in [13.7, 13.82, 14.04, 14.26, 14.48]:
-    tick(s)
-whoosh(16.6, 0.6)
-chime(16.9)
+    tick(at(s))
+whoosh(at(16.6), 0.6)
+chime(at(16.9))
 # Start of the reel: the timer starts.
 tick(0.15)
 

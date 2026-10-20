@@ -199,10 +199,15 @@ const SC = [
   { a: 13.4, b: 16.6, head: ['Any EV.', 'Any make.'], cap: ['Works with your lap timer.'], chips: true },
   { a: 16.6, b: 20, end: true }
 ];
+// Each slide holds for a second once it is complete, before it goes, so there is time to read it. The slides keep their own
+// timing (a, b); the reel's timeline runs slide after slide, with the pause on the end of each one but the end card.
+const PAUSE = 1;
+let slideStart = 0;
+SC.forEach(sc => { sc.start = slideStart; sc.len = (sc.b - sc.a) + (sc.end ? 0 : PAUSE); slideStart += sc.len; });
+const REEL_LENGTH = slideStart;
 const GAP = T * (1 - 1 / 1.02);                           // seconds B is quicker over the lap
 
-function drawLapScene(s, t) {
-  const left = s.b - t;
+function drawLapScene(s, t, left) {
   const trailAlpha = clamp(left / 0.3);
   drawGhost(0.16 * clamp((t - s.a) / 0.5) * trailAlpha);
   drawStart();
@@ -290,34 +295,37 @@ function draw(t) {
   ctx.beginPath(); ctx.arc(540, 1115, 760, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
 
-  const s = SC.find(sc => t >= sc.a && t < sc.b) || SC[SC.length - 1];
-  if (s.end) { drawEnd(t - s.a); return; }
-  const lt = t - s.a, left = s.b - t;
+  const s = SC.find(sc => t >= sc.start && t < sc.start + sc.len) || SC[SC.length - 1];
+  const lt = t - s.start;                              // time into this slide, pause included
+  const left = s.len - lt;                             // time left before the next slide
+  if (s.end) { drawEnd(lt); return; }
+  // The slide's own content (its laps, timers and chips) holds still once it is complete, through the pause
+  const at = s.a + Math.min(lt, s.b - s.a);
   const inA = clamp(lt / 0.4), outA = clamp(left / 0.25);
   const a = Math.min(inA, outA), slide = (1 - easeOut(inA)) * 28;
 
   if (s.head[0] === 'Every lap.') {
     drawMark(540, 330, 190, clamp(lt / 1.0), clamp(lt / 0.3));
-    drawGhost(0.16 * clamp((t - 1.2) / 1.2));
+    drawGhost(0.16 * clamp((at - 1.2) / 1.2));
     headline('Every lap.', 520, clamp(lt / 0.5), (1 - easeOut(clamp(lt / 0.5))) * 28);
     return;
   }
   if (s.chips) {
     s.head.forEach((line, k) => headline(line, 400 + k * 160, Math.min(clamp((lt - k * 0.12) / 0.4), outA), (1 - easeOut(clamp((lt - k * 0.12) / 0.4))) * 28));
     s.cap.forEach((line, k) => text(line, 540, 690 + k * 52, 50, CREAM, { alpha: a, weight: 400 }));
-    drawChips(s, t);
+    drawChips(s, at);
     return;
   }
   // Headline (one or two lines), then the caption.
   if (s.head.length === 1) headline(s.head[0], 520, a, slide);
   else s.head.forEach((line, k) => headline(line, 400 + k * 160, a, slide));
   s.cap.forEach((line, k) => text(line, 540, 640 + k * 52, 50, CREAM, { alpha: a, weight: 400 }));
-  drawLapScene(s, t);
-  drawStats(s, t);
+  drawLapScene(s, at, left);
+  drawStats(s, at);
 }
 
 window.draw = draw;
-window.reelInfo = { T: T.toFixed(2), TOP_MPH, GAP: GAP.toFixed(3), N, KMAX };
+window.reelInfo = { T: T.toFixed(2), TOP_MPH, GAP: GAP.toFixed(3), N, KMAX, LENGTH: REEL_LENGTH };
 window.ready = document.fonts.ready.then(() => true);
 draw(0);
 </script>

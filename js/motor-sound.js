@@ -74,18 +74,20 @@
     this.rate = this.s.rateLow;
     this.buffer = null;
     this.bytes = fetch(SAMPLE_URL).then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; });
+    this.loaded = !!settings;
     if (settings) { this.ready = Promise.resolve(this.s); return; }
-    // Loaded once per page. Resolves whether or not the worker answered, so a start never waits on it.
+    // Loaded once per page. Resolves whether or not the worker answered, so a start never waits on it for long (see start).
     var self = this;
     this.ready = fetch(API + '/sound/session', { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (d) { self.s = merge(d && d.settings); return self.s; })
-      .catch(function () { return self.s; });
+      .then(function (d) { self.s = merge(d && d.settings); self.loaded = true; return self.s; })
+      .catch(function () { self.loaded = true; return self.s; });
   }
   Engine.prototype.build = function () {
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
-    var ctx = this.ctx = new AC();
+    // The context may already exist: start() makes it on the tap, before the saved settings have arrived.
+    var ctx = this.ctx = this.ctx || new AC();
     var out = ctx.createGain(), filter = ctx.createBiquadFilter(), pulse = ctx.createGain();
     out.gain.value = 0;
     filter.type = 'lowpass';
@@ -190,15 +192,33 @@
     osc.start();
     return { osc: osc, ratio: ratio };
   };
+  // The graph is built with the saved settings, so a start made before they have arrived waits for them (at most LOAD_WAIT_MS,
+  // then the built-in values are used). The context is made and resumed at once, while the tap still allows it.
+  var LOAD_WAIT_MS = 4000;
   Engine.prototype.start = function () {
-    if (!this.ctx) { if (!this.build()) return false; }
+    if (!this.master && !this.loaded) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      if (!this.ctx) this.ctx = new AC();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      this.on = true;
+      var self = this;
+      Promise.race([this.ready, new Promise(function (done) { setTimeout(done, LOAD_WAIT_MS); })]).then(function () {
+        if (self.on && !self.master) self.begin();
+      });
+      return true;
+    }
+    return this.begin();
+  };
+  Engine.prototype.begin = function () {
+    if (!this.master && !this.build()) return false;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.on = true;
     return true;
   };
   // speed in km/h, top the fastest speed of the lap being played (the note reaches its top pitch there)
   Engine.prototype.setSpeed = function (speed, top) {
-    if (!this.ctx || !this.on) return;
+    if (!this.master || !this.on) return;
     var s = this.s, frac = top > 0 ? clamp(speed / top, 0, 1) : 0, now = this.ctx.currentTime, tc = 0.05;
     var f = s.f0 + (s.fPeak - s.f0) * frac;
     this.oscs.forEach(function (o) { o.osc.frequency.setTargetAtTime(f * o.ratio, now, tc); });
@@ -215,9 +235,9 @@
   Engine.prototype.setLevel = function (v) { this.level = Math.max(0, Math.min(1, v)); };
   // Fade out and stop: used on pause, at the end of the lap, when scrubbing and when the switch goes off.
   Engine.prototype.quiet = function () {
-    if (!this.ctx || !this.on) return;
+    if (!this.on) return;
     this.on = false;
-    this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
+    if (this.master) this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.08);
   };
 
   // A short demonstration with the given settings (the admin's sliders): the speed rises from a standstill to the top and

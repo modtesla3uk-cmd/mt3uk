@@ -3170,6 +3170,25 @@ def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(p
     assert settings["f0"] == 52 and settings["harm"][0] == 0.5, settings
 
 
+def test_the_session_sound_waits_for_the_saved_settings_before_it_is_built(page):
+    """A start made before the saved settings have arrived waits for them, so the graph is built with the saved values (here
+    the top cut), not the built-in ones. Nothing is built while it waits, and a Sound off in the meantime builds nothing."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    held = []
+    page.route("**/sound/session**", lambda route: held.append(route))
+    page.reload()
+    page.wait_for_timeout(300)
+    assert held, "the settings request was not made"
+    page.evaluate("MT3UKMotorSound.start()")
+    assert page.evaluate("!!MT3UKMotorSound.master") is False
+    held[0].fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"cut": 900, "fPeak": 500}}), headers={"Access-Control-Allow-Origin": "*"})
+    page.wait_for_function("!!MT3UKMotorSound.master")
+    assert abs(page.evaluate("MT3UKMotorSound.filter.frequency.value") - 900) < 1
+    assert page.evaluate("MT3UKMotorSound.s.fPeak") == 500
+    assert page.evaluate("MT3UKMotorSound.on") is True
+
+
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     """Play moves both laps along the track in real time (x1), Rewind goes back
     the same way, and x0.5, x2 and x5 change the pace. The slider moves the

@@ -5292,9 +5292,6 @@
         [].forEach.call(main.children, function (ch) {
           if (ch.tagName === 'polyline' || (ch.tagName === 'g' && ch.getAttribute('class') === 'tv-segs')) svg.appendChild(ch.cloneNode(true));
         });
-        var box = document.createElementNS(NS, 'rect');
-        box.setAttribute('id', 'tp-mini-view');
-        svg.appendChild(box);
         ['a', 'b'].forEach(function (k) {
           var g = document.createElementNS(NS, 'g'), d = document.createElementNS(NS, 'circle');
           g.setAttribute('id', 'tp-mini-' + k);
@@ -5311,8 +5308,6 @@
         var v = cmpMap.zoom.view(), k = cmpMap.zoom.frac().k, W = v.w * k, H = v.h * k;
         box.classList.toggle('is-on', k > 1.2);
         svg.setAttribute('viewBox', '0 0 ' + W.toFixed(1) + ' ' + H.toFixed(1));
-        var r = document.getElementById('tp-mini-view');
-        if (r) { r.setAttribute('x', v.x.toFixed(1)); r.setAttribute('y', v.y.toFixed(1)); r.setAttribute('width', v.w.toFixed(1)); r.setAttribute('height', v.h.toFixed(1)); }
         var main = document.getElementById('tp-map2');
         ['a', 'b'].forEach(function (k) {
           var mg = document.getElementById('tp-mini-' + k), col = k === 'a' ? c1 : c2, src = null;
@@ -5323,8 +5318,9 @@
           mg.setAttribute('visibility', 'visible');
           mg.setAttribute('transform', 'translate(' + m[1] + ' ' + m[2] + ')');
           var d = mg.firstChild;
-          d.setAttribute('r', (W / 34).toFixed(1));
-          d.setAttribute('stroke-width', (W / 300).toFixed(2));
+          // Big enough to pick out on the overview: about 11 pixels across, with a white outline 2 pixels wide.
+          d.setAttribute('r', (W / 22).toFixed(1));
+          d.setAttribute('stroke-width', '2');
         });
       }
       function renderAt(t) {

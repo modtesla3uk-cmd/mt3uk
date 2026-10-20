@@ -7908,8 +7908,8 @@ def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page
     assert not errors, errors
 
 
-def test_a_track_overview_shows_the_whole_lap_and_the_part_the_map_shows_when_zoomed_in(page):
-    """When the map is zoomed in, a small overview shows the whole track with the part the map shows as a box, and both cars."""
+def test_a_track_overview_shows_the_whole_lap_and_both_cars_when_zoomed_in(page):
+    """When the map is zoomed in, a small overview shows the whole track and both cars."""
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.set_viewport_size({"width": 1100, "height": 900})
@@ -7922,7 +7922,8 @@ def test_a_track_overview_shows_the_whole_lap_and_the_part_the_map_shows_when_zo
     page.wait_for_timeout(400)
     page.locator("#tp-play-toggle").click()
     expect(overview).to_be_visible()
-    box = page.locator("#tp-mini-view").get_attribute("width")
-    full = page.locator("#tp-mini-svg").get_attribute("viewBox").split()[2]
-    assert float(box) < float(full) * 0.8, (box, full)
+    # Both cars are on the overview, and it shows the whole lap (no box round the part the map shows).
+    expect(page.locator("#tp-mini-a")).to_be_visible()
+    expect(page.locator("#tp-mini-b")).to_be_visible()
+    assert page.locator("#tp-mini-view").count() == 0
     assert not errors, errors

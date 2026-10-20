@@ -1,40 +1,26 @@
 /*
-  The motor sound that follows the car on a session's playback (track-page.js, the Sound on switch). The main sound is a
-  recorded motor (audio/motor-session.mp3), whose pitch rises with the car's speed and whose level goes up with it, so the
-  sound speeds up and slows down with the chip. Until it has loaded, or if it cannot be loaded, a small set of tones built
-  with Web Audio plays instead. Its settings are the Session playback sound section of the Sound panel on
-  track-admin.html, read from the worker (GET /sound/session, KV session-sound). Until they arrive, or if they cannot be
-  read, the built-in values below are used. Browsers only start audio after a tap, so start() is called from the Sound on
-  switch or from Play.
+  The motor sound that follows the car on a session's playback (track-page.js, the Sound on switch). Built with Web Audio and no
+  recording: a bass note (a stack of harmonics, driven, rising with the speed), a growl a fifth above it (a driven stack that
+  wobbles at the firing rate) and a rasp of band-passed noise that comes in at the top of the speed. Its settings are the
+  Session playback sound section of the Sound panel on track-admin.html, read from the worker (GET /sound/session, KV
+  session-sound). Until they arrive, or if they cannot be read, the built-in values below are used. Browsers only start audio
+  after a tap, so start() is called from the Sound on switch or from Play.
 */
 (function () {
   var API = window.MT3UK_TRACK_API || 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  // The built-in values, and the range each setting accepts (the worker, cleanSessionSound, uses the same ranges)
-  // The defaults are a V8 with an electric whine on top: a low, rich note with grit (drive, a light distortion) and a firing
-  // pulse (pulse, how far the volume wobbles, at pulseRatio times the note).
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, drive: 7, pulse: 0.6, pulseRatio: 0.5, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 450, recTop: 650, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
-  var LIMITS = { f0: [40, 400], fPeak: [60, 1200], harm: [0, 1], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], drive: [0, 10], pulse: [0, 0.9], pulseRatio: [0.25, 1], rateLow: [0.2, 1.5], rateHigh: [0.3, 2.5], recLevel: [0, 6], recLow: [200, 3000], recTop: [500, 6000], recHigh: [20, 400], grainLen: [0.1, 2], grainEvery: [0.01, 0.3], compThreshold: [-60, 0], compRatio: [1, 20] };
-  var CUT_IDLE = 900, CUT_TOP = 2000, MASTER = 0.5;
-  // The level at which the engine's master gain is 1 (the volume setting divided by this). The default is louder than this.
-  var VOLUME_REF = 60;
-  // A fixed lift on top of the level, so the session sound is clearly louder than before (about 8 dB).
-  var SESSION_BOOST = 2.5;
-  // The member's level on this device, kept in the browser (0 to 100, all of it by default).
-  function savedLevel() { try { var v = parseFloat(localStorage.getItem('mt3ukTrackSoundLevel')); return isFinite(v) ? Math.max(0, Math.min(100, v)) / 100 : 1; } catch (e) { return 1; } }
-  // The recorded motor (audio/motor-session.mp3, a 12 second loop of the loud part of the recording), played at a pitch that
-  // follows the speed. Until it has loaded, and if it cannot be loaded, the tones below are used.
-  var SAMPLE_URL = new URL('../audio/motor-session.mp3', document.currentScript ? document.currentScript.src : location.href).href;
-  // The recording is played as short overlapping grains taken from random places in it, so it does not repeat in a fixed
-  // cycle. Its pitch, level, filters, grains and compression are the rateLow to compRatio settings. Grains are queued
-  // GRAIN_AHEAD seconds ahead of the clock.
-  var GRAIN_AHEAD = 0.15;
-  // The fade of one grain. Scaled so the overlapping grains add up to a steady level: a grain's window averages 0.5, so the
-  // scale is 2 over the number of grains sounding at once (grainLen over grainEvery).
-  function grainCurve(len, every) {
-    var n = 64, c = new Float32Array(n);
-    for (var i = 0; i < n; i++) c[i] = (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))) * (2 * every / len);
-    return c;
-  }
+  // The built-in values, and the range each setting accepts (the worker, cleanSessionSound, uses the same ranges).
+  // pitch scales every frequency (0.5 is an octave down). bassDrive and growlDrive are how hard each stack is driven
+  // (distortion). growl is the growl's level, rasp the noise on top, wobble how far the growl pulses at the firing rate.
+  var DEFAULTS = { pitch: 1, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 };
+  var LIMITS = { pitch: [0.25, 1.5], bassDrive: [0, 10], growl: [0, 2.5], growlDrive: [0, 12], rasp: [0, 0.3], wobble: [0, 1], volume: [0, 100] };
+  // Before pitch: the bass note rises from BASS_LOW to BASS_TOP Hz over the speed, and each filter opens from its low to its top
+  var BASS_LOW = 52, BASS_TOP = 222, BASS_CUT_LOW = 260, BASS_CUT_TOP = 1360;
+  var GROWL_CUT_LOW = 350, GROWL_CUT_TOP = 1250, RASP_LOW = 900, RASP_TOP = 2000;
+  var BASS_HARM = 22, GROWL_HARM = 18, BASS_ROLL = 1.3, GROWL_ROLL = 1.1;
+  // The growl sits a fifth above the bass. The wobble runs at the firing rate.
+  var GROWL_RATIO = 1.5, WOBBLE_HZ = 18;
+  // The output at full volume (volume over 100, times this), before the limiter on the way out
+  var MASTER = 0.8;
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   // The distortion curve: a tanh bend, scaled so the full-scale input stays at full scale.
@@ -47,16 +33,13 @@
     s = s || {};
     var out = {};
     Object.keys(LIMITS).forEach(function (k) {
-      if (k === 'harm') return;
       var n = Number(s[k]);
       out[k] = isFinite(n) && s[k] !== '' && s[k] !== null ? clamp(n, LIMITS[k][0], LIMITS[k][1]) : DEFAULTS[k];
     });
-    out.harm = DEFAULTS.harm.map(function (d, i) {
-      var n = Number(s.harm && s.harm[i]);
-      return isFinite(n) && s.harm[i] !== '' && s.harm[i] !== null ? clamp(n, LIMITS.harm[0], LIMITS.harm[1]) : d;
-    });
     return out;
   }
+  // The member's own level on this device (0 to 100, all of it by default), kept in the browser.
+  function savedLevel() { try { var v = parseFloat(localStorage.getItem('mt3ukTrackSoundLevel')); return isFinite(v) ? Math.max(0, Math.min(100, v)) / 100 : 1; } catch (e) { return 1; } }
 
   // With settings given (a preview on the admin page) the engine uses them and does not read the worker.
   function Engine(settings) {
@@ -64,16 +47,8 @@
     this.on = false;
     this.oscs = [];
     this.master = null;
-    this.filter = null;
-    this.lfo = null;
     this.s = merge(settings);
-    this.timer = 0;
     this.level = 1;
-    this.grain = null;
-    this.nextGrain = 0;
-    this.rate = this.s.rateLow;
-    this.buffer = null;
-    this.bytes = fetch(SAMPLE_URL).then(function (r) { return r.ok ? r.arrayBuffer() : null; }).catch(function () { return null; });
     this.loaded = !!settings;
     if (settings) { this.ready = Promise.resolve(this.s); return; }
     // Loaded once per page. Resolves whether or not the worker answered, so a start never waits on it for long (see start).
@@ -87,110 +62,80 @@
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
     // The context may already exist: start() makes it on the tap, before the saved settings have arrived.
-    var ctx = this.ctx = this.ctx || new AC();
-    var out = ctx.createGain(), filter = ctx.createBiquadFilter(), pulse = ctx.createGain();
+    var ctx = this.ctx = this.ctx || new AC(), s = this.s, p = s.pitch, i;
+    var out = ctx.createGain(), limiter = ctx.createDynamicsCompressor(), mix = ctx.createGain();
     out.gain.value = 0;
-    filter.type = 'lowpass';
-    filter.frequency.value = this.s.cut;
-    filter.Q.value = 0.7;
-    // Grit: the distortion bends the peaks, so the tones pick up rasp. Then the firing pulse: the volume wobbles at a fraction
-    // of the note, as an engine's firings do.
-    var shaper = ctx.createWaveShaper();
-    shaper.curve = driveCurve(this.s.drive);
-    shaper.oversample = '4x';
-    var depth = clamp(this.s.pulse, 0, 0.9), lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
-    pulse.gain.value = 1 - depth / 2;
-    lfo.type = 'sine';
-    lfo.frequency.value = this.s.f0 * this.s.pulseRatio;
-    lfoGain.gain.value = depth / 2;
-    lfo.connect(lfoGain).connect(pulse.gain);
-    lfo.start();
-    // The tones and the recording each have their own gain, so the recording can take over from the tones once it has loaded.
-    var synthGain = ctx.createGain(), sampleGain = ctx.createGain();
-    synthGain.gain.value = 1;
-    sampleGain.gain.value = this.s.recLevel;
-    filter.connect(shaper).connect(pulse).connect(synthGain).connect(out);
-    var sampleHigh = ctx.createBiquadFilter(), sampleLow = ctx.createBiquadFilter();
-    sampleHigh.type = 'highpass';
-    sampleHigh.frequency.value = this.s.recHigh;
-    sampleLow.type = 'lowpass';
-    sampleLow.frequency.value = this.s.recLow;
-    sampleLow.Q.value = 0.7;
-    // A gentle compressor evens out the bursts in the recording, so the sound is steadier from moment to moment.
-    var sampleComp = ctx.createDynamicsCompressor();
-    sampleComp.threshold.value = this.s.compThreshold;
-    sampleComp.knee.value = 12;
-    sampleComp.ratio.value = this.s.compRatio;
-    sampleComp.attack.value = 0.02;
-    sampleComp.release.value = 0.25;
-    sampleHigh.connect(sampleLow).connect(sampleComp).connect(sampleGain);
-    this.sampleInput = sampleHigh;
-    this.grainCurve = grainCurve(this.s.grainLen, this.s.grainEvery);
-    this.sampleLow = sampleLow;
-    sampleGain.connect(out);
-    out.connect(ctx.destination);
-    this.synthGain = synthGain;
-    this.sampleGain = sampleGain;
-    this.master = out;
-    this.filter = filter;
-    this.lfo = lfo;
-    var self = this, scale = MASTER;
-    // Body: each harmonic is a sine at a multiple of the note, at its own level
-    this.s.harm.forEach(function (level, i) { self.oscs.push(self.tone(i + 1, level * scale)); });
-    self.oscs.push(self.tone(0.5, this.s.sub * scale));
-    self.oscs.push(self.tone(1.5, this.s.whine * scale));
-    this.loadSample();
-    return true;
-  };
-  // Decodes the recording once the context exists (it is made on a tap), then plays it in place of the tones.
-  Engine.prototype.loadSample = function () {
-    var self = this;
-    if (!this.bytes) return;
-    var bytes = this.bytes;
-    this.bytes = null;
-    bytes.then(function (data) {
-      if (!data || !self.ctx) return null;
-      return self.ctx.decodeAudioData(data);
-    }).then(function (buf) {
-      if (!buf) return;
-      self.buffer = buf;
-      self.attachSample();
-    }).catch(function () {});
-  };
-  Engine.prototype.attachSample = function () {
-    if (this.grain || !this.buffer || !this.ctx) return;
-    this.nextGrain = this.ctx.currentTime;
-    this.synthGain.gain.value = 0;
-    this.scheduleGrains();
-    this.grain = setInterval(this.scheduleGrains.bind(this), this.s.grainEvery * 1000);
-  };
-  // Queues the grains that start before the next scheduling pass. Each takes its pitch from the current rate, so the
-  // sound follows the speed as the playback moves.
-  Engine.prototype.scheduleGrains = function () {
-    var ctx = this.ctx, buf = this.buffer;
-    if (!ctx || ctx.state === 'closed') { if (this.grain) clearInterval(this.grain); this.grain = null; return; }
-    if (!buf) return;
-    var limit = ctx.currentTime + GRAIN_AHEAD;
-    if (this.nextGrain < ctx.currentTime) this.nextGrain = ctx.currentTime;
-    while (this.nextGrain < limit) {
-      var at = this.nextGrain, rate = this.rate, span = this.s.grainLen * rate;
-      var src = ctx.createBufferSource(), env = ctx.createGain();
-      src.buffer = buf;
-      src.playbackRate.value = rate;
-      src.connect(env).connect(this.sampleInput);
-      env.gain.setValueCurveAtTime(this.grainCurve, at, this.s.grainLen);
-      src.start(at, Math.random() * Math.max(0, buf.duration - span), span);
-      this.nextGrain += this.s.grainEvery;
+    limiter.threshold.value = -8;
+    limiter.knee.value = 6;
+    limiter.ratio.value = 4;
+    limiter.attack.value = 0.005;
+    limiter.release.value = 0.1;
+    mix.connect(out).connect(limiter).connect(ctx.destination);
+
+    // Bass: the harmonics are summed, driven, then filtered. Its level follows the speed in setSpeed.
+    var bassBus = ctx.createGain(), bassShaper = ctx.createWaveShaper(), bassCut = ctx.createBiquadFilter(), bassGain = ctx.createGain();
+    bassShaper.curve = driveCurve(s.bassDrive);
+    bassShaper.oversample = '4x';
+    bassCut.type = 'lowpass';
+    bassCut.Q.value = 0.7;
+    bassCut.frequency.value = BASS_CUT_LOW * p;
+    bassGain.gain.value = 0.4;
+    bassBus.connect(bassShaper).connect(bassCut).connect(bassGain).connect(mix);
+
+    // Growl: a fifth above the bass, driven harder, with a wobble at the firing rate
+    var growlBus = ctx.createGain(), growlShaper = ctx.createWaveShaper(), growlCut = ctx.createBiquadFilter();
+    var growlWobble = ctx.createGain(), growlLfo = ctx.createOscillator(), growlLfoGain = ctx.createGain(), growlGain = ctx.createGain();
+    growlShaper.curve = driveCurve(s.growlDrive);
+    growlShaper.oversample = '4x';
+    growlCut.type = 'lowpass';
+    growlCut.Q.value = 0.7;
+    growlCut.frequency.value = GROWL_CUT_LOW * p;
+    var depth = clamp(s.wobble, 0, 1);
+    growlWobble.gain.value = 1 - depth / 2;
+    growlLfo.type = 'sine';
+    growlLfo.frequency.value = WOBBLE_HZ * p;
+    growlLfoGain.gain.value = depth / 2;
+    growlLfo.connect(growlLfoGain).connect(growlWobble.gain);
+    growlLfo.start();
+    growlGain.gain.value = 0;
+    growlBus.connect(growlShaper).connect(growlCut).connect(growlWobble).connect(growlGain).connect(mix);
+
+    // Rasp: white noise, band-passed, that comes in at the top of the speed
+    var noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), data = noiseBuf.getChannelData(0);
+    for (i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    var noise = ctx.createBufferSource(), rasp = ctx.createBiquadFilter(), raspGain = ctx.createGain();
+    noise.buffer = noiseBuf;
+    noise.loop = true;
+    rasp.type = 'bandpass';
+    rasp.Q.value = 1.4;
+    rasp.frequency.value = RASP_LOW * p;
+    raspGain.gain.value = 0;
+    noise.connect(rasp).connect(raspGain).connect(mix);
+    noise.start();
+
+    // Each harmonic is a sine at a multiple of the note, at the level a saw of that harmonic would have
+    var oscs = [];
+    function partial(bus, ratio, level) {
+      var osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = p * BASS_LOW * ratio;
+      g.gain.value = level;
+      osc.connect(g).connect(bus);
+      osc.start();
+      oscs.push({ osc: osc, ratio: ratio });
     }
-  };
-  Engine.prototype.tone = function (ratio, level) {
-    var ctx = this.ctx, osc = ctx.createOscillator(), g = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = this.s.f0 * ratio;
-    g.gain.value = level;
-    osc.connect(g).connect(this.filter);
-    osc.start();
-    return { osc: osc, ratio: ratio };
+    for (i = 1; i <= BASS_HARM; i++) partial(bassBus, i, 1 / Math.pow(i, BASS_ROLL));
+    for (i = 1; i <= GROWL_HARM; i++) partial(growlBus, GROWL_RATIO * i, 1 / Math.pow(i, GROWL_ROLL));
+
+    this.oscs = oscs;
+    this.filter = bassCut;
+    this.growlCut = growlCut;
+    this.rasp = rasp;
+    this.bassGain = bassGain;
+    this.growlGain = growlGain;
+    this.raspGain = raspGain;
+    this.master = out;
+    return true;
   };
   // The graph is built with the saved settings, so a start made before they have arrived waits for them (at most LOAD_WAIT_MS,
   // then the built-in values are used). The context is made and resumed at once, while the tap still allows it.
@@ -219,17 +164,17 @@
   // speed in km/h, top the fastest speed of the lap being played (the note reaches its top pitch there)
   Engine.prototype.setSpeed = function (speed, top) {
     if (!this.master || !this.on) return;
-    var s = this.s, frac = top > 0 ? clamp(speed / top, 0, 1) : 0, now = this.ctx.currentTime, tc = 0.05;
-    var f = s.f0 + (s.fPeak - s.f0) * frac;
-    this.oscs.forEach(function (o) { o.osc.frequency.setTargetAtTime(f * o.ratio, now, tc); });
-    this.filter.frequency.setTargetAtTime(CUT_IDLE + (CUT_TOP - CUT_IDLE) * frac, now, tc);
-    if (this.lfo) this.lfo.frequency.setTargetAtTime(f * s.pulseRatio, now, tc);
-    this.rate = s.rateLow + (s.rateHigh - s.rateLow) * frac;
-    // The recording's level follows the speed closely (squared), so it swells as the car gets quicker and falls away as it slows.
-    if (this.sampleGain) this.sampleGain.gain.setTargetAtTime(s.recLevel * (0.1 + 0.9 * frac * frac), now, tc);
-    if (this.sampleLow) this.sampleLow.frequency.setTargetAtTime(s.recLow + (s.recTop - s.recLow) * frac, now, tc);
-    // Quiet at a standstill, fuller as the car gets quicker
-    this.master.gain.setTargetAtTime((0.04 + 0.2 * frac) * (s.volume / VOLUME_REF) * SESSION_BOOST * this.level, now, tc);
+    var s = this.s, p = s.pitch, frac = top > 0 ? clamp(speed / top, 0, 1) : 0, now = this.ctx.currentTime, tc = 0.05;
+    // The whole sound lifts from a standstill: quiet and low at rest, fuller and higher at the top of the speed
+    var lift = 0.4 + 0.6 * frac, fb = p * (BASS_LOW + (BASS_TOP - BASS_LOW) * frac);
+    this.oscs.forEach(function (o) { o.osc.frequency.setTargetAtTime(fb * o.ratio, now, tc); });
+    this.filter.frequency.setTargetAtTime(p * (BASS_CUT_LOW + (BASS_CUT_TOP - BASS_CUT_LOW) * frac), now, tc);
+    this.growlCut.frequency.setTargetAtTime(p * (GROWL_CUT_LOW + (GROWL_CUT_TOP - GROWL_CUT_LOW) * frac), now, tc);
+    this.rasp.frequency.setTargetAtTime(p * (RASP_LOW + (RASP_TOP - RASP_LOW) * frac), now, tc);
+    this.bassGain.gain.setTargetAtTime(lift, now, tc);
+    this.growlGain.gain.setTargetAtTime(s.growl * (0.12 + 0.22 * frac * frac) * lift, now, tc);
+    this.raspGain.gain.setTargetAtTime(s.rasp * frac * lift, now, tc);
+    this.master.gain.setTargetAtTime((s.volume / 100) * MASTER * this.level, now, tc);
   };
   // The member's own level on this device (0 to 1), scaling the session's level. The slider on the track page sets it.
   Engine.prototype.setLevel = function (v) { this.level = Math.max(0, Math.min(1, v)); };

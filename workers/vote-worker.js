@@ -10385,21 +10385,13 @@ async function handleEvSoundAdmin(request, env) {
 // The settings for the motor sound on a session's playback (js/motor-sound.js), kept apart from the shaping settings above
 // so the two can differ. One KV key (session-sound), read with get(). The ranges match DEFAULTS and LIMITS in js/motor-sound.js.
 var SESSION_SOUND_KEY = 'session-sound';
-var SESSION_SOUND_LIMITS = { f0: [40, 400], fPeak: [60, 1200], sub: [0, 1], whine: [0, 0.3], cut: [400, 4000], volume: [0, 100], rateLow: [0.2, 1.5], rateHigh: [0.3, 2.5], recLevel: [0, 6], recLow: [200, 3000], recTop: [500, 6000], recHigh: [20, 400], grainLen: [0.1, 2], grainEvery: [0.01, 0.3], compThreshold: [-60, 0], compRatio: [1, 20] };
-var SESSION_SOUND_HARM = [0, 1];
+var SESSION_SOUND_LIMITS = { pitch: [0.25, 1.5], bassDrive: [0, 10], growl: [0, 2.5], growlDrive: [0, 12], rasp: [0, 0.3], wobble: [0, 1], volume: [0, 100] };
 function cleanSessionSound(body) {
   var src = body || {}, out = {};
   Object.keys(SESSION_SOUND_LIMITS).forEach(function (k) {
     var n = Number(src[k]), lim = SESSION_SOUND_LIMITS[k];
     if (src[k] !== undefined && src[k] !== null && src[k] !== '' && isFinite(n)) out[k] = Math.max(lim[0], Math.min(lim[1], n));
   });
-  var harm = Array.isArray(src.harm) ? src.harm : [];
-  if (harm.length) {
-    out.harm = [0, 1, 2, 3].map(function (i) {
-      var n = Number(harm[i]);
-      return isFinite(n) ? Math.max(SESSION_SOUND_HARM[0], Math.min(SESSION_SOUND_HARM[1], n)) : 0;
-    });
-  }
   return out;
 }
 async function handleSessionSoundPublic(request, env) {

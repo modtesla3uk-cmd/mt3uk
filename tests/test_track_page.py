@@ -3163,16 +3163,16 @@ def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(p
     panel). Without them, or if they cannot be read, the built-in sound is used."""
     fake = FakeWorker()
     open_page(page, fake)
-    page.route("**/sound/session**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"fPeak": 600, "harm": [0.5, 0.2, 0.1, 0.05], "volume": 80}}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/sound/session**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"pitch": 0.5, "growl": 1.0, "volume": 80}}), headers={"Access-Control-Allow-Origin": "*"}))
     page.reload()
     settings = page.evaluate("MT3UKMotorSound.ready.then(function (s) { return s; })")
-    assert settings["fPeak"] == 600 and settings["volume"] == 80, settings
-    assert settings["f0"] == 52 and settings["harm"][0] == 0.5, settings
+    assert settings["pitch"] == 0.5 and settings["growl"] == 1.0 and settings["volume"] == 80, settings
+    assert settings["growlDrive"] == 9 and settings["wobble"] == 0.6, settings
 
 
 def test_the_session_sound_waits_for_the_saved_settings_before_it_is_built(page):
     """A start made before the saved settings have arrived waits for them, so the graph is built with the saved values (here
-    the top cut), not the built-in ones. Nothing is built while it waits, and a Sound off in the meantime builds nothing."""
+    the pitch, an octave down), not the built-in ones. Nothing is built while it waits."""
     fake = FakeWorker()
     open_page(page, fake)
     held = []
@@ -3182,10 +3182,12 @@ def test_the_session_sound_waits_for_the_saved_settings_before_it_is_built(page)
     assert held, "the settings request was not made"
     page.evaluate("MT3UKMotorSound.start()")
     assert page.evaluate("!!MT3UKMotorSound.master") is False
-    held[0].fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"cut": 900, "fPeak": 500}}), headers={"Access-Control-Allow-Origin": "*"})
+    held[0].fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {"pitch": 0.5, "growl": 1.0}}), headers={"Access-Control-Allow-Origin": "*"})
     page.wait_for_function("!!MT3UKMotorSound.master")
-    assert abs(page.evaluate("MT3UKMotorSound.filter.frequency.value") - 900) < 1
-    assert page.evaluate("MT3UKMotorSound.s.fPeak") == 500
+    # The bass cut opens from 260 Hz at a standstill, times the pitch
+    assert abs(page.evaluate("MT3UKMotorSound.filter.frequency.value") - 130) < 1
+    assert abs(page.evaluate("MT3UKMotorSound.oscs[0].osc.frequency.value") - 26) < 1
+    assert page.evaluate("MT3UKMotorSound.s.pitch") == 0.5
     assert page.evaluate("MT3UKMotorSound.on") is True
 
 

@@ -14,28 +14,22 @@
   var loaded = false, inputs = {};
 
   // The built-in values and ranges, as in js/motor-sound.js
-  var DEFAULTS = { f0: 52, fPeak: 420, harm: [0.85, 0.65, 0.3, 0.1], sub: 0.7, whine: 0.1, cut: 1600, volume: 90, rateLow: 0.6, rateHigh: 1.3, recLevel: 2.5, recLow: 450, recTop: 650, recHigh: 80, grainLen: 0.6, grainEvery: 0.04, compThreshold: -32, compRatio: 4 };
+  var DEFAULTS = { pitch: 1, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 };
   var ROWS = [
-    { key: 'f0', label: 'Lowest note (Hz)', min: 40, max: 400, step: 1, hint: 'The note when the car is standing still' },
-    { key: 'fPeak', label: 'Highest note (Hz)', min: 60, max: 1200, step: 5, hint: 'The note at the car\'s top speed on the lap' },
-    { key: 'harm.0', label: 'Body: 2nd harmonic', min: 0, max: 1, step: 0.01, hint: 'Adds warmth' },
-    { key: 'harm.1', label: 'Body: 3rd harmonic', min: 0, max: 1, step: 0.01, hint: 'Adds edge' },
-    { key: 'harm.2', label: 'Body: 4th harmonic', min: 0, max: 1, step: 0.01, hint: 'Adds bite' },
-    { key: 'harm.3', label: 'Body: 5th harmonic', min: 0, max: 1, step: 0.01, hint: 'Adds sharpness' },
-    { key: 'sub', label: 'Sub rumble', min: 0, max: 1, step: 0.01, hint: 'A low tone under the note' },
-    { key: 'whine', label: 'Whine', min: 0, max: 0.3, step: 0.005, hint: 'The high inverter whine' },
-    { key: 'cut', label: 'Top cut (Hz)', min: 400, max: 4000, step: 50, hint: 'Lower is warmer and less shrill' },
-    { key: 'volume', label: 'Level (0 to 100)', min: 0, max: 100, step: 5, hint: 'How loud the sound is on a session' },
-    { key: 'rateLow', label: 'Recording pitch, standing still (x)', min: 0.2, max: 1.5, step: 0.05, hint: 'How far the recording is pitched down when the car is still. 1 is its own pitch' },
-    { key: 'rateHigh', label: 'Recording pitch, top speed (x)', min: 0.3, max: 2.5, step: 0.05, hint: 'How far the recording is pitched up at the top speed on the lap' },
-    { key: 'recLevel', label: 'Recording level', min: 0, max: 6, step: 0.1, hint: 'How loud the recording is, before the Level above' },
-    { key: 'recLow', label: 'Recording top cut, standing still (Hz)', min: 200, max: 3000, step: 50, hint: 'Lower cuts more of the hiss when the car is still' },
-    { key: 'recTop', label: 'Recording top cut, top speed (Hz)', min: 500, max: 6000, step: 50, hint: 'Lower is less hiss and less bite at top speed' },
-    { key: 'recHigh', label: 'Recording rumble cut (Hz)', min: 20, max: 400, step: 5, hint: 'Removes the low wind rumble below this' },
-    { key: 'grainLen', label: 'Grain length (s)', min: 0.1, max: 2, step: 0.05, hint: 'Longer grains blend more smoothly' },
-    { key: 'grainEvery', label: 'Grain spacing (s)', min: 0.01, max: 0.3, step: 0.005, hint: 'How often a new grain starts. Smaller is smoother' },
-    { key: 'compThreshold', label: 'Evening out: threshold (dB)', min: -60, max: 0, step: 1, hint: 'The louder parts above this are pulled down' },
-    { key: 'compRatio', label: 'Evening out: ratio', min: 1, max: 20, step: 0.5, hint: 'How hard the louder parts are pulled down' }
+    { key: 'pitch', label: 'Pitch (x)', min: 0.25, max: 1.5, step: 0.05, hint: 'Lowers or raises the whole sound. 0.5 is an octave down' },
+    { key: 'bassDrive', label: 'Bass grit', min: 0, max: 10, step: 0.5, hint: 'How hard the bass note is driven. More is rougher' },
+    { key: 'growl', label: 'Growl level', min: 0, max: 2.5, step: 0.05, hint: 'How loud the growl sits above the bass' },
+    { key: 'growlDrive', label: 'Growl grit', min: 0, max: 12, step: 0.5, hint: 'How hard the growl is driven. More is more aggressive' },
+    { key: 'rasp', label: 'Rasp', min: 0, max: 0.3, step: 0.01, hint: 'The noise on top, which comes in at speed' },
+    { key: 'wobble', label: 'Firing wobble', min: 0, max: 1, step: 0.05, hint: 'How far the growl pulses at the firing rate' },
+    { key: 'volume', label: 'Level (0 to 100)', min: 0, max: 100, step: 5, hint: 'How loud the sound is on a session' }
+  ];
+  // Presets fill the sliders above. Save puts the filled-in settings on the site.
+  var PRESETS = [
+    { label: 'As built (F2)', values: { pitch: 1, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 } },
+    { label: 'A step softer (F1)', values: { pitch: 1, bassDrive: 3, growl: 1.2, growlDrive: 6, rasp: 0.07, wobble: 0.35, volume: 90 } },
+    { label: 'Octave down', values: { pitch: 0.5, bassDrive: 6, growl: 1.4, growlDrive: 9, rasp: 0.12, wobble: 0.6, volume: 90 } },
+    { label: 'Heavier', values: { pitch: 1, bassDrive: 8, growl: 1.6, growlDrive: 11, rasp: 0.15, wobble: 0.7, volume: 95 } }
   ];
 
   function key() {
@@ -53,20 +47,12 @@
   // Fill in any setting missing or out of range with the built-in value
   function merged(s) {
     s = s || {};
-    var out = { harm: [] }, k;
-    Object.keys(DEFAULTS).filter(function (name) { return name !== 'harm'; }).forEach(function (name) {
+    var out = {};
+    Object.keys(DEFAULTS).forEach(function (name) {
       var n = Number(s[name]);
       out[name] = s[name] !== undefined && s[name] !== null && s[name] !== '' && isFinite(n) ? n : DEFAULTS[name];
     });
-    out.harm = DEFAULTS.harm.map(function (d, i) {
-      var n = Number(s.harm && s.harm[i]);
-      return s.harm && s.harm[i] !== undefined && s.harm[i] !== null && s.harm[i] !== '' && isFinite(n) ? n : d;
-    });
     return out;
-  }
-  function valueOf(s, k) {
-    var parts = k.split('.');
-    return parts.length === 2 ? s.harm[Number(parts[1])] : s[k];
   }
 
   ROWS.forEach(function (row) {
@@ -92,22 +78,37 @@
   });
 
   function read() {
-    var s = { harm: [] };
-    ROWS.forEach(function (row) {
-      var v = Number(inputs[row.key].input.value), parts = row.key.split('.');
-      if (parts.length === 2) s.harm[Number(parts[1])] = v;
-      else s[row.key] = v;
-    });
+    var s = {};
+    ROWS.forEach(function (row) { s[row.key] = Number(inputs[row.key].input.value); });
     return s;
   }
   function fill(settings) {
     var s = merged(settings);
     ROWS.forEach(function (row) {
       var it = inputs[row.key];
-      it.input.value = String(valueOf(s, row.key));
+      it.input.value = String(s[row.key]);
       it.out.textContent = String(Number(it.input.value));
     });
   }
+
+  // The preset buttons sit above the sliders. A press fills the sliders in; nothing is saved until Save.
+  var presets = document.createElement('div');
+  presets.className = 'ss-presets';
+  presets.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px';
+  presets.setAttribute('role', 'group');
+  presets.setAttribute('aria-label', 'Presets');
+  PRESETS.forEach(function (preset) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-secondary btn-sm';
+    b.textContent = preset.label;
+    b.addEventListener('click', function () {
+      fill(preset.values);
+      say('Filled in the ' + preset.label.toLowerCase() + ' preset. Hear it, then Save to put it on the site.');
+    });
+    presets.appendChild(b);
+  });
+  controls.parentNode.insertBefore(presets, controls);
 
   function load() {
     if (!key()) { say('Enter the admin key at the top of the page first.'); return; }

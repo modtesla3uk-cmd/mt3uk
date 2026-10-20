@@ -1345,20 +1345,42 @@ def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_th
     page.route("**/sound/session/admin**", session_admin)
     page.locator("#session-sound-wrap summary").click()
     rows = page.locator("#ss-controls .snd-row")
-    expect(rows).to_have_count(20)
-    expect(rows.first.locator("output")).to_have_text("52")
-    page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[1];
-        r.value = '600'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
+    expect(rows).to_have_count(7)
+    expect(rows.first.locator("output")).to_have_text("1")
+    page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[0];
+        r.value = '0.5'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
     page.locator("#ss-save").click()
     expect(page.locator("#ss-note")).to_contain_text("Saved")
-    assert len(posted) == 1 and posted[0]["fPeak"] == 600, posted
-    assert "sub" in posted[0] and len(posted[0]["harm"]) == 4, posted[0]
-    # The recording's own sliders (pitch, level, filters, grains, evening out) are saved with the rest
-    assert "rateHigh" in posted[0] and "recLevel" in posted[0] and "grainEvery" in posted[0] and "compRatio" in posted[0], posted[0]
+    assert len(posted) == 1 and posted[0]["pitch"] == 0.5, posted
+    # The six tone controls and the level are what is saved, and nothing from the old recording or harmonic settings
+    for k in ("bassDrive", "growl", "growlDrive", "rasp", "wobble", "volume"):
+        assert k in posted[0], posted[0]
+    assert "harm" not in posted[0] and "grainEvery" not in posted[0] and "rateHigh" not in posted[0], posted[0]
     assert "fEnd" not in posted[0] and "length" not in posted[0], posted[0]
     # The Sound panel above keeps its own settings
     sub = page.locator("#admin-subnav")
     expect(sub.locator("a", has_text="Session playback sound")).to_have_count(1)
+
+
+def test_admin_session_sound_presets_fill_the_sliders_and_save_nothing_until_saved(page):
+    """The presets above the sliders fill them in (Octave down lowers the pitch to 0.5), and nothing is sent until Save."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+
+    def session_admin(route):
+        if route.request.method == "POST":
+            posted.append(json.loads(route.request.post_data or "{}"))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "settings": {}}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/sound/session/admin**", session_admin)
+    page.locator("#session-sound-wrap summary").click()
+    page.locator("#session-sound-wrap .ss-presets button", has_text="Octave down").click()
+    expect(page.locator("#ss-controls .snd-row output").first).to_have_text("0.5")
+    assert posted == [], posted
+    page.locator("#ss-save").click()
+    expect(page.locator("#ss-note")).to_contain_text("Saved")
+    assert len(posted) == 1 and posted[0]["pitch"] == 0.5 and posted[0]["growlDrive"] == 9, posted
 
 
 LINES_API = "**/track/lines/admin**"

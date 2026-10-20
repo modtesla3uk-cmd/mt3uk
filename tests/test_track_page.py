@@ -6183,7 +6183,7 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
         page.locator("#tp-fold").click()  # the controls start small on a phone: open them for this check
     panel = page.locator("#tp-play")
     start = panel.bounding_box()
-    assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom
+    assert start["y"] + start["height"] > 360 and start["x"] + start["width"] < 520  # resting at the bottom, under the map's right side
     # On a phone, with the charts on, it rests under the map, so the chart panel's time labels stay clear (until it is moved)
     charts_box = page.locator("#tp-gbox").bounding_box()
     assert start["x"] + start["width"] <= charts_box["x"] + 2, (start, charts_box)
@@ -6209,10 +6209,10 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     sx, sy = s["x"] + s["width"] / 2, s["y"] + s["height"] / 2
     page.mouse.move(sx, sy)
     page.mouse.down()
-    page.mouse.move(sx - 60, sy, steps=6)
+    page.mouse.move(sx + 20, sy, steps=6)  # a little wider
     page.mouse.up()
     resized = panel.bounding_box()
-    assert abs(resized["width"] - (moved["width"] - 60)) < 6, (moved, resized)
+    assert abs(resized["width"] - (moved["width"] + 20)) < 6, (moved, resized)
     # Kept in this browser, and still on the screen after a reload.
     page.reload()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -6221,11 +6221,11 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
         page.locator("#tp-fold").click()  # the controls start small after a reload too: open them to see the kept size
     again = panel.bounding_box()
     assert abs(again["x"] - resized["x"]) < 6 and abs(again["width"] - resized["width"]) < 6, (resized, again)
-    # Map options puts them back at the bottom left.
+    # Map options puts them back where they rest (bottom, under the map's right side).
     page.locator("#tp-mopts-btn").click()
     page.locator("#tp-pn-reset").click()
     back = panel.bounding_box()
-    assert back["x"] < 20 and abs(back["width"] - start["width"]) < 6, (start, back)
+    assert abs(back["x"] - start["x"]) < 6 and abs(back["width"] - start["width"]) < 6, (start, back)
 
 
 def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons_row(page):
@@ -7914,26 +7914,22 @@ def test_the_map_has_a_g_meter_that_follows_playback(page):
     assert not errors, errors
 
 
-def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page):
-    """The G button on the meter hides it (the button stays, as G) and shows it again; the choice is kept on this device."""
+def test_the_g_meter_is_labelled_on_its_rings_with_no_button_and_no_changing_figures(page):
+    """The G meter has no G button and no changing A and B figures: its rings are labelled 1.5 g at the top, bottom, left and right."""
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     save_thruxton_with_a_member_board(page, FakeWorker())
-    page.locator("#tp-mapwrap .tv-zoom-full").click()  # the meters are in full screen only
-    btn = page.locator("#tp-gm-toggle")
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-gmeter svg")).to_be_visible()
-    btn.click()
-    expect(page.locator("#tp-gmeter svg")).to_be_hidden()
-    expect(btn).to_have_attribute("aria-pressed", "false")
-    assert page.evaluate("localStorage.getItem('mt3ukGMeter')") == "off"
-    btn.click()
-    expect(page.locator("#tp-gmeter svg")).to_be_visible()
+    expect(page.locator("#tp-gm-toggle")).to_be_hidden()
+    expect(page.locator("#tp-gm-ra")).to_be_hidden()
+    expect(page.locator("#tp-gmeter .tp-gm-scale")).to_have_count(4)
     assert not errors, errors
 
 
-def test_on_a_phone_on_its_side_the_speed_and_g_meter_sit_at_the_bottom_of_the_map_and_the_figures_are_big(page):
-    """Full screen on a phone on its side (charts off): the G meter sits at the bottom left of the map, the speed figures at the
-    bottom right and big, the lap times top left, and the controls rest bottom centre."""
+def test_on_a_phone_on_its_side_the_g_meter_is_under_the_lap_times_and_the_figures_are_at_eye_level(page):
+    """Full screen on a phone on its side (charts off): the lap times top left, the G meter under them on the left, the speed
+    figures on the right above the controls, big enough to read, and the controls at the bottom right."""
     page.set_viewport_size({"width": 844, "height": 390})
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -7948,10 +7944,10 @@ def test_on_a_phone_on_its_side_the_speed_and_g_meter_sit_at_the_bottom_of_the_m
     lap = page.locator("#tp-laptimes").bounding_box()
     play = page.locator("#tp-play").bounding_box()
     centre = wrap["x"] + wrap["width"] / 2
-    assert speed["x"] > centre and wrap["y"] + wrap["height"] - (speed["y"] + speed["height"]) < 20, (speed, wrap)
-    assert meter["x"] < centre and wrap["y"] + wrap["height"] - (meter["y"] + meter["height"]) < 20, (meter, wrap)
     assert lap["y"] < wrap["y"] + wrap["height"] / 2, (lap, wrap)
-    assert abs((play["x"] + play["width"] / 2) - centre) < 12, (play, wrap)
+    assert meter["x"] < centre and meter["y"] >= lap["y"] + lap["height"] - 2, (meter, lap)
+    assert speed["x"] > centre and speed["y"] + speed["height"] <= play["y"] + 2, (speed, play)
+    assert wrap["x"] + wrap["width"] - (play["x"] + play["width"]) < 14, (play, wrap)
     size = page.evaluate("getComputedStyle(document.querySelector('#tp-speed-vals .tp-spd b')).fontSize")
     assert float(size[:-2]) >= 24, size
 

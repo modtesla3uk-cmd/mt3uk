@@ -691,8 +691,11 @@
   /* The G meter on the map: a small set of rings at half a g, one dot per lap, below the map's filter button, on the left edge,
      where the controls are not. It does not take the touches (the map under it can still be held). */
   .tp-mapwrap { position: relative; }
-  .tp-gmeter { position: absolute; left: 10px; bottom: 44px; width: 92px; padding: 4px 4px 3px; border-radius: var(--radius-sm); background: transparent; pointer-events: none; z-index: 3; }
+  .tp-gmeter { position: absolute; left: 10px; bottom: 44px; width: 112px; padding: 4px 6px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); pointer-events: none; z-index: 3; }
   @media (max-width: 780px) { .tp-gmeter { width: 100px; } }
+  /* The labels round the meter: the scale (2 g at the outer ring) at the top, bottom, left and right. The changing figures are gone. */
+  .tp-gm-scale { fill: #ffffff; font-size: 10px; font-weight: 700; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+  .tp-gm-read, .tp-gm-toggle { display: none !important; }
   .tp-gmeter svg { display: block; width: 100%; height: auto; overflow: visible; }
   .tp-gm-ring { fill: none; stroke: #c9d2cd; stroke-width: 1.2; }
   .tp-gm-axis { fill: none; stroke: #b5c0ba; stroke-width: 1; }
@@ -746,29 +749,40 @@
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row span { font-size: 1rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row b { font-size: 1.7rem; }
   }
-  /* A phone on its side in full screen: the same places, smaller. The controls rest bottom centre (until they are moved), so the
-     G meter and the speed box have the bottom corners, and the overview sits above the speed box. */
+  /* A phone on its side in full screen: the lap times top left, the G meter below them (smaller), the overview bottom left of the
+     map, the speed figures at the right at eye level, and the controls at the bottom right. With the charts on the map is narrower,
+     so the controls sit under the map's right side and the overview is left out. */
   @media (max-height: 500px) {
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: 10px; right: auto; bottom: 10px; width: 112px; }
-    #tp-mapcard.is-full[data-layout="wide"] .tp-overview { right: 10px; left: auto; bottom: 92px; width: 96px; height: 96px; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: 10px; right: auto; top: 220px; bottom: auto; width: 84px; background: rgba(13, 59, 51, .92); border-radius: var(--radius-sm); padding: 4px 6px; }
+    /* On a phone the G button is left off the meter (it clashed with the lap times), and the lap A and B figures sit inside the
+       meter's box, along the bottom of its rings. */
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter .tp-gm-toggle { display: none; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter .tp-gm-read { position: absolute; left: 4px; right: auto; bottom: 4px; margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-size: 0.66rem; }
+    /* The lap A and B figures on the phone: no white box, smaller, with a dark shadow so the lap colours read on the dark green. */
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter .tp-gm-read span { background: none; padding: 0; font-size: 0.56rem; font-weight: 800; text-shadow: 0 0 2px #000000, 0 0 3px #000000; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 140px; right: auto; bottom: 10px; width: 96px; height: 96px; background: rgba(13, 59, 51, .92); border-radius: var(--radius-sm); }
     #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { top: 96px; bottom: auto; left: 10px; width: 124px; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-now b { font-size: 1.2rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row span { font-size: .66rem; }
     #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row b { font-size: .9rem; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { bottom: 10px; right: 10px; padding: 4px 8px; gap: 8px; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { top: auto; bottom: 120px; right: 10px; padding: 4px 8px; gap: 8px; }
+    /* With More open the controls are taller, so the figures lift above them. */
+    #tp-mapcard.is-full[data-layout="wide"]:not(.is-compact) #tp-mapwrap > #tp-speed-read { bottom: 214px; }
     #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals { gap: 8px; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 1.6rem; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1rem; }
-    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: .7rem; }
-    /* The G meter gets the dark green box on a phone, so its rings read over the imagery. */
-    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { background: rgba(13, 59, 51, .92); border-radius: var(--radius-sm); padding: 4px 6px; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 1.9rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1.1rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: .8rem; }
     /* The numbered corners are left off the map on a phone on its side (they crowd the speed and the meter). */
     #tp-mapcard.is-full[data-layout="wide"] #tp-map2 g:has(> circle[r="11"]) { display: none; }
-    /* With the charts off the controls rest bottom centre; with them on they stay under the map, so the meter and the figures lift above them. */
-    #tp-mapcard.is-full[data-layout="wide"]:not(.has-charts):not([data-pn="on"]) .tp-play { left: 50%; right: auto; transform: translateX(-50%); width: min(360px, 52%); }
-    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mapwrap > #tp-speed-read { bottom: 124px; }
-    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mini { display: none; }
-    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mapwrap > #tp-gmeter { left: auto; right: 130px; bottom: 124px; }
+    /* The controls sit at the bottom right: of the screen with the charts off, and of the map with them on. */
+    #tp-mapcard.is-full[data-layout="wide"]:not([data-pn="on"]) .tp-play { left: auto; right: 10px; transform: none; width: min(420px, 52%); }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-play { right: calc(100% - var(--tp-map, 60%) + 6px); }
+    /* The compact controls (the default on a phone) set right to auto further up, so these say it again, with more weight. */
+    #tp-mapcard.is-full.is-compact[data-layout="wide"]:not([data-pn="on"]) .tp-play { left: auto; right: 10px; }
+    #tp-mapcard.is-full.is-compact[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-play { right: calc(100% - var(--tp-map, 60%) + 6px); }
+    /* With the charts on the overview is smaller and sits in the bottom left corner, with the G meter just above it. */
+    #tp-mapcard.is-full[data-layout="wide"].has-charts .tp-overview { left: 10px; right: auto; bottom: 6px; width: 70px; height: 70px; }
+    #tp-mapcard.is-full[data-layout="wide"].has-charts #tp-mapwrap > #tp-gmeter { top: 212px; }
   }
   /* The speed figures, the G meter, the lap times and the overview only show in full screen, on a phone and on a desktop. The
      map and the charts are all there is otherwise. */
@@ -1669,7 +1683,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=5"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271202" defer></script>
+<script src="js/track-page.js?v=20271203" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

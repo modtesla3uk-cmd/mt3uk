@@ -4403,7 +4403,7 @@
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
-        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg></div><div class="tp-laptimes" id="tp-laptimes" aria-live="off"><div class="tp-lt-now"><b id="tp-lt-cur"></b></div><div class="tp-lt-row"><span>Lap</span><b id="tp-lt-lap"></b></div><div class="tp-lt-row"><span>Best</span><b id="tp-lt-best"></b></div><div class="tp-lt-row"><span>Last</span><b id="tp-lt-last"></b></div></div>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="-12 -12 124 124" aria-hidden="true"><circle cx="50" cy="50" r="10.5" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="21" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><text class="tp-gm-scale" x="50" y="-3" text-anchor="middle">2 g</text><text class="tp-gm-scale" x="50" y="109" text-anchor="middle">2 g</text><text class="tp-gm-scale" x="-11" y="53">2</text><text class="tp-gm-scale" x="111" y="53" text-anchor="end">2</text><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg></div><div class="tp-laptimes" id="tp-laptimes" aria-live="off"><div class="tp-lt-now"><b id="tp-lt-cur"></b></div><div class="tp-lt-row"><span>Lap</span><b id="tp-lt-lap"></b></div><div class="tp-lt-row"><span>Best</span><b id="tp-lt-best"></b></div><div class="tp-lt-row"><span>Last</span><b id="tp-lt-last"></b></div></div>' +
         '<div class="tp-speed-read" id="tp-speed-read"><span id="tp-speed-vals" aria-live="off"></span></div>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
@@ -5287,7 +5287,7 @@
       }
       function paintGMeter() {
         gmRaf = 0;
-        var moving = false, pxg = 28;
+        var moving = false, pxg = 21;
         ['a', 'b'].forEach(function (k) {
           var g = gmT[k], sm = gmS[k] = gmS[k] || { x: g[0], y: g[1] };
           sm.x += (g[0] - sm.x) * 0.35; sm.y += (g[1] - sm.y) * 0.35;
@@ -5329,7 +5329,7 @@
       }
       function drawGMeter(t, snap) {
         var el = document.getElementById('tp-gmeter'); if (!el || !gaT.length) return;
-        var ra = gAt(gaT, t), rb = gAt(gbT, t), lim = function (v) { return Math.max(-1.6, Math.min(1.6, v)); };
+        var ra = gAt(gaT, t), rb = gAt(gbT, t), lim = function (v) { return Math.max(-2, Math.min(2, v)); };
         gmT.a = [lim(ra[2]), lim(ra[1])]; gmT.b = [lim(rb[2]), lim(rb[1])];
         if (snap || !gmS.a) gmS = { a: { x: gmT.a[0], y: gmT.a[1] }, b: { x: gmT.b[0], y: gmT.b[1] } };
         var da = document.getElementById('tp-gm-a'), db = document.getElementById('tp-gm-b');
@@ -5434,9 +5434,8 @@
       // The G meter sits inside the speed box under the map (the bold figures and the meter together, as on a VBOX dashboard),
       // or at the bottom of the map in the desktop wide full screen (placeGMeter).
       placeGMeter();
-      var gmOff = false;
-      try { gmOff = localStorage.getItem('mt3ukGMeter') === 'off'; } catch (e) { /* storage blocked */ }
-      setGMeter(gmOff);
+      // The meter is always on: it has no G button now, so a choice saved earlier cannot be changed back.
+      setGMeter(false);
       var gmBtn = document.getElementById('tp-gm-toggle');
       // onclick, not addEventListener: this setup runs again when the map is redrawn (full screen), and a second listener would undo the first.
       if (gmBtn) gmBtn.onclick = function () { setGMeter(!document.getElementById('tp-gmeter').classList.contains('is-off')); };

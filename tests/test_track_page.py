@@ -3114,8 +3114,11 @@ def test_compare_dots_show_each_lap_at_the_same_moment(page):
     expect(page.locator(".tp-sync-note")).to_contain_text("slower one trails")
     page.locator("#tp-speed").scroll_into_view_if_needed()
     box = page.locator("#tp-speed").bounding_box()
-    page.mouse.move(box["x"] + box["width"] * 0.1, box["y"] + box["height"] * 0.5)
-    page.mouse.move(box["x"] + box["width"] * 0.9, box["y"] + box["height"] * 0.5)
+    # Hovering only shows the cursor: the playback moves when the chart is pressed and dragged.
+    page.mouse.move(box["x"] + box["width"] * 0.25, box["y"] + box["height"] * 0.5)
+    page.mouse.down()
+    page.mouse.move(box["x"] + box["width"] * 0.75, box["y"] + box["height"] * 0.5)
+    page.mouse.up()
     sep = page.evaluate("""() => {
       const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')].filter(x => x.querySelector('circle[r="7"]'));
       const xy = g.map(x => (x.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
@@ -3170,7 +3173,7 @@ def test_the_session_playback_sound_uses_the_settings_saved_in_the_admin_panel(p
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     """Play moves both laps along the track in real time (x1), Rewind goes back
     the same way, and x0.5, x2 and x5 change the pace. The slider moves the
-    laps by hand, and hovering a chart takes over."""
+    laps by hand, and a press on a chart takes over."""
     fake = FakeWorker()
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
@@ -3231,6 +3234,9 @@ def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     page.locator("#tp-speed").scroll_into_view_if_needed()
     box = page.locator("#tp-speed").bounding_box()
     page.mouse.move(box["x"] + box["width"] * 0.4, box["y"] + box["height"] * 0.5)
+    expect(toggle).to_have_text("Pause")  # hovering alone does not stop it
+    page.mouse.down()
+    page.mouse.up()
     expect(toggle).to_have_text("Play")
 
 
@@ -3835,6 +3841,8 @@ def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
     full, mapFull = page.locator("#tp-full"), page.locator("#tp-mapwrap .tv-zoom-full")
     expect(full).to_be_hidden()
     expect(mapFull).to_have_attribute("aria-label", "Full screen map")
+    # This test is about the upright layout (the numbers under the map), so it chooses that rather than the wide default.
+    page.evaluate("localStorage.setItem('mt3ukTrackLayout', 'upright')")
     mapFull.click()
     card = page.locator("#tp-mapcard")
     expect(card).to_have_class(re.compile(r"is-full"))
@@ -3915,6 +3923,8 @@ def test_full_screen_map_on_a_phone(page):
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
     assert mb["height"] > 200 and mb["width"] <= 390, mb
+    # On a phone the controls start small in full screen; open them to check the figures fit on the screen.
+    page.locator("#tp-fold").click()
     for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-gforce"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] + box["height"] <= 845, (sel, box)
@@ -4968,7 +4978,8 @@ def test_playback_buttons_are_compact_on_a_phone(page):
         expect(b).to_have_attribute("aria-label", name)
     expect(toggle).to_contain_text("Play")
     assert toggle.bounding_box()["width"] > 150
-    # The five speed chips fit on one row; Follow cars may sit on the row below them.
+    # The five speed chips fit on one row; Follow cars may sit on the row below them. On a phone they start folded, so open them.
+    page.locator("#tp-fold").click()
     ys = {round(c.bounding_box()["y"]) for c in page.locator("#tp-speeds .chip").all()}
     assert len(ys) == 1, ys
     assert overflow_width(page) <= 0
@@ -5018,7 +5029,7 @@ def test_the_off_screen_label_is_white_on_the_cars_colour(page):
     assert fill == "rgb(255, 255, 255)", fill
 
 
-def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
+def test_the_chart_is_on_time_and_a_press_on_it_moves_playback(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     gs = page.locator("#tp-gforce svg").first
@@ -5032,9 +5043,11 @@ def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     assert sb["y"] > gb["y"] + gb["height"] - 4
     # Inside the chart's margins: the g scale on the left, and a narrow edge on the right (no second scale there now).
     assert sb["x"] > gb["x"] + 30 and sb["x"] + sb["width"] < gb["x"] + gb["width"] - 8, (sb, gb)
-    # Moving over the chart moves playback there: slider, clock and the line on the chart.
+    # A press on the chart (and a drag) moves playback there: slider, clock and the line on the chart. Hovering alone does not.
     page.mouse.move(gb["x"] + gb["width"] * 0.5, gb["y"] + gb["height"] * 0.4)
+    page.mouse.down()
     page.mouse.move(gb["x"] + gb["width"] * 0.6, gb["y"] + gb["height"] * 0.4)
+    page.mouse.up()
     value = float(page.locator("#tp-scrub").input_value())
     mx = float(page.locator("#tp-scrub").get_attribute("max"))
     assert 0.45 < value / mx < 0.7, (value, mx)
@@ -6123,8 +6136,11 @@ def test_a_touch_that_lands_on_a_tile_still_pans_the_zoomed_map(page, base_url):
         zoom = touch.locator("#tp-mapwrap button[aria-label='Zoom in']")
         zoom.click()
         zoom.click()
+        if touch.locator("#tp-fold").text_content().strip() == "More":
+            touch.locator("#tp-fold").click()  # the controls start small on a phone: open them for this check
         if touch.locator("#tp-follow").get_attribute("aria-pressed") == "true":
             touch.locator("#tp-follow").click()
+        touch.locator("#tp-map2").scroll_into_view_if_needed()  # the Follow button is further down the page: the map may have scrolled off
         touch.evaluate("""() => { const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal, r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           r.setAttribute('x', vb.x - 500); r.setAttribute('y', vb.y - 500); r.setAttribute('width', 2000); r.setAttribute('height', 2000); r.setAttribute('fill', '#223'); svg.insertBefore(r, svg.firstChild); }""")
         corner = """() => { const t = [...document.querySelectorAll('#tp-map2 text')].find(e => e.textContent === '2'), r = t.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }"""
@@ -6163,10 +6179,12 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    if page.locator("#tp-fold").text_content().strip() == "More":
+        page.locator("#tp-fold").click()  # the controls start small on a phone: open them for this check
     panel = page.locator("#tp-play")
     start = panel.bounding_box()
     assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom
-    # With the charts on it rests under the map, so the chart panel's time labels stay clear (until it is moved)
+    # On a phone, with the charts on, it rests under the map, so the chart panel's time labels stay clear (until it is moved)
     charts_box = page.locator("#tp-gbox").bounding_box()
     assert start["x"] + start["width"] <= charts_box["x"] + 2, (start, charts_box)
     # Narrow it from the corner so there is room to move it sideways.
@@ -6199,6 +6217,8 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     page.reload()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    if page.locator("#tp-fold").text_content().strip() == "More":
+        page.locator("#tp-fold").click()  # the controls start small after a reload too: open them to see the kept size
     again = panel.bounding_box()
     assert abs(again["x"] - resized["x"]) < 6 and abs(again["width"] - resized["width"]) < 6, (resized, again)
     # Map options puts them back at the bottom left.
@@ -6217,6 +6237,8 @@ def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    if page.locator("#tp-fold").text_content().strip() == "More":
+        page.locator("#tp-fold").click()  # the controls start small on a phone: open them for this check
     # The drivers and their date and time are in the same row as the main buttons.
     play, who = page.locator("#tp-play-toggle").bounding_box(), page.locator("#tp-when").bounding_box()
     assert who["x"] > play["x"] + play["width"] and abs((who["y"] + who["height"] / 2) - (play["y"] + play["height"] / 2)) < play["height"], (play, who)
@@ -6251,7 +6273,7 @@ def test_the_rotate_button_turns_the_screen_sideways_or_says_to_turn_the_phone(p
     expect(rotate).to_have_attribute("aria-label", "Turn the screen sideways for a bigger map")
     rotate.click()
     page.wait_for_function("window.__lock.length > 0")
-    assert page.evaluate("window.__lock") == ["landscape"] and page.evaluate("window.__fs") is True
+    assert page.evaluate("window.__lock")[-1] == "landscape" and page.evaluate("window.__fs") is True
     # Leaving full screen lets the screen turn freely again.
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     assert page.evaluate("window.__unlock") >= 1
@@ -7153,23 +7175,22 @@ def test_full_screen_picks_upright_wide_or_large_from_the_window(page):
     page.set_viewport_size({"width": 1000, "height": 700})
     expect(card).to_have_attribute("data-layout", "wide")
     page.set_viewport_size({"width": 1400, "height": 900})
-    expect(card).to_have_attribute("data-layout", "large")
+    expect(card).to_have_attribute("data-layout", "wide")
 
 
 def test_the_layout_choice_forces_a_layout_and_is_remembered(page):
     _open_full(page, 1400, 900)
     card = page.locator("#tp-mapcard")
-    expect(card).to_have_attribute("data-layout", "large")
-    page.locator("#tp-layout").select_option("wide")
-    page.locator("#tp-mopts-btn").click()
     expect(card).to_have_attribute("data-layout", "wide")
     mb, gb = page.locator("#tp-map2").bounding_box(), page.locator("#tp-gforce").bounding_box()
     assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
+    # The choice sits in the options panel once the layout is wide (the chip beside the map is hidden there).
+    page.locator("#tp-mopts-btn").click()
     page.locator("#tp-layout2").select_option("upright")
     expect(card).to_have_attribute("data-layout", "upright")
     assert page.evaluate("localStorage.getItem('mt3ukTrackLayout')") == "upright"
     page.locator("#tp-layout").select_option("auto")
-    expect(card).to_have_attribute("data-layout", "large")
+    expect(card).to_have_attribute("data-layout", "wide")
 
 
 def _place_with_kinds(fake):
@@ -7881,6 +7902,7 @@ def test_the_map_has_a_g_meter_that_follows_playback(page):
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()  # the meters are in full screen only
     meter = page.locator("#tp-gmeter")
     expect(meter).to_be_visible()
     expect(page.locator("#tp-gm-ra")).to_have_text(re.compile(r"^A \d+\.\d g$"))
@@ -7897,6 +7919,7 @@ def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()  # the meters are in full screen only
     btn = page.locator("#tp-gm-toggle")
     expect(page.locator("#tp-gmeter svg")).to_be_visible()
     btn.click()
@@ -7909,13 +7932,16 @@ def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page
 
 
 def test_a_track_overview_shows_the_whole_lap_and_both_cars_when_zoomed_in(page):
-    """When the map is zoomed in, a small overview shows the whole track and both cars."""
+    """A small overview shows the whole track and both cars, in full screen (the whole track when the map is not zoomed in).
+    It is not in the normal view, on a desktop or a phone."""
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.set_viewport_size({"width": 1100, "height": 900})
     save_thruxton_with_a_member_board(page, FakeWorker())
     overview = page.locator("#tp-mini")
     expect(overview).to_be_hidden()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(overview).to_be_visible()
     page.locator("#tp-mapwrap .tv-zoom-in").first.click()
     page.locator("#tp-mapwrap .tv-zoom-in").first.click()
     page.locator("#tp-play-toggle").click()
@@ -7926,4 +7952,30 @@ def test_a_track_overview_shows_the_whole_lap_and_both_cars_when_zoomed_in(page)
     expect(page.locator("#tp-mini-a")).to_be_visible()
     expect(page.locator("#tp-mini-b")).to_be_visible()
     assert page.locator("#tp-mini-view").count() == 0
+    assert not errors, errors
+
+
+def test_hovering_a_chart_does_not_move_playback_but_a_click_does(page):
+    """Hovering over the speed or G-force chart only shows the cursor: the playback keeps its place. A press in the chart moves
+    the playback to that point, and it stays there when the mouse lets go."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.wait_for_timeout(200)
+    before = page.locator("#tp-clock").text_content()
+    svg = page.locator("#tp-speed")
+    svg.scroll_into_view_if_needed()
+    box = svg.bounding_box()
+    y = box["y"] + box["height"] / 2
+    page.mouse.move(box["x"] + box["width"] * 0.2, y, steps=6)
+    page.mouse.move(box["x"] + box["width"] * 0.7, y, steps=10)
+    page.wait_for_timeout(150)
+    assert page.locator("#tp-clock").text_content() == before, (before, page.locator("#tp-clock").text_content())
+    page.mouse.move(box["x"] + box["width"] * 0.7, y)
+    page.mouse.down()
+    page.mouse.up()
+    page.wait_for_timeout(150)
+    after = page.locator("#tp-clock").text_content()
+    assert after != before, (before, after)
     assert not errors, errors

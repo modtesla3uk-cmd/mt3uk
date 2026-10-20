@@ -698,14 +698,77 @@
   .tp-gm-axis { fill: none; stroke: #b5c0ba; stroke-width: 1; }
   .tp-gmeter circle[id] { stroke: #ffffff; stroke-width: 1.5; }
   /* The overview of the whole track, shown while the map is zoomed in: the track, the two cars and the box the map shows. */
-  .tp-overview { position: absolute; right: 10px; bottom: 44px; width: 120px; height: 120px; padding: 4px; border-radius: var(--radius-sm); background: transparent; pointer-events: none; z-index: 3; display: none; }
+  .tp-overview { position: absolute; right: 10px; left: auto; bottom: 44px; width: 120px; height: 120px; padding: 4px; border-radius: var(--radius-sm); background: transparent; pointer-events: none; z-index: 3; display: none; }
   .tp-overview.is-on { display: block; }
   .tp-overview svg { display: block; width: 100%; height: 100%; }
   #tp-mini * { vector-effect: non-scaling-stroke; }
   #tp-mini .tv-segs { display: none; }
-  #tp-mini polyline.tv-line { stroke: #111111 !important; stroke-width: 1.5px !important; }
-  #tp-mini polyline.tv-line-edge { stroke: #ffffff !important; stroke-width: 2px !important; }
+  #tp-mini polyline.tv-line { stroke: #ffffff !important; stroke-width: 1.6px !important; stroke-dasharray: none !important; }
+  #tp-mini polyline.tv-line-edge { display: none !important; }
   .tp-mapcard.is-full .tp-gmeter { bottom: auto; top: 92px; }
+  .tp-speed-read { align-items: center; }
+  .tp-speed-read #tp-speed-vals { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+  .tp-spd b, .tp-spd small { font: inherit; }
+  .tp-speed-read .tp-gmeter { position: relative; left: auto; top: auto; bottom: auto; width: 84px; padding: 0; margin: -4px 0 -6px auto; background: transparent; }
+  .tp-speed-read { display: flex; flex-wrap: wrap; gap: 0 18px; margin: 0; line-height: 1.1; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  /* Current, best and last lap, bottom left of the map: a large box for this lap's time, then the lap, the best and the last, as on a
+     VBOX display, in the site's navy-green with gold labels. */
+  .tp-laptimes { position: absolute; left: 10px; bottom: 44px; z-index: 3; pointer-events: none; width: 176px; display: flex; flex-direction: column; gap: 5px; }
+  .tp-laptimes > div { background: rgba(13, 59, 51, .92); border-radius: 8px; padding: 4px 10px; color: #ffffff; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+  .tp-lt-now { justify-content: center !important; padding: 6px 10px !important; }
+  .tp-lt-now b { font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .tp-lt-row span { font-size: .8rem; font-weight: 600; color: #e0b44a; }
+  .tp-lt-row b { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* On a desktop, in full screen, the map's extras are bigger and the track overview is always shown (when the map is not zoomed
+     in it is the whole track). In the wide full screen the G meter moves to the bottom of the map, between the lap times and
+     the overview (placeGMeter in js/track-page.js). */
+  @media (min-width: 781px) {
+    .tp-overview { display: block; width: 170px; height: 170px; }
+    .tp-laptimes { width: 210px; }
+    .tp-lt-now b { font-size: 2.4rem; }
+    .tp-lt-row span { font-size: .9rem; }
+    .tp-lt-row b { font-size: 1.4rem; }
+  }
+  @media (min-width: 1000px) {
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-gmeter { left: auto; right: 330px; top: auto; bottom: 34px; width: 140px; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-gm-read { font-size: 0.9rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 10px; right: auto; bottom: 34px; width: 240px; height: 240px; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { left: 10px; bottom: auto; top: 96px; width: 240px; }
+    /* The speed box on the map, bottom right: the lap's speed big, the other lap beside it, as on the VBOX mock-up. */
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read { position: absolute; left: auto; right: 10px; top: auto; bottom: 34px; z-index: 3; margin: 0; padding: 8px 14px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); color: #ffffff; text-shadow: none; font-size: 1.1rem; align-items: flex-end; gap: 16px; pointer-events: none; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap > #tp-speed-read #tp-speed-vals { gap: 16px; align-items: flex-end; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd b { font-size: 3rem; line-height: 1; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd + .tp-spd b { font-size: 1.5rem; }
+    #tp-mapcard.is-full[data-layout="wide"] #tp-speed-vals .tp-spd small { font-size: 0.9rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-now b { font-size: 2.8rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row span { font-size: 1rem; }
+    #tp-mapcard.is-full[data-layout="wide"] .tp-lt-row b { font-size: 1.7rem; }
+  }
+  /* The speed figures, the G meter, the lap times and the overview only show in full screen, on a phone and on a desktop. The
+     map and the charts are all there is otherwise. */
+  #tp-mapcard:not(.is-full) .tp-speed-read, #tp-mapcard:not(.is-full) .tp-laptimes, #tp-mapcard:not(.is-full) .tp-overview { display: none !important; }
+  @media (max-width: 780px) and (min-height: 501px) {
+    #tp-mapcard.is-full .tp-speed-read, #tp-mapcard.is-full .tp-laptimes, #tp-mapcard.is-full .tp-overview { display: none !important; }
+  }
+  /* In full screen the bold speed figures and the G meter float over the top of the map, so the G meter can be seen. */
+  #tp-mapcard.is-full .tp-speed-read { position: absolute; top: 56px; left: 60px; right: auto; z-index: 4; background: transparent; padding: 0; font-size: 1.3rem; max-width: none; flex-wrap: nowrap; align-items: center; gap: 14px; text-shadow: 0 0 3px #ffffff, 0 0 3px #ffffff, 0 0 2px #000000; }
+  #tp-mapcard.is-full .tp-speed-read .tp-gmeter { width: 60px; margin: 0; top: 0; bottom: auto; }
+  #tp-mapcard.is-full .tp-speed-read .tp-gm-read { font-size: 0.66rem; }
+  /* On a desktop the overview's track line is thicker, so it reads at its small size. */
+  @media (min-width: 781px) {
+    #tp-mini polyline.tv-line { stroke-width: 2.2px !important; }
+  }
+  /* On a phone on its side in full screen the lap-time boxes are smaller, so they take less of the map. */
+  @media (max-height: 500px) {
+    #tp-mapcard.is-full .tp-laptimes { width: 124px; gap: 3px; }
+    #tp-mapcard.is-full .tp-laptimes > div { padding: 2px 8px; }
+    #tp-mapcard.is-full .tp-lt-now { padding: 3px 8px !important; }
+    #tp-mapcard.is-full .tp-lt-now b { font-size: 1.2rem; }
+    #tp-mapcard.is-full .tp-lt-row span { font-size: .66rem; }
+    #tp-mapcard.is-full .tp-lt-row b { font-size: .9rem; }
+  }
+  /* On a phone on its side the lap-time boxes and the overview sit above the small controls, not under them. */
+  @media (max-height: 500px) { #tp-mapcard.is-full .tp-laptimes { bottom: 86px; } #tp-mapcard.is-full .tp-overview { bottom: 44px; } }
   .tp-gm-toggle { pointer-events: auto; position: absolute; top: -10px; right: -10px; height: 26px; min-width: 32px; padding: 0 8px; border-radius: var(--radius-pill); border: 1px solid #c9d2cd; background: #ffffff; color: var(--ink); font: 700 0.75rem var(--font-body); cursor: pointer; }
   .tp-gmeter.is-off { width: auto; padding: 0; background: none; }
   .tp-gmeter.is-off > svg, .tp-gmeter.is-off .tp-gm-read { display: none; }
@@ -801,8 +864,9 @@
     .tp-mapcard.is-full[data-layout="wide"] .tp-map-head .tp-speedsw > span:first-child { display: none; }
     /* Until it is moved, the controls span the full width of the screen, with the charts' time bar just above them. */
     .tp-mapcard.is-full[data-layout="wide"] .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: 6px; padding: 4px 6px; box-sizing: border-box; }
-    /* With the charts on, the controls rest under the map, so they do not cover the charts' time labels (a dragged panel keeps its place). */
+    /* With the charts on, the controls rest under the graphs, so they do not cover the map (a dragged panel keeps its place). */
     #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-play { right: calc(100% - var(--tp-map, 60%) + 6px); }
+  @media (min-width: 1000px) { #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-play { left: calc(var(--tp-map, 60%) + 6px); right: 6px; } }
     #tp-mapcard.is-full[data-layout="wide"].has-charts:not([data-pn="on"]) .tp-gbox { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
     .tp-mapcard.is-full[data-layout="wide"] .tp-play .btn { min-height: 40px; }
     /* The map's own full screen button (top right) is the one way out of full screen here, and the Exit button is left out: the
@@ -1571,7 +1635,7 @@
 </script>
 
 <script src="js/track-parse.js?v=20271039" defer></script>
-<script src="js/track-view.js?v=20270115" defer></script>
+<script src="js/track-view.js?v=20271198" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
@@ -1579,7 +1643,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=5"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271176" defer></script>
+<script src="js/track-page.js?v=20271201" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

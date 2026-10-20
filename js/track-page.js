@@ -4403,7 +4403,8 @@
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
-        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg></div>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg></div><div class="tp-laptimes" id="tp-laptimes" aria-live="off"><div class="tp-lt-now"><b id="tp-lt-cur"></b></div><div class="tp-lt-row"><span>Lap</span><b id="tp-lt-lap"></b></div><div class="tp-lt-row"><span>Best</span><b id="tp-lt-best"></b></div><div class="tp-lt-row"><span>Last</span><b id="tp-lt-last"></b></div></div>' +
+        '<div class="tp-speed-read" id="tp-speed-read"><span id="tp-speed-vals" aria-live="off"></span></div>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
@@ -4642,7 +4643,8 @@
     var p = layoutPref();
     if (p !== 'auto') return p;
     var w = window.innerWidth, h = window.innerHeight;
-    return w > h ? (h <= 760 ? 'wide' : 'large') : 'upright';
+    // Landscape is the wide layout (the map beside the graphs), on a desktop as on a phone: the stacked layout squashed the graphs.
+    return w > h ? 'wide' : 'upright';
   }
   function applyFullLayout() {
     var card = document.getElementById('tp-mapcard'), sels = document.querySelectorAll('.tp-layoutsel');
@@ -4695,6 +4697,26 @@
     }
     // The G-force pills stay in the charts panel's top row.
     if (gt && row && gt.parentNode !== row) row.appendChild(gt);
+    placeGMeter();
+  }
+  // The G meter and the speed figures sit in the speed box under the map, and on a desktop in the wide full screen they move
+  // onto the map itself (bottom right, with the G meter beside them), where there is room for them.
+  function placeGMeter() {
+    var gm = document.getElementById('tp-gmeter'), wrap = document.getElementById('tp-mapwrap'), speedBox = document.getElementById('tp-speed-read');
+    if (!gm || !wrap || !speedBox) return;
+    if (!speedBox.__home) { speedBox.__home = speedBox.parentNode; speedBox.__next = speedBox.nextSibling; }
+    var onMap = cmpFull && landFull() && window.matchMedia('(min-width: 1000px) and (min-height: 501px)').matches;
+    if (onMap) {
+      if (gm.parentNode !== wrap) wrap.appendChild(gm);
+      if (speedBox.parentNode !== wrap) wrap.appendChild(speedBox);
+      return;
+    }
+    var home = speedBox.__home;
+    if (speedBox.parentNode !== home) {
+      if (speedBox.__next && speedBox.__next.parentNode === home) home.insertBefore(speedBox, speedBox.__next);
+      else home.appendChild(speedBox);
+    }
+    if (gm.parentNode !== speedBox) speedBox.appendChild(gm);
   }
   document.addEventListener('pointerdown', function (e) {
     var h = e.target.closest && e.target.closest('#tp-split');
@@ -4912,7 +4934,7 @@
   // Whether the speed and option chips and the figures under the map are folded away (not in full screen).
   // Whether the speed and option chips, the figures and the size handle are folded away: one setting for the normal page and
   // full screen, so Less pressed in either carries to the other (in full screen the panel is then cut down to its buttons).
-  var foldOn = false;
+  var foldOn = false, foldSet = false, foldDefaulted = false;
   function playNext(id) {
     stopPlay();
     var old = document.getElementById('tp-next'); if (old) old.remove();
@@ -5011,6 +5033,9 @@
   function setFull(on) {
     cmpFull = !!on;
     if (!cmpFull) unlockOrientation();
+    // A phone held upright goes sideways for full screen (the bigger map): the browser can lock it where it allows, and otherwise
+    // the member is asked to turn the phone.
+    if (cmpFull && window.innerWidth <= 780 && window.innerWidth < window.innerHeight) lockLandscape();
     fullUi();
     placeHead();
     if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
@@ -5048,6 +5073,8 @@
     var pdy = document.getElementById('tp-play-day');
     if (pdy) pdy.addEventListener('click', function () { playDay = !playDay; playUi(); });
     var fold = document.getElementById('tp-fold'), foldCard = document.getElementById('tp-mapcard');
+    // On a phone the controls start in their small form, until the member opens them.
+    if (!foldSet && !foldDefaulted && (window.innerWidth <= 780 || window.innerHeight <= 500)) { foldOn = true; foldDefaulted = true; }
     if (foldCard) { foldCard.classList.toggle('is-folded', foldOn); foldCard.classList.toggle('is-compact', foldOn); }
     function foldUi() {
       var f = document.getElementById('tp-fold');
@@ -5061,6 +5088,7 @@
       // The label follows the card when it goes into or out of full screen.
       new MutationObserver(foldUi).observe(foldCard, { attributes: true, attributeFilter: ['class'] });
       fold.addEventListener('click', function () {
+        foldSet = true;
         foldOn = !foldOn;
         foldCard.classList.toggle('is-folded', foldOn);
         foldCard.classList.toggle('is-compact', foldOn);
@@ -5162,11 +5190,14 @@
       var mo = V.map(mapEl, A.trace, { fill: fill, ratio: fill ? undefined : MAP_BASE / Math.max(200, mapBox ? mapBox.clientWidth : 600), mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
+      // The map's car dot groups, found once when the overview is built (not searched for on every frame of playback).
+      var miniSrc = { a: null, b: null };
       cmpMap = mo;
       buildMini();
       if (zoomed && mo && mo.zoom && mo.zoom.restore && zoomed.k > 1.01) mo.zoom.restore(zoomed);
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
       if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); updateMini(); });
+      if (mo && mo.zoom && mo.zoom.onChange) mo.zoom.onChange(updateMini);
       // G-force rows [distance, acceleration, cornering] for each lap, as recorded (not averaged), so the line
       // reaches the same peaks as the headline figures and the Max labels. Cornering keeps its sign, one way
       // positive and the other negative, as RaceBox draws it.
@@ -5270,6 +5301,32 @@
         if (moving) gmRaf = requestAnimationFrame(paintGMeter);
       }
       // snap: the first reading of a map (no easing from the last session's dots).
+      // The speed of each lap at the moment shown, in bold under the map (lap A in its colour, then lap B).
+      function speedRead(t) {
+        var el = document.getElementById('tp-speed-vals'); if (!el) return;
+        var a = speedAtTime(A.trace, t), b = A === B ? null : speedAtTime(B.trace, t);
+        el.innerHTML = spdHtml(a, c1) + (b === null ? '' : spdHtml(b, c2));
+      }
+      // One lap's speed: the number and its unit apart, so the full screen layout on a desktop can make the number big.
+      function spdHtml(k, colour) {
+        var parts = V.fmtV(k).split(' ');
+        return '<span class="tp-spd" style="color:' + colour + '"><b>' + esc(parts[0]) + '</b> <small>' + esc(parts.slice(1).join(' ')) + '</small></span>';
+      }
+      // Current, best and last lap times, bottom left of the map (as on a VBOX display): this lap's time at the moment shown, the
+      // best lap of the session, and the lap before this one.
+      function lapTimes(t) {
+        var cur = document.getElementById('tp-lt-cur'); if (!cur) return;
+        var laps = (view.s && view.s.laps) || [], idx = -1;
+        laps.forEach(function (l, i) { if (String(l.n) === String(view.a)) idx = i; });
+        var timed = laps.filter(function (l) { return l.kind !== 'out' && l.time > 0; });
+        var best = timed.reduce(function (m, l) { return !m || l.time < m.time ? l : m; }, null);
+        var prev = idx > 0 ? laps[idx - 1] : null;
+        cur.textContent = V.fmtLap(Math.max(0, Math.min(t, A.trace[A.trace.length - 1][1])));
+        var lapEl = document.getElementById('tp-lt-lap');
+        if (lapEl) lapEl.textContent = idx >= 0 ? String(lapNo(laps[idx], view.s)) : '-';
+        document.getElementById('tp-lt-best').textContent = best ? V.fmtLap(best.time) : '-';
+        document.getElementById('tp-lt-last').textContent = prev && prev.time > 0 ? V.fmtLap(prev.time) : '-';
+      }
       function drawGMeter(t, snap) {
         var el = document.getElementById('tp-gmeter'); if (!el || !gaT.length) return;
         var ra = gAt(gaT, t), rb = gAt(gbT, t), lim = function (v) { return Math.max(-1.6, Math.min(1.6, v)); };
@@ -5289,8 +5346,13 @@
         var svg = document.getElementById('tp-mini-svg'), main = document.getElementById('tp-map2'), NS = 'http://www.w3.org/2000/svg';
         if (!svg || !main) return;
         svg.innerHTML = '';
+        // The dark edge goes in first, so the gold line is drawn over it.
         [].forEach.call(main.children, function (ch) {
-          if (ch.tagName === 'polyline' || (ch.tagName === 'g' && ch.getAttribute('class') === 'tv-segs')) svg.appendChild(ch.cloneNode(true));
+          if (ch.tagName === 'polyline' && ch.getAttribute('class') === 'tv-line-edge') svg.appendChild(ch.cloneNode(true));
+        });
+        [].forEach.call(main.children, function (ch) {
+          if (ch.tagName === 'polyline' && ch.getAttribute('class') !== 'tv-line-edge') svg.appendChild(ch.cloneNode(true));
+          else if (ch.tagName === 'g' && ch.getAttribute('class') === 'tv-segs') svg.appendChild(ch.cloneNode(true));
         });
         ['a', 'b'].forEach(function (k) {
           var g = document.createElementNS(NS, 'g'), d = document.createElementNS(NS, 'circle');
@@ -5301,6 +5363,12 @@
           g.appendChild(d);
           svg.appendChild(g);
         });
+        var main = document.getElementById('tp-map2');
+        ['a', 'b'].forEach(function (k) {
+          var col = k === 'a' ? c1 : c2;
+          miniSrc[k] = null;
+          if (main) [].some.call(main.querySelectorAll('circle[r="7"]'), function (c) { if (c.getAttribute('fill') === col) { miniSrc[k] = c.parentNode; return true; } return false; });
+        });
         updateMini();
       }
       function updateMini() {
@@ -5309,11 +5377,9 @@
         var v = cmpMap.zoom.view(), k = cmpMap.zoom.frac().k, W = v.w * k, H = v.h * k;
         box.classList.toggle('is-on', k > 1.2);
         svg.setAttribute('viewBox', '0 0 ' + W.toFixed(1) + ' ' + H.toFixed(1));
-        var main = document.getElementById('tp-map2');
         ['a', 'b'].forEach(function (k) {
-          var mg = document.getElementById('tp-mini-' + k), col = k === 'a' ? c1 : c2, src = null;
-          if (!mg || !main) return;
-          [].some.call(main.querySelectorAll('circle[r="7"]'), function (c) { if (c.getAttribute('fill') === col) { src = c.parentNode; return true; } return false; });
+          var mg = document.getElementById('tp-mini-' + k), src = miniSrc[k];
+          if (!mg) return;
           var m = src && /translate\(([-\d.e]+) ([-\d.e]+)\)/.exec(src.getAttribute('transform') || '');
           if (!m || src.getAttribute('visibility') === 'hidden') { mg.setAttribute('visibility', 'hidden'); return; }
           mg.setAttribute('visibility', 'visible');
@@ -5328,6 +5394,8 @@
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
         move(x);
         drawGMeter(t);
+        speedRead(t);
+        lapTimes(t);
         updateMini();
         [sp, dl].forEach(function (o) { if (o) o.show(x); });
         gls.forEach(function (g) { g.show(Math.min(t, tEndG)); });
@@ -5361,21 +5429,28 @@
       function onTime(trace, rows) { return trace.map(function (p, i) { return [p[1], rows[i][1], rows[i][2]]; }); }
       var gaT = onTime(A.trace, ga), gbT = A === B ? gaT : onTime(B.trace, gb);
       drawGMeter(0, true);
+      speedRead(0);
+      lapTimes(0);
+      // The G meter sits inside the speed box under the map (the bold figures and the meter together, as on a VBOX dashboard),
+      // or at the bottom of the map in the desktop wide full screen (placeGMeter).
+      placeGMeter();
       var gmOff = false;
       try { gmOff = localStorage.getItem('mt3ukGMeter') === 'off'; } catch (e) { /* storage blocked */ }
       setGMeter(gmOff);
       var gmBtn = document.getElementById('tp-gm-toggle');
-      if (gmBtn) gmBtn.addEventListener('click', function () { setGMeter(!document.getElementById('tp-gmeter').classList.contains('is-off')); });
+      // onclick, not addEventListener: this setup runs again when the map is redrawn (full screen), and a second listener would undo the first.
+      if (gmBtn) gmBtn.onclick = function () { setGMeter(!document.getElementById('tp-gmeter').classList.contains('is-off')); };
       // The G meter and the overview sit at the bottom of the map itself, not of the box round it (which runs lower, under the
       // map's key). They are placed from the map's size, and again whenever the map changes size. Full screen keeps its own place.
       function placeOverlays() {
         var mapEl = document.getElementById('tp-map2'), wrap = document.getElementById('tp-mapwrap'), card = document.getElementById('tp-mapcard');
-        var gm = document.getElementById('tp-gmeter'), ov = document.getElementById('tp-mini');
-        [gm, ov].forEach(function (e) { if (e) { e.style.top = ''; e.style.bottom = ''; } });
+        var gm = document.getElementById('tp-gmeter'), ov = document.getElementById('tp-mini'), lt = document.getElementById('tp-laptimes');
+        [gm, ov, lt].forEach(function (e) { if (e) { e.style.top = ''; e.style.bottom = ''; } });
         if (!mapEl || !wrap || !card || card.classList.contains('is-full')) return;
         var bottom = mapEl.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top;
-        if (gm) { gm.style.bottom = 'auto'; gm.style.top = (bottom - (gm.offsetHeight || 110) - 10) + 'px'; }
+        if (gm && gm.parentNode === wrap) { gm.style.bottom = 'auto'; gm.style.top = (bottom - (gm.offsetHeight || 110) - 10) + 'px'; }
         if (ov) { ov.style.bottom = 'auto'; ov.style.top = (bottom - (ov.offsetHeight || 120) - 10) + 'px'; }
+        if (lt) { lt.style.bottom = 'auto'; lt.style.top = (bottom - (lt.offsetHeight || 96) - 10) + 'px'; }
       }
       placeOverlays();
       if (window.ResizeObserver) new ResizeObserver(placeOverlays).observe(document.getElementById('tp-map2'));
@@ -5398,14 +5473,15 @@
         tx.setAttribute('style', 'font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round');
         tx.setAttribute('y', topM - 6);
         svg.appendChild(tx);
-        gl.show = function (x, e) {
-          show(x, e);
+        // The speed at the cursor, written above it: shown on hover and as playback moves.
+        gl.label = function (x) {
           var a = V.fmtV(at(spA, x)[1]), b = A === B ? '' : V.fmtV(at(spB, x)[1]);
           tx.innerHTML = '<tspan fill="' + c1 + '">' + esc(a) + '</tspan>' + (b ? '<tspan fill="#3d4658">  </tspan><tspan fill="' + c2 + '">' + esc(b) + '</tspan>' : '');
           var half = (a.length + (b ? b.length + 2 : 0)) * 3.4;
           tx.setAttribute('x', Math.max(gl.plot.l + half, Math.min(gl.plot.W - gl.plot.r - half, gl.X(x))));
           tx.setAttribute('visibility', 'visible');
         };
+        gl.show = function (x, e) { show(x, e); gl.label(x); };
         gl.hide = function () { hide(); tx.setAttribute('visibility', 'hidden'); };
       }
       function drawG() {
@@ -5420,7 +5496,7 @@
         if (!defs.length) { alignScrub(); return; }
         // One chart has the full height (in full screen a share of a tall screen); stacked ones are shorter each. In
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
-        var base = cmpFull ? Math.max(110, Math.min(layoutMode() === 'large' ? 260 : 200, Math.round(window.innerHeight * 0.22))) : 150;
+        var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
@@ -5431,7 +5507,13 @@
           if (pbox) [].forEach.call(pbox.children, function (c) { if (c.id !== 'tp-gforce' && c.offsetHeight) used += c.offsetHeight + 4; });
           var pcs = pbox ? window.getComputedStyle(pbox) : null, pad = pcs ? (parseFloat(pcs.paddingTop) || 0) + (parseFloat(pcs.paddingBottom) || 0) : 0;
           var room = pbox ? pbox.clientHeight - pad - used - 10 : window.innerHeight - 150;
-          H = Math.max(48, Math.floor((room - (defs.length - 1) * 2) / defs.length));
+          // The controls sit under the graphs in this layout (unless the member has moved them), so their height comes off the room.
+          var pl = document.getElementById('tp-play'), mcard = document.getElementById('tp-mapcard');
+          if (pl && mcard && window.innerWidth >= 1000 && mcard.getAttribute('data-pn') !== 'on') room -= pl.offsetHeight + 8;
+          // One chart takes half the room, and more charts take more of it, a full room from three: one chart is not stretched.
+          // On a short screen (a phone on its side) one graph fills the room, as there is little to spare.
+          var fill = room * (window.innerHeight <= 500 ? 1 : Math.min(1, 0.5 * defs.length));
+          H = Math.max(48, Math.floor((fill - (defs.length - 1) * 2) / defs.length));
         }
         var xt = timeTicks(box.clientWidth || 600);
         // Only the last chart has the time labels under it, so it has 20 more than the others and they plot as tall as it.
@@ -5515,7 +5597,7 @@
             // The time labels sit under the last chart only; the ones above share its axis.
             H: defs.length > 1 ? Hn + (first ? 14 : 0) + (di === defs.length - 1 ? 20 : 0) : H, top: topM, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
             // Moving over a chart moves playback to that moment, slider, cursors and all.
-            series: series, under: underG, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
+            series: series, under: underG, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onHover: function (t) { if (gl && gl.label) gl.label(t); }, onLeave: leave
           });
           gls.push(gl);
           if (first) speedAtCursor(svg, gl, topM);

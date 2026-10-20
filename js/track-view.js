@@ -517,6 +517,7 @@
       svg.classList.toggle('is-zoomed', kk > 1.01);
       reset.hidden = Math.abs(kk - 1) <= 0.01 && Math.abs(vb.x) < 0.5 && Math.abs(vb.y) < 0.5;
       cfg.onZoom(kk);
+      if (changeCb) changeCb();
     }
     function zoomAt(f, cx, cy) {
       var nw = Math.max(W / ZOOM_MAX, Math.min(W / (cfg.minZoom || ZOOM_MIN), vb.w / f)), nh = nw * H / W;
@@ -587,7 +588,7 @@
       var q = point(svg, e);
       zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y);
     }
-    var pts = {}, start = null, dragged = false, panCb = null, lastEv = 0;
+    var pts = {}, start = null, dragged = false, panCb = null, changeCb = null, lastEv = 0;
     function count() { return Object.keys(pts).length; }
     function onDown(e) {
       lastEv = Date.now();
@@ -688,7 +689,9 @@
       // (A touch with no news for over a second is taken to be over.)
       active: function () { return count() > 0 && Date.now() - lastEv < 1000; },
       // Called when the member drags or pinches the map by hand.
-      onPan: function (cb) { panCb = cb; }
+      onPan: function (cb) { panCb = cb; },
+      // Called whenever the view changes, by the zoom buttons as well as by a drag (so a paused map still updates).
+      onChange: function (cb) { changeCb = cb; }
     };
   }
   function row(k, v, color) {
@@ -740,11 +743,26 @@
       if (e && cfg.tip) tip(cfg.tip(xv, vals), e.clientX, e.clientY);
     }
     function hide() { cross.setAttribute('visibility', 'hidden'); dots.forEach(function (d) { d.setAttribute('visibility', 'hidden'); }); hideTip(); }
+    // Hovering only shows the cursor. A press (or a drag that began on the chart) moves onMove, so the chart is used by clicking in it.
+    var held = false;
+    function xAt(e) { var q = point(svg, e); return cfg.x0 + (q.x - m.l) / (W - m.l - m.r) * (cfg.x1 - cfg.x0); }
+    hit.addEventListener('pointerdown', function (e) {
+      var xv = xAt(e);
+      if (xv < cfg.x0 || xv > cfg.x1) return;
+      held = true;
+      try { hit.setPointerCapture(e.pointerId); } catch (err) { /* not supported: the drag stops at the chart's edge */ }
+      if (cfg.onMove) cfg.onMove(xv);
+    });
+    function letGo() { held = false; }
+    hit.addEventListener('pointerup', letGo);
+    hit.addEventListener('pointercancel', letGo);
+    hit.addEventListener('lostpointercapture', letGo);
     hit.addEventListener('pointermove', function (e) {
-      var q = point(svg, e), xv = cfg.x0 + (q.x - m.l) / (W - m.l - m.r) * (cfg.x1 - cfg.x0);
+      var xv = xAt(e);
       if (xv < cfg.x0 || xv > cfg.x1) return;
       show(xv, e);
-      if (cfg.onMove) cfg.onMove(xv);
+      if (cfg.onHover) cfg.onHover(xv);
+      if (cfg.onMove && held) cfg.onMove(xv);
     });
     hit.addEventListener('pointerleave', function () { hide(); if (cfg.onLeave) cfg.onLeave(); });
     return { show: show, hide: hide, X: X, Y: Y, plot: { l: m.l, r: m.r, W: W } };

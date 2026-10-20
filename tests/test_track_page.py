@@ -7890,3 +7890,19 @@ def test_the_map_has_a_g_meter_that_follows_playback(page):
     after = page.locator("#tp-gm-a").get_attribute("cx"), page.locator("#tp-gm-a").get_attribute("cy")
     assert before != after, (before, after)
     assert not errors, errors
+
+
+def test_the_g_meter_can_be_hidden_with_its_g_button_and_the_choice_is_kept(page):
+    """The G button on the meter hides it (the button stays, as G) and shows it again; the choice is kept on this device."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    btn = page.locator("#tp-gm-toggle")
+    expect(page.locator("#tp-gmeter svg")).to_be_visible()
+    btn.click()
+    expect(page.locator("#tp-gmeter svg")).to_be_hidden()
+    expect(btn).to_have_attribute("aria-pressed", "false")
+    assert page.evaluate("localStorage.getItem('mt3ukGMeter')") == "off"
+    btn.click()
+    expect(page.locator("#tp-gmeter svg")).to_be_visible()
+    assert not errors, errors

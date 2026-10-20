@@ -701,17 +701,12 @@
   .tp-sound-btn .icon { width: 22px; height: 22px; }
   .tp-sound-btn.is-on { background: #0d3b33; border-color: #0d3b33; color: #ffffff; }
   #tp-mapcard.is-full .tp-sound-btn { top: 44px; left: 58px; }
-  /* The level slider beside the speaker, shown while the sound is on. */
-  .tp-sound-vol { position: absolute; top: 10px; left: 58px; z-index: 5; width: 80px; height: 44px; margin: 0; padding: 0; box-sizing: border-box; box-sizing: border-box; background: rgba(255,255,255,.95); border: 1px solid var(--hairline-strong); border-radius: var(--radius); box-shadow: 0 1px 6px rgba(0,0,0,.35); accent-color: #0d3b33; cursor: pointer; }
-  .tp-sound-vol[hidden] { display: none; }
-  /* The level slider fills with gold up to the thumb (the --fill set by the page), so the level reads at a glance. */
-  .tp-sound-vol { -webkit-appearance: none; appearance: none; }
-  .tp-sound-vol::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, #e0b44a 0 var(--fill, 100%), #c9d2cd var(--fill, 100%) 100%); }
-  .tp-sound-vol::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #0d3b33; border: 2px solid #ffffff; margin-top: -6px; }
-  .tp-sound-vol::-moz-range-track { height: 6px; border-radius: 3px; background: #c9d2cd; }
-  .tp-sound-vol::-moz-range-progress { height: 6px; border-radius: 3px; background: #e0b44a; }
-  .tp-sound-vol::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #0d3b33; border: 2px solid #ffffff; }
-  #tp-mapcard.is-full .tp-sound-vol { top: 44px; left: 102px; }
+  /* The level slider beside the speaker, shown while the sound is on: just the gold bar and its thumb, lined up with the speaker. */
+  .tp-sound-volbox { position: absolute; top: 20px; left: 110px; z-index: 5; width: 96px; height: 24px; box-sizing: border-box; display: flex; align-items: center; padding: 0; }
+  .tp-sound-volbox[hidden] { display: none; }
+  #tp-mapcard.is-full .tp-sound-volbox { top: 54px; left: 110px; }
+  #tp-mapcard:not(.is-full) .tp-sound-volbox { top: 20px; left: 58px; }
+  .tp-sound-vol { width: 100%; height: 16px; margin: 0; padding: 0; accent-color: #0d3b33; cursor: pointer; }
   .tp-gmeter svg { display: block; width: 100%; height: auto; overflow: visible; }
   .tp-gm-ring { fill: none; stroke: #c9d2cd; stroke-width: 1.2; }
   .tp-gm-axis { fill: none; stroke: #b5c0ba; stroke-width: 1; }
@@ -753,7 +748,7 @@
   /* In the wide full screen (a desktop, or a phone on its side) the G meter, the lap times, the overview and the speed box sit
      on the map: the meter and the speed box along the bottom, the lap times top left (placeGMeter in js/track-page.js moves them). */
   #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap #tp-gmeter { left: auto; right: 330px; top: auto; bottom: 34px; width: 140px; }
-  #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 10px; right: auto; bottom: 34px; width: 240px; height: 240px; }
+  #tp-mapcard.is-full[data-layout="wide"] .tp-overview { left: 10px; right: auto; bottom: 56px; width: 200px; height: 200px; background: rgba(13, 59, 51, .92); border-radius: var(--radius-sm); }
   #tp-mapcard.is-full[data-layout="wide"] .tp-laptimes { left: 10px; bottom: auto; top: 96px; width: 240px; }
   /* The speed box on the map, bottom right: the lap's speed big, the other lap beside it, as on the VBOX mock-up. */
   #tp-mapcard.is-full[data-layout="wide"] #tp-mapwrap #tp-speed-read { position: absolute; left: auto; right: 10px; top: auto; bottom: 34px; z-index: 3; margin: 0; padding: 8px 14px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); color: #ffffff; text-shadow: none; font-size: 1.1rem; align-items: flex-end; gap: 16px; pointer-events: none; }
@@ -1706,7 +1701,7 @@
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/motor-sound.js?v=14"></script>
 <script src="js/quota-ring.js?v=17" defer></script>
-<script src="js/track-page.js?v=20271209" defer></script>
+<script src="js/track-page.js?v=20271210" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

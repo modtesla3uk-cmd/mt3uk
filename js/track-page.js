@@ -4852,8 +4852,8 @@
     try { localStorage.setItem('mt3ukTrackSound', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
     var b = document.getElementById('tp-sound');
     if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', on ? 'Sound on' : 'Sound off'); b.title = on ? 'Turn the sound off' : 'Turn the sound on'; }
-    var volSlider = document.getElementById('tp-sound-vol');
-    if (volSlider) volSlider.hidden = !on;
+    var volBox = document.getElementById('tp-sound-volbox');
+    if (volBox) volBox.hidden = !on;
     if (!window.MT3UKMotorSound) return;
     if (on && pb.playing) window.MT3UKMotorSound.start();
     if (!on) window.MT3UKMotorSound.quiet();
@@ -5105,7 +5105,11 @@
       vol.value = savedVol === null ? '100' : savedVol;
       vol.style.setProperty('--fill', vol.value + '%');
       if (window.MT3UKMotorSound) window.MT3UKMotorSound.setLevel(parseFloat(vol.value) / 100);
-      if (mw && vol.parentNode !== mw) mw.appendChild(vol);
+      // The slider sits in a box of its own, so the bar is centred in it.
+      var volBox = document.getElementById('tp-sound-volbox');
+      if (!volBox) { volBox = document.createElement('div'); volBox.id = 'tp-sound-volbox'; volBox.className = 'tp-sound-volbox'; volBox.hidden = !soundOn; }
+      if (vol.parentNode !== volBox) volBox.appendChild(vol);
+      if (mw && volBox.parentNode !== mw) mw.appendChild(volBox);
       snd.addEventListener('click', function () { setSound(!soundOn); });
       setSound(soundOn);
     }

@@ -4403,7 +4403,7 @@
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button><button type="button" class="chip" id="tp-sound" aria-pressed="false" title="Hear the motor as the car speeds up and slows down">Sound off</button><button type="button" class="chip" id="tp-play-day" aria-pressed="false" hidden title="When a playback ends, go on to the next session of this day at this track">Play the day</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
-        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg><div class="tp-gmeter" id="tp-gmeter"><button type="button" class="tp-gm-toggle" id="tp-gm-toggle" aria-pressed="true" title="Hide the G meter">G</button><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="14" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="28" class="tp-gm-ring"></circle><circle cx="50" cy="50" r="42" class="tp-gm-ring"></circle><path d="M50 6V94M6 50H94" class="tp-gm-axis"></path><circle id="tp-gm-b" cx="50" cy="50" r="4.5"></circle><circle id="tp-gm-a" cx="50" cy="50" r="5.5"></circle></svg><div class="tp-gm-read"><span id="tp-gm-ra"></span><span id="tp-gm-rb"></span></div></div><div class="tp-overview" id="tp-mini" aria-hidden="true"><svg viewBox="0 0 100 100" id="tp-mini-svg"></svg></div>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
@@ -5163,9 +5163,10 @@
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
+      buildMini();
       if (zoomed && mo && mo.zoom && mo.zoom.restore && zoomed.k > 1.01) mo.zoom.restore(zoomed);
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
-      if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
+      if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); updateMini(); });
       // G-force rows [distance, acceleration, cornering] for each lap, as recorded (not averaged), so the line
       // reaches the same peaks as the headline figures and the Max labels. Cornering keeps its sign, one way
       // positive and the other negative, as RaceBox draws it.
@@ -5282,10 +5283,55 @@
         if (rb2) rb2.style.color = c2;
         if (!gmRaf) gmRaf = requestAnimationFrame(paintGMeter);
       }
+      // The overview: the whole track with both cars, and a box for the part the map shows, in a small picture while the map is
+      // zoomed in. It is the map's own track lines, copied, and its car dots at the same places.
+      function buildMini() {
+        var svg = document.getElementById('tp-mini-svg'), main = document.getElementById('tp-map2'), NS = 'http://www.w3.org/2000/svg';
+        if (!svg || !main) return;
+        svg.innerHTML = '';
+        [].forEach.call(main.children, function (ch) {
+          if (ch.tagName === 'polyline' || (ch.tagName === 'g' && ch.getAttribute('class') === 'tv-segs')) svg.appendChild(ch.cloneNode(true));
+        });
+        var box = document.createElementNS(NS, 'rect');
+        box.setAttribute('id', 'tp-mini-view');
+        svg.appendChild(box);
+        ['a', 'b'].forEach(function (k) {
+          var g = document.createElementNS(NS, 'g'), d = document.createElementNS(NS, 'circle');
+          g.setAttribute('id', 'tp-mini-' + k);
+          d.setAttribute('fill', k === 'a' ? c1 : c2);
+          d.setAttribute('stroke', '#ffffff');
+          g.appendChild(d);
+          svg.appendChild(g);
+        });
+        updateMini();
+      }
+      function updateMini() {
+        var svg = document.getElementById('tp-mini-svg'), box = document.getElementById('tp-mini');
+        if (!svg || !box || !cmpMap || !cmpMap.zoom || !cmpMap.zoom.view) return;
+        var v = cmpMap.zoom.view(), k = cmpMap.zoom.frac().k, W = v.w * k, H = v.h * k;
+        box.classList.toggle('is-on', k > 1.2);
+        svg.setAttribute('viewBox', '0 0 ' + W.toFixed(1) + ' ' + H.toFixed(1));
+        var r = document.getElementById('tp-mini-view');
+        if (r) { r.setAttribute('x', v.x.toFixed(1)); r.setAttribute('y', v.y.toFixed(1)); r.setAttribute('width', v.w.toFixed(1)); r.setAttribute('height', v.h.toFixed(1)); }
+        var main = document.getElementById('tp-map2');
+        ['a', 'b'].forEach(function (k) {
+          var mg = document.getElementById('tp-mini-' + k), col = k === 'a' ? c1 : c2, src = null;
+          if (!mg || !main) return;
+          [].some.call(main.querySelectorAll('circle[r="7"]'), function (c) { if (c.getAttribute('fill') === col) { src = c.parentNode; return true; } return false; });
+          var m = src && /translate\(([-\d.e]+) ([-\d.e]+)\)/.exec(src.getAttribute('transform') || '');
+          if (!m || src.getAttribute('visibility') === 'hidden') { mg.setAttribute('visibility', 'hidden'); return; }
+          mg.setAttribute('visibility', 'visible');
+          mg.setAttribute('transform', 'translate(' + m[1] + ' ' + m[2] + ')');
+          var d = mg.firstChild;
+          d.setAttribute('r', (W / 34).toFixed(1));
+          d.setAttribute('stroke-width', (W / 300).toFixed(2));
+        });
+      }
       function renderAt(t) {
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
         move(x);
         drawGMeter(t);
+        updateMini();
         [sp, dl].forEach(function (o) { if (o) o.show(x); });
         gls.forEach(function (g) { g.show(Math.min(t, tEndG)); });
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');

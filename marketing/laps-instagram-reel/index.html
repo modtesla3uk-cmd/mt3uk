@@ -7,13 +7,11 @@
 <style>html,body{margin:0;background:#14213d}canvas{display:block}</style>
 </head>
 <body>
-<canvas id="c" width="1520" height="1920"></canvas>
+<canvas id="c" width="1080" height="1920"></canvas>
 <script>
 // Laps by MT3UK: 20 second vertical reel (1080 x 1920). A made-up circuit, never a real track.
 // draw(t) paints the frame at time t (seconds). The render script calls it for every frame.
-// The frame is wider than the 1080 the artwork was drawn for, so the lap ring (radius 760) shows whole: the artwork is
-// moved to the middle with OFF, and the background fills the whole frame.
-const W = 1520, H = 1920, OFF = (W - 1080) / 2;
+const W = 1080, H = 1920;
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 // Green and gold, the live site theme (data-theme="gold" in css/site-theme.css): jade ground, mist text, gold accent.
@@ -291,7 +289,6 @@ function draw(t) {
   ctx.globalAlpha = 1;
   ctx.fillStyle = NAVY;
   ctx.fillRect(0, 0, W, H);
-  ctx.translate(OFF, 0);
   // A faint lap ring behind everything, so the frame has depth without clutter.
   ctx.save();
   ctx.strokeStyle = 'rgba(244,241,234,0.045)'; ctx.lineWidth = 120;

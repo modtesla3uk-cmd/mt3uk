@@ -41,6 +41,11 @@
   --on-accent: #06201c;
   --c-orange-light: #e0b44a;
   --quota-ok: #e0b44a;
+  /* The page background under the hero is the header's warm cream, not mint. */
+  --paper: #f3f1eb;
+  --c-paper: #f3f1eb;
+  --paper-2: #e9e6de;
+  --c-peach: #e9e6de;
 }
 :root:is([data-theme="gold"]) body .page-hero .tp-lb-pill.tp-add-pill:hover, :root:is([data-theme="gold"]) body .lb-hero .tp-lb-pill.lb-add:hover, :root:is([data-theme="gold"]) body .tm-pill-accent:hover { background: #f0c85a; color: #06201c; }
 :root:is([data-theme="gold"]) body .page-hero .tp-lb-pill.tp-add-pill .icon, :root:is([data-theme="gold"]) body .lb-hero .tp-lb-pill.lb-add .icon, :root:is([data-theme="gold"]) body .tm-pill-accent .icon { width: 22px; height: 22px; stroke-width: 2.6; }

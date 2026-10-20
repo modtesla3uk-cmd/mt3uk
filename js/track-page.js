@@ -4705,12 +4705,21 @@
     var gm = document.getElementById('tp-gmeter'), wrap = document.getElementById('tp-mapwrap'), speedBox = document.getElementById('tp-speed-read');
     if (!gm || !wrap || !speedBox) return;
     if (!speedBox.__home) { speedBox.__home = speedBox.parentNode; speedBox.__next = speedBox.nextSibling; }
+    var lt = document.getElementById('tp-laptimes');
     var onMap = cmpFull && landFull();
+    // On a desktop in the wide full screen the lap times, the G meter and the speed stack in one column at the top left of the map.
+    var desk = onMap && window.matchMedia('(min-width: 1000px)').matches;
+    var col = document.getElementById('tp-leftcol');
+    if (desk && !col) { col = document.createElement('div'); col.id = 'tp-leftcol'; wrap.appendChild(col); }
+    wrap.classList.toggle('tp-deskcol', !!desk);
     if (onMap) {
+      if (desk) { col.appendChild(lt); col.appendChild(gm); col.appendChild(speedBox); return; }
+      if (lt && lt.parentNode !== wrap) wrap.appendChild(lt);
       if (gm.parentNode !== wrap) wrap.appendChild(gm);
       if (speedBox.parentNode !== wrap) wrap.appendChild(speedBox);
       return;
     }
+    if (lt && lt.parentNode !== wrap) wrap.appendChild(lt);
     var home = speedBox.__home;
     if (speedBox.parentNode !== home) {
       if (speedBox.__next && speedBox.__next.parentNode === home) home.insertBefore(speedBox, speedBox.__next);
@@ -5086,6 +5095,7 @@
         vol.setAttribute('aria-label', 'Sound level'); vol.title = 'Sound level';
         vol.addEventListener('input', function () {
           var v = parseFloat(vol.value);
+          vol.style.setProperty('--fill', v + '%');
           if (window.MT3UKMotorSound) window.MT3UKMotorSound.setLevel(v / 100);
           try { localStorage.setItem('mt3ukTrackSoundLevel', String(v)); } catch (e) { /* storage blocked */ }
         });
@@ -5093,6 +5103,7 @@
       var savedVol = null;
       try { savedVol = localStorage.getItem('mt3ukTrackSoundLevel'); } catch (e) { /* storage blocked */ }
       vol.value = savedVol === null ? '100' : savedVol;
+      vol.style.setProperty('--fill', vol.value + '%');
       if (window.MT3UKMotorSound) window.MT3UKMotorSound.setLevel(parseFloat(vol.value) / 100);
       if (mw && vol.parentNode !== mw) mw.appendChild(vol);
       snd.addEventListener('click', function () { setSound(!soundOn); });

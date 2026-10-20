@@ -8014,6 +8014,7 @@ def test_the_sound_level_slider_sits_beside_the_speaker_and_sets_the_level_kept_
     expect(slider).to_be_visible()
     slider.evaluate("el => { el.value = '40'; el.dispatchEvent(new Event('input', {bubbles: true})); }")
     assert page.evaluate("localStorage.getItem('mt3ukTrackSoundLevel')") == "40"
+    assert slider.evaluate("el => el.style.getPropertyValue('--fill')") == "40%"
     assert abs(page.evaluate("window.MT3UKMotorSound.level") - 0.4) < 1e-6, page.evaluate("window.MT3UKMotorSound.level")
     page.locator("#tp-sound").click()
     expect(slider).to_be_hidden()

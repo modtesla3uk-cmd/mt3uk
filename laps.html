@@ -415,7 +415,7 @@
   .lh-skip:hover { background: rgba(255,255,255,.1); border-color: #fff; }
   /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
   @media (max-width: 780px) {
-    .lh-reel-bar { display: flex; }
+    .lh-reel-bar { display: flex; order: 0; justify-self: start; }
     .lh-reel.is-skipped .lh-reel-box { display: none; }
     .lh-hero .wrap { gap: 14px; }
     .lh-copy { display: contents; }
@@ -518,11 +518,11 @@
         <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
     </div>
+    <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button></div>
     <figure class="lh-reel">
-      <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button></div>
       <div class="lh-reel-box" id="lh-reel-box">
-      <video class="lh-reel-video" src="images/laps/laps-reel.mp4?v=4" poster="images/laps/laps-reel-poster.jpg?v=4" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 25 seconds: a lap drawn on a track, with the words for each scene"></video>
-      <figcaption>Tap play to watch with sound. Laps in 25 seconds, on a made-up circuit with example data.</figcaption>
+      <video class="lh-reel-video" src="images/laps/laps-reel.mp4?v=5" poster="images/laps/laps-reel-poster.jpg?v=5" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 24 seconds: a lap drawn on a track, with the words for each scene"></video>
+      <figcaption>Tap play to watch with sound. Laps in 24 seconds, on a made-up circuit with example data.</figcaption>
       </div>
     </figure>
     <script>

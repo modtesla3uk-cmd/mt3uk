@@ -356,8 +356,8 @@ def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_si
     open_home(page)
     expect(page.locator(".lh-hero [data-laps-explainer]")).to_have_count(0)
     video = page.locator(".lh-hero .lh-reel video")
-    expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4?v=4")
-    expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg?v=4")
+    expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4?v=5")
+    expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg?v=5")
     assert video.get_attribute("loop") is None, "the intro plays once and stops on the end card"
     assert video.get_attribute("autoplay") is None and video.get_attribute("muted") is None, "the intro waits for a tap, and plays with sound"
     assert page.evaluate("document.querySelector('.lh-reel-video').volume") == 0.4, "the intro starts at a lower volume, and its volume control is the native one"

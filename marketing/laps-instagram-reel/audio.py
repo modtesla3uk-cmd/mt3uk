@@ -2,7 +2,7 @@ import subprocess, sys
 from pathlib import Path
 import numpy as np
 SR = 44100
-DUR = 25.0
+DUR = 24.0
 # The motor loop of the first reel (the same sound as the uploaded first reel, kept here so the reel can be rebuilt)
 MOTOR = str(Path(__file__).resolve().parent / 'motor-reel-loop.mp3')
 
@@ -65,7 +65,7 @@ def chime(start):                                   # end card: three rising not
 
 # Each slide holds for a second before it goes (index.html, PAUSE), so the cues after it move on by that much.
 PAUSE = 1.0
-SLIDE_ENDS = [2.4, 6.4, 9.6, 13.4, 16.6]
+SLIDE_ENDS = [6.4, 9.6, 13.4, 16.6]   # the first slide has no pause
 def at(x):                                          # a time in the slides' own timing, moved on for the pauses before it
     return x + PAUSE * sum(1 for b in SLIDE_ENDS if b <= x)
 

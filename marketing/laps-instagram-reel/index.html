@@ -205,7 +205,8 @@ const SC = [
 // timing (a, b); the reel's timeline runs slide after slide, with the pause on the end of each one but the end card.
 const PAUSE = 1;
 let slideStart = 0;
-SC.forEach(sc => { sc.start = slideStart; sc.len = (sc.b - sc.a) + (sc.end ? 0 : PAUSE); slideStart += sc.len; });
+// The first slide has no pause: the reel starts on it.
+SC.forEach(sc => { sc.start = slideStart; sc.len = (sc.b - sc.a) + (sc.end || sc.a === 0 ? 0 : PAUSE); slideStart += sc.len; });
 const REEL_LENGTH = slideStart;
 const GAP = T * (1 - 1 / 1.02);                           // seconds B is quicker over the lap
 
@@ -218,7 +219,7 @@ function drawLapScene(s, t, left) {
     const f = (t - l.start) / l.D;
     const i = idxFor(clamp(f), l.g);
     if (l.trail) drawTrail(i, l.g, trailAlpha);
-    if (f < 1) drawCar(i, l.g === 1 ? ORANGE : BLUE);
+    drawCar(i, l.g === 1 ? ORANGE : BLUE, trailAlpha);
   });
 }
 

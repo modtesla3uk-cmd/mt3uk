@@ -1,8 +1,9 @@
 [
   {
     "file": "photo--by-rich-hc.jpg",
-    "name": "RHC",
+    "name": "RICH HC",
     "color": "Black",
+    "unclaimed": true,
     "added": "2026-10-21",
     "group": "photo--by-rich-hc.jpg"
   },

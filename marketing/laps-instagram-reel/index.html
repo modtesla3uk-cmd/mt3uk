@@ -187,14 +187,14 @@ function headline(str, y, alpha, slide) {
 
 // ---- The scenes ----
 const SC = [
-  { a: 0, b: 2.4, head: ['Every lap.'], cap: [] },
-  { a: 2.4, b: 6.4, head: ['Mapped.'], cap: ['Drop in the file from your lap timer.', 'Colour shows your speed, corner by corner.'],
+  { a: 0, b: 2.4, head: ['Every lap'], cap: [] },
+  { a: 2.4, b: 6.4, head: ['Mapped'], cap: ['Drop in the file from your lap timer.', 'Colour shows your speed, corner by corner.'],
     laps: [{ start: 2.6, D: 3.6, g: 1, trail: true }] },
-  { a: 6.4, b: 9.6, head: ['Measured.'], cap: ['Every point of the lap, from your own file.'],
+  { a: 6.4, b: 9.6, head: ['Measured'], cap: ['Every point of the lap, from your own file.'],
     laps: [{ start: 6.6, D: 2.8, g: 1, trail: true }] },
-  { a: 9.6, b: 13.4, head: ['Compared.'], cap: ['Play two laps together', 'and see where the time went.'],
+  { a: 9.6, b: 13.4, head: ['Compared'], cap: ['Play two laps together', 'and see where the time went.'],
     laps: [{ start: 9.9, D: 3.2, g: 1, trail: true, label: 'A' }, { start: 9.9, D: 3.2, g: 1.02, trail: false, label: 'B' }] },
-  { a: 13.4, b: 16.6, head: ['Any lap', 'timer.'], cap: ['Upload the file it saves.'], chips: true },
+  { a: 13.4, b: 16.6, head: ['Any lap', 'timer'], cap: ['Upload the file it saves.'], chips: true },
   { a: 16.6, b: 20, end: true }
 ];
 // Each slide holds for a second once it is complete, before it goes, so there is time to read it. The slides keep their own
@@ -221,7 +221,7 @@ function drawLapScene(s, t, left) {
 
 function drawStats(s, t) {
   const lt = t - s.a;
-  if (s.laps.length === 1 && s.head[0] === 'Mapped.') {
+  if (s.laps.length === 1 && s.head[0] === 'Mapped') {
     const l = s.laps[0];
     const f = clamp((t - l.start) / l.D), i = idxFor(f, 1);
     text(String(mphAt(i, 1)), 90, 1560, 128, CREAM, { align: 'left' });
@@ -232,7 +232,7 @@ function drawStats(s, t) {
       text('Lap 1  ' + fmtLap(T), 990 - 215, 1532, 52, CREAM, { alpha: done });
     }
   }
-  if (s.head[0] === 'Measured.') {
+  if (s.head[0] === 'Measured') {
     const l = s.laps[0];
     const f = clamp((t - l.start) / l.D), i = idxFor(f, 1);
     text(String(mphAt(i, 1)), 90, 1560, 128, CREAM, { align: 'left' });
@@ -241,7 +241,7 @@ function drawStats(s, t) {
     pill(990 - 300, 1466, 300, 100, NAVY2);
     text('Top ' + TOP_MPH + ' mph', 990 - 150, 1532, 48, CREAM, { alpha: a });
   }
-  if (s.head[0] === 'Compared.') {
+  if (s.head[0] === 'Compared') {
     const [la, lb] = s.laps;
     const ia = idxFor(clamp((t - la.start) / la.D), 1), ib = idxFor(clamp((t - lb.start) / lb.D), lb.g);
     text('A ' + mphAt(ia, 1) + ' mph', 90, 1560, 72, ORANGE, { align: 'left' });
@@ -305,10 +305,10 @@ function draw(t) {
   const inA = clamp(lt / 0.4), outA = clamp(left / 0.25);
   const a = Math.min(inA, outA), slide = (1 - easeOut(inA)) * 28;
 
-  if (s.head[0] === 'Every lap.') {
+  if (s.head[0] === 'Every lap') {
     drawMark(540, 330, 190, clamp(lt / 1.0), clamp(lt / 0.3));
     drawGhost(0.16 * clamp((at - 1.2) / 1.2));
-    headline('Every lap.', 520, clamp(lt / 0.5), (1 - easeOut(clamp(lt / 0.5))) * 28);
+    headline('Every lap', 520, clamp(lt / 0.5), (1 - easeOut(clamp(lt / 0.5))) * 28);
     return;
   }
   if (s.chips) {

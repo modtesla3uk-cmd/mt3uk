@@ -1199,7 +1199,7 @@ async function deleteMemberAccount(env, email) {
   for (var pk = 0; pk < passkeys.length; pk++) await env.VOTES.delete(passkeyCredKey(passkeys[pk].id));
   // End every sign-in. Kept only as long as an old sign-in could last.
   await env.VOTES.put(sessionVersionKey(email), String((await getSessionVersion(env, email)) + 1), { expirationTtl: 181 * 24 * 60 * 60 });
-  await Promise.all(['subscriber:', 'profile:', 'subscriber-since:', 'friends:', 'dm-index:', 'notifications:', 'push:', 'passkeys:'].map(function (prefix) {
+  await Promise.all(['subscriber:', 'laps-files:', 'profile:', 'subscriber-since:', 'friends:', 'dm-index:', 'notifications:', 'push:', 'passkeys:'].map(function (prefix) {
     return env.VOTES.delete(prefix + email);
   }));
   if (files.length) await triggerManifestRebuild(env);
@@ -4993,8 +4993,16 @@ async function sendSubscribersDigest(env) {
   await env.SEND_EMAIL.send(message);
 }
 
+// The photo list a member's garage reads. A Laps-only account keeps its own (laps-files:), so adding a photo does not
+// make it a subscriber. Its list from before that is read from its subscriber record until it moves.
+async function subscriberFilesKey(env, email) {
+  return (await isLapsOnlyAccount(env, email)) ? 'laps-files:' + email : 'subscriber:' + email;
+}
+
 async function getSubscriberFiles(env, email) {
-  var raw = await env.VOTES.get('subscriber:' + email);
+  var key = await subscriberFilesKey(env, email);
+  var raw = await env.VOTES.get(key);
+  if (!raw && key !== 'subscriber:' + email) raw = await env.VOTES.get('subscriber:' + email);
   if (!raw) return [];
   try {
     var parsed = JSON.parse(raw);
@@ -5005,13 +5013,15 @@ async function getSubscriberFiles(env, email) {
 }
 
 async function addSubscriberFiles(env, email, files) {
-  var isNew = (await env.VOTES.get('subscriber:' + email)) === null;
+  var key = await subscriberFilesKey(env, email);
+  var isNew = (await env.VOTES.get(key)) === null;
   var existing = await getSubscriberFiles(env, email);
   files.forEach(function (f) {
     if (existing.indexOf(f) === -1) existing.push(f);
   });
-  await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
-  if (isNew) await markSubscriberSince(env, email);
+  await env.VOTES.put(key, JSON.stringify(existing));
+  // A Laps-only account is not a subscriber, so it is not marked as one.
+  if (isNew && key.indexOf('subscriber:') === 0) await markSubscriberSince(env, email);
 }
 
 // When a member was added, for the admin page. Recorded when a member's
@@ -5026,7 +5036,7 @@ async function removeSubscriberFile(env, email, file) {
   var idx = existing.indexOf(file);
   if (idx === -1) return;
   existing.splice(idx, 1);
-  await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
+  await env.VOTES.put(await subscriberFilesKey(env, email), JSON.stringify(existing));
 }
 
 // My Garage sessions are signed tokens (email and expiry, with an HMAC), so
@@ -6657,7 +6667,10 @@ async function completePendingJoin(env, email) {
     await env.VOTES.put(lapsAccountKey(email), JSON.stringify({ since: new Date().toISOString() }));
     made = 'laps';
   } else {
-    await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+    // Joining MT3UK makes a Laps-only account a full member: its photo list moves into its subscriber record.
+    var lapsFiles = await env.VOTES.get('laps-files:' + email);
+    await env.VOTES.put('subscriber:' + email, lapsFiles || JSON.stringify([]));
+    await env.VOTES.delete('laps-files:' + email);
     await markSubscriberSince(env, email);
     // Joining MT3UK makes a Laps-only account a full member.
     await env.VOTES.delete(lapsAccountKey(email));
@@ -6944,7 +6957,7 @@ async function handleMyBuildsGet(request, env) {
   // wipe out the subscriber's saved file list.
   var liveFiles = files.filter(function (f) { return byFile[f]; });
   if (manifestOk && (filesChanged || liveFiles.length !== files.length)) {
-    await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
+    await env.VOTES.put(await subscriberFilesKey(env, email), JSON.stringify(liveFiles));
   }
 
   var entries = liveFiles.map(function (f) { return byFile[f]; });

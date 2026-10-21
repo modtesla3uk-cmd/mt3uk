@@ -18,6 +18,9 @@
   works out, and a Default drop-down: a default is kept in the library (drives) and
   set through /track/admin/drive, which stamps the sessions of every vehicle of that
   model not set by hand and refreshes its leaderboard rows.
+  The built-in list is the car list (data/car-list: every make, model and variant, A to Z, from index.json). Only the
+  makes are listed at first: a make's models and variants load when its Show models button (or Edit) is pressed, and a
+  model's variants are written in when its list is opened, so the panel loads what is looked at.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -29,6 +32,18 @@
   // Models the rule can only tell from the version (or the year).
   var VARIES = { 'tesla|model 3': 1, 'tesla|model y': 1, 'tesla|model s': 1, 'polestar|2': 1, 'honda|nsx': 1 };
   var base = null, extra = null, merged = null, unknownOnly = false;
+  var CAR_LIST = 'data/car-list/';
+  var idx = null;     // the car list's index: every make with its file name (slug) and model count
+  var pending = {};   // 'car|Make' for a make whose models and variants are not loaded yet
+  var fetching = {};  // 'car|Make' -> the request that loads it, so a make is fetched once
+  function byText(a, b) { return String(a).localeCompare(String(b), 'en', { sensitivity: 'base', numeric: true }); }
+  function byName(a, b) { return byText(a.name, b.name); }
+  // The index of a name in a list, ignoring case (the file's "IONIQ 5" and the car list's "Ioniq 5" are one model), or null.
+  function findCI(list, s) {
+    var t = String(s).toLowerCase();
+    for (var i = 0; i < list.length; i++) if (list[i].toLowerCase() === t) return list[i];
+    return null;
+  }
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -50,7 +65,13 @@
   // in My Garage (the Gallery is for Teslas), so it has no switch.
   function isHidden(name, type) { return (extra.hiddenMakes || []).some(function (h) { return same(h, name, type); }); }
   function unhide(name, type) { extra.hiddenMakes = (extra.hiddenMakes || []).filter(function (h) { return !same(h, name, type); }); }
+  function isPending(name, type) { return !!pending[type + '|' + name]; }
+  function idxCount(name) {
+    var m = idx && idx.makes.filter(function (x) { return x.name === name; })[0];
+    return m ? m.models : 0;
+  }
   function fileModels(name, type) {
+    if (isPending(name, type)) return idxCount(name);
     var m = (base.makes || []).filter(function (x) { return same(x, name, type); })[0];
     return m ? (m.models || []).length : 0;
   }
@@ -62,12 +83,49 @@
     note('Loading vehicles...');
     Promise.all([
       fetch('data/vehicles.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { makes: [] }; }),
-      call('GET', '/vehicles/admin')
+      call('GET', '/vehicles/admin'),
+      fetch(CAR_LIST + 'index.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { makes: [] }; })
     ]).then(function (r) {
       if (!r[1].ok) { note('The admin key is not right.', 'error'); return; }
-      base = r[0]; extra = normal(r[1].extra);
+      base = r[0]; extra = normal(r[1].extra); idx = r[2];
+      base.makes = (base.makes || []).slice();
+      // Every make on the car list is listed, A to Z; its models and variants load when its row is opened.
+      idx.makes.slice().sort(byName).forEach(function (m) {
+        pending['car|' + m.name] = true;
+        if (!base.makes.some(function (x) { return same(x, m.name, 'car'); })) base.makes.push({ name: m.name, type: 'car', models: [], versions: {} });
+      });
       refresh(); note('');
     }).catch(function () { note('Could not load the vehicles.', 'error'); });
+  }
+
+  // A make's models and variants from the car list, laid onto its entry: the file's names are kept (a car-list name
+  // that matches one of them, ignoring case, is the same model), and what the car list adds is listed too.
+  // Loaded once, when the make is opened.
+  function openMake(name, type) {
+    var key = type + '|' + name;
+    if (!pending[key]) return Promise.resolve();
+    if (!fetching[key]) {
+      var slug = (idx.makes.filter(function (m) { return m.name === name; })[0] || {}).slug;
+      fetching[key] = fetch(CAR_LIST + slug + '.json', { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (data) {
+        var entry = base.makes.filter(function (x) { return same(x, name, type); })[0];
+        var models = (entry.models || []).slice(), versions = {};
+        Object.keys(entry.versions || {}).forEach(function (k) { versions[k] = (entry.versions[k] || []).slice(); });
+        (data.models || []).forEach(function (cm) {
+          var mn = findCI(models, cm.name);
+          if (mn === null) { models.push(cm.name); mn = cm.name; }
+          var list = versions[mn] || [];
+          (cm.variants || []).forEach(function (v) { if (findCI(list, v.name) === null) list.push(v.name); });
+          versions[mn] = list;
+        });
+        models.sort(byText);
+        entry.models = models; entry.versions = versions;
+        delete pending[key];
+      }).catch(function (e) { delete fetching[key]; throw e; });
+    }
+    return fetching[key];
   }
 
   function refresh() {
@@ -81,15 +139,17 @@
     var hiddenCount = rows.filter(function (r) { return r.hidden; }).length;
     countEl.textContent = '(' + rows.length + ' makes' + (hiddenCount ? ', ' + hiddenCount + ' hidden' : '') + ')';
     var models = 0, unknown = 0;
-    rows.forEach(function (r) { if (r.type !== 'car') return; r.models.forEach(function (m) { models++; if (!driveOf(r.name, m).drive) unknown++; }); });
-    listEl.innerHTML = '<p class="iv-note vh-drive-note">' + models + ' car model' + (models === 1 ? '' : 's') + ', driven wheels ' + (unknown ? 'not known for ' + unknown : 'known for all') + '. ' +
+    rows.forEach(function (r) { if (r.type !== 'car' || isPending(r.name, r.type)) return; r.models.forEach(function (m) { models++; if (!driveOf(r.name, m).drive) unknown++; }); });
+    listEl.innerHTML = '<p class="iv-note vh-drive-note">' + models + ' car model' + (models === 1 ? '' : 's') + ' in the makes opened, driven wheels ' + (unknown ? 'not known for ' + unknown : 'known for all') + '. ' +
+      (idx ? 'The car list has ' + idx.makes.length + ' makes: press Show models on a make to load its models and variants. ' : '') +
       '<button type="button" class="tk-switch" role="switch" id="vh-unknown-only" aria-checked="' + unknownOnly + '"><span class="tk-track"></span>Only the ones not known</button></p>' +
       '<table class="iv-table tk-table vh-table' + (unknownOnly ? ' is-unknown-only' : '') + '"><thead><tr><th>Make</th><th>Type</th><th>Models and driven wheels</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
-      var items = r.models.map(function (m) { return modelHtml(r, m); }).join('');
+      var pend = isPending(r.name, r.type), cnt = pend ? fileModels(r.name, r.type) : r.models.length;
+      var items = pend ? '' : r.models.map(function (m) { return modelHtml(r, m); }).join('');
       var targets = r.type === 'car' && r.models.some(function (m) { return !driveOf(r.name, m).drive; });
       var always = r.type === 'car' && r.name === 'Tesla';
       return '<tr class="vh-make' + (targets ? '' : ' vh-all-known') + (r.hidden ? ' is-hidden' : '') + '"><td><b>' + esc(r.name) + '</b>' + (r.hidden ? ' <span class="vh-badge">Hidden from members</span>' : '') + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
-        '<span class="vh-count">' + r.models.length + ' model' + (r.models.length === 1 ? '' : 's') + '</span>' + (items ? '<ul class="vh-models">' + items + '</ul>' : '') + '</td>' +
+        '<span class="vh-count">' + cnt + ' model' + (cnt === 1 ? '' : 's') + '</span>' + (pend ? ' <button type="button" class="secondary iv-act" data-open-make="' + esc(r.name) + '" data-type="' + r.type + '">Show models</button>' : '') + (items ? '<ul class="vh-models">' + items + '</ul>' : '') + '</td>' +
         '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(r.name) + '" data-type="' + r.type + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(r.name) + '" data-type="' + r.type + '">Remove</button>' +
         '<button type="button" class="tk-switch vh-show" role="switch" data-show="' + esc(r.name) + '" data-type="' + r.type + '" aria-checked="' + !r.hidden + '" aria-label="Show ' + esc(r.name) + ' to members"' +
         (always ? ' disabled title="Tesla is always offered in My Garage"' : '') + '><span class="tk-track"></span>Shown</button></div></td></tr>';
@@ -131,12 +191,16 @@
     if (rule.free) words.push('free text');
     var vs = variantsOf(r, model), list = '';
     if (vs.length) {
-      list = '<details class="vh-vlist"><summary>' + vs.length + ' variant' + (vs.length === 1 ? '' : 's') + '</summary><ul>' + vs.map(function (x) {
-        var d = r.type === 'car' ? variantDrive(r, model, x) : null;
-        return '<li><span class="vh-vn">' + esc(x) + '</span>' + (d ? '<span class="iv-sub vh-vd">' + (d.drive ? esc(d.drive) + (d.set ? ' (set here)' : '') : 'not known') + '</span>' : '') + '</li>';
-      }).join('') + '</ul></details>';
+      // The variants are written in when the list is opened (the toggle handler below), not with the panel.
+      list = '<details class="vh-vlist" data-make="' + esc(r.name) + '" data-type="' + r.type + '" data-model="' + esc(model) + '"><summary>' + vs.length + ' variant' + (vs.length === 1 ? '' : 's') + '</summary><ul class="vh-vitems"></ul></details>';
     }
     return list + (words.length ? '<span class="iv-sub vh-variants">' + words.join(', ') + '</span>' : '');
+  }
+  function variantItems(r, model) {
+    return variantsOf(r, model).map(function (x) {
+      var d = r.type === 'car' ? variantDrive(r, model, x) : null;
+      return '<li><span class="vh-vn">' + esc(x) + '</span>' + (d ? '<span class="iv-sub vh-vd">' + (d.drive ? esc(d.drive) + (d.set ? ' (set here)' : '') : 'not known') + '</span>' : '') + '</li>';
+    }).join('');
   }
   // The Version box rule switches on a model's row (the same two as on the Edit form); a change saves at once.
   function ruleSwitches(r, model) {
@@ -236,6 +300,13 @@
     }).catch(function () { note('Could not save it.', 'error'); });
   }
 
+  // A model's variants are written in the first time its list is opened.
+  listEl.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (!d.classList || !d.classList.contains('vh-vlist') || !d.open) return;
+    var ul = d.querySelector('.vh-vitems');
+    if (ul && !ul.children.length) ul.innerHTML = variantItems({ name: d.getAttribute('data-make'), type: d.getAttribute('data-type') }, d.getAttribute('data-model'));
+  }, true);
   listEl.addEventListener('change', function (e) {
     var sel = e.target.closest('.vh-drive');
     if (!sel) return;
@@ -258,7 +329,14 @@
     }).catch(function () { sel.disabled = false; note('Could not reach the server.', 'error'); });
   });
   listEl.addEventListener('click', function (e) {
-    var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]');
+    var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]'), om = e.target.closest('[data-open-make]');
+    if (om) {
+      var on = om.getAttribute('data-open-make');
+      om.disabled = true;
+      note('Loading ' + on + '...');
+      openMake(on, om.getAttribute('data-type')).then(function () { note(''); refresh(); }, function () { om.disabled = false; note('Could not load ' + on + '. Try again in a moment.', 'error'); });
+      return;
+    }
     if (e.target.closest('#vh-unknown-only')) {
       unknownOnly = !unknownOnly;
       e.target.closest('#vh-unknown-only').setAttribute('aria-checked', String(unknownOnly));
@@ -302,7 +380,7 @@
       return;
     }
     if (e.target.closest('[data-new]')) return openForm(null);
-    if (ed) return openForm(ed.getAttribute('data-edit'), ed.getAttribute('data-type'));
+    if (ed) return openMake(ed.getAttribute('data-edit'), ed.getAttribute('data-type')).then(function () { refresh(); openForm(ed.getAttribute('data-edit'), ed.getAttribute('data-type')); }, function () { note('Could not load that make. Try again in a moment.', 'error'); });
     if (rm) {
       var name = rm.getAttribute('data-remove'), type = rm.getAttribute('data-type');
       var fromFile = inFile(name, type);

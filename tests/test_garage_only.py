@@ -304,3 +304,27 @@ def test_a_laps_only_account_has_no_gallery_reel_or_voting_choices(device_page):
     page.locator("#mb-addphoto-toggle-btn").click()
     expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-reel"))).to_be_visible()
     expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-votable"))).to_be_visible()
+
+
+@all_devices
+def test_a_laps_only_member_who_picks_a_tesla_is_offered_to_join_mt3uk(device_page):
+    """A Laps-only account that picks a Tesla in Add a vehicle is offered MT3UK membership, with reasons to join. Joining
+    asks first, then joins and reloads. A Laps-only account that picks another make is not offered it."""
+    page = device_page
+    page.mock_state["laps_only"] = True
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    expect(page.locator("#mb-join-offer")).to_be_hidden()
+    pick_add_car(page, "Kia", "EV6", 1)
+    expect(page.locator("#mb-join-offer")).to_be_hidden()
+    pick_add_car(page, "Tesla", "Model Y", 1)
+    expect(page.locator("#mb-join-offer")).to_be_visible()
+    expect(page.locator("#mb-join-offer")).to_contain_text("Enter events")
+    expect(page.locator("#mb-join-offer")).to_contain_text("Read owner interviews")
+    page.click("#mb-join-open")
+    expect(page.locator("#mb-join-confirm")).to_be_visible()
+    page.click("#mb-join-yes")
+    page.wait_for_timeout(500)
+    assert page.mock_state.get("joined_mt3uk", 0) == 1
+

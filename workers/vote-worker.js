@@ -6888,6 +6888,20 @@ async function handleMyBuildsSession(request, env) {
   return json({ success: true, session: session, email: email, joined: joined, access: joined ? await trackAccessStatus(env, email) : undefined });
 }
 
+// A signed-in Laps-only account joins MT3UK from My Garage: it becomes a member with the same email and keeps its photo
+// list. Its Laps record is removed, as it is when someone joins MT3UK from the sign-up page.
+async function handleMyBuildsJoinMt3uk(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  if (!(await isLapsOnlyAccount(env, email))) return json({ success: true, joined: false });
+  var lapsFiles = await env.VOTES.get('laps-files:' + email);
+  await env.VOTES.put('subscriber:' + email, lapsFiles || (await env.VOTES.get('subscriber:' + email)) || JSON.stringify([]));
+  await env.VOTES.delete('laps-files:' + email);
+  await markSubscriberSince(env, email);
+  await env.VOTES.delete(lapsAccountKey(email));
+  return json({ success: true, joined: true });
+}
+
 async function handleMyBuildsGet(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -13253,6 +13267,9 @@ export default {
     }
     if (url.pathname === '/my-builds/join' && request.method === 'POST') {
       return handleMyBuildsJoin(request, env);
+    }
+    if (url.pathname === '/my-builds/join-mt3uk' && request.method === 'POST') {
+      return handleMyBuildsJoinMt3uk(request, env);
     }
     if (url.pathname === '/session/handover' && request.method === 'POST') {
       return handleSessionHandover(request, env);

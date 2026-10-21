@@ -1058,6 +1058,14 @@ body.laps-only label.mb-toggle, body.laps-only .mb-photo-toggle, body.laps-only 
 body.laps-only #mb-lightbox-reel, body.laps-only #mb-lightbox-gallery, body.laps-only #mb-lightbox-votes, body.laps-only #mb-lightbox-share-note,
 body.laps-only [data-link="reel"], body.laps-only [data-link="vote"], body.laps-only [data-link="gallery"],
 body.laps-only .mb-other-note { display: none !important; }
+/* The offer to join MT3UK, for a Laps-only account that picks a Tesla. */
+.mb-join-offer { margin: 14px 0; padding: 16px 18px; border: 1px solid var(--ink); border-left: 4px solid var(--orange, #e8542a); background: var(--white, #fff); }
+.mb-join-offer h3 { font-size: 1rem; margin: 0 0 6px; }
+.mb-join-offer p { font-size: 0.9rem; margin: 0 0 8px; }
+.mb-join-reasons { margin: 0 0 12px; padding-left: 1.2em; font-size: 0.88rem; }
+.mb-join-reasons li { margin-bottom: 4px; }
+.mb-join-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mb-join-confirm p { width: 100%; margin-bottom: 4px; }
 </style>
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
 <script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
@@ -1463,6 +1471,25 @@ document.addEventListener('DOMContentLoaded', function () {
               <span class="mb-field-label">Make, model and variant</span>
               <div id="mb-addcar-pick" class="car-pick"></div>
               <p class="mb-other-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p>
+            </div>
+            <div class="mb-join-offer" id="mb-join-offer" hidden>
+              <h3>Join MT3UK too?</h3>
+              <p>A Tesla can be shown in the MT3UK Gallery, and joining is free. As a member you can:</p>
+              <ul class="mb-join-reasons">
+                <li><strong>Enter events:</strong> meets and track days.</li>
+                <li><strong>Use the shop:</strong> see what MT3UK has on sale.</li>
+                <li><strong>Read owner interviews:</strong> and comment on them.</li>
+                <li><strong>Like and comment:</strong> on other members' builds.</li>
+              </ul>
+              <div class="mb-join-actions" id="mb-join-actions">
+                <button type="button" class="mb-btn" id="mb-join-open">Join MT3UK</button>
+              </div>
+              <div class="mb-join-confirm" id="mb-join-confirm" hidden>
+                <p>Join MT3UK with this email? Your Laps account stays the same.</p>
+                <button type="button" class="mb-btn" id="mb-join-yes">Yes, join MT3UK</button>
+                <button type="button" class="mb-btn" id="mb-join-no">Not now</button>
+              </div>
+              <p class="mb-status" id="mb-join-status" role="status"></p>
             </div>
             <div class="mb-other-make" id="mb-addcar-other" hidden>
               <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this <span data-vword>car</span> isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
@@ -2352,6 +2379,29 @@ document.addEventListener('DOMContentLoaded', function () {
       var host = document.getElementById('mb-app-view') || document.body;
       host.insertBefore(el, host.firstChild);
     }
+    // A Laps-only account that picks a Tesla is offered MT3UK membership: the Gallery is for Teslas, and members get more.
+    function updateJoinOffer(make) {
+      var box = document.getElementById('mb-join-offer');
+      if (box) box.hidden = !(window.mbLapsOnly && make === 'Tesla');
+    }
+    (function () {
+      var openBtn = document.getElementById('mb-join-open'), yesBtn = document.getElementById('mb-join-yes'), noBtn = document.getElementById('mb-join-no');
+      if (!openBtn) return;
+      openBtn.addEventListener('click', function () { document.getElementById('mb-join-actions').hidden = true; document.getElementById('mb-join-confirm').hidden = false; });
+      noBtn.addEventListener('click', function () { document.getElementById('mb-join-confirm').hidden = true; document.getElementById('mb-join-actions').hidden = false; });
+      yesBtn.addEventListener('click', function () {
+        var status = document.getElementById('mb-join-status');
+        yesBtn.disabled = true;
+        status.textContent = 'Joining MT3UK...';
+        fetch(API + '/my-builds/join-mt3uk', { method: 'POST', headers: { 'X-Session-Token': getSession() } })
+          .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+          .then(function (out) {
+            if (!out.ok || !out.d.success) { yesBtn.disabled = false; status.textContent = out.d.message || 'Could not join just now. Please try again.'; return; }
+            location.reload();
+          })
+          .catch(function () { yesBtn.disabled = false; status.textContent = 'Could not reach the server. Please try again.'; });
+      });
+    })();
     function loadCars() {
       var token = getSession();
       if (!token) { showSignin(); return; }
@@ -2377,6 +2427,7 @@ document.addEventListener('DOMContentLoaded', function () {
           showApp(result.data.email);
           // A Laps-only account has no Gallery, Reel or Voting choices: its cars are kept in the garage.
           document.body.classList.toggle('laps-only', !!result.data.lapsOnly);
+          window.mbLapsOnly = !!result.data.lapsOnly;
           if (result.kept) oldGarageNote(result.kept);
           renderName(result.data.firstName, result.data.lastName, result.data.shownAs);
           markBoardsButton(token);
@@ -2842,6 +2893,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             onChange: function (c) {
             addCarMakeHidden.value = c.make;
+            updateJoinOffer(c.make);
             addCarModelHidden.value = c.model;
             addCarFuelHidden.value = c.fuel || '';
             addCarVersionSel.innerHTML = '<option value="">Version</option>' + (c.variant ? '<option value="' + escapeHtml(c.variant) + '" selected>' + escapeHtml(c.variant) + '</option>' : '');

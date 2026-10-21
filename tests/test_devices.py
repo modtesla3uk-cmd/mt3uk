@@ -403,6 +403,9 @@ def api_reply(url, method, post_data, state):
         car.update(state.get("car_details", {}))
         car["view"] = mock_specs_to_view(car.get("specs"), car.get("mods"))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY, "lapsOnly": bool(state.get("laps_only"))}
+    if path == "/my-builds/join-mt3uk" and method == "POST":
+        state["joined_mt3uk"] = state.get("joined_mt3uk", 0) + 1
+        return {"success": True, "joined": True}
     if path == "/my-builds/car" and method == "PUT":
         try:
             body = json.loads(post_data or "{}")

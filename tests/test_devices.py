@@ -455,6 +455,9 @@ def api_reply(url, method, post_data, state):
     if path in ("", "/") and method == "POST":
         state.setdefault("submits", []).append(post_data or "")
         return {"success": True, "carId": GARAGE_CAR["id"], "photo_urls": []}
+    if path == "/my-builds/car/new" and method == "POST":
+        state.setdefault("car_news", []).append(json.loads(post_data or "{}"))
+        return {"success": True, "car": {"id": GARAGE_CAR["id"], "name": "Test Model 3", "photos": []}}
     return {"success": True}
 
 

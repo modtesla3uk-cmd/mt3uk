@@ -307,3 +307,15 @@ pushCalls.length = 0;
 await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
 await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
 ok(!pushCalls.includes(device.endpoint), 'after which nothing is pushed to it');
+
+// ---- A Laps-only account cannot ask for its car to be shown in the Gallery: it has to join MT3UK first ----
+kv.set('laps-account:' + A, '{}');
+const waiting = JSON.parse(kv.get('garage-gallery-requests')).pending.length;
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia, note: 'Track build' }, 'tok-a');
+ok(r.status === 403 && r.body.lapsOnly === true && /Join MT3UK/.test(r.body.message), 'a Laps-only account is refused a request to show its car in the Gallery');
+ok(JSON.parse(kv.get('garage-gallery-requests')).pending.length === waiting, 'and nothing is put on the admin list');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+ok(r.status === 200 && r.body.success === true, 'but a Laps-only account can still take back a request it made before');
+kv.delete('laps-account:' + A);
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(r.body.success && r.body.asked === true, 'once a member, asking works again as before');

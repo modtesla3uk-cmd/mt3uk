@@ -2022,8 +2022,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function showDetail(carId) {
       currentCarId = carId;
       pageBack(true);
-      var offer = document.getElementById('mb-join-offer');
-      if (offer) offer.hidden = !(window.mbLapsOnly && carId === joinOfferCarId);
+      // The offer shows on a Laps-only member's Tesla (saved just now, or any Tesla they have) until Not now.
+      var offer = document.getElementById('mb-join-offer'), car = findCar(carId);
+      if (offer) offer.hidden = !(window.mbLapsOnly && !joinOfferDismissed && (carId === joinOfferCarId || (car && car.make === 'Tesla')));
       selectorView.style.display = 'none';
       detailView.style.display = 'flex';
       renderCarDetail(findCar(carId));
@@ -2250,7 +2251,9 @@ document.addEventListener('DOMContentLoaded', function () {
         voteHint.innerHTML = '<p><strong>Kept in your garage:</strong> this car isn\'t shown in the Gallery, the Reel or Build of the Week. You can still build its mods list and use it in Track sessions.</p>' +
           (hereCar.galleryAsked
             ? '<p>You\'ve asked us to show it in the Gallery. We\'ll email you when it\'s decided. Changed your mind? You can undo the request.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-undo">Undo the request</button>'
-            : '<p>Would you like it in the Gallery? Ask us and we\'ll take a look.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-ask">Ask to show it in the Gallery</button>');
+            : window.mbLapsOnly
+              ? '<p>To ask us to show it in the Gallery, join MT3UK first.</p>'
+              : '<p>Would you like it in the Gallery? Ask us and we\'ll take a look.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-ask">Ask to show it in the Gallery</button>');
         return;
       }
       var how = 'Photos are in the vote the week they\'re added and the week after. To enter an older photo, tick <strong>Voting</strong> on it. You can have one photo in the vote at a time. <a href="index.html#vote-how">How voting works</a>';
@@ -2401,11 +2404,11 @@ document.addEventListener('DOMContentLoaded', function () {
       host.insertBefore(el, host.firstChild);
     }
     // A Laps-only account that has just saved a Tesla is offered MT3UK membership, on that car's page.
-    var joinOfferCarId = null;
+    var joinOfferCarId = null, joinOfferDismissed = false;
     (function () {
       var yesBtn = document.getElementById('mb-join-yes'), noBtn = document.getElementById('mb-join-no');
       if (!yesBtn) return;
-      noBtn.addEventListener('click', function () { joinOfferCarId = null; document.getElementById('mb-join-offer').hidden = true; });
+      noBtn.addEventListener('click', function () { joinOfferDismissed = true; document.getElementById('mb-join-offer').hidden = true; });
       yesBtn.addEventListener('click', function () {
         var status = document.getElementById('mb-join-status');
         yesBtn.disabled = true;
@@ -2445,6 +2448,11 @@ document.addEventListener('DOMContentLoaded', function () {
           // A Laps-only account has no Gallery, Reel or Voting choices: its cars are kept in the garage.
           document.body.classList.toggle('laps-only', !!result.data.lapsOnly);
           window.mbLapsOnly = !!result.data.lapsOnly;
+          // A Laps-only member can add a car without a photo: the Add a car form says so.
+          var addPhoto = document.getElementById('mb-addcar-photo');
+          if (addPhoto) addPhoto.required = !window.mbLapsOnly;
+          var addPhotoLabel = document.querySelector('label[for="mb-addcar-photo"]');
+          if (addPhotoLabel) addPhotoLabel.textContent = window.mbLapsOnly ? 'Photos (optional, up to 3)' : 'Photos (up to 3)';
           if (result.kept) oldGarageNote(result.kept);
           renderName(result.data.firstName, result.data.lastName, result.data.shownAs);
           markBoardsButton(token);
@@ -2934,7 +2942,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setStatus(addCarStatus, '', '');
 
         var files = addCarPhotoInput.files;
-        if (!files.length) return setStatus(addCarStatus, 'Please choose at least one photo.', 'err');
+        var noPhoto = !files.length;
+        if (noPhoto && !window.mbLapsOnly) return setStatus(addCarStatus, 'Please choose at least one photo.', 'err');
         if (files.length > 3) return setStatus(addCarStatus, 'Please choose up to 3 photos.', 'err');
         for (var i = 0; i < files.length; i++) {
           if (files[i].size > 10 * 1024 * 1024) return setStatus(addCarStatus, 'Each photo must be under 10MB.', 'err');
@@ -2957,15 +2966,30 @@ document.addEventListener('DOMContentLoaded', function () {
         addCarSubmitBtn.disabled = true;
         addCarSubmitBtn.textContent = 'Adding…';
 
-        fetch(API, { method: 'POST', body: formData })
+        // Without a photo (a Laps-only member) the car is added on its own, with the same details.
+        var sent;
+        if (noPhoto) {
+          var details = {};
+          formData.forEach(function (v, k) { if (k !== 'photo' && k !== 'email' && typeof v === 'string') details[k] = v; });
+          sent = fetch(API + '/my-builds/car/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+            body: JSON.stringify(details)
+          });
+        } else {
+          sent = fetch(API, { method: 'POST', body: formData });
+        }
+        sent
           .then(function (res) { return res.json(); })
           .then(function (json) {
             addCarSubmitBtn.disabled = false;
             addCarSubmitBtn.textContent = 'Add car';
+            if (json.success && json.car && !json.carId) json.carId = json.car.id;
             if (json.success) {
               setStatus(addCarStatus, otherMake ? 'Car added to your garage.' : 'Car added.', 'ok');
               if (json.voteNote) mbToast(json.voteNote);
               joinOfferCarId = addCarMakeHidden.value === 'Tesla' ? json.carId : null;
+              joinOfferDismissed = false;
               addCarForm.reset();
               addCarCard.style.display = 'none';
               addCarToggleBtn.textContent = '+ ' + addCarLabel(carsData);

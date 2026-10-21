@@ -5519,7 +5519,8 @@ async function handleMyBuildsCarNew(request, env) {
   var tesla = make.toLowerCase() === 'tesla' && !NON_TESLA_MODELS[details.model];
   if (tesla) details.make = 'Tesla';
   var id = randomToken();
-  var record = { id: id, name: name, photos: [], mods: [], color: '', createdAt: new Date().toISOString(), noPhoto: true };
+  var color = CAR_COLORS.indexOf(body.color) !== -1 ? body.color : '';
+  var record = { id: id, name: name, photos: [], mods: [], color: color, createdAt: new Date().toISOString(), noPhoto: true };
   var lapsOnly = await isLapsOnlyAccount(env, email);
   if (!tesla || lapsOnly) record.garageOnly = true;
   await saveCarRecord(env, record);
@@ -11956,6 +11957,8 @@ async function handleGarageGalleryRequest(request, env) {
     }
     return json({ success: true, asked: false });
   }
+  // A Laps-only account cannot ask for the Gallery: it has to join MT3UK first (the page offers that).
+  if (await isLapsOnlyAccount(env, email)) return json({ success: false, lapsOnly: true, message: 'Join MT3UK to ask for a car to be shown in the Gallery.' }, 403);
   if (record.garageOnly !== true) return json({ success: false, message: 'That car is already shown in the Gallery.' }, 400);
   // Bring the record's list of photos up to date, so approving it shows every one: the car's photos as My Garage
   // sees them, then any others it lists that are still the member's (a name for a photo that has gone is dropped).

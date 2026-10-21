@@ -329,3 +329,68 @@ def test_a_laps_only_member_is_offered_to_join_mt3uk_once_the_tesla_is_saved(dev
     page.wait_for_timeout(500)
     assert page.mock_state.get("joined_mt3uk", 0) == 1
 
+
+
+@all_devices
+def test_a_laps_only_members_car_page_offers_the_join_and_no_gallery_ask(device_page):
+    """On a Laps-only member's own car page the join offer is there for a Tesla, until Not now, and a car kept in the
+    garage says to join MT3UK first instead of offering the Gallery ask (the worker refuses that request for them)."""
+    page = device_page
+    page.mock_state["laps_only"] = True
+    page.mock_state["car_details"] = {"make": "Tesla", "model": "Model Y", "vehicleType": "car", "garageOnly": True, "galleryAsked": False,
+                                      "photos": [{"file": "tesla.jpg", "caption": "Kit", "gallery": False, "reel": False, "votable": False}]}
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    expect(page.locator("#mb-join-offer")).to_be_visible()
+    expect(page.locator("#mb-join-offer")).to_contain_text("Enter events")
+    expect(page.locator("#mb-vote-hint")).to_contain_text("join MT3UK first")
+    expect(page.locator("#mb-gallery-ask")).to_have_count(0)
+    page.click("#mb-join-no")
+    expect(page.locator("#mb-join-offer")).to_be_hidden()
+
+    # Another make kept in the garage: no offer (it is for a Tesla), and still no Gallery ask.
+    page.mock_state["car_details"] = {"make": "Kia", "model": "EV6 GT", "vehicleType": "car", "garageOnly": True, "galleryAsked": False,
+                                      "photos": [{"file": "kia.jpg", "caption": "Kit", "gallery": False, "reel": False, "votable": False}]}
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    expect(page.locator("#mb-join-offer")).to_be_hidden()
+    expect(page.locator("#mb-vote-hint")).to_contain_text("join MT3UK first")
+    expect(page.locator("#mb-gallery-ask")).to_have_count(0)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_laps_only_member_can_add_a_car_without_a_photo(device_page):
+    """Add a car in My Garage: a Laps-only member needs no photo (the field says so), so the car is added on its own
+    with its details, a Tesla is then offered MT3UK, and the car opens. Members still need a photo."""
+    page = device_page
+    page.mock_state["laps_only"] = True
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    expect(page.locator('label[for="mb-addcar-photo"]')).to_have_text("Photos (optional, up to 3)")
+    expect(page.locator("#mb-addcar-photo")).not_to_have_attribute("required", "")
+    pick_add_car(page, "Tesla", "Model Y", 1)
+    page.select_option("#mb-addcar-color", "White")
+    page.click("#mb-addcar-submit-btn")
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    news = page.mock_state.get("car_news", [])
+    assert news, page.api_log
+    body = news[-1]
+    assert body["make"] == "Tesla" and body["model"] == "Model Y" and body["color"] == "White" and body["vehicleType"] == "car", body
+    assert not page.mock_state.get("submits"), "a photo-less car is not sent as a photo upload"
+    expect(page.locator("#mb-join-offer")).to_be_visible()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_member_still_needs_a_photo_to_add_a_car(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    expect(page.locator('label[for="mb-addcar-photo"]')).to_have_text("Photos (up to 3)")
+    expect(page.locator("#mb-addcar-photo")).to_have_attribute("required", "")

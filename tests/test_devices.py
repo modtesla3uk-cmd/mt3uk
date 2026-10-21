@@ -402,7 +402,7 @@ def api_reply(url, method, post_data, state):
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
         car.update(state.get("car_details", {}))
         car["view"] = mock_specs_to_view(car.get("specs"), car.get("mods"))
-        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
+        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY, "lapsOnly": bool(state.get("laps_only"))}
     if path == "/my-builds/car" and method == "PUT":
         try:
             body = json.loads(post_data or "{}")

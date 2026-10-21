@@ -3,6 +3,7 @@ car, Another make): its photos stay out of the Gallery, the Reel and Build of th
 Week, cannot be switched on, and only MT3UK can show it (the Other makes panel on
 admin.html). The worker parts run in node (tests/garage_only_check.mjs)."""
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -282,3 +283,27 @@ def test_find_them_marks_a_car_that_was_made_public(page):
     row = page.locator("#ga-old .ga-row")
     expect(row).to_contain_text("made public on 5 Oct 2026")
     expect(row.get_by_role("button", name="Remove from public view")).to_be_visible()
+
+
+@all_devices
+def test_a_laps_only_account_has_no_gallery_reel_or_voting_choices(device_page):
+    """Someone who joined on Laps and is not an MT3UK member has no Gallery, Reel or Voting choices in My Garage: the
+    upload form, the photos and the car's vote panel leave them out. An MT3UK member keeps them."""
+    page = device_page
+    page.mock_state["laps_only"] = True
+    open_car(page)
+    expect(page.locator("body")).to_have_class(re.compile(r"laps-only"))
+    page.locator("#mb-addphoto-toggle-btn").click()
+    expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-reel"))).to_be_hidden()
+    expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-gallery"))).to_be_hidden()
+    expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-votable"))).to_be_hidden()
+    expect(page.locator(".mb-vote-hint")).to_be_hidden()
+    expect(page.locator('[data-link="reel"], [data-link="vote"], [data-link="gallery"]').first).to_be_hidden()
+    # A member (not Laps-only) still has them.
+    page.mock_state["laps_only"] = False
+    page.goto("/my-builds.html")
+    open_car(page)
+    expect(page.locator("body")).not_to_have_class(re.compile(r"laps-only"))
+    page.locator("#mb-addphoto-toggle-btn").click()
+    expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-reel"))).to_be_visible()
+    expect(page.locator("label.mb-toggle", has=page.locator("#mb-upload-votable"))).to_be_visible()

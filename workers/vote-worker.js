@@ -5510,13 +5510,14 @@ async function handleMyBuildsCarNew(request, env) {
   if (tesla) details.make = 'Tesla';
   var id = randomToken();
   var record = { id: id, name: name, photos: [], mods: [], color: '', createdAt: new Date().toISOString(), noPhoto: true };
-  if (!tesla) record.garageOnly = true;
+  var lapsOnly = await isLapsOnlyAccount(env, email);
+  if (!tesla || lapsOnly) record.garageOnly = true;
   await saveCarRecord(env, record);
   await saveCarDetails(env, id, details);
   await env.VOTES.put(carOwnerKey(id), email);
   mine.push(id);
   await env.VOTES.put(memberCarsKey(email), JSON.stringify(mine));
-  return json({ success: true, car: { id: id, name: name, make: details.make, model: details.model, year: details.year || '', vehicleType: details.vehicleType, garageOnly: !tesla, photos: [] } });
+  return json({ success: true, car: { id: id, name: name, make: details.make, model: details.model, year: details.year || '', vehicleType: details.vehicleType, garageOnly: !tesla || lapsOnly, photos: [] } });
 }
 
 // POST /my-builds/car/remove { carId }: removes a car added without a photo, while it has none, with its Track
@@ -6414,6 +6415,13 @@ function signInSite(body) {
   return { site: site, next: site === 'laps' && LAPS_NEXT_RE.test(next) ? next : '' };
 }
 function lapsAccountKey(email) { return 'laps-account:' + email; }
+
+// A Laps-only account: it joined on Laps and is not an MT3UK member. Its cars and photos are kept in its garage, so
+// Gallery, Reel and Voting are never on for it (My Garage hides them, and the worker keeps them off).
+async function isLapsOnlyAccount(env, email) {
+  if ((await env.VOTES.get('subscriber:' + email)) !== null) return false;
+  return (await env.VOTES.get(lapsAccountKey(email))) !== null;
+}
 function cleanLapsIntro(v) { return String(v || '').replace(/[\u0000-\u0009\u000b-\u001f<>]/g, ' ').trim().slice(0, 400); }
 
 async function handleLapsSigninPublic(request, env) {
@@ -7077,7 +7085,8 @@ async function handleMyBuildsGet(request, env) {
     // if they chose that in Profile, Visibility).
     shownAs: shownAs || '',
     cars: cars,
-    voteEntry: voteEntry
+    voteEntry: voteEntry,
+    lapsOnly: await isLapsOnlyAccount(env, email)
   });
 }
 
@@ -7124,7 +7133,7 @@ async function handleMyBuildsUpdate(request, env) {
 
   // A photo of a car kept in the garage (another make) stays out of the Gallery, the Reel and the vote
   // until MT3UK approves the car (POST /my-builds/car/gallery-request); its other details can still change.
-  var garageOnly = sidecar.garageOnly === true;
+  var garageOnly = sidecar.garageOnly === true || (await isLapsOnlyAccount(env, email));
   if (garageOnly && body && (body.gallery === true || body.reel === true || body.votable === true || body.vote === 'enter')) {
     return json({ success: false, garageOnly: true, message: GARAGE_ONLY_MESSAGE }, 403);
   }
@@ -12272,8 +12281,9 @@ async function handleMyBuildsPhotoMove(request, env) {
 
   // A photo of a car kept in the garage only moves to another such car (or a new one, which is kept in the
   // garage too), and a Gallery photo never moves into one, so a move never shows a private photo by surprise.
-  var photoPrivate = sidecar.garageOnly === true;
-  var targetPrivate = targetCarId === 'new' ? photoPrivate : !!(targetRecord && targetRecord.garageOnly === true);
+  var lapsOnly = await isLapsOnlyAccount(env, email);
+  var photoPrivate = sidecar.garageOnly === true || lapsOnly;
+  var targetPrivate = targetCarId === 'new' ? photoPrivate : (lapsOnly || !!(targetRecord && targetRecord.garageOnly === true));
   if (photoPrivate !== targetPrivate) {
     return json({ success: false, message: photoPrivate
       ? 'This photo is of a car kept in your garage, so it can only move to another car kept in your garage.'
@@ -12353,7 +12363,7 @@ async function handleMyBuildsUpload(request, env) {
   var carId = (formData.get('carId') || '').toString();
   // A car kept in the garage (another make) keeps its photos out of the Gallery, the Reel and the vote.
   var uploadRecord = carId && carId.indexOf('virtual:') !== 0 ? await getCarRecord(env, carId) : null;
-  var garageOnlyCar = !!(uploadRecord && uploadRecord.garageOnly === true);
+  var garageOnlyCar = !!(uploadRecord && uploadRecord.garageOnly === true) || (await isLapsOnlyAccount(env, email));
   if (garageOnlyCar) { gallery = false; reel = false; votable = false; }
 
   if (!file || typeof file === 'string') {

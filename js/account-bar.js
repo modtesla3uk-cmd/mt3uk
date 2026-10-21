@@ -379,7 +379,32 @@
     }
   }, true);
 
+  // A Laps-only account has no MT3UK to go back to, so the Laps menu leaves out "Back to MT3UK" for it. The profile says
+  // whether the account is Laps-only: it is asked once a day with the sign-in check and kept per account, so the menu
+  // is right from the first paint after that.
+  function hideBackToMt3uk() {
+    var email = read(EMAIL_KEY);
+    document.documentElement.classList.toggle('mt3uk-laps-only', !!email && read('mt3ukLapsOnly') === email);
+  }
+  function lapsOnlyCheck() {
+    var email = read(EMAIL_KEY), stamp = new Date().toISOString().slice(0, 10) + ' ' + email;
+    if (!read(SESSION_KEY) || !email || read('mt3ukLapsOnlyChecked') === stamp) return;
+    fetch(API + '/profile', { headers: { 'X-Session-Token': read(SESSION_KEY) }, cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.success) return;
+        try {
+          localStorage.setItem('mt3ukLapsOnly', data.lapsOnly ? email : '');
+          localStorage.setItem('mt3ukLapsOnlyChecked', stamp);
+        } catch (e) {}
+        hideBackToMt3uk();
+      })
+      .catch(function () {});
+  }
+
   function run() {
+    hideBackToMt3uk();
+    lapsOnlyCheck();
     refreshSession();
     askNickname();
     reportApp();

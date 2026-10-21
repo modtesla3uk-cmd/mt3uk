@@ -532,6 +532,8 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, colo
 .laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
 .logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }
 .nav-link-back .icon { width: 16px; height: 16px; }
+/* A Laps-only account has no MT3UK to go back to (js/account-bar.js sets the class). */
+html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
 .footer-links a, .footer-inline-link { text-decoration: underline; text-underline-offset: 2px; }
 .laps-logo ~ .footer-links { margin-left: 14px; }
 /* Laps header menu: Profile and Messages are rows in the menu, not bar icons (partials/laps-header.html). */

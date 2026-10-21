@@ -566,7 +566,7 @@ def profile_reply(path, method, post_data, state):
     })
     state.setdefault("profile_calls", []).append((method, path, body))
     if path == "/profile" and method == "GET":
-        return {"success": True, "email": "member@example.com", "id": "me", "firstName": p["firstName"], "lastName": p["lastName"],
+        return {"success": True, "email": "member@example.com", "id": "me", "lapsOnly": bool(state.get("laps_only")), "firstName": p["firstName"], "lastName": p["lastName"],
                 "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "modQuestionsOff": p.get("modQuestionsOff", False), "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
                 "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
                 "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}

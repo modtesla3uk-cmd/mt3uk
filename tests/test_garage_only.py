@@ -394,3 +394,23 @@ def test_a_member_still_needs_a_photo_to_add_a_car(device_page):
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     expect(page.locator('label[for="mb-addcar-photo"]')).to_have_text("Photos (up to 3)")
     expect(page.locator("#mb-addcar-photo")).to_have_attribute("required", "")
+
+
+@all_devices
+def test_a_laps_only_account_has_no_back_to_mt3uk_in_the_laps_menu(device_page):
+    """The Laps menu's "Back to MT3UK" is left out for a Laps-only account (js/account-bar.js asks the profile and sets
+    the class on the page), and a member keeps it."""
+    page = device_page
+    page.mock_state["laps_only"] = True
+    signed_in(page)
+    page.goto("/leaderboards.html")
+    page.wait_for_function("document.documentElement.classList.contains('mt3uk-laps-only')", timeout=10000)
+    assert page.evaluate("getComputedStyle(document.querySelector('.nav-link-back')).display") == "none"
+
+    # A member: the next check (a new day, or none yet for this account) turns the link back on.
+    page.mock_state["laps_only"] = False
+    page.evaluate("localStorage.removeItem('mt3ukLapsOnlyChecked')")
+    page.goto("/leaderboards.html")
+    page.wait_for_function("localStorage.getItem('mt3ukLapsOnlyChecked')", timeout=10000)
+    assert not page.evaluate("document.documentElement.classList.contains('mt3uk-laps-only')")
+    assert page.evaluate("getComputedStyle(document.querySelector('.nav-link-back')).display") != "none"

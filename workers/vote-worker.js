@@ -997,6 +997,7 @@ async function handleProfileGet(request, env) {
     emailsOff: !!profile.emailsOff,
     member: (await env.VOTES.get('subscriber:' + email)) !== null,
     since: (await env.VOTES.get('subscriber-since:' + email)) || '',
+    lapsOnly: await isLapsOnlyAccount(env, email),
     builds: files,
     friends: friends,
     incoming: incoming,

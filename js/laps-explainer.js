@@ -51,7 +51,7 @@
     map: { title: 'Every lap, mapped', caption: 'Each lap is drawn on the track, from your own lap timer.' },
     delta: { title: 'Where you gained and lost time', caption: 'Seconds ahead or behind your best lap, corner by corner.' },
     compare: { title: 'Compare any two laps', caption: 'Play two laps together and see where the time went.' },
-    car: { title: 'Your car, not just the track', caption: 'Track Mode telemetry shows what the car was doing, lap by lap.' },
+    car: { title: 'Your car, not just the track', caption: 'Readings from your car show what it was doing, lap by lap.' },
     end: { title: 'Laps by MT3UK', caption: 'Every lap, mapped and measured.' }
   };
   // The sounds the admin can choose. Each is made here in the browser (no audio file). Silent offers no Sound button.
@@ -239,7 +239,7 @@
     },
     car: function (ctx, local, a, S) {
       caption(ctx, S.texts.car, a);
-      var bars = [['Power', 0.82], ['Brake pressure', 0.64], ['Battery temp', 0.48], ['Tyre pressure', 0.71]];
+      var bars = [['Power', 0.82], ['Brake pressure', 0.64], ['Engine temp', 0.48], ['Tyre pressure', 0.71]];
       bars.forEach(function (b, i) {
         var y = 210 + i * 70, p = ease(clamp((local - i * 0.25) / 1.4));
         ctx.save(); ctx.globalAlpha = a;

@@ -177,15 +177,11 @@ function drawCar(i, colour, alpha = 1) {
 // A headline: the last full stop is drawn in orange.
 function headline(str, y, alpha, slide) {
   const size = 150, spacing = -3;
-  const dot = str.endsWith('.');
-  const body = dot ? str.slice(0, -1) : str;
   ctx.save();
   ctx.font = '700 ' + size + 'px ' + FONT;
   ctx.letterSpacing = spacing + 'px';
-  const wBody = ctx.measureText(body).width, wDot = dot ? ctx.measureText('.').width : 0;
-  const x0 = 540 - (wBody + wDot) / 2;
-  text(body, x0, y + slide, size, CREAM, { align: 'left', alpha, spacing });
-  if (dot) text('.', x0 + wBody, y + slide, size, ORANGE, { align: 'left', alpha, spacing });
+  const x0 = 540 - ctx.measureText(str).width / 2;
+  text(str, x0, y + slide, size, CREAM, { align: 'left', alpha, spacing });
   ctx.restore();
 }
 
@@ -198,7 +194,7 @@ const SC = [
     laps: [{ start: 6.6, D: 2.8, g: 1, trail: true }] },
   { a: 9.6, b: 13.4, head: ['Compared.'], cap: ['Play two laps together', 'and see where the time went.'],
     laps: [{ start: 9.9, D: 3.2, g: 1, trail: true, label: 'A' }, { start: 9.9, D: 3.2, g: 1.02, trail: false, label: 'B' }] },
-  { a: 13.4, b: 16.6, head: ['Any car.', 'Any make.'], cap: ['Works with your lap timer.'], chips: true },
+  { a: 13.4, b: 16.6, head: ['Any lap', 'timer.'], cap: ['Upload the file it saves.'], chips: true },
   { a: 16.6, b: 20, end: true }
 ];
 // Each slide holds for a second once it is complete, before it goes, so there is time to read it. The slides keep their own
@@ -274,9 +270,10 @@ function drawChips(s, t) {
       x += w + gap;
     });
   };
-  row([['Tesla', 64, 700], ['Hyundai', 64, 700]], 880, [0.3, 0.52]);
-  row([['Kia', 64, 700], ['Porsche', 64, 700]], 1040, [0.74, 0.96]);
-  row([['and more', 56, 600, true]], 1200, [1.18]);
+  row([['RaceBox', 52, 700], ['VBOX', 52, 700], ['AiM', 52, 700]], 880, [0.3, 0.42, 0.54]);
+  row([["Harry's LapTimer", 52, 700], ['TrackAddict', 52, 700]], 1040, [0.66, 0.8]);
+  row([['Tesla Track Mode', 52, 700]], 1200, [0.92]);
+  row([['and more', 52, 600, true]], 1360, [1.12]);
 }
 
 function drawEnd(lt) {

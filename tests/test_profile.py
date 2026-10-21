@@ -138,6 +138,9 @@ def test_stop_emails_and_leave(device_page):
     assert "Type LEAVE" in page.locator("#pf-leave-status").inner_text()
     assert not page.mock_state.get("left")
     page.fill("#pf-leave-confirm", "leave")
+    # Leaving clears the sign-in and reloads. The test's sign-in script runs again on every load, so it is undone here as the
+    # real site has no sign-in after leaving.
+    page.add_init_script("if (sessionStorage.getItem('mt3ukLeftMt3uk') === '1') { localStorage.removeItem('mt3ukMyBuildsSession'); localStorage.removeItem('mt3ukMyBuildsEmail'); }")
     page.click("#pf-leave-form button[type=submit]")
     page.locator("#pf-left").wait_for(state="visible", timeout=5000)
     assert page.mock_state.get("left")

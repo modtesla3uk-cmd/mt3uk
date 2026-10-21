@@ -1177,10 +1177,11 @@
       status($('pf-leave-status'), 'Deleting your account…');
       api('POST', '/profile/leave', { confirm: 'LEAVE' }).then(function (data) {
         if (!data.success) { btn.disabled = false; status($('pf-leave-status'), data.message || 'Could not delete, please try again.', 'err'); return; }
+        // Signed out everywhere: the sign-in is cleared and the page reloads, so the header and the signed-in bar stop
+        // showing the account. The one-time flag lets the reloaded page say the account was deleted.
         [SESSION_KEY, EMAIL_KEY, FIRST_NAME_KEY].forEach(function (k) { try { localStorage.removeItem(k); } catch (err) {} });
-        $('pf-app').hidden = true;
-        $('pf-left').hidden = false;
-        window.scrollTo(0, 0);
+        try { sessionStorage.setItem('mt3ukLeftMt3uk', '1'); } catch (err) {}
+        window.location.reload();
       }).catch(function () { btn.disabled = false; });
     });
 
@@ -1193,7 +1194,13 @@
       });
     }
 
-    if (!session()) { signedOut(); return; }
+    if (!session()) {
+      var left = false;
+      try { left = sessionStorage.getItem('mt3ukLeftMt3uk') === '1'; sessionStorage.removeItem('mt3ukLeftMt3uk'); } catch (err) {}
+      if (left) { $('pf-loading').hidden = true; $('pf-left').hidden = false; return; }
+      signedOut();
+      return;
+    }
     refresh().then(function () {
       if (!profile) return;
     }).then(function () {

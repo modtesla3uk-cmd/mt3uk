@@ -963,6 +963,15 @@
   .mbm-fold h3 { margin: 0; }
   .mbm-fold .mv-chev { width: 18px; height: 18px; color: var(--steel); transition: transform .2s; }
   .mbm-fold[aria-expanded="true"] .mv-chev { transform: rotate(180deg); }
+  /* On Laps: the Laps sessions and the photos fold away under the mods list (foldForLaps). */
+  .mb-laps-fold { border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .mb-laps-fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 16px; font-weight: 700; cursor: pointer; list-style: none; }
+  .mb-laps-fold > summary::-webkit-details-marker { display: none; }
+  .mb-laps-fold > summary .mv-chev { width: 18px; height: 18px; flex: none; color: var(--steel); transition: transform .2s; }
+  .mb-laps-fold[open] > summary { border-bottom: 1px solid var(--hairline); }
+  .mb-laps-fold[open] > summary .mv-chev { transform: rotate(180deg); }
+  .mb-laps-fold:has(> #mb-car-laps[hidden]) { display: none; }
+  .mb-laps-fold > .mb-car-laps { border: 0; border-radius: 0; }
   .mbm-list-head .mbm-meter { flex: 1; min-width: 160px; max-width: 280px; }
   .mbm .mv-body .mbm-area { border: 0; background: none; }
   .mbm .mv-body .mbm-area-body { padding: 8px 0 0; border-top: 0; }
@@ -1472,25 +1481,6 @@ document.addEventListener('DOMContentLoaded', function () {
               <div id="mb-addcar-pick" class="car-pick"></div>
               <p class="mb-other-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p>
             </div>
-            <div class="mb-join-offer" id="mb-join-offer" hidden>
-              <h3>Join MT3UK too?</h3>
-              <p>A Tesla can be shown in the MT3UK Gallery, and joining is free. As a member you can:</p>
-              <ul class="mb-join-reasons">
-                <li><strong>Enter events:</strong> meets and track days.</li>
-                <li><strong>Use the shop:</strong> see what MT3UK has on sale.</li>
-                <li><strong>Read owner interviews:</strong> and comment on them.</li>
-                <li><strong>Like and comment:</strong> on other members' builds.</li>
-              </ul>
-              <div class="mb-join-actions" id="mb-join-actions">
-                <button type="button" class="mb-btn" id="mb-join-open">Join MT3UK</button>
-              </div>
-              <div class="mb-join-confirm" id="mb-join-confirm" hidden>
-                <p>Join MT3UK with this email? Your Laps account stays the same.</p>
-                <button type="button" class="mb-btn" id="mb-join-yes">Yes, join MT3UK</button>
-                <button type="button" class="mb-btn" id="mb-join-no">Not now</button>
-              </div>
-              <p class="mb-status" id="mb-join-status" role="status"></p>
-            </div>
             <div class="mb-other-make" id="mb-addcar-other" hidden>
               <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this <span data-vword>car</span> isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
             </div>
@@ -1584,6 +1574,23 @@ document.addEventListener('DOMContentLoaded', function () {
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
           <button type="button" class="mb-car-view-link" id="mb-car-view-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1Z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>View my car</button>
+        </div>
+
+        <div class="mb-join-offer" id="mb-join-offer" hidden>
+          <h3>Join MT3UK too?</h3>
+          <p>A Tesla can be shown in the MT3UK Gallery, and joining is free. As a member you can:</p>
+          <ul class="mb-join-reasons">
+            <li><strong>Enter events:</strong> meets and track days.</li>
+            <li><strong>Use the shop:</strong> see what MT3UK has on sale.</li>
+            <li><strong>Read owner interviews:</strong> and comment on them.</li>
+            <li><strong>Like and comment:</strong> on other members' builds.</li>
+          </ul>
+          <div class="mb-join-confirm">
+            <p>Join with this email? Your Laps account stays the same.</p>
+            <button type="button" class="mb-btn" id="mb-join-yes">Join MT3UK</button>
+            <button type="button" class="mb-btn" id="mb-join-no">Not now</button>
+          </div>
+          <p class="mb-status" id="mb-join-status" role="status"></p>
         </div>
 
         <div class="mb-site-links" id="mb-car-site-links">
@@ -2015,6 +2022,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function showDetail(carId) {
       currentCarId = carId;
       pageBack(true);
+      var offer = document.getElementById('mb-join-offer');
+      if (offer) offer.hidden = !(window.mbLapsOnly && carId === joinOfferCarId);
       selectorView.style.display = 'none';
       detailView.style.display = 'flex';
       renderCarDetail(findCar(carId));
@@ -2391,16 +2400,12 @@ document.addEventListener('DOMContentLoaded', function () {
       var host = document.getElementById('mb-app-view') || document.body;
       host.insertBefore(el, host.firstChild);
     }
-    // A Laps-only account that picks a Tesla is offered MT3UK membership: the Gallery is for Teslas, and members get more.
-    function updateJoinOffer(make) {
-      var box = document.getElementById('mb-join-offer');
-      if (box) box.hidden = !(window.mbLapsOnly && make === 'Tesla');
-    }
+    // A Laps-only account that has just saved a Tesla is offered MT3UK membership, on that car's page.
+    var joinOfferCarId = null;
     (function () {
-      var openBtn = document.getElementById('mb-join-open'), yesBtn = document.getElementById('mb-join-yes'), noBtn = document.getElementById('mb-join-no');
-      if (!openBtn) return;
-      openBtn.addEventListener('click', function () { document.getElementById('mb-join-actions').hidden = true; document.getElementById('mb-join-confirm').hidden = false; });
-      noBtn.addEventListener('click', function () { document.getElementById('mb-join-confirm').hidden = true; document.getElementById('mb-join-actions').hidden = false; });
+      var yesBtn = document.getElementById('mb-join-yes'), noBtn = document.getElementById('mb-join-no');
+      if (!yesBtn) return;
+      noBtn.addEventListener('click', function () { joinOfferCarId = null; document.getElementById('mb-join-offer').hidden = true; });
       yesBtn.addEventListener('click', function () {
         var status = document.getElementById('mb-join-status');
         yesBtn.disabled = true;
@@ -2906,7 +2911,6 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             onChange: function (c) {
             addCarMakeHidden.value = c.make;
-            updateJoinOffer(c.make);
             addCarModelHidden.value = c.model;
             addCarFuelHidden.value = c.fuel || '';
             addCarVersionSel.innerHTML = '<option value="">Version</option>' + (c.variant ? '<option value="' + escapeHtml(c.variant) + '" selected>' + escapeHtml(c.variant) + '</option>' : '');
@@ -2961,6 +2965,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (json.success) {
               setStatus(addCarStatus, otherMake ? 'Car added to your garage.' : 'Car added.', 'ok');
               if (json.voteNote) mbToast(json.voteNote);
+              joinOfferCarId = addCarMakeHidden.value === 'Tesla' ? json.carId : null;
               addCarForm.reset();
               addCarCard.style.display = 'none';
               addCarToggleBtn.textContent = '+ ' + addCarLabel(carsData);
@@ -3247,6 +3252,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       }
     });
+
+    // On Laps (js/laps-shared.js marks the page) the car's mods list comes straight under the car's details, and the
+    // Laps sessions and the photos fold away beneath it, shut. On mt3uk.com the page is as it was.
+    function foldForLaps() {
+      if (!document.documentElement.classList.contains('laps-shared')) return;
+      var head = document.querySelector('#mb-car-detail-view .mb-car-detail-header');
+      var mods = document.getElementById('mb-mods-builder');
+      if (head && mods) head.parentNode.insertBefore(mods, head.nextSibling);
+      [['mb-car-laps', 'Track sessions on Laps'], ['mb-photo-strip', 'Photos']].forEach(function (pair) {
+        var el = document.getElementById(pair[0]);
+        if (!el) return;
+        var fold = document.createElement('details');
+        fold.className = 'mb-laps-fold';
+        fold.innerHTML = '<summary><span></span><svg class="mv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>';
+        fold.querySelector('span').textContent = pair[1];
+        el.parentNode.insertBefore(fold, el);
+        fold.appendChild(el);
+      });
+    }
+    foldForLaps();
 
     function renderCarMods(car) {
       if (modsBuilder) modsBuilder.show(car);

@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 from test_devices import device_page, browsers, all_devices, overflow_width, diagnostics  # noqa: F401
+from conftest import BASE_URL
 
 
 CAR_LIST = Path(__file__).resolve().parent.parent / "data" / "car-list"
@@ -704,3 +705,33 @@ def test_a_link_with_a_car_opens_that_car_and_its_mods_list(device_page):
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
     assert "Test Model 3" in page.locator("#mb-mods-builder .mbm-welcome").inner_text()
     assert "car=" not in page.url
+
+
+@all_devices
+def test_on_laps_the_mods_list_comes_first_and_the_sessions_and_photos_fold_away(device_page):
+    """On laps.mt3uk.com (js/laps-shared.js marks the page) the car's mods list sits straight under the car's details,
+    and the Laps sessions and the photos are folded away shut beneath it."""
+    page = device_page
+    page.add_init_script("window.MT3UK_SITES = { main: ['mt3uk.test'], mainOrigin: 'https://mt3uk.test', laps: ['localhost'] };")
+    signed_in(page)
+    page.goto(BASE_URL + "/my-builds.html?car=car-1")
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
+    assert page.evaluate("document.getElementById('mb-mods-builder').previousElementSibling.classList.contains('mb-car-detail-header')")
+    folds = page.locator("details.mb-laps-fold")
+    expect(folds).to_have_count(2)
+    assert page.locator("details.mb-laps-fold[open]").count() == 0
+    assert page.evaluate("!!document.querySelector('details.mb-laps-fold #mb-photo-strip') && !!document.querySelector('details.mb-laps-fold #mb-car-laps')")
+    folds.nth(0).locator("summary").click()
+    expect(folds.nth(0)).to_have_attribute("open", "")
+    folds.nth(0).locator("summary").click()
+    expect(folds.nth(0)).not_to_have_attribute("open", "")
+
+
+@all_devices
+def test_on_mt3uk_com_the_garage_keeps_its_order_with_no_folds(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto(BASE_URL + "/my-builds.html?car=car-1")
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
+    expect(page.locator("details.mb-laps-fold")).to_have_count(0)
+    assert page.evaluate("document.getElementById('mb-mods-builder').previousElementSibling.id") == "mb-vote-hint"

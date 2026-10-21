@@ -614,3 +614,15 @@ def test_the_add_page_asks_which_wheels_drive_the_car_and_keeps_the_choice(page)
     expect(page.locator("[data-drive] .is-on")).to_have_count(0)
     page.locator("[data-drive] [data-v='AWD']").click()
     expect(page.locator("[data-drive] .is-on")).to_have_text("AWD")
+
+
+def test_the_makes_have_a_letter_bar_that_jumps_to_the_first_make_under_it(page):
+    """A to Z along the top of the Makes list: a letter with makes is on, and one with none is off; a letter
+    scrolls to the first make that starts with it."""
+    open_panel(page, {})
+    letters = page.locator("#vh-list .vh-letter")
+    expect(letters).to_have_count(26)
+    expect(page.locator('#vh-list .vh-letter[data-letter-jump="A"]')).to_be_enabled()
+    expect(page.locator('#vh-list .vh-letter[data-letter-jump="U"]')).to_be_disabled()
+    page.locator('#vh-list .vh-letter[data-letter-jump="T"]').click()
+    expect(page.locator('#vh-list tr.vh-make[data-letter="T"]').first).to_be_in_viewport()

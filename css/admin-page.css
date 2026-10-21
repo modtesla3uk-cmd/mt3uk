@@ -575,6 +575,9 @@
 .vh-badge { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: var(--radius-pill, 999px); background: #eceef2; color: #4a5468; margin-left: 4px; }
 .vh-table tr.is-hidden > td:not(:last-child) { opacity: 0.6; }
 .vh-table .iv-actions { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.vh-letters { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
+.vh-letter { min-width: 44px; min-height: 44px; padding: 0 8px; border: 1px solid var(--hairline-strong, #b9c7c2); border-radius: var(--radius-sm, 8px); background: #fff; font: inherit; font-weight: 600; color: #16233d; cursor: pointer; }
+.vh-letter:disabled { opacity: .35; cursor: default; }
 .vh-removed { margin-top: 6px; }
 .vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .vh-count { display: block; margin-bottom: 4px; }

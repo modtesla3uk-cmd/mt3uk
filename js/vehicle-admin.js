@@ -143,17 +143,30 @@
     listEl.innerHTML = '<p class="iv-note vh-drive-note">' + models + ' car model' + (models === 1 ? '' : 's') + ' in the makes opened, driven wheels ' + (unknown ? 'not known for ' + unknown : 'known for all') + '. ' +
       (idx ? 'The car list has ' + idx.makes.length + ' makes: press Show models on a make to load its models and variants. ' : '') +
       '<button type="button" class="tk-switch" role="switch" id="vh-unknown-only" aria-checked="' + unknownOnly + '"><span class="tk-track"></span>Only the ones not known</button></p>' +
-      '<table class="iv-table tk-table vh-table' + (unknownOnly ? ' is-unknown-only' : '') + '"><thead><tr><th>Make</th><th>Type</th><th>Models and driven wheels</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
+      lettersHtml(rows) + '<table class="iv-table tk-table vh-table' + (unknownOnly ? ' is-unknown-only' : '') + '"><thead><tr><th>Make</th><th>Type</th><th>Models and driven wheels</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
       var pend = isPending(r.name, r.type), cnt = pend ? fileModels(r.name, r.type) : r.models.length;
       var items = pend ? '' : r.models.map(function (m) { return modelHtml(r, m); }).join('');
       var targets = r.type === 'car' && r.models.some(function (m) { return !driveOf(r.name, m).drive; });
       var always = r.type === 'car' && r.name === 'Tesla';
-      return '<tr class="vh-make' + (targets ? '' : ' vh-all-known') + (r.hidden ? ' is-hidden' : '') + '"><td><b>' + esc(r.name) + '</b>' + (r.hidden ? ' <span class="vh-badge">Hidden from members</span>' : '') + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
+      return '<tr data-letter="' + letterOf(r.name) + '" class="vh-make' + (targets ? '' : ' vh-all-known') + (r.hidden ? ' is-hidden' : '') + '"><td><b>' + esc(r.name) + '</b>' + (r.hidden ? ' <span class="vh-badge">Hidden from members</span>' : '') + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
         '<span class="vh-count">' + cnt + ' model' + (cnt === 1 ? '' : 's') + '</span>' + (pend ? ' <button type="button" class="secondary iv-act" data-open-make="' + esc(r.name) + '" data-type="' + r.type + '">Show models</button>' : '') + (items ? '<ul class="vh-models">' + items + '</ul>' : '') + '</td>' +
         '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(r.name) + '" data-type="' + r.type + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(r.name) + '" data-type="' + r.type + '">Remove</button>' +
         '<button type="button" class="tk-switch vh-show" role="switch" data-show="' + esc(r.name) + '" data-type="' + r.type + '" aria-checked="' + !r.hidden + '" aria-label="Show ' + esc(r.name) + ' to members"' +
         (always ? ' disabled title="Tesla is always offered in My Garage"' : '') + '><span class="tk-track"></span>Shown</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a make</button></div>' + removedHtml();
+  }
+
+  // A to Z along the top of the list: a letter jumps to the first make that starts with it. A letter with no make is off.
+  function letterOf(name) {
+    var c = String(name).charAt(0).toUpperCase();
+    return /[A-Z]/.test(c) ? c : '#';
+  }
+  function lettersHtml(rows) {
+    var have = {};
+    rows.forEach(function (r) { have[letterOf(r.name)] = true; });
+    return '<div class="vh-letters" role="group" aria-label="Jump to the makes starting with a letter">' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (L) {
+      return '<button type="button" class="vh-letter" data-letter-jump="' + L + '"' + (have[L] ? '' : ' disabled') + '>' + L + '</button>';
+    }).join('') + '</div>';
   }
 
   // Makes taken off the list: each can be restored, which brings back the built-in entry with its models and variants.
@@ -329,6 +342,12 @@
     }).catch(function () { sel.disabled = false; note('Could not reach the server.', 'error'); });
   });
   listEl.addEventListener('click', function (e) {
+    var jump = e.target.closest('[data-letter-jump]');
+    if (jump) {
+      var first = listEl.querySelector('tr.vh-make[data-letter="' + jump.getAttribute('data-letter-jump') + '"]');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]'), om = e.target.closest('[data-open-make]');
     if (om) {
       var on = om.getAttribute('data-open-make');

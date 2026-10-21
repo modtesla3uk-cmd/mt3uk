@@ -42,3 +42,5 @@ pytest -v
 ```
 
 A GitHub Actions workflow (`.github/workflows/tests.yml`) runs the same suite on every push and pull request.
+
+<!-- Cloudflare build test: 2026-10-21T20:52:49Z -->

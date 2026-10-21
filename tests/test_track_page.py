@@ -30,6 +30,18 @@ EARLIER = {
 }
 
 
+def set_window(page, size):
+    """Resize the window. The GitHub runner's Chromium can open maximised, and a maximised or full screen window is not
+    resized until it is restored, so it is put back to normal first. Other browsers, which cannot do this, are left alone."""
+    try:
+        cdp = page.context.new_cdp_session(page)
+        win = cdp.send("Browser.getWindowForTarget")
+        cdp.send("Browser.setWindowBounds", {"windowId": win["windowId"], "bounds": {"windowState": "normal"}})
+    except Exception:
+        pass
+    page.set_viewport_size(size)
+
+
 def summary(rec):
     keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "pads", "padFrontMake", "padFrontCompound", "padRearMake", "padRearCompound", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
     out = {k: rec.get(k) for k in keys if k in rec}
@@ -619,7 +631,8 @@ def test_add_a_session_from_the_racebox_file(page):
     sp = page.locator("#tp-speed")
     sp.scroll_into_view_if_needed()
     box = sp.bounding_box()
-    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] / 2)
+    # A press scrubs the chart (hovering only shows the cursor), and the zoomed map follows the car.
+    page.mouse.click(box["x"] + box["width"] * 0.7, box["y"] + box["height"] / 2)
     page.wait_for_timeout(100)
     after = vb()
     assert after[:2] != before[:2], "the zoomed map moved to follow the car"
@@ -866,7 +879,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     rows.nth(1).click()
     expect(page.locator("#tp-day-place")).to_have_text("Session 2 of 3 that day")
     # Phone: no sideways scroll.
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.go_back()
     expect(page.locator(".tp-daygroup").first).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
@@ -1621,7 +1634,7 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
         page.get_by_role("button", name="Refresh this page from the latest version").click()
     expect(page.locator(".lb-row").first).to_be_visible()
     assert page.url == url
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
@@ -1651,7 +1664,7 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     # On a phone the title comes first, at the left, with its trophy straight after the word and the share button at the
     # far right. Under it Back, My Sessions (with its words) and Add a session (with its words) share a row, and the bulb
     # sits at the right of the What is the Leaderboard? line.
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.goto("/leaderboards.html")
     mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
     expect(mine).to_be_visible()
@@ -1704,7 +1717,7 @@ def test_what_are_sessions_opens_from_the_question_mark_on_a_session_page_on_des
     fake = FakeWorker()
     fake.sessions["own1"] = dict(day_session("own1", "10:00", 95.0, 4), carId="car1")
     open_page(page, fake, path="/track.html?s=own1")
-    page.set_viewport_size({"width": 1280, "height": 900})
+    set_window(page, {"width": 1280, "height": 900})
     question = page.locator(".page-hero .lh-title .tp-what-q")
     expect(question).to_be_visible()
     fold = page.locator(".page-hero .tp-what")
@@ -1850,16 +1863,16 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     page.goto("/track.html?s=own1")
     expect(page.locator("#tp-hero-add")).to_be_visible()
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
-    page.set_viewport_size({"width": 390, "height": 800})
+    set_window(page, {"width": 390, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
-    page.set_viewport_size({"width": 700, "height": 800})
+    set_window(page, {"width": 700, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
     # The narrowest phone keeps its words too, as the other heading buttons do.
-    page.set_viewport_size({"width": 320, "height": 800})
+    set_window(page, {"width": 320, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
@@ -2024,7 +2037,7 @@ def test_drag_run_away_from_a_strip(page, admin):
 
 
 def test_phone_layout_has_no_sideways_scroll(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     fake = FakeWorker()
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
@@ -2236,7 +2249,7 @@ def test_a_board_of_ten_or_fewer_has_no_arrow(page):
 
 
 def test_leaderboard_list_fits_a_phone_with_the_hide_buttons(page):
-    page.set_viewport_size({"width": 360, "height": 740})
+    set_window(page, {"width": 360, "height": 740})
     fake = FakeWorker()
     _two_busy_tracks(fake)
     open_page(page, fake, "/leaderboards.html", signed_in=False)
@@ -2830,7 +2843,7 @@ def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(pag
     page.locator(".tp-back").click()
     expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(2)
     # Phone: no sideways scroll.
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
@@ -2899,7 +2912,7 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(page.locator(".tp-head .tp-for")).to_contain_text("4 sessions")
     # Phone: no sideways scroll with a drop-down open.
     page.locator(".tp-back").click()
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch").locator("[data-track-toggle]").click()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
@@ -2997,7 +3010,7 @@ def test_vehicles_are_a_list_that_folds_and_the_search_covers_every_vehicle(page
     page.get_by_role("button", name="Clear").click()
     expect(page.locator("#tp-tracks")).to_be_visible()
     # Phone: no sideways scroll.
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.locator("#tp-vtoggle").click()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
@@ -3029,7 +3042,7 @@ def test_find_sessions_between_two_dates(page):
     expect(page.locator("#tp-find-range")).to_be_hidden()
     expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(3)
     # Phone: no sideways scroll.
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.get_by_role("button", name="Between dates").click()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
@@ -3854,7 +3867,7 @@ def test_numbers_under_the_map_follow_the_dots(page):
 
 
 def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
-    page.set_viewport_size({"width": 1280, "height": 900})
+    set_window(page, {"width": 1280, "height": 900})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
@@ -3896,7 +3909,7 @@ def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
 def test_portrait_full_screen_map_can_be_made_taller_or_shorter(page):
     """In portrait full screen a bar under the map is dragged to resize it; the charts fill the rest, nothing runs off the
     screen, it is remembered, and a double tap puts it back."""
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -3935,7 +3948,7 @@ def test_portrait_full_screen_map_can_be_made_taller_or_shorter(page):
 
 
 def test_full_screen_map_on_a_phone(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     expect(page.locator("#tp-rotate-hint")).to_be_hidden()
@@ -3964,7 +3977,7 @@ def test_full_screen_map_on_a_phone(page):
     toggles.nth(0).click()
     toggles.nth(1).click()
     # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
-    page.set_viewport_size({"width": 844, "height": 390})
+    set_window(page, {"width": 844, "height": 390})
     page.wait_for_timeout(300)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -4988,7 +5001,7 @@ def test_playback_slider_has_a_time_ruler_and_a_line_marker(page):
 
 
 def test_playback_buttons_are_compact_on_a_phone(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     start, back, toggle = page.locator("#tp-play-start"), page.locator("#tp-play-back"), page.locator("#tp-play-toggle")
@@ -5001,8 +5014,9 @@ def test_playback_buttons_are_compact_on_a_phone(page):
     assert toggle.bounding_box()["width"] > 150
     # The five speed chips fit on one row; Follow cars may sit on the row below them. On a phone they start folded, so open them.
     page.locator("#tp-fold").click()
-    ys = {round(c.bounding_box()["y"]) for c in page.locator("#tp-speeds .chip").all()}
-    assert len(ys) == 1, ys
+    speeds = page.locator("#tp-speeds .chip").filter(has_not_text="Follow").all()
+    ys = {round(c.bounding_box()["y"]) for c in speeds}
+    assert len(speeds) == 5 and len(ys) == 1, ys
     assert overflow_width(page) <= 0
 
 
@@ -5592,7 +5606,7 @@ def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
 
 
 def test_confirming_the_lines_scrolls_back_to_the_result(page):
-    page.set_viewport_size({"width": 400, "height": 800})
+    set_window(page, {"width": 400, "height": 800})
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
@@ -5798,7 +5812,7 @@ def test_the_heading_buttons_on_a_session_never_overlap_on_a_phone(page):
     fake = FakeWorker()
     save_fixture_session(page, fake)
     for width in (560, 412, 390, 360, 340, 320):
-        page.set_viewport_size({"width": width, "height": 900})
+        set_window(page, {"width": width, "height": 900})
         page.wait_for_timeout(250)
         boxes = {}
         for name, sel in (("back", ".page-hero .tp-hero-top .back-link:not(.tp-home)"), ("home", ".page-hero .tp-hero-top .tp-home"),
@@ -5859,7 +5873,7 @@ def test_the_session_id_is_shown_with_a_copy_button(page):
     page.get_by_role("button", name="Copy the session ID").click()
     expect(page.locator("#tp-sid-copy")).to_contain_text("Copied")
     assert page.evaluate("navigator.clipboard.readText()") == "new1"
-    page.set_viewport_size({"width": 390, "height": 800})
+    set_window(page, {"width": 390, "height": 800})
     expect(page.locator("#tp-sid")).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
@@ -6192,10 +6206,10 @@ def test_another_members_lap_is_labelled_with_first_initial_and_last_name(page):
 
 
 def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
-    page.set_viewport_size({"width": 844, "height": 390})
+    set_window(page, {"width": 844, "height": 390})
     page.wait_for_timeout(300)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -6250,10 +6264,10 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
 
 
 def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons_row(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
-    page.set_viewport_size({"width": 844, "height": 390})
+    set_window(page, {"width": 844, "height": 390})
     page.wait_for_timeout(300)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -6280,7 +6294,7 @@ def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons
 
 
 def test_the_rotate_button_turns_the_screen_sideways_or_says_to_turn_the_phone(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     # A phone that can lock its screen: full screen is asked for, then landscape.
     page.add_init_script("""
       window.__lock = []; window.__unlock = 0;
@@ -6301,7 +6315,7 @@ def test_the_rotate_button_turns_the_screen_sideways_or_says_to_turn_the_phone(p
 
 
 def test_the_rotate_button_says_so_when_the_phone_cannot_lock_the_screen(page):
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.add_init_script("Object.defineProperty(screen, 'orientation', { configurable: true, value: { lock: function () { return Promise.reject(new Error('no')); }, unlock: function () {} } });")
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -6311,7 +6325,7 @@ def test_the_rotate_button_says_so_when_the_phone_cannot_lock_the_screen(page):
 
 def test_full_screen_has_lap_pickers(page):
     """Lap A and Lap B can be switched from full screen, upright and on its side."""
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-fs-laps #tp-cmp-b")).to_be_visible()
@@ -6319,7 +6333,7 @@ def test_full_screen_has_lap_pickers(page):
     page.locator("#tp-cmp-b").select_option(index=1)
     page.wait_for_timeout(400)
     assert page.locator("#tp-cmp-b").input_value()
-    page.set_viewport_size({"width": 800, "height": 360})
+    set_window(page, {"width": 800, "height": 360})
     page.wait_for_timeout(400)
     page.locator("#tp-mopts-btn").click()
     expect(page.locator("#tp-mopts-body #tp-cmp-a")).to_be_visible()
@@ -6625,7 +6639,7 @@ def test_compare_tyres_and_pads_on_a_board(page):
     # Back to the leaderboard.
     page.locator('#lb-views [data-view="board"]').click()
     expect(page.locator(".lb-row").first).to_be_visible()
-    page.set_viewport_size({"width": 390, "height": 844})
+    set_window(page, {"width": 390, "height": 844})
     page.locator('#lb-views [data-view="pads"]').click()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
@@ -6738,7 +6752,7 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     page.wait_for_function("(" + overlap_js + ")() === null", timeout=8000)
     assert page.evaluate(overlap_js) is None
     # On a phone every tile is full width, one under another.
-    page.set_viewport_size({"width": 390, "height": 800})
+    set_window(page, {"width": 390, "height": 800})
     page.wait_for_timeout(300)
     assert page.evaluate("[...document.querySelectorAll('#tp-board > [data-tile]')].every(t => Math.abs(t.getBoundingClientRect().width - document.getElementById('tp-board').getBoundingClientRect().width) < 2)")
 
@@ -6770,7 +6784,7 @@ def test_a_session_has_a_skip_to_section_list_and_an_exit_button_and_the_map_is_
 def test_the_grip_tile_is_wide_enough_to_close_the_gap_beside_it(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    page.set_viewport_size({"width": 1280, "height": 900})
+    set_window(page, {"width": 1280, "height": 900})
     page.wait_for_timeout(400)
     grip, mapcard = page.locator("[data-tile='grip']").bounding_box(), page.locator("[data-tile='map']").bounding_box()
     assert abs(grip["y"] - mapcard["y"]) < 2000 and mapcard["x"] - (grip["x"] + grip["width"]) < 40, (grip, mapcard)
@@ -6900,7 +6914,7 @@ def test_holding_sessions_of_a_day_picks_them_and_the_bulk_edit_changes_only_tho
     fake = FakeWorker(earlier=False)
     _many_days(fake, 1)
     open_page(page, fake)
-    page.set_viewport_size({"width": 1100, "height": 900})
+    set_window(page, {"width": 1100, "height": 900})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator(".tp-trackrow").click()
     wrap.locator("[data-layout-toggle]").click()
@@ -6946,7 +6960,7 @@ def test_delete_follows_the_picked_sessions_of_a_day(page):
     _many_days(fake, 1)
     fake.sessions["g1"]["fileName"] = "RaceBox one.vbo"
     open_page(page, fake)
-    page.set_viewport_size({"width": 1100, "height": 900})
+    set_window(page, {"width": 1100, "height": 900})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator(".tp-trackrow").click()
     wrap.locator("[data-layout-toggle]").click()
@@ -6978,7 +6992,7 @@ def test_picked_sessions_can_be_cleared_and_ctrl_click_picks(page):
     fake = FakeWorker(earlier=False)
     _many_days(fake, 1)
     open_page(page, fake)
-    page.set_viewport_size({"width": 390, "height": 800})
+    set_window(page, {"width": 390, "height": 800})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator(".tp-trackrow").click()
     wrap.locator("[data-layout-toggle]").click()
@@ -7005,7 +7019,7 @@ def test_the_dates_under_every_layout_line_up_in_one_column_and_show_just_the_da
         fake.index.append(summary(r))
     open_page(page, fake)
     for width in (1000, 390):
-        page.set_viewport_size({"width": width, "height": 900})
+        set_window(page, {"width": width, "height": 900})
         wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
         if wrap.locator(".tp-layouts").is_hidden():
             wrap.locator(".tp-trackrow").click()
@@ -7028,7 +7042,7 @@ def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
     fake = FakeWorker(earlier=False)
     _many_days(fake, 12)
     open_page(page, fake)
-    page.set_viewport_size({"width": 1100, "height": 700})
+    set_window(page, {"width": 1100, "height": 700})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator("[data-track-toggle]").click()
     wrap.locator("[data-layout-toggle]").click()
@@ -7048,7 +7062,7 @@ def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
 def test_skip_to_and_exit_session_share_one_row_on_a_phone(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    page.set_viewport_size({"width": 390, "height": 800})
+    set_window(page, {"width": 390, "height": 800})
     page.wait_for_timeout(300)
     skip, exit_ = page.locator("#tp-skip").bounding_box(), page.locator("#tp-exit").bounding_box()
     assert abs((skip["y"] + skip["height"] / 2) - (exit_["y"] + exit_["height"] / 2)) < 6, (skip, exit_)
@@ -7060,7 +7074,7 @@ def test_exiting_a_session_lands_on_the_list_at_the_row_it_came_from(page):
     fake = FakeWorker(earlier=False)
     _many_days(fake, 12)
     open_page(page, fake)
-    page.set_viewport_size({"width": 1100, "height": 700})
+    set_window(page, {"width": 1100, "height": 700})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator("[data-track-toggle]").click()
     wrap.locator("[data-layout-toggle]").click()
@@ -7178,7 +7192,7 @@ def test_dashcam_clips_added_together_are_one_session(page, tmp_path):
 
 def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
     """The Tesla browser cannot rotate: a wide window about 700px tall must not get the stacked phone layout with a thin map."""
-    page.set_viewport_size({"width": 1000, "height": 700})
+    set_window(page, {"width": 1000, "height": 700})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -7190,7 +7204,7 @@ def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
 
 
 def _open_full(page, w, h):
-    page.set_viewport_size({"width": w, "height": h})
+    set_window(page, {"width": w, "height": h})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
@@ -7201,11 +7215,11 @@ def test_full_screen_picks_upright_wide_or_large_from_the_window(page):
     card = page.locator("#tp-mapcard")
     _open_full(page, 390, 844)
     expect(card).to_have_attribute("data-layout", "upright")
-    page.set_viewport_size({"width": 844, "height": 390})
+    set_window(page, {"width": 844, "height": 390})
     expect(card).to_have_attribute("data-layout", "wide")
-    page.set_viewport_size({"width": 1000, "height": 700})
+    set_window(page, {"width": 1000, "height": 700})
     expect(card).to_have_attribute("data-layout", "wide")
-    page.set_viewport_size({"width": 1400, "height": 900})
+    set_window(page, {"width": 1400, "height": 900})
     expect(card).to_have_attribute("data-layout", "wide")
 
 
@@ -7589,7 +7603,7 @@ def test_the_add_view_heading_buttons_use_the_shared_slots_like_the_list(page):
     """On the Add view the Back and My Sessions buttons carry the heading's classes, so the saved heading layout places
     them the same way it places the list's buttons."""
     open_page(page, FakeWorker(earlier=True), path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
-    page.set_viewport_size({"width": 1280, "height": 900})
+    set_window(page, {"width": 1280, "height": 900})
     expect(page.locator("#tp-home")).to_be_attached()
     assert page.locator(".lh-hero .tp-back").evaluate("e => e.classList.contains('lh-back')")
     assert page.locator("#tp-home").evaluate("e => e.classList.contains('lh-s3') && e.classList.contains('lh-pill')")
@@ -7961,7 +7975,7 @@ def test_the_g_meter_is_labelled_on_its_rings_with_no_button_and_no_changing_fig
 def test_on_a_phone_on_its_side_the_g_meter_is_under_the_lap_times_and_the_figures_are_at_eye_level(page):
     """Full screen on a phone on its side (charts off): the lap times top left, the G meter under them on the left, the speed
     figures on the right above the controls, big enough to read, and the controls at the bottom right."""
-    page.set_viewport_size({"width": 844, "height": 390})
+    set_window(page, {"width": 844, "height": 390})
     save_thruxton_with_a_member_board(page, FakeWorker())
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
@@ -7988,7 +8002,7 @@ def test_a_track_overview_shows_the_whole_lap_and_both_cars_when_zoomed_in(page)
     It is not in the normal view, on a desktop or a phone."""
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
-    page.set_viewport_size({"width": 1100, "height": 900})
+    set_window(page, {"width": 1100, "height": 900})
     save_thruxton_with_a_member_board(page, FakeWorker())
     overview = page.locator("#tp-mini")
     expect(overview).to_be_hidden()

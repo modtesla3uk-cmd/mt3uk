@@ -53,7 +53,7 @@
 
   function field(text) {
     var label = document.createElement('label');
-    label.className = 'field car-pick-field';
+    label.className = 'car-pick-field';
     var name = document.createElement('span');
     name.className = 'k';
     name.textContent = text;

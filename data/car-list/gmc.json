@@ -1,0 +1,810 @@
+{
+ "name": "GMC",
+ "models": [
+  {
+   "name": "Acadia",
+   "variants": [
+    {
+     "name": "2.0L 9AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 9AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6AT AWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6AT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L VVT 9AT AWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 VVT 9AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 VVT 9AT FWD (310 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Canyon",
+   "variants": [
+    {
+     "name": "2.5L 6AT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L 5MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L Duramax 8AT AWD (181 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L Duramax 8AT RWD (181 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.9L 4AT RWD (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 5MT RWD (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 4AT RWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT RWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (308 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT RWD (308 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L 4AT RWD (247 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CANYON AT4",
+   "variants": [
+    {
+     "name": "2.7L Turbo 8AT Hydra-Matic 4WD (314 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L Turbo 8AT Hydra-Matic RWD (314 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CANYON AT4X",
+   "variants": [
+    {
+     "name": "2.7L Turbo 8AT Hydra-Matic 4WD (314 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CANYON DENALI",
+   "variants": [
+    {
+     "name": "2.7L Turbo 8AT Hydra-Matic 4WD (314 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Canyon Regular Cab",
+   "variants": [
+    {
+     "name": "2.8L 5MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 5MT FWD (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L 4AT FWD (247 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Envoy",
+   "variants": [
+    {
+     "name": "4.2L 4AT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 4AT AWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 4AT RWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3i 4AT (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 Denali 4AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 Denali 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Envoy XL",
+   "variants": [
+    {
+     "name": "4.2L 4AT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L 4AT (294 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Envoy XUV",
+   "variants": [
+    {
+     "name": "4.2L 4AT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT (294 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Hummer EV",
+   "variants": [
+    {
+     "name": "Three-motor e4WD (1000 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Hummer EV SUV",
+   "variants": [
+    {
+     "name": "170 KWh e4WD (570 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "170 KWh e4WD (625 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "170 KWh e4WD (830 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Jimmy",
+   "variants": [
+    {
+     "name": "4.3L V6 4AT (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 5MT (194 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Safari",
+   "variants": [
+    {
+     "name": "4.3L V6 4AT (194 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Savana",
+   "variants": [
+    {
+     "name": "4.3",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 MFI (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8 V8 Vortec (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 Vortec (4x2)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 SFI (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 SFI (4WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V8 Vortec (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V8 Vortec Gaseous (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 4AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 Vortec (4x2)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6 V8 Duramax (2WD)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 Duramax (4x2)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Sierra 1500",
+   "variants": [
+    {
+     "name": "2.7L V8 8AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 4AT (195 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 EcoTec3 (4x2)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 EcoTec3 (4x4)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 4AT (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 4AT RWD (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 10AT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 EcoTec3 (4x2)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 EcoTec3 (4x4)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 FlexFuel 4AT (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 FlexFuel 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 VVT 8AT 2WD (355 HP) (5’ 8” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 VVT 8AT 4WD (355 HP) (5’ 8” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 VVT 8AT 4WD (355 HP) (6’ 6” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 6AT RWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.2L V8 10AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 4AT RWD (403 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 8AT 4x2 (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 8AT 4x4 (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT 10AT $4WD (420 HP) (6’ 6” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT 10AT 2WD (420 HP) (5’ 8” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT 10AT 4WD (420 HP) (5’ 8” box)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10 AT 2WD (426 HP) Short Box",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10 AT 2WD (426 HP) Standard Box",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10 AT AWD (426 HP) Short Box",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10 AT AWD (426 HP) Standard Box",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "755 (HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "AT4X 6.6L Duramax V8 10AT AWD (476 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "AT4X 6.6L V8 10AT AWD (406 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "AT4X AEV Edition 6.6L Duramax V8 10AT AWD (476 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "AT4X AEV Edition 6.6L V8 10AT AWD (406 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sierra 2500HD",
+   "variants": [
+    {
+     "name": "6.0 V8 6AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V8 Hybrid 6AT (332 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.0 V8 Vortec (4x2)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V8 Vortec (4x4)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6 V8 6AT (365 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6 V8 Duramax (4x2)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6 V8 Duramax (4x4)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Sierra 3500HD",
+   "variants": [
+    {
+     "name": "6.0 V8 6AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 6AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 VVT DRW (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 VVT DRW (4WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 VVT SRW (2WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 VVT SRW (4WD)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6 V8 6AT (365 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6 V8 Turbo Diesel SRW (4WD)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 6AT (365 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 Turbo Diesel DRW (2WD)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 Turbo Diesel DRW (4WD)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 Turbo Diesel SRW (2WD)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.6L V8 Turbo Diesel SRW (4WD)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Terrain",
+   "variants": [
+    {
+     "name": "1.5L 6AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6AT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 8AT AWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 9AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6AT (137 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 6AT AWD (137 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 9AT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 9AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L DOHC 6AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L DOHC 6AT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L VVT 6AT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L VVT 6AT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC AWD (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC FWD (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 DOHC 6AT AWD (301 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 DOHC 6AT FWD (301 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 VVT 6AT AWD (301 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 VVT 6AT FWD (301 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Typhoon",
+   "variants": [
+    {
+     "name": "4.3i V6 4AT AWD (283 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Yukon",
+   "variants": [
+    {
+     "name": "3.0L Duramax 10AT AWD (309 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L Duramax 10AT RWD (309 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.8L V8 4AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 4AT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5,3L V8 VVT DI 10AT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5,3L V8 VVT DI 10AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L EcoTec3 V8 AWD 6AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L EcoTec3 V8 RWD 6AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 4AT RWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 Hybrid 4AT AWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.0L V8 Hybrid 4AT RWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.2L EcoTec3 V8 AWD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L EcoTec3 V8 RWD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10AT AWD (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Yukon XL",
+   "variants": [
+    {
+     "name": "4.8L V8 4AT RWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L EcoTec3 V8 AWD 6AT (340 HPL",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L EcoTec3 V8 RWD 6AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT AWD (319 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (319 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 VVT DI 10AT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 VVT DI 10AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 4AT RWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L EcoTec3 V8 AWD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L EcoTec3 V8 RWD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 VVT DI 10AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.1L V8 4AT RWD (329 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

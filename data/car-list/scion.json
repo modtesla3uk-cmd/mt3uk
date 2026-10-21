@@ -1,0 +1,121 @@
+{
+ "name": "Scion",
+ "models": [
+  {
+   "name": "FR-S",
+   "variants": [
+    {
+     "name": "2.0L 6AT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "iA",
+   "variants": [
+    {
+     "name": "1.5L 6AT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (106 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "iM",
+   "variants": [
+    {
+     "name": "1.8L 6MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CVT FWD (137 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "iQ",
+   "variants": [
+    {
+     "name": "1.3 CVT (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "tC",
+   "variants": [
+    {
+     "name": "2.4L VVTi 4AT (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L VVTi 5MT (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 6AT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 6MT (180 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "xA",
+   "variants": [
+    {
+     "name": "1.5l VVTi 4AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5l VVTi 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "xB",
+   "variants": [
+    {
+     "name": "1.5L VVTi 4AT FWD (108 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L VVTi 5MT FWD (108 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (158 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "xD",
+   "variants": [
+    {
+     "name": "1.8L 4AT FWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (128 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

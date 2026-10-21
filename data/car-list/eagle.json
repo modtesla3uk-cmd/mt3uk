@@ -1,0 +1,68 @@
+{
+ "name": "Eagle",
+ "models": [
+  {
+   "name": "Premier",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT FWD (152 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Summit",
+   "variants": [
+    {
+     "name": "1.5L 12V 5MT (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 16V 4AT (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 16V 5MT (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 16V 4AT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 16V 5MT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 4AT (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 5MT (118 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Talon",
+   "variants": [
+    {
+     "name": "2.0i 16V 4AT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 16V 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i TSi 16V 4AT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i TSi 16V 4AT AWD (205 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

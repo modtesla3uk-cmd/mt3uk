@@ -1,0 +1,54 @@
+{
+ "name": "Panoz",
+ "models": [
+  {
+   "name": "Avezzano",
+   "variants": [
+    {
+     "name": "6.2L V8 6MT RWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6MT RWD (580 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Esperante",
+   "variants": [
+    {
+     "name": "4.6 V8 5MT (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Esperante GT",
+   "variants": [
+    {
+     "name": "4.6L V8 5MT (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Esperante GTLM",
+   "variants": [
+    {
+     "name": "4.6L V8 5MT (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roadster",
+   "variants": [
+    {
+     "name": "4.6L V8 5MT (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,187 @@
+{
+ "name": "TVR",
+ "models": [
+  {
+   "name": "\"Wedge Series\"",
+   "variants": [
+    {
+     "name": "280i V6 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350i V8 5MT RWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cerbera",
+   "variants": [
+    {
+     "name": "4.0L Speed Six 5MT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L Speed Six 5MT FWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L SPeed Eight 5MT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L Speed Eight 5MT FWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L Red Rose 5MT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L Speed Eight 5MT (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Chimaera",
+   "variants": [
+    {
+     "name": "4.0L 400 V8 5MT (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L HC 400 V8 5MT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5MT (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 5MT (289 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5MT (245 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Griffith",
+   "variants": [
+    {
+     "name": "4.0L V8 5MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 5MT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 V8 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 5MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5MT RWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sagaris",
+   "variants": [
+    {
+     "name": "4.0",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T350",
+   "variants": [
+    {
+     "name": "3.6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 S",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5MT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L S 5MT (380 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tamora",
+   "variants": [
+    {
+     "name": "3.6L V6 5MT (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tuscan",
+   "variants": [
+    {
+     "name": "3.6L 5MT (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tuscan R/ T 440R/T 400R/ Typhon",
+   "variants": [
+    {
+     "name": "4.0L 5MT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 6MT RWD (440 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tuscan S",
+   "variants": [
+    {
+     "name": "4.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

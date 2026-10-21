@@ -1,0 +1,139 @@
+{
+ "name": "Plymouth",
+ "models": [
+  {
+   "name": "ACCLAIM",
+   "variants": [
+    {
+     "name": "2.5i 3AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i V6 4AT FWD ((143 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "BREEZE",
+   "variants": [
+    {
+     "name": "2.0L 16V 4AT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (152 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LASER",
+   "variants": [
+    {
+     "name": "1.8i 4AT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 4AT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i Turbo 4AT FWD (195 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i Turbo 5MT FWD (195 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "NEON",
+   "variants": [
+    {
+     "name": "2.0i Sport 3AT (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i Sport 5MT (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT (147 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Valiant",
+   "variants": [
+    {
+     "name": "3.2L 3MT RWD (127 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "VOYAGER",
+   "variants": [
+    {
+     "name": "2.2L 3AT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 16V 3AT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L AWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i V6 3AT FWD ((144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SE 3AT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3i V6 4AT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3i V6 4AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3i V6 SE 4AT AWD (152 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

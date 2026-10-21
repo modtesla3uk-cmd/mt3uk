@@ -1,0 +1,116 @@
+{
+ "name": "Oldsmobile",
+ "models": [
+  {
+   "name": "442",
+   "variants": [
+    {
+     "name": "7.5L 4MT (365 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Alero",
+   "variants": [
+    {
+     "name": "2.2L DOHC 4AT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L DOHC 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L V6 4AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L V6 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aurora",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4AT FWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bravada",
+   "variants": [
+    {
+     "name": "4.2L 4AT AWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 4AT RWD (270 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Intrigue",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (197 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silhouette",
+   "variants": [
+    {
+     "name": "3.4L V6 4AT (185 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Toronado",
+   "variants": [
+    {
+     "name": "3.8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.1L V6 4AT (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 4AT (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.5",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

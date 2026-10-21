@@ -1,0 +1,235 @@
+{
+ "name": "Proton",
+ "models": [
+  {
+   "name": "Arena / Jumbuck",
+   "variants": [
+    {
+     "name": "1.5L 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ertiga",
+   "variants": [
+    {
+     "name": "1.4L 4AT FWD (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (92 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Exora",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CamPro CPS 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CamPro CPS 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Gen-2",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Inspira",
+   "variants": [
+    {
+     "name": "1.8L MIVEC 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L MIVEC 6CVT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MIVEC 6CVT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Iriz",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT FWD (109 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Perdana",
+   "variants": [
+    {
+     "name": "2.0L 5AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT FWD (180 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Persona",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT FWD (109 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Preve",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Saga",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Satria Neo",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5TM FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Savvy",
+   "variants": [
+    {
+     "name": "1.2 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Suprima S",
+   "variants": [
+    {
+     "name": "1.6L 7AT (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Waja / Impian",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L V6 4AT FWD (148 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "name": "VinFast",
+ "models": [
+  {
+   "name": "VF 8",
+   "variants": [
+    {
+     "name": "Enhanced Range 87.7 kWh (402 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enhanced Range 87.7 kWh AWD (348 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 82 kWh AWD (348 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 82 kWh AWD (402 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "VF 9",
+   "variants": [
+    {
+     "name": "Enhanced Range 123 kWh AWD (402 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 92 kWh AWD (402 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

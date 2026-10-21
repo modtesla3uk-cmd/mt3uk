@@ -1,0 +1,23 @@
+{
+ "name": "Artega",
+ "models": [
+  {
+   "name": "GT",
+   "variants": [
+    {
+     "name": "3.6L V6 6AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Scalo",
+   "variants": [
+    {
+     "name": "37 KWh (265 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

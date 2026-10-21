@@ -1,0 +1,70 @@
+{
+ "name": "Geely",
+ "models": [
+  {
+   "name": "CK",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (92 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Emgrand EC7",
+   "variants": [
+    {
+     "name": "1.8L 5MT (137 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Galaxy",
+   "variants": [
+    {
+     "name": "1.5L PHEV 3AT FWD (163 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "LC",
+   "variants": [
+    {
+     "name": "1.3L 5MT (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MK",
+   "variants": [
+    {
+     "name": "1.5L 5MT (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

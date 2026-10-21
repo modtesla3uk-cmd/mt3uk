@@ -1,0 +1,888 @@
+{
+ "name": "Lancia",
+ "models": [
+  {
+   "name": "2000",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "A112",
+   "variants": [
+    {
+     "name": "0.9L 4MT FWD (42 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (48 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "A112 Abarth",
+   "variants": [
+    {
+     "name": "1.1",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Beta",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 3AT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (119 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.1",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Beta Montecarlo",
+   "variants": [
+    {
+     "name": "2.0L 5MT (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Dedra",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9d Turbo 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L Turbo 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Integrale 5MT FWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (161 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Dedra Station",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5TM FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L Turbo 5MT FDW (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (139 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Delta",
+   "variants": [
+    {
+     "name": "1.3L 4MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6MT (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6MT GPL (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L T-Jet 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L T-Jet 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L Turbo MultiAir 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 3AT (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MultiJet 6AT (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MultiJet 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MultiJet 6MT (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MultiJet 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L Turbo 5MT (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Turbo 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Di Turbo-Jet 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L MultiJet 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L Turbo 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Integrale 5MT (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Integrale 5MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MultiJet 6MT FWD (165 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (186 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Delta HPE",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L Turbo 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (186 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Flaminia",
+   "variants": [
+    {
+     "name": "2.5L V6 4AT (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Flavia",
+   "variants": [
+    {
+     "name": "1.5",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MT (134 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MT (144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4 6AT (175 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Fulvia Berlina",
+   "variants": [
+    {
+     "name": "1.1",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Gamma",
+   "variants": [
+    {
+     "name": "2.0L 5MT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT (142 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Kappa",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L JTD 5MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L Turbo 5MT FWD (124 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4AT (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (206 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Kappa SW",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L JTD 5MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L Turbo 5MT FWD (124 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (204 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lybra",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L JTD 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L JTD 5MT FWD (134 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Lybra SW",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L JTD 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L JTD 5MT (134 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Musa",
+   "variants": [
+    {
+     "name": "1.3L Multijet 5AT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5AT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5MT FWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L Start & Stop 5AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L Start & Stop 6MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Multijet 5MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L Multijet 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Phedra",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L JTD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L JTD 5MT FWD (128 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (204 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Prisma",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L Turbo 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Stratos",
+   "variants": [
+    {
+     "name": "2.4",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Thema",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo D 5MT FWD (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L Turbo D 5MT FWD (118 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L Turbo 5MT FWD (181 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5AT RWD (239 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT RWD (286 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Thesis",
+   "variants": [
+    {
+     "name": "2.0L Turbo 6MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L JTD 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L Multijet 5AT FWD (185 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L Multijet 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT FWD (230 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Trevi",
+   "variants": [
+    {
+     "name": "2.0L 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (122 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Voyager",
+   "variants": [
+    {
+     "name": "2.8L 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L 6AT FWD (178 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (283 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ypsilon",
+   "variants": [
+    {
+     "name": "0.9L Twinair 5AT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TwinAir 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L Twinair 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TwinAir Turbo 5MT (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L EcoChic 6MT FWD (69 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 8v Fire Evo II 5MT (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L FIre EVO II FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 16V MultiJet II Start&Stop 5MT (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L MultiJet 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L Multijet II 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "51 KWh (156 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Zeta",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L JTD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L Turbo D 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

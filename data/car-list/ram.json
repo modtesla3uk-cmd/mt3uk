@@ -1,0 +1,288 @@
+{
+ "name": "Ram",
+ "models": [
+  {
+   "name": "Trucks 1500",
+   "variants": [
+    {
+     "name": "229 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "3.0L EcoDiesel V6 8AT 4x2 (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L EcoDiesel V6 8AT 4x4 (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L SST 8AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L SST 8AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L SST HO 8AT AWD (545 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 ECODIESEL 8AT 4x2 (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 ECODIESEL 8AT 4x4 (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.6 V6 Pentastar 8AT 4x2 (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 V6 Pentastar 8AT 4x4 (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 24V VVT 8AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 24V VVT 8AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 Pentastar 8AT 4x2 (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 Pentastar 8AT 4x4 (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8 6AT 4x2 (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8 6AT 4x4 (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT 4x2 (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT 4x4 (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI 6AT 4x2 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI 6AT 4x4 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI MDS 6AT (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI MDS 8AT 4x4 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L HEMI V8 8AT AWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x2 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x4 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 8AT 4x2 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 8AT 4x4 (395 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L HEMI V8 8AT (702 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Standard 168 KWh AWD (654 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Trucks 2500",
+   "variants": [
+    {
+     "name": "5.7 V8 HEMI 6AT 4x2 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI 6AT 4x4 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x2 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x4 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L HEMI V8 6AT 4x2 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L HEMI V8 6AT 4x4 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT 4x2 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT 4x4 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.7 Cummins 6AT 4x2 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7 Cummins 6AT 4x4 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x2 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x2 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x4 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x4 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT 4x2 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT 4x4 (385 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Trucks 3500",
+   "variants": [
+    {
+     "name": "5.7 V8 HEMI 6AT 4x2 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V8 HEMI 6AT 4x4 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x2 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT 4x4 (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT AWD (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 HEMI 6AT RWD (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT 4x2 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT 4x4 (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT AWD (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 HEMI 6AT RWD (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.7 Cummins 6AT 4x2 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7 Cummins 6AT 4x4 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x2 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x2 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x4 (370 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT 4x4 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT AWD (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6AT RWD (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT 4x2 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT 4x4 (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT AWD (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.7L Cummins 6MT RWD (385 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,137 @@
+{
+ "name": "Saturn",
+ "models": [
+  {
+   "name": "Astra",
+   "variants": [
+    {
+     "name": "1.8L 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aura",
+   "variants": [
+    {
+     "name": "2.4L 4AT FWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Hybrid 4AT FWD (164 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (252 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ion",
+   "variants": [
+    {
+     "name": "2.2L 5AT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (171 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ion Quad",
+   "variants": [
+    {
+     "name": "2.0L Red Line 5MT FWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (171 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Outlook",
+   "variants": [
+    {
+     "name": "3.6 V6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Relay",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9L V6 4AT FWD (240 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sky",
+   "variants": [
+    {
+     "name": "2.0L Turbo 5MT RWD (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT RWD (172 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vue",
+   "variants": [
+    {
+     "name": "2.2L 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT FWD (257 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "name": "Omoda",
+ "models": [
+  {
+   "name": "7",
+   "variants": [
+    {
+     "name": "1.5L TGDI 18.5 KWh FWD (204 HP)D",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  }
+ ]
+}

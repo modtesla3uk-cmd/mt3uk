@@ -1,0 +1,2973 @@
+{
+ "name": "Citroën",
+ "models": [
+  {
+   "name": "CITROEN 2CV",
+   "variants": [
+    {
+     "name": "0.4L 4MT FWD (10 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.4L 4MT FWD (12 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.4L 4MT FWD (24 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 4MT FWD (29 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN AMI",
+   "variants": [
+    {
+     "name": "5.5 Kw/h",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN AX",
+   "variants": [
+    {
+     "name": "1.0L 4MT FWD (42 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L D 5MT FWD (50 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L D 5MT FWD (53 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L D 5MT FWD (58 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Axel",
+   "variants": [
+    {
+     "name": "1.1L 4MT FWD (58 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (61 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Berlingo",
+   "variants": [
+    {
+     "name": "1.2 PureTech 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2 PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5 BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 5MT FWD C(100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6i 5MT FWD (108 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6AT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "50 KWh FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "50 KWh FWD (136 HP) 7 Seat",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN BX",
+   "variants": [
+    {
+     "name": "1.4L 4MT FWD (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4MT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT AWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 4AT FWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 4AT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT AWD (71 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN BX Break",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9 5MT AWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT AWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C-Crosser",
+   "variants": [
+    {
+     "name": "2.2L HDi 6AT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 6MT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 6MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C-Elysee",
+   "variants": [
+    {
+     "name": "1.2L VTi 5AT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C-Zero",
+   "variants": [
+    {
+     "name": "Airdream High Line 49 Kw (67 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C1",
+   "variants": [
+    {
+     "name": "1.0 VTi 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0 VTi S&S 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5AT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi S&S 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2 PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (55 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C2",
+   "variants": [
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5AT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (67 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWd (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 5AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTR 5AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTS 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C3",
+   "variants": [
+    {
+     "name": "1.0L PureTech 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech eco 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech Start & Stop 5MT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech Start & Stop 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech Start & Stop 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5AT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L e-HDi 5AT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5AT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi Sart & Stop 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (99 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI eco 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "44 KWh FWD (113 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C3 Aircross",
+   "variants": [
+    {
+     "name": "1.2L e-DCS MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L e-DCS MHEV 6AT FWD (136 HP) 7 seats",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP) 7 seats",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (101 HP) 7 seats",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "BlueHDi 110 6MT",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "BlueHDi 120 6AT",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "PureTech 110 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Puretech 130 6AT",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C3 Picasso",
+   "variants": [
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L eHDi 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C3 Pluriel",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 5AT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C4",
+   "variants": [
+    {
+     "name": "1.2L e-DCS MHEV 6AT FWD (100 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L e-DCS MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6 VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "100 KWh FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16v 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "50 kWh FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "54 kWh FWD (156 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "BlueHDi 130 Start & Stop 8AT",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "BlueHDI 6MT Start&Stop FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "e 50 KWh FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "e 54 KWH FWD (156 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "PureTech 100 Start & Stop 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 130 8AT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 130 Start & Stop 8AT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 6MT Start&Stop FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 6MT Start&Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 8AT Start&Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "PureTech 8AT Start&Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "PureTech 8AT Start&Stop FWD (155 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C4 Aircross",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT AWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L HDi FAP 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L HDi FAP 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C4 Cactus",
+   "variants": [
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C4 Picasso",
+   "variants": [
+    {
+     "name": "1.2L PureTech 6AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDI 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C5",
+   "variants": [
+    {
+     "name": "1.6L e-HDI 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6AT FWD (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 5MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (127 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 4AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6AT FWD (138 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (138 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2 HDiF 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 4AT FWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 5MT FWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 4AT FWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 4AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 6AT FWD (173 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDiF 6MT FWD (173 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L HDiF 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L HDiF 6AT FWD (208 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L HDi 6AT FWD (241 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 HDi 6AT FWD (241 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C5 Aircross",
+   "variants": [
+    {
+     "name": "1.2L 6AT FWD (145 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.2L e-DSC MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 350 THP 6AT FWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PHEV 7AT FWD (195 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PHEV 8AT FWD (181 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PHEV 8AT FWD (224 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PHEV PureTech 8AT FWD (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 380 THP 6AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "12.L PureTech 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "12.L PureTech 8AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 8AT FWD (178 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "73 KWh FWD (210 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "97 KWh FWD (230 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C5 Crosstourer",
+   "variants": [
+    {
+     "name": "1.6L e-HDi 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (200 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C5 X",
+   "variants": [
+    {
+     "name": "1.2L PureTech 8AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT FWD (224 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C6",
+   "variants": [
+    {
+     "name": "2.2L HDiF 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L HDiF 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 HDiF 6AT FWD (241 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN C8",
+   "variants": [
+    {
+     "name": "2.0i 16V 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 16V 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 16V 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 16V 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (107 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2 HDi 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2i 5MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 5MT FWD (128 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi Biturbo 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi Biturbo 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 4AT FWD (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN CX",
+   "variants": [
+    {
+     "name": "2.0L 4MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (168 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L D 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo FWD (120 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN CX Break",
+   "variants": [
+    {
+     "name": "2.0L 4MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 3AT FWD (121 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L D 4MT (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 5MT (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 5MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN DS",
+   "variants": [
+    {
+     "name": "1.9",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2 (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2 (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2 (127 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4MT (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3 (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3 (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT (132 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN DS3",
+   "variants": [
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP Racing 6MT FWD (202 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN DS4",
+   "variants": [
+    {
+     "name": "1.6L e-HDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI EGS FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 HDi 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (135 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN DS5",
+   "variants": [
+    {
+     "name": "110 e-HDi 6AT FWD (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "115 e-HDI 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "155 THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 HDi/Hybrid4 200",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "200 THP 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Dyane",
+   "variants": [
+    {
+     "name": "0.7 4MT (32 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN E-Mehari",
+   "variants": [
+    {
+     "name": "30 kWh (68 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Evasion",
+   "variants": [
+    {
+     "name": "1.8i 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L Turbo D 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo C.T. 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Grand C4 Picasso",
+   "variants": [
+    {
+     "name": "1.2L PureTech 6AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDI 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (138 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN GSA",
+   "variants": [
+    {
+     "name": "1.1L 4MT FWD (56 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (65 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN LNA",
+   "variants": [
+    {
+     "name": "0.7L 4MT (35 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT (50 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Nemo",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Saxo",
+   "variants": [
+    {
+     "name": "1.0i 5MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1i",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1i 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 3AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5 D 5MT FWD (58 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L D 5MT FWD (58 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6i 3AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTS 5MT FWD (118 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN SM",
+   "variants": [
+    {
+     "name": "2.7L V6 5MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 5MT FWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 3AT FWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Visa",
+   "variants": [
+    {
+     "name": "0.7L 4MT FWD (35 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 4MT FWD (36 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (57 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT FWD (64 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4MT FWD (60 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Visa Decouvrable",
+   "variants": [
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Xantia",
+   "variants": [
+    {
+     "name": "1.6i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 4AT FWD (123 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (134 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (196 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Xantia Break",
+   "variants": [
+    {
+     "name": "1.8i 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L SD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 4AT FWD (123 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN XM",
+   "variants": [
+    {
+     "name": "2.0i 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L D 5MT FWD (83 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L Turbo D 4AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L Turbo D 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L Turbo D 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (196 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN XM Break",
+   "variants": [
+    {
+     "name": "2.0i 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L D 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L D 5MT FWD (83 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L Turbo D 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L Turbo D 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (194 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Xsara",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L Turbo D 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Xsara Break",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN Xsara Picasso",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN ZX",
+   "variants": [
+    {
+     "name": "1.4i 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (89 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (89 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9 D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9 TD 5MT FWD (91 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9i 5MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 5MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CITROEN ZX Break",
+   "variants": [
+    {
+     "name": "1.4i 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (89 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

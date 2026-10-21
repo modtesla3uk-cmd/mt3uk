@@ -1,0 +1,277 @@
+{
+ "name": "Genesis",
+ "models": [
+  {
+   "name": "G70",
+   "variants": [
+    {
+     "name": "2.0L T-GDi 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDI 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDI 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L D 8AT AWD (202 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L D 8AT RWD (202 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L e-VGT 8AT AWD (202 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L e-VGT 8AT RWD (202 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.3L T-GDI V6 8AT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L T-GDI V6 8AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L T-GDi V6 AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L T-GDi V6 RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 3.3L T-GDi V6 8AT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 3.3L T-GDi V6 8AT RWD (370 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "G70 Shooting Brake",
+   "variants": [
+    {
+     "name": "2.0L T-GDi 8AT AWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-GDi 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L CRDi 8AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CRDi 8AT RWD (200 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "G80",
+   "variants": [
+    {
+     "name": "2.2L 8AT RWD (213 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 8AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L GDI V6 8AT AWD (282 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L GDI V6 8AT RWD (282 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT RWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 8AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 8AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "EV 272 KW AWD (370 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "G90",
+   "variants": [
+    {
+     "name": "3.3L V6 8AT AWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 8AT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 8AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 8AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L T-GDI 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L T-GDI 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "LWB 3.5L T-GDI 48V 8AT AWD",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GV60",
+   "variants": [
+    {
+     "name": "Performance 77.4 kWh AWD (435 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Sport Plus 77.4 kWh AWD (490 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard 77.4 kWh AWD (318 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard 77.4 kWh RWD (228 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "GV70",
+   "variants": [
+    {
+     "name": "2.2L e-VGT 8AT AWD (210 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L e-VGT 8AT RWD (210 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L GDI 16V 8AT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L T-GDI V6 8AT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L T-GDI V6 8AT RWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L T-GDI V6 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 GDI+MPI 24V 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "77.4 KWh AWD (429 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "77.4 kWh AWD (435 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "GV80",
+   "variants": [
+    {
+     "name": "2.5L (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L (375 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GV90",
+   "variants": [
+    {
+     "name": "123.5 KWh",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

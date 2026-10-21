@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car pick test page</title>
+<link rel="stylesheet" href="/css/car-pick.css?v=1">
+</head>
+<body style="margin: 16px; font: 16px/1.4 Arial, sans-serif;">
+<div id="pick"></div>
+<script src="/js/car-pick.js?v=1"></script>
+<script>
+  var params = new URLSearchParams(location.search);
+  window.lastChoice = null;
+  MT3UKCarPick.mount(document.getElementById('pick'), {
+    pick: params.get('pick') || '',
+    onChange: function (choice) { window.lastChoice = choice; }
+  });
+</script>
+</body>
+</html>

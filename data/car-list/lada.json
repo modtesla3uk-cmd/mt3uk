@@ -1,0 +1,178 @@
+{
+ "name": "Lada",
+ "models": [
+  {
+   "name": "110",
+   "variants": [
+    {
+     "name": "1.5L 16V 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 8V 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 8V 5MT FWD (81 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "111",
+   "variants": [
+    {
+     "name": "1.5L 16V 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 8V 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 8V 5MT FWD (81 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "112",
+   "variants": [
+    {
+     "name": "1.5L 16V 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 8V 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 8V 5MT FWD (81 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Kalina",
+   "variants": [
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6i 5MT FWD (81 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Niva",
+   "variants": [
+    {
+     "name": "1.6L 5MT AWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7i 5MT AWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7i 5MT AWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT AWD (65 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Nova",
+   "variants": [
+    {
+     "name": "1.2L 4MT RWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT RWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4MT RWD (75 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nova Combi",
+   "variants": [
+    {
+     "name": "1.3L 4MT RWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4MT RWD (75 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Priora",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Samara",
+   "variants": [
+    {
+     "name": "1.1L 4MT FWD (53 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3i 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

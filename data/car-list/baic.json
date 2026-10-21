@@ -1,0 +1,14 @@
+{
+ "name": "BAIC",
+ "models": [
+  {
+   "name": "MOTOR BJ60",
+   "variants": [
+    {
+     "name": "2.0T MHEV 8AT AWD (266 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  }
+ ]
+}

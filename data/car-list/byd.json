@@ -1,0 +1,102 @@
+{
+ "name": "BYD",
+ "models": [
+  {
+   "name": "ATTO 2",
+   "variants": [
+    {
+     "name": "45.12 KWh FWD (177 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "51.1 KWh FWD (177 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "64.8 KWh FWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "DM-i 1.5L 18 kWh PHEV FWD (212 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "DM-i 1.5L 7.8 kWh PHEV FWD (166 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "ATTO 3",
+   "variants": [
+    {
+     "name": "74.8 KWh AWD (449 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "74.8 KWh RWD (313 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Extended Range 60.48 kWh FWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 49.92 kWh FWD (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "DOLPHIN",
+   "variants": [
+    {
+     "name": "1.5L 7.42 kWh PHEV FWD E-CVT (176 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L PHEV 18.3 kWh FWD E-CVT (212 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "30 KWh FWD (88 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "43.2 KWh FWD (156 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "43.2 KWh FWD (88 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Sealion 7",
+   "variants": [
+    {
+     "name": "82.5 KWh AWD (530 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "82.5 KWh RWD (313 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "91.3 KWh AWD (530 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Shark",
+   "variants": [
+    {
+     "name": "1.5T PHEV 32.2 kWh E-CVT AWD (436 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  }
+ ]
+}

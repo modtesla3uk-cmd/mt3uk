@@ -1,0 +1,44 @@
+{
+ "name": "DR",
+ "models": [
+  {
+   "name": "MOTOR dr cityCROSS",
+   "variants": [
+    {
+     "name": "1.3L 5MT (83 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MOTOR dr2",
+   "variants": [
+    {
+     "name": "1.3 5MT (83 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MOTOR dr5",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4x4 4AT AWD (139 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

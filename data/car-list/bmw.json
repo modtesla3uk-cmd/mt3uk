@@ -1,0 +1,6446 @@
+{
+ "name": "BMW",
+ "models": [
+  {
+   "name": "1 Series",
+   "variants": [
+    {
+     "name": "114d 6MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "114i 6MT RWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "114i 6MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116d 6MT EfficientDynamics RWD (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 6MT RWD (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 6MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d 8AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d Efficient Dinamics 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d Efficient Dinamics RWD 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116d EfficientDynamics 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "116i 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6MT RWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "116i 8AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118d 6AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d xDrive 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118d xDrive 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "118i 6AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 8AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "118i 8AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120 MHEV 7AT FWD (156 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "120d 6AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6MT RWD (185)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120i 6AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 6AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 6MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 6MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 8AT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120i 8AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "123d 6AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "123d 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "125d 6MT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "125d 8AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "125d 8AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "125i 6AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "125i 6MT RWD (214 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "125i 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "125i 8AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "125i 8AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "125i 8AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "128i 6AT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "128i 6MT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "128ti 8AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "130i 6AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "130i 6MT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135i 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135i 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135is 6MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135is 6MT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135is 7AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "135is 7AT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135 xDrive 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i 6MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i 6MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i 8AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i 8AT xDrive AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i xDrive 8AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M135i xDrive 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M140i 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M140i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M140i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1 Series M",
+   "variants": [
+    {
+     "name": "3.0L 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1500/1600",
+   "variants": [
+    {
+     "name": "1.5L 4MT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT (84 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2 Series",
+   "variants": [
+    {
+     "name": "218d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218i 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 8AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "225d 8AT RWD (217 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "225d 8AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "228i 6MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "228i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "228i 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "228i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M235i 6MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M235i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M235i xDrive 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M240i 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M240i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M240i xDrive 8AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M240i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M240i xDrive 8AT AWD (374 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2 Series Active Tourer",
+   "variants": [
+    {
+     "name": "214d 6MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216i 6MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d xDrive 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d xDrive 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218i 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 7AT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220i 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220i 7AT (156 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "220i 7AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220i 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "223i 7AT (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "225i 8AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "225i xDrive 8AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "225xe 6AT AWD (224 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "225xe iPerformnace 6AT (224 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "2 Series Gran",
+   "variants": [
+    {
+     "name": "218d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 7AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218i 6MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 7AT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 MHEV 7AT RWD (170 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "220d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d MHEV 7AT RWD (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "220d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "228 xDrive 7AT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "228i xDrive 8AT AWD (228 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M235 xDrive 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M235i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2 Series Gran Tourer",
+   "variants": [
+    {
+     "name": "216d 6AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216d 7AT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "216i 6MT (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218d 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d xDrive 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218d xDrive 8AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "218i 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 6MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "218i 7AT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 8AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d xDrive 8AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220i 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220i 7AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220i 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2002",
+   "variants": [
+    {
+     "name": "2.0L 3AT RWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MT RWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Tii 4MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Tii 5MT RWD (130 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2800 CS",
+   "variants": [
+    {
+     "name": "2.8L 3AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L 4MT RWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3 Series",
+   "variants": [
+    {
+     "name": "315 4MT RWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316 4AT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316 4MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316d 6MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "316d 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "316d 8AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "316i 4AT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 4AT (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 4AT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 4AT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 4AT RWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5AT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 8AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318 3AT RWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318 4MT RWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318 xDrive 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318 xDrive 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318Ci 4AT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318Ci 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318Ci 5MT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318Ci 5MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318d 5AT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 5AT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 5MT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 6AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 8AT RWD (150 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "318d xDrive 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d xDrive 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318i 3AT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT RWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4AT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 4MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5AT (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT RWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 5MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 6MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 8AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318i 8AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318is 4AT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318iS 4AT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318is 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318iS 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318iS 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318tds 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 3AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 4MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320Cd 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320Cd 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320Ci 5AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320Ci 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320Ci 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320Ci 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320d 5AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 5AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 5MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 5MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "320d 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d Efficient Dynamics 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d Efficient Dynamics 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d EfficientDynamics 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d EfficientDynamics 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d EfficientDynamics Edition 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d EfficientDynamics Edition 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6MT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "320d xDrive 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320e 8AT RWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "320e xDrive 8AT AWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "320i 3AT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 4AT (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 4AT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 4AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 4MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 6AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 6AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 6MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i Efficient Dynamics Edition 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i Efficient Dynamics Edition 8AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i xDrive 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320si 6MT RWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323Ci 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323Ci 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 3AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 4AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 4MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 5AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323i 6MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "324d 4AT RWD (86 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "324d 5MT RWD (86 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "324td 4AT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "324td 4AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "324td 5MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "324td 5MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325Ci 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325Ci 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325d 6AT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 6AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 6MT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 6MT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 6MT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325d 8AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325e 4AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325e 5MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 4AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 4AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5MT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 6AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i xDrive 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325i xDrive 6MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ix 4AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ix 4AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ix 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ix 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325td 4AT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325td 5MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325tds 5AT (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325tds 5MT (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "325xi 5AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 5MT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 6AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 6MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325xi 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328Ci 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328Ci 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "328d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "328i 5AT (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 5MT (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 6AT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 6MT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i xDrive 6AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i xDrive 6MT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i xDrive 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330Cd 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330Cd 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330Ci 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330Ci 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330Ci 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330d 5AT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 5AT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 5AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 5MT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 5MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6MT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6MT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 6MT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "330d xDrive 6AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d xDrive 6MT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d xDrive 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "330e 8AT RWD (252 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "330e 8AT RWD (292 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "330e PHEV 8AT FWD (292 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "330e xDrive 8AT AWD (292 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "330i 5AT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 5MT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6MT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6MT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 6AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 6MT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 8AT AWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xd 5AT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5MT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 5MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6MT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6MT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6MT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xd 6MT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330xi 5AT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 5AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 5MT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 5MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6AT AWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6MT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6MT AWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6MT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330xi 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335d 6AT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "335d 6MT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "335d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "335i 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i xDrive 6AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i xDrive 6MT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i xDrive 6MT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335is 6MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335is 7AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335xi 6AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335xi 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335xi 6MT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335xi 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i 6MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i xDrive 6MT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i xDrive 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d xDrive 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "ActiveHybrid 3",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "M340d xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M340d xDrive AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M340d xDrive AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M340i xDrive 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M340i xDrive 8AT AWD (374 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3 Series Compact",
+   "variants": [
+    {
+     "name": "316i 4AT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 4AT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316i 5MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316ti 5AT RWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "316ti 5MT RWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318td 5MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318tds 5MT RWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318ti 4AT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318ti 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318ti 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "318ti 5MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320td 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320td 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "323 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "323ti 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ti 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325ti 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3 Series Gran Turismo",
+   "variants": [
+    {
+     "name": "318d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "318d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i xDrive 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "325d 8AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "328i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "328i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "330i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330i xDrive 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "335i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "335i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "340i xDrive 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3.0 CSi",
+   "variants": [
+    {
+     "name": "3.0L 4MT (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3.0 CSL",
+   "variants": [
+    {
+     "name": "3.0L 4MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MT RWD (205 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "4 Series",
+   "variants": [
+    {
+     "name": "420d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 8AT (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d 8AT RWD (228 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d MHEV 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d xDrive MHEV 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i 8AT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i xDrive 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "425d 6MT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "425d 8AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "428i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i xDrive 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430d 8AT RWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430d MHEV 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "430d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430i 6MT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i 8AT (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "435i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i xDrive 6MT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "440i 6MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "440i 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "440i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "440i xDrive 8AT AWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "440i xDrive MHEV 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M 440i xDrive 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M440d xDrive MHEV 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M440i xDrive 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M440i xDrive MHEV 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "4 Series Gran",
+   "variants": [
+    {
+     "name": "418d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "418d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "418d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "418d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 48V 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 48V 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420d xDrive MHEV 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "420i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i xDrive 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i xDrive 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "428i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430d xDrive MHEV 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "430i 6MT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "435i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i xDrive 6MT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "435i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M440i xDrive 48V 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M440i xDrive MHEV 8AT AWD (374 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "5 Series",
+   "variants": [
+    {
+     "name": "3.0L ActiveHybrid 8AT RWD (340 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "5 ActiveHybrid 8AT AWD (340 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "518 3AT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518 4MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "518d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "518d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "518d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "518i 4AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518i 5MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518i 5MT RWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "518i 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520 3AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520 4MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520d 5MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d 8AT RWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d EfficientDynamics 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d EfficientDynamics RWD 6MT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d MHEV 8AT RWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d Special Edition 6AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d Special Edition 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "520d xDrive 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d xDrive 8AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d xDrive 8AT AWD AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520d xDrive MHEV 8AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "520i 3AT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 3AT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 4AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 4MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 4MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 6AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 6AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 8AT RWD (184 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "520i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "520i 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "523i 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 5AT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 6AT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 6AT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 6MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 6MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "523i 8AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "524 TD 4AT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "524 TD 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "524td 4AT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "524td 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 3AT RWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525 4MT RWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525 TD 4AT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TD 4AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TD 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TD 5MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TDS 4AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TDS 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525 TDS 5MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 4AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 5AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 5MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6AT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6MT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 6MT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 8AT (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 8AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d 8AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d xDrive 6AT AWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d xDrive 6MT AWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d xDrive 8AT (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525d xDrive 8AT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525e 4AT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525e 4AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525e 5MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525e 5MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 3AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 4AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 4AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 6AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 6AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i xDrive 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525i xDrive 6MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525ix 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525ix 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525td 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525tds 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525tds 5MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "525xi 6AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "525xi 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528 3AT RWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528 4MT RWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528e 3AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528e 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 3AT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 3AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 4MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 5MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i xDrive 6AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i xDrive 6MT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "528i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530d 4AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 5AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 5AT RWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 5MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 5MT RWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6AT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6MT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6MT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6MT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6MT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 6MT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "530d xDrive 6AT AWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 6MT AWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "530d xDrive 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530e 8AT RWD (252 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "530e 8AT RWD (292 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "530e PHEV 8AT RWD (299 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "530e xDrive 8AT AWD (292 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "530i 3AT RWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 4AT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 4MT RWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 5MT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 8AT RWD (252 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "530i 8AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i 8AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i V8 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i V8 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i xDrive 6AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i xDrive 6MT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530i xDrive 8AT AWD (252 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "530i xDrive 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530xd 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530xd 6MT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530xi 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "530xi 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535d 6AT RWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d 6AT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d 8AT RWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d 8AT RWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535i 4AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 4AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 5AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 5MT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i xDrive 6AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i xDrive 6MT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540d xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "540i 5AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i 6MT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i 8AT RWD (333 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "540i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i V8 5AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i V8 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i V8 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "540i xDrive 8AT AWD (333 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "540i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "545e xDrive 290 KW AWD (394 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "545i 6AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "545i 6MT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "545i V8 6AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "545i V8 6MT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550e xDrive PHEV 8AT AWD (489 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "550i 6AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i 8AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i V8 6AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i V8 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i V8 8AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i xDrive 8AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i xDrive 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M550d xDrive 8AT AWD (381 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "m550i xDrive 8AT AWD (462 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M550i xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "5 Series Gran Turismo",
+   "variants": [
+    {
+     "name": "520d 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "530d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d 8AT RWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d 8AT RWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d xDrive 8AT AWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "535i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i 8AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i xDrive 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "535i xDrive 8AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i 8AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i xDrive 8AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550i xDrive 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "6 Series",
+   "variants": [
+    {
+     "name": "3.0L 4MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "630 Ci 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "630Ci 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "630i 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "630i 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "635d 6AT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640d 8AT RWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640i 8AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "640i xDrive 8AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "645 Ci V8 6MT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "645Ci 6MT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650 Ci V8 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650Ci 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i 6AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i 8AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i V8 6AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i xDrive 8AT AWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i xDrive 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "6 Series Gran",
+   "variants": [
+    {
+     "name": "640d 8AT RWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640i 8AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "640i xDrive 8AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "650i xDrive 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "6 Series Gran Turismo",
+   "variants": [
+    {
+     "name": "620d 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "620d 8AT RWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "630d 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "630d 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "630d xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "630d xDrive 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "630i 8AT RWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "630i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "640d xDrive 8AT AWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "640d xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "640i 8AT RWD (333 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "640i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "640i xDrive 8AT AWD (333 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "640i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "7 Series",
+   "variants": [
+    {
+     "name": "5.4L V12 5AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "725 3AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "725 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "725 tds 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "725 tds 5MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "725tds 5MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "728 3AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728 4MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728i 4MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728i 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728i 5MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728i 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "728iL 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730 3AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730 4MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730d 5AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 5AT RWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 6AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 6AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d xDrive 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730d xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730i 4AT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 5MT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 6AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i V8 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730i V8 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730iL 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730iL 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730Ld 6AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730Ld 6AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730Ld 8AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730Ld 8AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730Ld xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "730Li 6AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730Li 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "730Li 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "732i 4MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "732i 5MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "733i 3MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "733i 5MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 3AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 4AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 5AT RWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 5AT RWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 5MT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 5MT RWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735i 8AT RWD (286 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "735iL 4AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735iL 5AT RWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735iL 5AT RWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735iL 5MT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "735Li 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740 Li 8AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740 xDrive MHEV 87AT AWD (400 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "740d 5AT RWD (238 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d 6AT RWD (259 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d 6AT RWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d 8AT RWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d xDrive 8AT AWD (300 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "740d xDrive 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d xDrive 8AT AWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "740d xDrive 8AT RWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740d xDrive MHEV 8AT AWD (313 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "740e 8AT RWD (326 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "740i 5AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 5MT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 6AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 8AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740i 8AT RWD (380 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "740iL 5AT FWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740iL 5AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740Ld xDrive 8AT AWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "740Ld xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "740Le 8AT RWD (326 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "740Le xDrive 8AT AWD (326 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "740Li 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740Li 6AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "740Li 8AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "745d 6AT RWD (299 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "745e 8AT RWD (394 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "745i 3AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "745i 5MT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "745i 6AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "745Le 8AT RWD (394 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "745Le xDrive 8AT AWD (394 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "745Li 6AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750 Li 8AT RWD (449 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750d xDrive 8AT AWD (381 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "750d xDrive 8AT AWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "750e PHEV 8AT (489 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "750i 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i 5AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i 6AT RWD (362 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i 6AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i 8AT RWD (449 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i xDrive 6AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i xDrive 8AT AWD (449 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i xDrive 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750i xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750iL 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750iL 5AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Ld xDrive 8AT AWD (381 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "750Ld xDrive 8AT AWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "750Li 6AT RWD (362 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Li 6AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Li xDrive 6AT RWD (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Li xDrive 8AT AWD (449 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Li xDrive 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "750Li xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "760i 6AT RWD (445 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "760i 8AT RWD (544 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "760i xDrivre60 AWD 107 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "760Li 6AT RWD (445 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "760Li 8AT RWD (544 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "ActiveHybrid 7 8AT (354 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "ActiveHybrid 7 8AT RWD (465 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "ActiveHybrid 7L 8AT (354 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "ActiveHybrid 7L 8AT RWD (465 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "M70e xDrive PHEV 8AT AWD (612 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "M760Li xDrive 8AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M760Li xDrive 8AT AWD (610 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "8 Series",
+   "variants": [
+    {
+     "name": "840Ci 5AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840Ci 6MT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840d xDrive",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "840d xDrive 8AT AWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "840i 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840i xDrive",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840i xDrive AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "850Ci 5AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "850Ci 6MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "850CSi 6MT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "850i 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "850i 6MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M850i xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "8 Series Gran",
+   "variants": [
+    {
+     "name": "840d xDrive 8AT AWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "840i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "840i xDrive 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M850i xDrive V8 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "i3",
+   "variants": [
+    {
+     "name": "22 kWh (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "22 kWh with Range Extender (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27 kWh (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27 kWh (184 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27 kWh with range extender (170 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "27 kWh with range extender (184 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "33 kWh (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "42 KWh (184 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "50 xDrive 108.7 KWh AWD (463 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "i4",
+   "variants": [
+    {
+     "name": "eDrive 40 84 KWh RWD (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "eDrive35 RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "eDrive40 RWD (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "M50 84 KWh AWD (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "M50 xDrive AWD (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive40 AWD (401 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "i5",
+   "variants": [
+    {
+     "name": "eDrive 40 1AT RWD 81.2 KWh (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "eDrive40 81.2 KWh (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "M60 xDrive 1A AWD 81.2 kWh (601 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "i7",
+   "variants": [
+    {
+     "name": "50 xDrive 112.5 KWh AWD (455 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "60 xDrive 112.5 KWh AWD (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "M70 xDrive 112.4 KWh AWD (680 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive 60",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "i8",
+   "variants": [
+    {
+     "name": "1.5L 6AT (362 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L 6AT (374 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "iX",
+   "variants": [
+    {
+     "name": "M60 AWD 111.5 KWh (619 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "M70 xDrive 108.9 KWh AWD (659 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive40 AWD 76.6 KWh (326 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive45 94.8 KWh AWD (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive50 AWD 111.5 KWh (523 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive60 109.1 KWh AWD (544 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "iX M",
+   "variants": [
+    {
+     "name": "111.5 KWh (619 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "iX1",
+   "variants": [
+    {
+     "name": "30 xDrive 64.7 kWh AWD (313 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "eDrive20 64.78 KWh (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "iX2",
+   "variants": [
+    {
+     "name": "eDrive20 66.5 KWh FWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "xDrive30 66.5 KWh AWD (313 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "iX3",
+   "variants": [
+    {
+     "name": "50 xDrive AWD (469 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "80 KWh (286 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "iX5",
+   "variants": [
+    {
+     "name": "60 xDrive 141 kWh AWD (578 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "M1",
+   "variants": [
+    {
+     "name": "3.5",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M2",
+   "variants": [
+    {
+     "name": "3.0L 6MT (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L M xDrive 8AT AWD (480 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M2 CS",
+   "variants": [
+    {
+     "name": "3.0L 6MT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M3",
+   "variants": [
+    {
+     "name": "2.3L 5MT RWD (195 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT RWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0 7AT (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (321 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT (343 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT RWD (343 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 6MT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 7AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition M xDrive 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition M xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "CSL 3.2i 24V 6MT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Evolution 2.3L 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GTS 4.4L V8 7AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport Evolution 2.5L 5MT RWD (238 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M3 CS",
+   "variants": [
+    {
+     "name": "3.0L 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M4",
+   "variants": [
+    {
+     "name": "3.0L 6MT RWD (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L 6MT RWD (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L 7AT RWD (431 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L M xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 3.0L xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M4 CS",
+   "variants": [
+    {
+     "name": "3.0L 7AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M4 GTS",
+   "variants": [
+    {
+     "name": "3.0L 7AT (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M5",
+   "variants": [
+    {
+     "name": "3.5L 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT RWD (316 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 7AT RWD (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 8AT (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 8AT (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 8AT AWD (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 8AT xDrive AWD (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L xDrive 8AT AWD (727 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.4L xDrive V8 8AT AWD (727 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.9L V8 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 7AT RWD (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M6",
+   "variants": [
+    {
+     "name": "3.5L 5MT (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 7AT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 7AT RWD (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 6MT RWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 7AT RWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 4.4L V8 7AT RWD (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M6 Cabrio",
+   "variants": [
+    {
+     "name": "4.4l v8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 7AT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 6MT RWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 7AT RWD (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M6 Gran",
+   "variants": [
+    {
+     "name": "4.4L V8 (560 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M8",
+   "variants": [
+    {
+     "name": "4.4L V8 TwinTurbo 8AT AWD (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 4.4L V8 8AT AWD (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 4.4L V8 xDrive AWD 8AT (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 xDrive AWD 8AT (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M8 Gran",
+   "variants": [
+    {
+     "name": "V8 AWD 8AT (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X1",
+   "variants": [
+    {
+     "name": "1.8d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8d xDrive 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8d xDrive 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "16d sDrive 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "16d sDrive 8AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "18d sDrive 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "18d sDrive 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "18d xDrive 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "18d xDrive 8AT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "18i sDrive 6MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "18i sDrive 8AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "20d sDrive 6MT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20d sDrive 8AT RWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20d sDrive EffcientDynamics Edition 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20d xDrive 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20d xDrive 8AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20i sDrive 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "20i sDrive 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "20i xDrive 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "20i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "25d xDrive 6MT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "25d xDrive 8AT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "28i xDrive 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "28i xDrive 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M35i xDrive 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 16d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive 16d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive 18d 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive 18i 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive16d 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18i 6MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20d 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive20d Efficient Dynamics Edition 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive20i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 20i 8AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 23i 7AT AWD (218 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive 25d 8AT AWD (214 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 25d 8AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 25e 6AT AWD (125 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive 25i 8AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive18d 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "XDrive18d 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20d 6MT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20d 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20i 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive20i 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive20i 8AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive23d 6AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive23d 7AT AWD (211 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive25d 8AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive25i 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive25i 8AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive28i 6AT AWD (258 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X2",
+   "variants": [
+    {
+     "name": "M35i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M35i xDrive 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18i 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18i 8AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 7AT FWD (170 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive 25e 6AT AWD (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive20d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20i 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive25d 8AT FWD (231 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "X3",
+   "variants": [
+    {
+     "name": "1.8d xDrive 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0d 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0d 6MT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 5AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 6MT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5si 6MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "20 xDrive 8AT AWD (208 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "20d xDrive 8AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "3.0d 5AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0d 5AT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d 6AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d 6MT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d 6MT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0i 5AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i 6MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0si 6MT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "30e xDrive 8AT AWD (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "35d xDrive 6AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M40d 48V 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M40i 48V 8AT AWD (360 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M40i 8AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M50 xDrive 8AT AWD (398 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "sDrive18d 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 8AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive18d 8AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive20i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive2.0d 6MT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive2.0d 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive2.0d 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive2.0i 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive2.0i 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive2.8i 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive2.8i 8AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive20d 48V 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive20d 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20d 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive20i 48V 8AT AWD (184 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive20i 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive3.0d 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive3.5d 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive3.5d 8AT RWD (308)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive3.5i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive3.5i 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive30d 48V 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30e 8AT AWD (292 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive30i 48V 8AT AWD (245 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive30i 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive320i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X3 M",
+   "variants": [
+    {
+     "name": "3.0L 8AT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L M Competition 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M Competition 3.0L xDrive 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive30e 8AT AWD (292 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "X4",
+   "variants": [
+    {
+     "name": "20d xDrive 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "20d xDrive 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "20i xDrive 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "25d xDrive 8AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "30d xDrive 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "30d xDrive 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "30i xDrive 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M40d 48V 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M40d xDrive 8AT AWD (326 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M40d xDrive 8AT AWD (326 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "M40i 48V 8AT AWD (360 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M40i 8AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M40i xDrive 8AT AWD (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M40i xDrive 8AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M40i xDrive 8AT AWD (382 HP) (US)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive20d 48V 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive20d 6MT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20d 8AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive20i 48V 8AT AWD (184 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive20i 8AT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive28i 8AT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive30d 48V 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive30d 8AT (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30i 48V 8AT AWD (245 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive35d 8AT (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive35i 8AT (306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X4 M",
+   "variants": [
+    {
+     "name": "3.0L 8AT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L M Competition 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M Competition 3.0L xDrive 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X5",
+   "variants": [
+    {
+     "name": "3.0 SI 6AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0d 5AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d 6AT AWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d 6MT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0i 5AT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i 5MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i 6MT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i 6MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L SD 6AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "30d xDrive 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "30Li xDrive 8AT AWD (China)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4i 5AT AWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4i 6AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6is 5AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8i 6AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8is 6AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "40 xDrive MHEV 8AT AWD (400 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "40d xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "40d xDrive MHEV 8AT AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "40Li xDrive 8AT AWD China)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "50e xDrive PHEV 8AT AWD (489 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "M50d 8AT 7 Seats RWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M50d 8AT RWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M50i xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M60e xDrive PHEV 8AT AWD (612 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "M60i xDrive V8 8AT AWD (530 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "sDrive25d 8AT RWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "sDrive35i 8AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 30d 8AT 7 Seats AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 30d 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 30d 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 35d 6AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 35i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 40d 8AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 40e 8AT AWD (313 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive 45e 8AT AWD (395 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive 50i 8AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive M50D 8AT AWD (375 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive25d 8AT AWD (218 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (298 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive35d 8AT AWD (259 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive35i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive40d 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive40d 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive40i 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive40i 8AT AWD (380 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive50e 8AT AWD (490 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "xDrive50i 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive50i V8 8AT AWD (462 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDriveM50d 8AT AWD (381 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "X5 M",
+   "variants": [
+    {
+     "name": "4.4L V8 8AT AWD (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L xDrive V8 6AT AWD (555 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L xDrive V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 4.4L V8 xDrive 48V MHEV AWD 8AT (625 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M Competition 4.4L V8 8AT AWD (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X6",
+   "variants": [
+    {
+     "name": "30d xDrive 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "ActiveHybrid 8AT AWD (485 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "M50d 8AT AWD (381 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M50d 8AT AWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M50i 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M60i xDrive 8AT AWD (530 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive 30d 6AT AWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 30d 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 30d 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 35d 6AT AWD (285 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 35i 6AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 35i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 40d 8AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive 40d 8AT AWD (340 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "xDrive 40i 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 50i 6AT AWD (406 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive 50i 8AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive M50d 8AT AWD (375 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (298 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "xDrive35i 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive40d 8AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive40i 8AT AWD (380 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive50i 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X6 M",
+   "variants": [
+    {
+     "name": "4.4L V8 6AT (555 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 8AT AWD (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L xDrive V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Competition 4.4L V8 xDrive 48V MHEV AWD 8AT (625 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M Competition 4.4L V8 8AT AWD (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X7",
+   "variants": [
+    {
+     "name": "40d MHEV xDrive 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "40d xDrive 8AT AWD (352 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "40i MHEV xDrive 8AT AWD (333 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "40i xDrive 8AT AWD (380 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "M50d xDrive 8AT AWD (400 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "M50i V8 xDrive 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M60i xDrive 8AT AWD (530 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "xDrive30d 8AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "xDrive40i 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "xDrive50i 8AT AWD (462 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XM",
+   "variants": [
+    {
+     "name": "4.4L xDrive V8 PHEV 8AT AWD (653 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Z1",
+   "variants": [
+    {
+     "name": "2.5L 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Z3",
+   "variants": [
+    {
+     "name": "1.8L 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 4AT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8i 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L 4AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT (321 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Z4",
+   "variants": [
+    {
+     "name": "2.0L 5MT RWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT RWD (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5si 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L si 6AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L si 6MT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0si 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0si 6MT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT RWD (343 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M40i 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Pure Impulse edition M40i 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 23i 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 28i 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 30i 6MT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 35i 6MT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive 35is 7AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18i 6MT (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18i 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18i 8AT (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive18i 8AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive2.0i 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive2.0i 8AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 6MT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 6MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 8AT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive20i 8AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive28i 6MT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive28i 8AT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive30i 8AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive35i 6MT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive35i 7AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "sDrive35is 7AT (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Z8",
+   "variants": [
+    {
+     "name": "4.9l V8 6MT (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

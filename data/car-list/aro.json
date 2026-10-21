@@ -1,0 +1,72 @@
+{
+ "name": "Aro",
+ "models": [
+  {
+   "name": "10 Series",
+   "variants": [
+    {
+     "name": "1.4L 4MT AWD (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT AWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT AWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT AWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 5MT AWD (94 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "24 Series",
+   "variants": [
+    {
+     "name": "2.5L 4MT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "ANDORIA 4 CT90-1 ME",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "COSWORTH 4L",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "TDX 28-02",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "TOYOTA 2L-T",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "TOYOTA 2RZ FE",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M Series",
+   "variants": [
+    {
+     "name": "2.5",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

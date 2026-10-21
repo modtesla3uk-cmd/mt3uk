@@ -1,0 +1,8337 @@
+{
+ "name": "Mercedes-Benz",
+ "models": [
+  {
+   "name": "MERCEDES BENZ A-Class",
+   "variants": [
+    {
+     "name": "1.3L 7AT (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 7AT (168 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 180 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 180d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "A 200 4MATIC 8AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 200 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 200d 4MATIC 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "A 200d 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "A 220 4MATIC 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 220d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "A 220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "A 250 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ A-Klasse",
+   "variants": [
+    {
+     "name": "140 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "140 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "150 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "150 CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 5AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 7AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEFFICIENCY 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEfficiency 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEfficiency CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEFFICIENCY CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 CDI 5AT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 5AT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 5MT FWD (82 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI CVT FWD (82 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160d 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160d 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 CDI 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 CDI 5AT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 CDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 CDI 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 CVT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Blue EFFICIENCY 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CDI 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI BlueEFFICIENCY 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI CVT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI FWD FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 d (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d BlueEFFICIENCY 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "190 5AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "190 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI CVT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CVT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 d (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Turbo 6MT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Turbo CVT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200d 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "210 Evolution 5AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "210 Evolution 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC 7AT FWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d ((190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 7AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC Sport 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 e PHEV (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "250 Sport 4MATIC 7AT AWD (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 6MT FWD (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 7AT FWD (217 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ A-Klasse AMG",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 7AT (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 7AT (380 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ A-Klasse Saloon",
+   "variants": [
+    {
+     "name": "180 (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180d (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200d (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250e PHEV (218 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ B-Klasse",
+   "variants": [
+    {
+     "name": "150 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "150 BlueEFFICIENCY 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "150 CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEFFICIENCY 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEFFICIENCY CVT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 CDI 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "160 CDI 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 BlueEFFICIENCY 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 CVT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 CVT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY CVT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CDI 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI BlueEFFICIENCY 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI BlueEFFICIENCY 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI CVT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY AT (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI BlueEFFICIENCY 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI BlueEFFICIENCY 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI CVT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CVT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CVT FWD FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Turbo 6MT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Turbo CVT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 4MATIC 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 180 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 180d (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 180d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 200 (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 200 d (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 200d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 220 4MATIC (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 220 4MATIC 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 220 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 220 d (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 220d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "B 250 4MATIC (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 250 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 250 7AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "B 250 e PHEV 8AT (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "B 250e PHEV 8AT FWD (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "B180 (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Electric Drive (179 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Class",
+   "variants": [
+    {
+     "name": "180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT 4MATIC AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 9AT 4MATIC AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 9AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250d 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 9AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 9AT 4MATIC AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 9AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 4MATIC AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 220d RWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 300d 4MATIC G-TRONIC 9AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 400 V6 4MATIC G-TRONIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Class EV",
+   "variants": [
+    {
+     "name": "C 400 94.5 KWh 4MATIC 2AT AWD (490 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse",
+   "variants": [
+    {
+     "name": "180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT 4MATIC AWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 9AT 4MATIC AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 9AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 7AT RWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250d 9AT 4MATIC AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 7AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 9AT 4MATIC AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse All-Terrain",
+   "variants": [
+    {
+     "name": "C 200 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 220 d 4MATIC 9AT AWD (200 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse AMG",
+   "variants": [
+    {
+     "name": "2.3L 16V 4AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 16V 4AT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 16V 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 16V 5MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 16V 5MT (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L CDI 5AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L V6 Kompressor 5AT RWD (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 4AT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3 V8 5AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 AMG 4MATIC 7AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8 5AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 PP 7AT RWD (487 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse and predecessors",
+   "variants": [
+    {
+     "name": "1.8L E 4AT (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L E 4MT (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 4AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CDI BlueEFFICIENCY 7AT RWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CGI 5AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CGI 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 K BlueEFFICIENCY 5AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 K BlueEFFICIENCY 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 5AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 6MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 4AT (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D 4MT (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L E 4AT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L E 4MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L E 4MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L E 5MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L E 4AT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L E 5MT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L D 4AT (94 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT (94 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 4AT (126 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D Turbo 5MT (126 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.6L E 4AT (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6L E 5MT (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 5AT RWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5MT RWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI BlueEFFICIENCY 7AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CGI 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CGI 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Diesel 4AT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Diesel 5AT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Diesel 5MT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Diesel 5MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 5AT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5MT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY Edition 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY Edition 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 4AT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 5AT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 5MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230 5AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 V6 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 V6 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 4MATIC 5AT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 4MATIC 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI BlueEFICIENCY 4Matic 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CGI 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Diesel 4AT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Diesel 5MT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Turbodiesel 4AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Turbodiesel 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Turbodiesel 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 4AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 4MATIC 5AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 4MATIC 5AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 CDI 6MT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 CDI 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 4MATIC 5AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 CGI 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 160 9AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 7AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 9AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 9AT RWD (170 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 180 BlueTEC 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 180 CDI 6MT RWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 180 Kompressor 6MT RWD (156HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180d 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 180d 9AT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 9AT 4MATIC AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 9AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 9AT RWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 200 BluTEC 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 MHEV EQ Boost 9AT RWD (177 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 200d 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200d 9AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200d MHEV EQ Boost RWD 9AT (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 220 BlueTec 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 BlueTec 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 BlueTEC BlueEFFICIENCY 7AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 d 9AT RWD (200 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 220d 9AT RWD (195 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 4MATIC EQ Boost MHEV 9AT AWD (218 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 250 4MATIC EQ Boost MHEV 9AT RWD (218 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 250 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 250 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 250 BlueTEC 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 BlueTEC 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 CDI 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250d MHEV EQ Boost 4MATIC 9AT AWD (200 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 250d MHEV EQ Boost 4MATIC 9AT RWD (200 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 300 4MATIC 7AT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 300 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 300 7AT RWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 300 9AT RWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 300 9AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 300 BlueTEC HYBRID 7AT AWD (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "C 300 CDI 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 300 d 9AT RWD (265 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 300d 9AT 4MATIC AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 300d 9AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 350 CDI 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 350 e 7AT RWD (279 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "C 400 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse Coupe AMG",
+   "variants": [
+    {
+     "name": "6.2L V8 7AT RWD (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (487 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3 V8 7MT (516 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse SportCoupe AMG",
+   "variants": [
+    {
+     "name": "30 CDI 5AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "32 CDI 5AT RWD (354 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse SportCoupe/CLC",
+   "variants": [
+    {
+     "name": "160 BlueEFFICIENCY 5AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 BlueEFFICIENCY 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 Kompressor 5AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "160 Kompressor 6MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 6MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 5MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CGI 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 6MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse T-Modell",
+   "variants": [
+    {
+     "name": "180 5AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 5AT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 5AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 6MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 Kompressor 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 5AT RWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5MT RWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CGI 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Diesel 5AT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Diesel 5MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 5AT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5MT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 5AT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 5MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230 5AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 4MATIC 5AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 4MATIC 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CGI BlueEfficiency 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Turbodiesel 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Turbodiesel 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 4MATIC 5AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5AT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "30 CDI 5AT (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "32 Kompressor 5AT (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 4MATIC 5AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 4MATIC 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 6MT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 6MT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 4MATIC 5AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 CDI 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 6MT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEfficiency 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 S 7AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 AMG 4MATIC 7AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 PP 7AT RWD (487 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 160 G-TRONIC 9AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 7AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180 9AT RWD (170 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 180 CDI 6MT RWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 180 CDI 7AT RWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 180 G-TRONIC 9AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 180d 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 200 4MATIC G-TRONIC 9AT AWD (198 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 6MT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 6MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 7AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 7AT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 200 9AT RWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 CDI 7AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 200 G-TRONIC 9AT RWD (198 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 220 BlueTEC 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 BlueTEC 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 CDI 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 CDI BlueEFFICIENCY 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 220 d 9AT RWD (200 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 250 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 7AT RWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 250 BlueTEC 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 CDI 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 250 CDI 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 300 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 300 9AT RWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "C 300 BlueTech HYBRID 7AT RWD (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "C 300 CDI 4MATIC 7AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 300 d 9AT RWD (265 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "C 300d 4MATIC G-TRONIC 9AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 300d G-TRONIC 9AT RWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "C 350 e 7AT RWD (279 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "C 350 V6 CDI 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "C 400 V6 4MATIC G-TRONIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ C-Klasse T-Modell AMG",
+   "variants": [
+    {
+     "name": "5.4 V8 5AT (367 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ Citan",
+   "variants": [
+    {
+     "name": "Panel Van 108 CDI 6MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Panel Van 110 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Panel Van 110 CDI 6MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Panel Van 112 CDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Panel Van 113 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Tourer 110 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Tourer 110 CDI 6MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Tourer 113 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CL AMG",
+   "variants": [
+    {
+     "name": "5.4 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8 5AT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 5AT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (544 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 5AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT RWD (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CL-Klasse and predecessors",
+   "variants": [
+    {
+     "name": "220 S",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 SE",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 SEb 4MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 SE 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 3.5L 4MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 4MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 S",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 S 4MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 Sc",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 Sc 4MT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE 3.5L 4AT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE 4AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V8 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "380 SEC 4AT RWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "380 V8 4AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 5AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEC 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEC 4AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEC 4AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEC 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEC 5AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 4AT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 4AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 5AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEC 4AT RWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEC 4AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEC 4AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEC 4AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEC 5AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 4MATIC 7AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 7AT RWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 SEC 4AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 SEC 4AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 SEC 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3 V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 5AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 5AT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 SEC 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (517 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLA 45",
+   "variants": [
+    {
+     "name": "2.0 4MATIC 7AT (360 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLA Klasse",
+   "variants": [
+    {
+     "name": "180 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT MHEV FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "180 BlueEFFICIENCY 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 BlueEFFICIENCY FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CDI 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 8AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 MHEV 7AT FWD (163 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 7AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (221 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 7AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (221 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 4MATIC 7AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 6MT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 Sport 7AT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250+ EQ RWD (272 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250e FWD (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "250e PHEV 8AT FWD (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350 4MATIC EQ AWD (354 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLA Shooting Brake",
+   "variants": [
+    {
+     "name": "180 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 MHEV 7AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "180d 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 8AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 MHEV 7AT FWD (163 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 4MATIC 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 4MATIC 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 7AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 MHEV 8AT 4MATIC AWD (224 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "250 Sport 4MATIC AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250+ 85 kWh EQ Technology RWD (272 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250e PHEV 8AT FWD (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350 85 kWh 4MATIC EQ Technology AWD (354 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLE",
+   "variants": [
+    {
+     "name": "200 MHEV 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 MHEV 4MATIC 9AT RWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "220d MHEV 9AT RWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "300 MHEV 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "450 MHEV 4MATIC 9AT AWD (381 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLK AMG",
+   "variants": [
+    {
+     "name": "5.4 V8 5AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8 Kompressor 5AT (582 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 5AT (347 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (481 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLK AMG Cabrio",
+   "variants": [
+    {
+     "name": "5.4 V8 5AT (347 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 5AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (481 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLK GTR",
+   "variants": [
+    {
+     "name": "6.9L V12 6MT (612 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLS AMG",
+   "variants": [
+    {
+     "name": "5.4L V8 Kompressor 5AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4Matic 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC S-Model 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT 4MATIC AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT S-Modell 4MATIC AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (514 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT (514 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLS Shooting Brake",
+   "variants": [
+    {
+     "name": "220 BlueTEC 7AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 BlueTEC 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 BlueTEC 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueTEC 4MATIC 7AT AWD (251 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 9AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 4MATIC 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 7AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC S-Model 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 9AT RWD (408 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLS Shooting Brake AMG",
+   "variants": [
+    {
+     "name": "5.5L V8 7AT 4MATIC AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT S-Modell 4MATIC AWD (585 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ CLS-Klasse",
+   "variants": [
+    {
+     "name": "220 BlueTEC 9AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 9AT (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 BlueTEC 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 BlueTEC 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI BlueEFFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 7AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300d 4MATIC 9AT (265 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "320 CDI 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 9AT (299 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueTEC 4MATIC 7AT AWD (251 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 9AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 4MATIC 7AT (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 7AT (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CGI 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 d 4MATIC 9AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 9AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400d 9AT (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 d 4MATIC 9AT AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 4MATIC 9AT (367 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "450 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (338 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 9AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Class T-Modell All-Terrain",
+   "variants": [
+    {
+     "name": "200 9AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 9AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 9AT RWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "220d 9AT RWD (195 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 9AT RWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d 9AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E450 3.0L 9AT AWD (362 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse AMG",
+   "variants": [
+    {
+     "name": "5.0 V8 5AT (347 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8 Kompressor",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC S-Model 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse and predecessors",
+   "variants": [
+    {
+     "name": "170 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 Da",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 Db",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 Ds",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 S",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 S (A)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 S (B)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 S-D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "170 S-V",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 Sb",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 V",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 Va",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "170 Vb",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 4MT RWD (52 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 a 4MT RWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 b 4MT RWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 c 4MT RWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 D 4MT RWD (43 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 Db 4MT RWD (43 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 Dc 4MT RWD (48 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "190 4MT RWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "190 b 4MT RWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "190 c 4MT RWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "190 D 4MT RWD (50 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "190 Db II 4MT RWD (50 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "190 Dc 4MT RWD (55 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 4MATIC 9AT AWD (197 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 4MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MT RWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MT RWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (197 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 5AT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 5MT RWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (116 HP)]",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT RWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDi BlueEFFICIENCY 5AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDi BlueEFFICIENCY 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CGI BlueEFFICIENCY 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 D 4MT RWD (55 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 D 4MT RWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 D 4MT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 D Taxi",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 Diesel 5MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 E 4MT RWD (124 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 E 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200d 5MT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MT RWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 BlueTEC BlueEFFICIENCY 7AT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5MT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDi BlueEFFICIENCY 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDi BlueEFFICIENCY 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI Eco 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 4MATIC 9AT AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 D 4MT RWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 9AT RWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 Diesel 5MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 E 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 9AT RWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 4MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 E 4MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 E 5MT RWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 D 4MT RWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "240 D 4MT RWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "240 D Lang 4MT RWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "240 V6 4MATIC 5AT AWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 6MT RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MT RWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI 4Matic 7AT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI 6MT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI 7AT (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFICIENCY 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFICIENCY 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFICIENCY 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CGI BlueEFFICIENCY 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 D 5MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Diesel 5MT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 Turbodiesel 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 5MT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "260 E (G-Kat) 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "260 E 5MT RWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "270 CDI 5AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 4MT RWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 4MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 CDI 5AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 CDI V6 4MATIC 5AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 CDI V6 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 E 4MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 E 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 5MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 6MT RWD (234 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 Turbodiesel 5MT RWD (129 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 4Matic 7AT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 7AT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 9AT RWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "300 BlueEFICIENCY 4MATIC 7AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 BlueEFICIENCY 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 BlueTec 7AT (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 BlueTec Hybrid 7AT (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300 BlueTEC Hybrid 7AT RWD (231 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "300 CDi BlueEFFICIENCY 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 D 4MT RWD (84 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 D 4MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 D Lang 4MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 D Turbodiesel 4AT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 de 4MATIC 9AT AWD (306 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "300 de 9AT RWD (306 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "300 Diesel 5MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 E (G-Kat) 5MT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 E 24V 5MT RWD (234 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 E 4MATIC 4AT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 E 5MT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 e 9AT AWD (320 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300 Turbodiesel 4AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 Turbodiesel 5AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300d 5MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 5AT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI V6 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 E 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 4AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 4MATIC 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 4Matic 7AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 4MATIC 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 4Matic 7AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueTEC 4Matic 7AT (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 7AT (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 7AT RWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 9AT (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDi 4MATIC BlueEFFICIENCY 7AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDi 4MATIC BlueEFFICIENCY 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CGI BlueEFFICIENCY 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d 9AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4Matic 7AT (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 7AT (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 CDI V8 5AT RWD (260 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 d 9AT RWD (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 CDI V8 7AT RWD (314 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 E V8 4AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "5.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4Matic 7AT (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4MATIC 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 5AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 200 Kompressor 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 MHEV 9AT RWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "E 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220d MHEV 4MATIC 9AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "E 220d MHEV 9AT RWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "E 280 CDI 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 280 V6 6MT RWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300e PHEV 4MATIC 9AT AWD (313 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "E 300e PHEV 9AT RWD (313 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "E 320 CDI V6 7AT RWD (226 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 350 V6 7AT RWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 400e PHEV 4MATIC 9AT AWD (281 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "E 420 CDI V8 7AT RWD (318 HP))",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 500 V8 7AT RWD (387 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse Cabriolet and predecessors",
+   "variants": [
+    {
+     "name": "2.0L 5AT RWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MATIC 9AT (197 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 5AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT (197 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 CGI 6MT RWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 6MT RWD (168 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 4MATIC 9AT (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 9AT (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI 6MT RWD (201 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CGI 5AT RWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 6MT RWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (220 H)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 4AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 9AT (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "300 BlueEFICIENCY 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 6MT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 CDI 7AT RWD (228 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CGI 7AT RWD (288 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 d 4MATIC 9AT (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 4MATIC 9AT (367 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "500 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (382 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550 7AT RWD (402 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 4MATIC AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 9AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220d 4MATIC AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220d 9AT AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 CDI 7MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 300 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 9AT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 9AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 BlueTEC 7AT RWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 350d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 400 4MATIC 9AT (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 400 7AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 500 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 550 7AT RWD (402 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse Coupe and predecessors",
+   "variants": [
+    {
+     "name": "200 4MATIC 9AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 CDI 5AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 9AT AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 9AT RWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 C 4MT RWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 CE 4AT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 CE 4MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5AT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5AT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 C 4MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDi BlueEFFICIENCY 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFFICIENCY 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDi BlueEFFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CE 4MT RWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CGI BlueEFFICIENCY 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "270 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 C 4MT RWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 CE 4AT RWD 185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 CE 4MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 9AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 BlueEFICIENCY 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 6MT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 CDi BlueEFFICIENCY 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CGI BlueEFFICIENCY 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 CDI 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 300 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 BlueTEC 7AT RWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 400 7AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 500 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse T-Modell",
+   "variants": [
+    {
+     "name": "190 Dc",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MT RWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CGI 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CGI 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 E 4MT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 E-16V 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200d 4MT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 9AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 5MT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (152 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 E 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 9AT RWD (195 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "230",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 E 4MT RWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 E 4MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 6MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 V6 6M RWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240d 4MT RWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 9AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CGI 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250d 4MT RWD (94 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 5MT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 CDI V6 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 E 4MT RWD (185 HP0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 E 5MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 6MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 Turbodiesel 5MT RWD (129 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 BlueEFICIENCY 4MATIC 7AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 BlueEFICIENCY 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 BlueTEC Hybrid 7AT RWD (231 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "300 CDI BlueEFFICIENCY 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 E 5MT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 E-24V 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 Turbodiesel 4AT RWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 Turbodiesel 4AT RWD (147 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 Turbodiesel 5AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300d 4MT RWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300d 5MT RWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300d 5MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 5AT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI V6 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI V6 7AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 E 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 Bluetec 7AT RWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 4MATIC 7AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 4MATIC 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY 7AT RWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CGI 4MATIC 7AT AWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 CGI 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d 9AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 200 CDI 7AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 250 CDI 4Matic 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 CDI 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 250 CDI 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 280 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 4MATIC 4AT AWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 4MATIC 4AT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 4Matic 7AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 300 BlueTec 7AT RWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 300 BlueTec Hybrid 7AT AWD (204 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "E 320 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 4Matic 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 350 BlueTec 4Matic 7AT AWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 350 BlueTec 7AT RWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 350 BlueTec 9AT RWD (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E 400 4Matic 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 400 7AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 500 4Matic 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "E 500 7AT RWD (408 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ E-Klasse T-Modell AMG",
+   "variants": [
+    {
+     "name": "5.4L V8 Kompressor 5AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 4MATIC S-Model 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT (514 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQA",
+   "variants": [
+    {
+     "name": "250 69.7 KWh 1-Speed FWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250 69.7 KWh FWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250+ 73.9 KWh 1-Speed FWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250+ 73.9 KWh FWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "300 69.7 KWh 4MATIC 1-Speed FWD (228 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "300 69.7 KWh 4MATIC AWD (228 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "350 69.7 KWh 4MATIC 1-Speed AWD (292 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "350 69.7 KWh 4MATIC AWD (292 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQB",
+   "variants": [
+    {
+     "name": "250+ 73.9 FWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "300 4MATIC 79.8 KWh AWD (228 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "350 4MATIC 79.8 KWh AWD (292 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQC",
+   "variants": [
+    {
+     "name": "400 4MATIC 80 Kwh (408 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQE",
+   "variants": [
+    {
+     "name": "350 215 KW",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQE SUV",
+   "variants": [
+    {
+     "name": "350 4MATIC AWD 90.6 KWh (292 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350+ RWD 90.6 KWh (292 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "500 4MATIC AWD 90.6 KWh (408 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQS",
+   "variants": [
+    {
+     "name": "400 112 kWh RWD (367 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "450 125 KWh AWD (360 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "450+ 122 kWh RWD (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "450+ 125 KWh RWD (360 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "450+ 245 KW RWD (333 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "500 122 kWh 4MATIC (476 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "500 125 KWh 4MATIC AWD (449 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "580 122 kWh 4MATIC (585 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "580 125 KWh 4MATIC AWD (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "580 4MATIC 385 KW AWD (523 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQS SUV",
+   "variants": [
+    {
+     "name": "450 4MATIC AWD (260 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "450+ RWD (360 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "580 4MATIC AWD (544 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQS SUV Maybach",
+   "variants": [
+    {
+     "name": "AWD (658 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQT",
+   "variants": [
+    {
+     "name": "200 45 KWh (122 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ EQV",
+   "variants": [
+    {
+     "name": "150 Kw (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ G-Klasse",
+   "variants": [
+    {
+     "name": "116 KWh AWD (587 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "200 GE (G-Kat) 4MT AWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 GE 4MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 GE 5MT AWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 G 4MT AWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE (G-Kat) 4MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE 4MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE 5MT AWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 GD 4AT AWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "240 GD 4MT AWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 GD 5MT AWD (84 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 GD 5MT AWD (94 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 5AT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 GE 4MT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 GD 5MT AWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "290 GD Turbodiesel 4AT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 CDI Professional AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GD 4MT AWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GD 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GE 5MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 Turbodiesel 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI V6 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 5AT AWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueTEC 7AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI V6 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 d 7AT (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 GD Turbo 4AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI V8 5AT AWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "500",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT 4x4 (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT AWD (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT AWD (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 GE 4AT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT AWD (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 200 5MT AWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 230 5MT AWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 300 5MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 300 Turbodiesel 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "G 320 4AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 320 4AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 320 V6 5AT AWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 350 d 9AT (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "G 400 d 9AT (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "G 450d MHEV 9AT AWD (367 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "G 500 9AT (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 500 MHEV 9AT AWD (449 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "G 500 V8 5AT AWD (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 550 MHEV 9AT AWD (443 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ G-Klasse AMG",
+   "variants": [
+    {
+     "name": "5.4L V8 5AT AWD (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor 5AT AWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor 5AT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor 5AT AWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5 V8 7AT 6x6 (544 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT AWD (536 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT AWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ G-Klasse Kurz",
+   "variants": [
+    {
+     "name": "200 GE (G-Kat) 4MT AWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 GE 4MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 GE 5MT AWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 G 4MT AWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE (G-Kat) 4MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE 4MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 GE 5MT AWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "240 GD 4MT AWD (72 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 GD 4MT AWD (84 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 GD 5MT AWD (94 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 5AT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 GE 4MT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 GD 5MT AWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "290 GD Turbodiesel 4AT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GD 4MT AWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GD 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 GE 5MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI V6 7AT AWD (226 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 5AT AWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 GD Turbo 4AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI V8 5AT AWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "500 V8 5AT AWD (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 300 Turbodiesel 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "G 320 (L6) 4AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 320 (V6) 5AT AWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G 500 V8 5AT AWD (296 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GL-Klasse",
+   "variants": [
+    {
+     "name": "320 V6 CDI 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 BlueTEC 4MATIC 7AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueEFFICIENCY V6 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI BlueTEC V6 7AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI BlueEFFICIENCY 4MATIC 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI BlueTec 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 CDI 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 4MATIC 7AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 CDI V8 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 4MATIC 7AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 7AT 4MATIC AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 CDI 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "500 4MATIC BlueEFFICIENCY 7AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT 4MATIC AWD (387 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GL-Klasse AMG",
+   "variants": [
+    {
+     "name": "5.5L V8 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLA",
+   "variants": [
+    {
+     "name": "180 6MT FWD (121 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 7AT FWD (121 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 CDI 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 CDI 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180 MHEV FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "180d 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "180d FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 58 kWh RWD (224 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "200 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 7AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 MHEV FWD (163 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 4MATIC 7AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 4MATIC 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 4MATIC AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 7AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC 7AT AWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 4MATIC AWD (190 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "220 CDI 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 7AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC 8AT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MATIC AWD (224 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "250 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 8AT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250+ 85 kWh RWD (272 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250e PHEV (218 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350 85 kWh 4MATIC (354 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLB",
+   "variants": [
+    {
+     "name": "180 MHEV 8AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "180d 8AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 7AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 MHEV 8AT FWD (163 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 4MATIC 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200d 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 4MATIC MHEV 8AT AWD (190 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "220d 4MATIC 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC MHEV 8AT AWD (224 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "250 8AT 4MATIC AWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250+ 85 KWh RWD (272 HP) EQ Technology",
+     "fuel": "Electric"
+    },
+    {
+     "name": "250+ 85 KWh RWD (272 HP) EQ Technology 7 Seat",
+     "fuel": "Electric"
+    },
+    {
+     "name": "350 4MATIC with EQ Technology",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLC Class",
+   "variants": [
+    {
+     "name": "200 4MATIC 9AT AWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200 d 4MATIC 9AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 MHEV 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "200d 4MATIC 9AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 4MATIC 9AT AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 d 9AT 4MATIC AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 9AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 9AT AWD (194 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 4MATIC 9AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "220d MHEV 4MATIC 9AT AWD (197 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "250 4MATIC 9AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 9AT 4MATIC AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 d 9AT 4MATIC AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 4MATIC 9AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "300 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 d 4MATIC 9AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 MHEV 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "300d 4MATIC 9AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300d 4MATIC 9AT AWD (269 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "300de PHEV 4MATIC 9AT AWD (335 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "300e 4MATIC 9AT AWD (320 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300e PHEV 4MATIC 9AT AWD (313 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350 d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 e 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350 e 4MATIC 7AT AWD (320 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC AWD (489 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "400e PHEV 4MATIC 9AT AWD (381 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLE-Class",
+   "variants": [
+    {
+     "name": "250 d 4MATIC 9AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 d 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 d 4MATIC AWD (269 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "300d 4MATIC 9AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 e PHEV 4MATIC AWD (245 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "350d 4MATIC 9AT (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d 4MATIC 9AT AWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d 4MATIC AWD (286 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "350de PHEV 4MATIC 9AT AWD (306 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "350e PHEV 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 e PHEV 4MATIC AWD (280 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "400d 4MATIC 9AT (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 4MATIC AWD (381 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "450 AMG 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 d 4MATIC AWD (367 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "450 EQ Boost 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450d 4MATIC AWD (367 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "450e PHEV 4MATIC AWD (326 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4MATIC 9AT AWD (537 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4MATIC 7AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 e 4MATIC 7AT AWD (422 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "580 EQ Boost V8 4MATIC 9AT AWD (489 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLK-Klasse",
+   "variants": [
+    {
+     "name": "200 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 CDI 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI 7AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI BlueEFFICIENCY 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "200 CDI BlueEFFICIENCY 7AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 BlueTEC 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 4MATIC 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 6MT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 7AT RWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220 CDI BlueEFFICIENCY 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 4MATIC 7AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueTEC 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI BlueEFFICIENCY 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 4MATIC 7AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 4MATIC 7AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 4MATIC 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 4MATIC CDI 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 4MATIC 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLS Maybach",
+   "variants": [
+    {
+     "name": "4.0L V8 9AT AWD (558 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "680 V8 EQ Boost 4MATIC 9AT (612 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ GLS-Class",
+   "variants": [
+    {
+     "name": "350 d 4MATIC 9AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d 4MATIC",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d 4MATIC 9AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d 4MATIC AWD (269 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 4MATIC 9AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 d 4MATIC 9AT AWD (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 4MATIC",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 4MATIC AWD (381 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450d 4MATIC",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450d 4MATIC AWD (367 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "500 4MATIC 9AT AWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "580 4MATIC AWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "580 V8 4MATIC 9AT AWD (489 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "580 V8 4MATIC 9AT AWD (537 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ Laundalet",
+   "variants": [
+    {
+     "name": "300 d",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3 V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ M-Klasse",
+   "variants": [
+    {
+     "name": "230 4MATIC 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueTEC 4MATIC 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 4MATIC 5AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "270 CDI 4MATIC 6MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 CDI 4MATIC V6 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 CDI 4MATIC V6 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI V6 4MATIC 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 4MATIC 5AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueTEC 4MATIC 7AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 4MATIC BlueTEC V6 7AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 CDI 4MATIC V6 7AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 4MATIC 5AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 4MATIC 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 BlueEFFICIENCY 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 CDI 4MATIC 5AT AWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 CDI 4MATIC V8 7AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "430 V8 4MATIC 5AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 CDI 4MATIC V8 7AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 V6 FHEV CVT AWD (340 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "500 4MATIC V8 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 4MATIC 7AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 5AT AWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "550 V8 4MATIC 7AT AWD (388 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ M-Klasse AMG",
+   "variants": [
+    {
+     "name": "5.4L V8 5AT AWD (347 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3L V8 7AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ Maybach EQS SUV",
+   "variants": [
+    {
+     "name": "680 4MOTION AWD (658 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ Pullman",
+   "variants": [
+    {
+     "name": "200",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "290 (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 d",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 (3.4 L)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3 V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3L V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 Guard V12 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (392 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "770",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "770 Kompressor",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "770 Kompressor (special protection)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V12 (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ R-Klasse",
+   "variants": [
+    {
+     "name": "280 CDI V6 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 CDI V6 7AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 V6 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI V6 7AT RWD (277 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueEFFICIENCY 4Matic 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 Bluetec 4Matic 7AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "500 V8 7AT AWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 300 V6 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 300 V6 CDI BlueEFFICIENCY 7AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "R 350 V6 4MATIC 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 350 V6 CDI 4MATIC 7AT AWD (265 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ R-Klasse AMG",
+   "variants": [
+    {
+     "name": "6.2 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ R-Klasse Lang",
+   "variants": [
+    {
+     "name": "280 V6 7AT RWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 CDI 7AT RWD (188 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 V6 CDI 7AT RWD (188 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 4MATIC 7AT (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 7AT RWD (221 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 4MATIC 7AT AWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 4MATIC 7AT (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4MATIC 7AT AWD (382 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Class",
+   "variants": [
+    {
+     "name": "300 S",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 Sc",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 9AT (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 9AT (469 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Class Coupe AMG",
+   "variants": [
+    {
+     "name": "5.5L V8 4MATIC 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 BlueDIRECT 7AT RWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 7AT (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Class Maybach",
+   "variants": [
+    {
+     "name": "3.0L PHEV 9AT AWD (510 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "S 500 4MATIC 9AT AWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 500 9AT RWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 560 Biturbo V8 4MATIC 9AT AWD (469 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 560 Biturbo V8 9AT RWD (469 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 580 4MATIC EQ Boost V8 9AT AWD (503 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "S 600 7AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 650 Biturbo V12 7AT RWD (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 680 4MATIC V12 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 680 V12 4MATIC 9AT AWD (621 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 680 V12 4MATIC MHEV 9AT AWD (621 HP) EQ Boost",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Klasse",
+   "variants": [
+    {
+     "name": "3.0L V6 4MATIC 7AT (368 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4MATIC 7AT (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 9AT (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 9AT (469 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Klasse AMG",
+   "variants": [
+    {
+     "name": "5.4 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor 5AT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5l V8 4Matic 7AT (585 HP) - longbase",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5l V8 7AT (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5l V8 7AT (585 HP) - longbase",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V8 7AT RWD (544 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT RWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT RWD (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 Lang 7AT (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3L V12 5AT (444 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ S-Klasse and predecessors",
+   "variants": [
+    {
+     "name": "2.2",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "219 4MT RWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 a 4MT RWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 b 4MT RWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 S 4MT RWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 Sb 4MT RWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 SE 4MT RWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 SEb 4MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 S 4MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI BlueEFFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 S 4MT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 SE 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "260 SE 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 S 4MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 S 4MT RWD (158 HP0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 S 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 3AT RWD (199 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 4MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 4MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SE 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SEL 3AT RWD (199 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SEL 4MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SEL 4MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 SEL 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 4AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 a",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 a 4MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 b",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 b 4MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 c",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 c 4MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 c Lang 4MT RWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 d",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 d 3MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 h 7AT RWD (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300 h 7AT RWD (231 HP) Long",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300 SD 4AT RWD (117 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 SD 4AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 SE 4MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE 5MT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE 5MT RWD (93 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SE Lang 4AT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEb 4MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEL 3AT RWD (199 H)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEL 4MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEL 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEL 5MT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 SEL 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 CDI 5AT RWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 CDI 5AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 Lang 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 Lang 5AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 CDI 7AT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "320 V6 CDI Lang 7AT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 4AT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 5AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 d 4MATIC 9AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 d 4MATIC 9AT AWD (286 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 d 9AT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 Lang 5AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 SE V8 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 SEL V8 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (272 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueEFFICENCY 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueEFFICENCY 4MATIC 7AT AWD (306 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueEFFICENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueEFFICENCY 7AT RWD (306 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 BlueTEC 4MATIC 7AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 BlueTEC 4MATIC 7AT AWD (258 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 BlueTEC 7AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 BlueTEC 7AT RWD (258 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI 4MATIC 7AT AWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI 4MATIC 7AT AWD (235 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI BlueEFFICIENCY 7AT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 CDI BlueEFFICIENCY 7AT RWD (235 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 V6 Lang 7AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350d 9AT RWD (286 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350d MHEV 4MATIC EQ 9AT AWD (313 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "350d MHEV 4MATIC EQ 9AT AWD (313 HP) Long",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "380 SE 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "380 SEL 4AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 4MATIC 7AT AWD (333 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 CDI 5AT RWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI 7AT RWD (260 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI Lang 5AT RWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 CDI Lang 7AT RWD (260 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "400 h 7AT RWD (333)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 h 7AT RWD (333) Long",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 HYBRID 7AT RWD (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 HYBRID 7AT RWD (299 HP) Long",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 V8 SE 4AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 SEL 4AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SE 4AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 SEL 4AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 CDI 7AT RWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 V8 CDI Lang 7AT RWD (320 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "420 V8 Lang 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 7AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 Lang 5AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 Lang 7AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 MHEV 4MATIC EQ 9AT AWD (381 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "450 MHEV 4MATIC EQ 9AT AWD (381 HP) Long",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "450 SE 4AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 SEL 4AT RWD (220 HP0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 SEL V8 3AT RWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 7AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 7AT RWD (340 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 CDI 7AT RWD (420 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 V8 CDI 7AT RWD (420 HP) Long",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "450 V8 Lang 7AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450d MHEV 4MATIC EQ 9AT AWD (367 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "450e PHEV EQ 9AT RWD (435 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "500 4MATIC 9AT AWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 4MATIC 9AT AWD (455 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 7AT RWD RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 9AT RWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 9AT RWD (455 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 Lang 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 Lang 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 Lang 7AT RWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 MHEV 4MATIC EQ 9AT AWD (449 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "500 SE 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SE 4AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEL 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 SEL 4AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (387 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 4MATIC 7AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 4MATIC 7AT AWD (435 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 7AT RWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 BlueEFFICIENCY 7AT RWD (435 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 Lang 5AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 SE 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 SEL 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500e RWD (442 HP) Long",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "560 SE 5AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "560 SEL 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "580 V8 MHEV 4MATIC EQ 9AT AWD (537 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "580 V8 MHEV 4MATIC EQ 9AT AWD (537 HP) Long",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "580e PHEV 4MATIC EQ 9AT AWD (585 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "580e PHEV 4MATIC EQ 9AT AWD (585 HP) Long",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "6.3L V8 4AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 5AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 5AT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 7AT RWD (530 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 Lang 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 SE 4AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 SEL 4AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V8 5AT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V8 7AT RWD (517 HP) Long",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 350 d 4MATIC 9AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S 350 d 9AT RWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S 350 d 9AT RWD (286 HP) L",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S 400 d 4MATIC 9AT AWD (330 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S 400 d 4MATIC 9AT AWD (330 HP) L",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S 450 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S 450 4MATIC 9AT AWD (367 HP) L",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S 500 4MATIC 9AT AWD (435 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S 500 4MATIC 9AT AWD (435 HP) L",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S300 BlueTEC Hybrid Long 7AT RWD (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S300 BlueTEC HYBRID RWD (231 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S350 BlueTec Long 7AT RWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S350 V6 BlueTec 4Matic 7AT (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S350 V6 BlueTec 4Matic Long 7AT (252 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S350 V6 BlueTec 7AT (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "S400 Hybrid 7AT RWD (306 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S400 Hybrid Long 7AT RWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S500 4MATIC Long 7AT AWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S500 7AT RWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S500 Long 7AT RWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S500 PLUG-IN HYBRID 7AT AWD (442 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "S500 V8 4Matic 7AT AWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S600 7AT RWD (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SL AMG",
+   "variants": [
+    {
+     "name": "5.4 V8 Kompressor 5AT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 5AT (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 Kompressor RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5 7AT (537 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L 7AT (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 5AT (670 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 7AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 AMG 7AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 Biturbo 5AT RWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 7AT (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.3L V12 5AT (525 HP0",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SL Monogram Maybach",
+   "variants": [
+    {
+     "name": "680 V8 9AT 4MATIC+ AWD (585 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SL-Klasse",
+   "variants": [
+    {
+     "name": "230 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 4MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 4MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 5MT RWD (195 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 5MT (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 V6 5MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MT (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 (G-Kat) 5MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 24V 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5MT RWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT RWD (226 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 5AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 7AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V8 7AT (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "380 4AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 BlueEFFICIENCY 7AT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V6 9AT RWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "420 V8 4AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 4AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 (G-Kat) V8 4AT RWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 BlueEFFICIENCY 7AT RWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 5AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 7AT RWD (388 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 9AT RWD (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 4AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "600 V12 5AT RWD (517 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SLC-Class",
+   "variants": [
+    {
+     "name": "180 6MT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 9AT RWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 9AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250d 9AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "300 9AT RWD (245 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SLK AMG",
+   "variants": [
+    {
+     "name": "3.2L V6 Kompressor 5AT (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 7AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 7AT (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 7AT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5 V8 7AT (421 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SLK-Klasse",
+   "variants": [
+    {
+     "name": "190",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 BlueEFFICIENCY 7AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5AT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 5MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 Kompressor 6MT RWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 5MT RWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "230 Kompressor 6MT RWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 BlueEFFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 BlueEFFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 CDI BlueEFICIENCY 6MT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 CDI BlueEFICIENCY 7AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "280 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "280 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 7AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "320 V6 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6MT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 7AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 BlueEFFICIENCY 7AT RWD (306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SLR McLaren",
+   "variants": [
+    {
+     "name": "5.4 V8 Kompressor 5AT (626 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4 V8 Kompressor 5AT (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ SLS AMG",
+   "variants": [
+    {
+     "name": "6.2 V8 7AT (591 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 7AT RWD (591 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3L V8 7AT (631 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Black Series 6.2L V8 7AT RWD (631 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GT 6.2L V8 7AT RWD (592 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ T-Class",
+   "variants": [
+    {
+     "name": "T 160 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "T 160d 6MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "T 160d 7AT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "T 180 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "T 180 7AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "T 180d 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "T 180d 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ V-Class and predecessors",
+   "variants": [
+    {
+     "name": "V 200 CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 200 CDI 7AT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 220 CDI 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 220 CDI 7AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 220d 4MATIC 9AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 220d 9AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 250 BlueTEC 7AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 250d 4MATIC 9AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 250d 9AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 300d 4MATIC 9AT AWD (239 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V 300d 9AT RWD (239 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V-200 CDI 5MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V-220 CDI 5MT FWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V-230 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V-230 Turbodiesel 5MT FWD (98 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "V-280 4AT FWD (174 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ VANEO",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L CDI FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.7L CDI FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ VIANO",
+   "variants": [
+    {
+     "name": "2.0L CDI 4MATIC 5AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L CDI 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CDI 4MATIC 5AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CDI 5AT AWD RWD (163 Hp)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CDI 5AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CDI 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L CDI 5AT RWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 RWD (258 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ Vito",
+   "variants": [
+    {
+     "name": "eVito 90 KWh (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ VLE",
+   "variants": [
+    {
+     "name": "300",
+     "fuel": "Electric"
+    },
+    {
+     "name": "400 4MATIC",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MERCEDES BENZ X-Class",
+   "variants": [
+    {
+     "name": "200 6MT RWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220d 4MATIC 6MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 4MATIC 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 6MT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250d 7AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 d 4MATIC 7AT AWD (258 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

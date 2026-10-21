@@ -1,0 +1,14 @@
+{
+ "name": "GTA",
+ "models": [
+  {
+   "name": "Motor Spano",
+   "variants": [
+    {
+     "name": "8.3L SC V10 (820 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

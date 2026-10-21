@@ -1,0 +1,552 @@
+{
+ "name": "Lincoln",
+ "models": [
+  {
+   "name": "Aviator",
+   "variants": [
+    {
+     "name": "3.0L V6 10AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 10AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 PHEV 10 AT AWD (494 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.6L V8 5AT (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5AT AWD (302 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Continental",
+   "variants": [
+    {
+     "name": "2.7L V6 6AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 6AT FWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L GTDI V6 6AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT FWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT RWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V8 3AT RWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V8 3AT RWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.5L V8 3AT RWD (206 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.5L V8 3AT RWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.5L V8 3AT RWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.5L V8 3AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.6L V8 3AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.6L V8 3AT RWD (365 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Corsair",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 8AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (266 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L i-VCT Atkinson CVT AWD (266 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "LS",
+   "variants": [
+    {
+     "name": "3.0L V6 24V 5AT (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5AT (256 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mark LT",
+   "variants": [
+    {
+     "name": "5.0L Ti-VCT AWD 6AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L Ti-VCT RWD 6AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 4AT RWD (304 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MKC",
+   "variants": [
+    {
+     "name": "2.0L 6AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L EcoBoost 6AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L EcoBoost 6AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 6AT AWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L EcoBoost 6AT AWD (285 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MKS",
+   "variants": [
+    {
+     "name": "3.5L Ecoboost 6AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L Ecoboost 6AT AWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L Ti-VCT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L Ti-VCT FWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT AWD (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT FWD (273 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MKT",
+   "variants": [
+    {
+     "name": "3.5 V6 Ecoboost AWD 6AT (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 EcoBoost 6AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7 v6 Ti-VCT FWD 6AT (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 AWD 6AT (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 FWD 6AT (270 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MKX",
+   "variants": [
+    {
+     "name": "2.7L EcoBoost 6AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L EcoBoost 6AT FWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L Cyclone V6 6AT AWD (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L Cyclone V6 6AT FWD (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 Ti-VCT 6AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 Ti-VCT AWD 6AT (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MKZ",
+   "variants": [
+    {
+     "name": "2.0L 6AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (141 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L eCVT FWD (188 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L CVT FWD (191 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 6AT AWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT AWD (263 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT FWD (263 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT AWD (262 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT FWD (262 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6AT FWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nautilus",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HEV CVT AWD (310 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.7L EcoBoost 8AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 8AT AWD (335 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Navigator",
+   "variants": [
+    {
+     "name": "3.5L EcoBoost 4x2 6AT (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L EcoBoost 4x4 6AT (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L Long V6 10AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT FWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 4AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 4AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 4AT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 4AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT Long AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT Long RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT Long RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT RWD (310 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Navigator L",
+   "variants": [
+    {
+     "name": "3.5L EcoBoost 6AT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L EcoBoost 6AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT (456 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT AWD (456 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 6AT RWD (310 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Town Car",
+   "variants": [
+    {
+     "name": "4.6L V8 4AT (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT RWD (239 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 LONG 4AT RWD (239 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L 4AT (242 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Zephyr",
+   "variants": [
+    {
+     "name": "3.0i V6 24V 6AT FWD (221 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

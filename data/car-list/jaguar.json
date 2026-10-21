@@ -1,0 +1,916 @@
+{
+ "name": "Jaguar",
+ "models": [
+  {
+   "name": "E-Pace",
+   "variants": [
+    {
+     "name": "D150 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D150 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D150 9AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D180 6MT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D180 9AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D240 9AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "P200 9AT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P250 9AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P300 9AT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F-Pace",
+   "variants": [
+    {
+     "name": "2.0d 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT PHEV AWD (404 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L 8AT AWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 8AT AWD (300 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "3.0L 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L 8AT AWD (400 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 AWD (300 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "F-Pace SVR",
+   "variants": [
+    {
+     "name": "5.0L V8 8AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 Spercharged 8AT (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F-Type",
+   "variants": [
+    {
+     "name": "2.0L 8AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 5.0L V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 5.0L V8 8AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R-Dynamic 3.0L V6 6MT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R-Dynamic 3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R-Dynamic 3.0L V6 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L V6 6MT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L V6 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F-Type SVR",
+   "variants": [
+    {
+     "name": "5.0 V8 8AT (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "I-Pace",
+   "variants": [
+    {
+     "name": "394 HP (294 Kw)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "S-Type",
+   "variants": [
+    {
+     "name": "2.5L V6 5MT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L D V6 6AT RWD (207 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L D V6 6MT RWD (207 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5AT RWD (248 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S-Type R",
+   "variants": [
+    {
+     "name": "4.2L V8 SC 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 SC 6AT RWD (405 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "X-Type",
+   "variants": [
+    {
+     "name": "2.0D 5MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L V6 5MT FWD (159 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2D 5MT FWD (155 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 AWD 5MT (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 AWD 5AT (234 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XE",
+   "variants": [
+    {
+     "name": "2.0L 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D180 8AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D180 8AT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L P250 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L P250 8AT RWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L P300 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L P300 8AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XE SV",
+   "variants": [
+    {
+     "name": "5.0L V8 8AT AWD (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XF",
+   "variants": [
+    {
+     "name": "2.0L 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Ti 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2D 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2D 8AT RWD (192 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2D 8AT RWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7D 6AT RWD (207 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0D V6 8AT RWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0D V6 8AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L D V6 8AT RWD (271 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L DS V6 8AT RWD (271 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 6AT RWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SC 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SC AWD 8AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 Supercharged SV cAT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT RWD (379 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 SC 8AT RWD (470 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 Supercharged 6AT RWD (503 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XF Sportbrake",
+   "variants": [
+    {
+     "name": "2.0L 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L 8AT RWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 8AT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 8AT RWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 8AT RWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (300 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "XFR",
+   "variants": [
+    {
+     "name": "5.0L V8 6AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XJ",
+   "variants": [
+    {
+     "name": "2.0L i4 Ti 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L LWB 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L SWB 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L D 6AT RWD (207 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L D V6 6AT RWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.9L 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0D V6 8AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 LWB 6AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 LWB 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 LWB 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SWB 6AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 SWB 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SWB 8AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 4AT RWD (219 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (219 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 5AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L V6 5MT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5MT RWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V8 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V8 6AT RWD (266 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 4AT RWD (249 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (226 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 5MT RWD (249 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5AT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 5MT FWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L SC V8 6AT RWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L Super V8 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (470 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 LWB 6AT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 Supercharged LWB 6AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 Supercharged SWB 6AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 SWB 6AT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V12 3AT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 4AT RWD (318 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5MT RWD (318 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XJ220",
+   "variants": [
+    {
+     "name": "3.5L V6 Turbo 5MT RWD (542 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XJR",
+   "variants": [
+    {
+     "name": "4.0L Supercharged 4AT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L Supercharged 5MT RWD (326 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L Supercharged V8 5AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 S/C 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 SC V8 8AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT RWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XK",
+   "variants": [
+    {
+     "name": "3.5L V8 6AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5AT RWD (294 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT RWD (379 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XKR",
+   "variants": [
+    {
+     "name": "4.0L V8 SC 5AT (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 SC 5AT RWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 SC 6AT RWD (363 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT FWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (415 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 SC 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 SC 6AT RWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 SC 6AT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 SC 6AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L SC 6AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6A RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 SC 6AT FWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

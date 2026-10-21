@@ -1,0 +1,40 @@
+{
+ "name": "Bufori",
+ "models": [
+  {
+   "name": "CS8",
+   "variants": [
+    {
+     "name": "3.6L V6 8AT RWD (324 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L Supercharged V8 8AT RWD (821 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 8AT RWD (482 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Geneva",
+   "variants": [
+    {
+     "name": "6.4i V8 5AT RWD (477 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "La Joya",
+   "variants": [
+    {
+     "name": "2.7L V6 4MT RWD (173 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,303 @@
+{
+ "name": "Isuzu",
+ "models": [
+  {
+   "name": "117",
+   "variants": [
+    {
+     "name": "1.6L 4MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 3AT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4MT RWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 3AT RWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT RWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT RWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 3AT RWD (73 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 5MT RWD (73 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Amigo",
+   "variants": [
+    {
+     "name": "2.2L 5MT RWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT AWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT RWD (132 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Amigo Cabrio",
+   "variants": [
+    {
+     "name": "2.2L 5MT RWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT RWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5MT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5MT RWD (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ascender",
+   "variants": [
+    {
+     "name": "4.2L 4AT AWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L 4AT RWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Axiom",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT RWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Hombre",
+   "variants": [
+    {
+     "name": "2.2L 4AT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 4AT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V6 5MT AWD (182 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "i-Series",
+   "variants": [
+    {
+     "name": "2.8L 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 4AT FWD (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 5MT FWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 5MT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L 4AT FWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L 4AT FWD (247 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MU-7",
+   "variants": [
+    {
+     "name": "3.0D 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0D 5MT AWD (177 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Rodeo / D-Max",
+   "variants": [
+    {
+     "name": "2.5 5AT 4x4 (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5 6MT 4x4 (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5 D 5MT (205 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5AT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5MT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 6MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 5MT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L D 5MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2i V6 4AT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2i V6 4AT RWD (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Trooper",
+   "variants": [
+    {
+     "name": "2.6L 5MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L DTI 4AT AWD (159 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L DTI 5MT AWD (159 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.1d 5MT AWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.1L D 5MT AWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.1L TDI 5MT AWD (126 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L V6 5MT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5MT AWD (230 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

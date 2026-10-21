@@ -1,0 +1,148 @@
+{
+ "name": "Morgan",
+ "models": [
+  {
+   "name": "3 wheeler",
+   "variants": [
+    {
+     "name": "2.0L 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (83 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "4/4 2 Seater",
+   "variants": [
+    {
+     "name": "1.6l i4",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "4/4 4 Seater",
+   "variants": [
+    {
+     "name": "1.8 L",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aero",
+   "variants": [
+    {
+     "name": "4.8 v8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aero 8",
+   "variants": [
+    {
+     "name": "4.4L V8 6MT (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 6MT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8 V8 6MT (368 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT (367 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aero SuperSports",
+   "variants": [
+    {
+     "name": "4.8 v8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "AeroMax",
+   "variants": [
+    {
+     "name": "4.8L V8 6MT RWD (368 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Plus 4",
+   "variants": [
+    {
+     "name": "2.0 L",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0l i4",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Plus 8",
+   "variants": [
+    {
+     "name": "4.8 v8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Plus Six",
+   "variants": [
+    {
+     "name": "3.0L RWD (335 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roadster",
+   "variants": [
+    {
+     "name": "3.0L V6 5MT RWD (226 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT RWD (284 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+/* The car pick (js/car-pick.js): three drop-downs, a note and the line that credits the open data it is built from. */
+.car-pick { display: grid; gap: 12px; }
+.car-pick-field { display: grid; gap: 4px; }
+.car-pick-field .k { font-size: .85rem; color: var(--muted-ink, #4d5f5a); }
+.car-pick-sel {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 9px 10px;
+  color: inherit;
+  background: #fff;
+  border: 1px solid var(--hairline-strong, #b9c7c2);
+  border-radius: var(--radius-sm, 8px);
+}
+.car-pick-sel:disabled { opacity: .6; }
+.car-pick-note,
+.car-pick-credit { margin: 0; font-size: .85rem; color: var(--muted-ink, #4d5f5a); }
+.car-pick-credit a { color: inherit; }
+.tp-addcar-pick { margin-block: 12px; }

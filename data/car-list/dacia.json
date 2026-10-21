@@ -1,0 +1,833 @@
+{
+ "name": "Dacia",
+ "models": [
+  {
+   "name": "1100",
+   "variants": [
+    {
+     "name": "1.1L 4MT FWD (46 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (65 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1300",
+   "variants": [
+    {
+     "name": "1.3L 4MT (54 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1300 Break",
+   "variants": [
+    {
+     "name": "1.3L 4MT (54 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1310",
+   "variants": [
+    {
+     "name": "1.3L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (56 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1310 Break",
+   "variants": [
+    {
+     "name": "1.3L 4MT (56 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1310/1410 Sport",
+   "variants": [
+    {
+     "name": "1.3L 4MT (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (65 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1320",
+   "variants": [
+    {
+     "name": "1.3L 5MT (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (65 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "1325",
+   "variants": [
+    {
+     "name": "1.4L 5MT (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (75 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "500",
+   "variants": [
+    {
+     "name": "0.5 4MT (22 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bigster",
+   "variants": [
+    {
+     "name": "1.2L TCe MHEV 6MT AWD (130 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L TCe MHEV 6MT FWD (140 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.8L 4AT FWD (156 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Dokker",
+   "variants": [
+    {
+     "name": "1.2L TCE 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Dokker Van",
+   "variants": [
+    {
+     "name": "1.2L TCE 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Duster",
+   "variants": [
+    {
+     "name": "1.2L Eco-G 120 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TCe 130 6MT AWD (130 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L TCe 130 6MT FWD (130 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L TCe 6MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TCe 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TCe FWD 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L TCe 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L TCe 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 4x4 6MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6MT AWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi FWD 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi FWD 6AT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi FWD 6MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi FWD 6MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 4x4 6MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FHEV 140 Multi-Mode AT FWD (140 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L FWD 6MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L SCe 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L SCe 6MT AWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "dCi 115 6MT AWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "dCi 115 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "TCe 130 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "TCe 150 6AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "TCe 150 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "TCe 90 6MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Duster Pick-Up",
+   "variants": [
+    {
+     "name": "Blue dCi (115 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "JOGGER",
+   "variants": [
+    {
+     "name": "1.0L TCe 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 6MT FWD (110 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 6MT FWD (110 HP) 7 Seats",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FHEV FWD (141 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L FHEV FWD (141 HP) 7 Seats",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Lodgy",
+   "variants": [
+    {
+     "name": "1.2L TCe 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Logan",
+   "variants": [
+    {
+     "name": "0.9L TCe 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TCe 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 12V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L SCe 65 5MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 CVT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 16V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 16V GPL 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Logan MCV",
+   "variants": [
+    {
+     "name": "0.9L TCe 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TCe 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 12V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 16V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Logan MCV Stepway",
+   "variants": [
+    {
+     "name": "0.9L TCe 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TCe 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Logan Pick-Up",
+   "variants": [
+    {
+     "name": "1.5L dCi FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi FWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MPI FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Logan Van",
+   "variants": [
+    {
+     "name": "1.4L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nova",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L SuperNova 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sandero",
+   "variants": [
+    {
+     "name": "0.9L TCe 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TCe 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 12V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L SCe 65 5MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 CVT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 16v 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16v 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sandero Stepway",
+   "variants": [
+    {
+     "name": "0.9L TCe 5AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L TCe 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 6MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TCe 90 CVT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L Eco-G 120 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L Eco-G 120 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCi 5AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L dCi 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16v 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT (85 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Solenza",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (62 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Spring",
+   "variants": [
+    {
+     "name": "26.8 KWh (44 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27.4 KWh FWD (45 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27.4 KWh FWD (65 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "27.5 kWh FWD (82 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Striker",
+   "variants": [
+    {
+     "name": "1.2L MHEV 6AT FWD",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "SuperNova",
+   "variants": [
+    {
+     "name": "1.4",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

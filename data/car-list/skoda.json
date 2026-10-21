@@ -1,0 +1,2509 @@
+{
+ "name": "Škoda",
+ "models": [
+  {
+   "name": "SKODA 100 series",
+   "variants": [
+    {
+     "name": "1.1L 4MT (52 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "100 1.0L 4MT RWD (42 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "110 1.1L 4MT RWD (52 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "110 1.1L 4MT RWD (73 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Citigo",
+   "variants": [
+    {
+     "name": "1.0L 5AT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 7AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5AT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI Green tec 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI Green tec 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI Green tec 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "61 Kw FWD (83 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Elroq",
+   "variants": [
+    {
+     "name": "55 KWh RWD (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "63 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "82 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Elroq RS",
+   "variants": [
+    {
+     "name": "84 KWh AWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Enyaq",
+   "variants": [
+    {
+     "name": "60 63 kWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "85 82 kWh RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "85x 82 kWh AWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enyaq 50 iV 109 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enyaq 60 iV 132 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enyaq 80 iV AWD 150 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enyaq 80x iV AWD 195 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Enyaq RS AWD 225 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "iV 60 62 KWh RWD (179 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "iV 80 82 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "iV 80x 82 KWh AWD (265 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "RS iV 82 KWh (299 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Enyaq Coupe RS",
+   "variants": [
+    {
+     "name": "84 KWh AWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Enyaq RS",
+   "variants": [
+    {
+     "name": "84 KWh AWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Epiq",
+   "variants": [
+    {
+     "name": "35 38.5 KWh FWD (116 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "40 38.5 kWh FWD (135 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "55 55 kWh FWD (211 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Fabia",
+   "variants": [
+    {
+     "name": "1.0L MPI 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI EVO 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI EVO 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 12V 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 16V 5MT FWD (64 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 6V 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L HTP 5MT FWD (64 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6V FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L TSI EVO 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Fabia Combi",
+   "variants": [
+    {
+     "name": "1.0L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MPI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 12V 5MT (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI DSG FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI DSG FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L? TDI 5MT (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Fabia Combi RS",
+   "variants": [
+    {
+     "name": "1.4L TSI (180 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Fabia RS",
+   "variants": [
+    {
+     "name": "1.4 TSI 7AT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Favorit",
+   "variants": [
+    {
+     "name": "1.3L 5MT (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (68 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Felicia",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L LX 5MT FWD (58 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6 LX 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9d 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Felicia Combi",
+   "variants": [
+    {
+     "name": "1.3 LX 5MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9d 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Kamiq",
+   "variants": [
+    {
+     "name": "1.0L TSI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT RWD (115 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Karoq",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 6MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 7AT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI EVO 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Kodiaq",
+   "variants": [
+    {
+     "name": "1.4L TSI 6AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 6AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI MHEV 7AT FWD (150 HP) 7 seat",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0 TSI 7AT AWD (186 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 TSI 7AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP) 7 Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP) 7 Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (204 HP) 7 seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "iV 1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Kodiaq RS",
+   "variants": [
+    {
+     "name": "2.0L Biturbo 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Kushaq",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 8AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Kylaq",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO e-TEC 7AT FWD (110 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI IV 6AT FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO e-TEC 7AT FWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSi MHEV 7AT FWD (116 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L T 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI PD 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (183 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (135 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI PD 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (204 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia Combi",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI EVO e-TEC 7AT FWD (110 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 7AT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI IV 6AT FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI EVO e-TEC 7AT FWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSi MHEV 7AT FWD (116 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.6L 5MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L T 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI PD 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (135 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI PD 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia Combi 4x4",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT AWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT AWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT AWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TSI 6AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (183 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT 4x4 (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia Combi RS",
+   "variants": [
+    {
+     "name": "1.0L TSI e-Tec 7AT AWD (110 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT AWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT AWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI e-Tec 7AT AWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.8T 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8T 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT 4x4 (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TFSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia RS",
+   "variants": [
+    {
+     "name": "1.0L TSI e-Tec 7AT AWD (110 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT AWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT AWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI e-Tec 7AT AWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.8T",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TFSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Octavia Scout",
+   "variants": [
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI e-TEC 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.8L TSI 6AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Peaq",
+   "variants": [
+    {
+     "name": "60 63 kWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "60 63 kWh RWD (204 HP) 7 Seat",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Rapid",
+   "variants": [
+    {
+     "name": "1.2L MPI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI Green Tec 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI Green Tec 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI Green Tec 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 6AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI Green Tec 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Rapid Spaceback",
+   "variants": [
+    {
+     "name": "1.2L TSI 5MT (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI Greenline 5MT (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Roomster",
+   "variants": [
+    {
+     "name": "1.2L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L HTP 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L HTP 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (103 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Scala",
+   "variants": [
+    {
+     "name": "1.0L TSI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Slavia",
+   "variants": [
+    {
+     "name": "1.0L TSI 6AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 8AT FWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6AT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Superb",
+   "variants": [
+    {
+     "name": "1.4L TSI 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT DPF (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDi 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L T 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L T 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT 4x4 (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 TDI 6MT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDi 5MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT 4x4 (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDi 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT DPF (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDi 6AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT 4x4 (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDi 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 TDI 5AT FWD (155 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI 5AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI 6MT FWD (155 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.6L V6 TDI 5AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.6L V6 TDI 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 5AT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT 4x4 (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 FSI 6AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "IV 1.4L TSI 6AT FWD (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "iV 1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Superb Combi / Scout",
+   "variants": [
+    {
+     "name": "1.4L TSI 6AT FWD (156 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI Green Tec 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.6L TDI 6MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT DPF (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TSI 6MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT 4x4 (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7DSG (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT 4x4 (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT 4x4 (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI Green Tec 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L FSI V6 6AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT 4x4 (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "iV 1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "SKODA Yeti",
+   "variants": [
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI FWD 6MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI FWD 6MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI FWD 7AT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI FWD 7AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4 TSI FWD 7AT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 4x4 6AT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 4x4 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 4x4 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI FWD 6AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI FWD 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI GreenTec FWD 6MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 4x4 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI GreenLine FWD 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI GreenLine II FWD 5MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TSI 4x4 6MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4x4 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4x4 6AT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4x4 6AT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4x4 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4x4 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4x4 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 6AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 6MT (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

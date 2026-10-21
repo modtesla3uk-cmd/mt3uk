@@ -1,0 +1,102 @@
+{
+ "name": "Koenigsegg",
+ "models": [
+  {
+   "name": "Agera",
+   "variants": [
+    {
+     "name": "5.0 V8 7AT (1,115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 V8 7AT (1,130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 V8 7AT (1,140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0 V8 7AT (910 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 7AT (1,176 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CC8S",
+   "variants": [
+    {
+     "name": "4.7L V8 6MT RWD (655 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CCR",
+   "variants": [
+    {
+     "name": "4.7L V8 6MT RWD (806 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CCX",
+   "variants": [
+    {
+     "name": "4.7L V8 6MT RWD (817 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CCXR",
+   "variants": [
+    {
+     "name": "4.7L V8 6MT RWD (1032 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Jesko",
+   "variants": [
+    {
+     "name": "5.0L V8 9AT AWD (1280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "One:1",
+   "variants": [
+    {
+     "name": "5.0L V8 7AT (1,360 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Regera",
+   "variants": [
+    {
+     "name": "5.0 V8 (1,509 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Sadairs Spear",
+   "variants": [
+    {
+     "name": "5.0L V8 9AT RWD (1300/1625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

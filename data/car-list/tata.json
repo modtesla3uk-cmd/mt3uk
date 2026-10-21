@@ -1,0 +1,220 @@
+{
+ "name": "Tata",
+ "models": [
+  {
+   "name": "MOTORS Altroz",
+   "variants": [
+    {
+     "name": "1.2L 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Aria",
+   "variants": [
+    {
+     "name": "2.2 Dicor 4x2 5MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2 Dicor 4x4 5MT (140 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Harrier",
+   "variants": [
+    {
+     "name": "2.0L Turbo 6MT RWD (140 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Indica",
+   "variants": [
+    {
+     "name": "1.2L MPI 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L QuadraJet 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L QuadraJet 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4 TDI 5MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4 TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (67 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L MPI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TD 5MT FWD (63 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TD 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Indigo",
+   "variants": [
+    {
+     "name": "1.2L MPI 5MT (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L QuadraJet 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L CR4 5MT (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L Safire 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TD 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT (70 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Indigo SW",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Nano",
+   "variants": [
+    {
+     "name": "0.6L 4MT RWD (38 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Nexon",
+   "variants": [
+    {
+     "name": "1.2L Turbo 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Turbo 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Safari",
+   "variants": [
+    {
+     "name": "1.9L TDI 5MT RWD (87 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L 5MT RWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L VariCOR 5MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L VariCOR 5MT RWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L CRD 5MT RWD (116 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Sumo",
+   "variants": [
+    {
+     "name": "3.0 CR4 5MT (85 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0 TDI 5MT (70 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "MOTORS Telcoline",
+   "variants": [
+    {
+     "name": "1.9L TDI 5MT (92 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

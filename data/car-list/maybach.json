@@ -1,0 +1,48 @@
+{
+ "name": "Maybach",
+ "models": [
+  {
+   "name": "57",
+   "variants": [
+    {
+     "name": "5.5L V12 5AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 Biturbo 5AT RWD (640 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "62",
+   "variants": [
+    {
+     "name": "5.5L V12 5AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 5AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 Biturbo 5MT RWD (640 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Landaulet",
+   "variants": [
+    {
+     "name": "6.0L V12 5AT RWD (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

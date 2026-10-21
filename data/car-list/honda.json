@@ -1,0 +1,2261 @@
+{
+ "name": "Honda",
+ "models": [
+  {
+   "name": "1300",
+   "variants": [
+    {
+     "name": "1.3L 3AT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT (95 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Accord",
+   "variants": [
+    {
+     "name": "1.5L 6MT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 2AT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 3AT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 3AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 3AT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 4AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 4AT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i TD 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 10AT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 10AT FWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Atkinson FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L CVT (212 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L i-VTEC 4AT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC FWD (212 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.2i VTEC 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2i VTEC 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 5MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L i-VTEC 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT FWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT FWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC CVT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC CVT (189 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 Hybrid 5AT FWD (257 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L V6 i-VTEC 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 i-VTEC 5AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 i-VTEC 5AT FWD (244 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 i-VTEC 5AT FWD (247 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5 i-VTEC 5AT FWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L i-VTEC 6AT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 i-VTEC 6AT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 i-VTEC 6MT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 VTEC 5AT FWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 VTEC 6MT FWD (271 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Accord Crosstour",
+   "variants": [
+    {
+     "name": "2.4L 5AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L FWD 5AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L AWD 6AT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L FWD 6AT (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (271 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Accord Euro",
+   "variants": [
+    {
+     "name": "1.6i 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 i-VTEC 5AT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 4AT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Euro R 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-CTDi 5MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 5AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC TypeS 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L Type-V 4AT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L Type-V 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L i-VTEC 5AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT FWD (201 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Accord Tourer",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT FWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L i-CTDi 5MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 5AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC TypeS 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4 i-VTEC 5AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L T 5AT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L T 5AT FWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Accord Type R",
+   "variants": [
+    {
+     "name": "2.2L 5MT FWD (212 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Airwave",
+   "variants": [
+    {
+     "name": "1.5L CVT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT AWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Avancier",
+   "variants": [
+    {
+     "name": "2.3L 4AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT AWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (215 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Beat",
+   "variants": [
+    {
+     "name": "0.7L 5MT (64 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic",
+   "variants": [
+    {
+     "name": "1.0L 6MT FWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L CVT FWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT FWD (76 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 2AT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5AT (95 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.3L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (83 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.3L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4 i-VTEC 6MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4AT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L i-DSI 6AT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L i-DSI 6MT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L i-VTEC 6AT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L i-VTEC 6MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L IMA Hybrid 5AT FWD (123 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L IMA Hybrid CVT FWD (110 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5i 5MT (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 16V VTEC 6MT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 16V VTEC CVT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 2AT FWD (76 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (76 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L VTEC CVT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 4AT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5 MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i CVT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i CVT (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i CVT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i VTEC 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i VTEC 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5AT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L i-DTEC 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 5MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7 i-CDT 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.7L 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L CVT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L i-CDT 5MT (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.7L i-CDT 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.7L i-CDT 5MT FWD (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8 i-VTEC 5AT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8 i-VTEC 6MT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5AT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5AT FWD (142 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 6AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 6MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 6MT FWD (142 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC CVT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L LPG 5AT FWD (113 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.8L VTi 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V i-VTEC 6MT (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V i-VTEC CVT (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L e-CVT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC CVT (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L i-CDTi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-CTDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Si 1.5L 6MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Si 1.5L VTEC 6MT (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic Aero Deck",
+   "variants": [
+    {
+     "name": "1.4i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L VTi 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic CRX",
+   "variants": [
+    {
+     "name": "1.3L (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i (AF) (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i (AS) (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i VTEC 5MT (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic Shuttle",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic Si Sedan US",
+   "variants": [
+    {
+     "name": "1.5L VTEC 6MT FWD (203 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Civic Tourer",
+   "variants": [
+    {
+     "name": "1.6L i-DTEC 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Civic Type-R",
+   "variants": [
+    {
+     "name": "2.0 i-VTEC 6MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VTEC 6MT FWD (310 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Clarity",
+   "variants": [
+    {
+     "name": "V Flow fuel cell stack FWD (136 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Concerto",
+   "variants": [
+    {
+     "name": "1.5i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CR-V",
+   "variants": [
+    {
+     "name": "1.5i CVT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i CVT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Turbo CVT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Turbo CVT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L VTEC CVT FWD (212 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L i-DTEC 6MT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L i-DTEC 6MT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L i-DTEC 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L i-DTEC 9AT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 1AT AWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L 4AT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT AWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT AWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L e:PHEV Atkinson FWD CVT (184 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L i-MMD CVT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 2WD 6MT (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 4WD 5AT (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 4WD 6MT (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 5AT AWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT AWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L I-VTEC CVT AWD (184 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L I-VTEC CVT FWD (184 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.2L CDTi 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-CTDi 4WD 5AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-CTDi 4WD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-CTDi 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 5AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L i-DTEC 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4i 16V 5MT AWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT AWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 2WD 5AT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 4WD 5AT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC CVT AWD (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC CVT FWD (188 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CR-Z",
+   "variants": [
+    {
+     "name": "1.5L i-VTEC IMA 6MT FWD (122 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L i-VTEC IMA CVT FWD (122 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "CRX Del Sol",
+   "variants": [
+    {
+     "name": "1.6i 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "e",
+   "variants": [
+    {
+     "name": "35.4 KWh (154 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "e:Ny1",
+   "variants": [
+    {
+     "name": "68.8 KWh (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Element",
+   "variants": [
+    {
+     "name": "2.4L i-VTEC 5MT AWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5MT AWD (166 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Fit EV",
+   "variants": [
+    {
+     "name": "1AT (123 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "FR-V / Edix",
+   "variants": [
+    {
+     "name": "1.7i 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L CDTi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "HR-V",
+   "variants": [
+    {
+     "name": "1.5L i-MMD e-CVT FWD (131 Hp)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L i-VTEC (132 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L i-VTEC 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L i-VTEC 7AT FWD (152 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L i-VTEC CVT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (124 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L i-DTEC 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L CVT AWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CVT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC 6MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC CVT AWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC CVT AWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC CVT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L i-VTEC CVT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V CVT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (158 HP) US",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (158 HP) US",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 1.5L VTEC Turbo 6MT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 1.5L VTEC Turbo CVT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 1.8L CVT AWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 1.8L CVT FWD (141 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Insight",
+   "variants": [
+    {
+     "name": "1.0L 5MT (69 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.3L Hybrid CVT FWD (88 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L CVT FWD (98 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L CVT (151 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L CVT FWD (122 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Jazz / City",
+   "variants": [
+    {
+     "name": "1.2L 4MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (56 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Jazz / Fit",
+   "variants": [
+    {
+     "name": "1.2i 5MT FWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2i 5MT FWD (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L i-VTEC 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT AWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L i-VTEC 6MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L i-VTEC 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L i-VTEC CVT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L i-VTEC CVT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i 5MT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4i CVT FWD (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L i-VTEC 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L AWD (98 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L CVT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L FWD (98 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L i-DTEC 6MT (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L i-VTEC 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L i-VTEC 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L i-VTEC CVT FWD (130 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Legend",
+   "variants": [
+    {
+     "name": "2.5i V6 4AT FWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i V6 5MT FWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7i 5MT (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7i V6 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7i V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2i V6 4AT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2i V6 5MT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5i V6 4AT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 7AT AWD (382 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.7L V6 5AT AWD (295 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Logo / Fit",
+   "variants": [
+    {
+     "name": "1.3L 3AT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT AWD (65 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MDX",
+   "variants": [
+    {
+     "name": "3.5L V6 5AT AWD (243 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mobilio",
+   "variants": [
+    {
+     "name": "1.5L CVT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT AWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Spike 1.5L CVT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Spike 1.5L CVT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "N360",
+   "variants": [
+    {
+     "name": "0.4",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "N600",
+   "variants": [
+    {
+     "name": "0.6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "NSX",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT RWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT RWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT RWD (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (573 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Odyssey",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT FWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (248 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT FWD (248 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 i-VTEC 10AT FWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passport",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT AWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 DOHC 10AT AWD (289 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Pilot",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT AWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT AWD (289 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4WD 5AT (253 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT FWD (253 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 I-VTEC 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 I-VTEC 6AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 I-VTEC 9AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 I-VTEC 9AT RWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Prelude",
+   "variants": [
+    {
+     "name": "1.6L 3AT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L EX 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FHEV e-CVT (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.2i 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L VTi 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L VTi 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Prologue",
+   "variants": [
+    {
+     "name": "Dual Motor 85 KWh AWD (288 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor 85 KWh FWD (212 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Ridgeline",
+   "variants": [
+    {
+     "name": "3.5L V6 5AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT 4x2 (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT 4x4 (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S2000",
+   "variants": [
+    {
+     "name": "2.0L 6MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S660",
+   "variants": [
+    {
+     "name": "0.66L 6MT RWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.66L CVT RWD (63 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S800",
+   "variants": [
+    {
+     "name": "0.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S800C",
+   "variants": [
+    {
+     "name": "0.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Shuttle",
+   "variants": [
+    {
+     "name": "2.2i 4AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2i 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 4AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 4AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 4AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Stream",
+   "variants": [
+    {
+     "name": "1.7L 4AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L 5MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5AT AWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5TM AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5TM FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Super-N",
+   "variants": [
+    {
+     "name": "29.6 kWh",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "That's",
+   "variants": [
+    {
+     "name": "0.7L 3AT (52 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L Turbo 3AT (64 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ZR-V",
+   "variants": [
+    {
+     "name": "1.5L Turbo CVT 4WD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Turbo CVT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Turbo CVT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L e:HEV e-CVT 4WD (184 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L e:HEV e-CVT FWD (184 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  }
+ ]
+}

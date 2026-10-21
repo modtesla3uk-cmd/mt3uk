@@ -1,0 +1,974 @@
+{
+ "name": "Subaru",
+ "models": [
+  {
+   "name": "360",
+   "variants": [
+    {
+     "name": "0.4 4MT (25 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ascent",
+   "variants": [
+    {
+     "name": "2.4L CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Baja",
+   "variants": [
+    {
+     "name": "2.5L 4AT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L Turbo 4AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L Turbo 5MT AWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "BRZ",
+   "variants": [
+    {
+     "name": "2.0L 6AT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT RWD (231 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Crosstrek",
+   "variants": [
+    {
+     "name": "2.0L 5MT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (148 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L CVT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L PHEV CVT AWD (148 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.5L 6MT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (197 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Exiga Liberty",
+   "variants": [
+    {
+     "name": "2.5i CVT (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i CVT (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 5AT (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 6MT (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Forester",
+   "variants": [
+    {
+     "name": "2.0D 6MT AWD (147 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT AWD (147 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L X 5MT AWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L X 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5MT AWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5MT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT AWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5AT AWD (262 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (182 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L CVT AWD (81 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L STi 6MT AWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L XT 5MT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L XT 5MT AWD (230 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Getaway",
+   "variants": [
+    {
+     "name": "Long Range 95.8 KWh AWD (420 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 77 KWh AWD",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Impreza",
+   "variants": [
+    {
+     "name": "1.5L 4AT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT AWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i Lineartronic AWD (114 Hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT AWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT AWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT AWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L CVT AWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT AWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i e-Boxer Lineartronic AWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L 4AT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT Lineartronic AWD (152 Hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L R 5MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TD 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L (WRX) 5MT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L (WRX) 6MT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L T 5MT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "RS 2.5L CVT AWD (182 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Impreza WRX STi",
+   "variants": [
+    {
+     "name": "2.0 Turbo 6MT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 Turbo 6MT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 Turbo 6MT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Justy",
+   "variants": [
+    {
+     "name": "1.0L 5MT AWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2i 5MT AWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT AWD (67 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5 MT AWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5 MT AWD (93 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT AWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT AWD (99 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Legacy",
+   "variants": [
+    {
+     "name": "2.0d 5MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0D 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 5MT AWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 4AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D 5MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L i 5MT AWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L R 4AT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L R 5MT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 4AT AWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 5MT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 5MT AWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 6MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i CVT AWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i CVT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 5MT AWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 6MT AWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 6MT AWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 6MT AWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L i 5MT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L R 5AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L R 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L R Spec.B 6MT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L R Spec.B 6MT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0R CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GT 2.0L 4AT AWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Levorg",
+   "variants": [
+    {
+     "name": "1.6L CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Liberty",
+   "variants": [
+    {
+     "name": "2.5i CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 5AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L GT 6MT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mini Jumbo",
+   "variants": [
+    {
+     "name": "0.7L 4MT FWD (37 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.8L 5MT FWD (42 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Outback",
+   "variants": [
+    {
+     "name": "2.0D 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0D 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0D AWD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0D AWD CVT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0D CVT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (263 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 4AT AWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 5MT AWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 6AT AWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i 6MT AWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i AWD CVT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i CVT AWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT AWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5XT 5AT AWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5XT 5MT AWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4AT (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4AT AWD (209 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L R 5AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L R 6AT HCVT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6R 5AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Wilderness 2.4L CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "XT 2.4L CVT AWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Outback Wilderness",
+   "variants": [
+    {
+     "name": "2.5L CVT AWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT AWD (263 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "R1",
+   "variants": [
+    {
+     "name": "0.7L CVT AWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L CVT FWD (45 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "R2",
+   "variants": [
+    {
+     "name": "0.4L 4MT RWD (31 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 16V 5MT FWD (53 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 16V Turbo CVT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 8V 5MT FWD (45 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Solterra",
+   "variants": [
+    {
+     "name": "71.4 KWh AWD (218 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "71.4 KWh FWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "74.7 KWh AWD (338 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Stella",
+   "variants": [
+    {
+     "name": "0.7 CVT (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7 Turbo CVT (64 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SVX",
+   "variants": [
+    {
+     "name": "3.3L 4AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L 4AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L 4AT AWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Trailseeker",
+   "variants": [
+    {
+     "name": "74.7 kWh AWD (375 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Trezia",
+   "variants": [
+    {
+     "name": "1.3L 6MT FWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4D 6AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4D 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Tribeca",
+   "variants": [
+    {
+     "name": "3.0L 5AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Uncharted",
+   "variants": [
+    {
+     "name": "Premium 74.7 kWh FWD (224 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Sport 74.7 KWh AWD (343 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Vivio",
+   "variants": [
+    {
+     "name": "0.7L 5MT FWD (44 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "WRX",
+   "variants": [
+    {
+     "name": "2.0L DOHC 6AT (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L DOHC CVT (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT AWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6MT AWD (346 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L DOHC 6MT AWD (309 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XV",
+   "variants": [
+    {
+     "name": "1.6i 5MT AWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i CVT AWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0D 6MT AWD (145 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i 6MT AWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i CVT AWD (147 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

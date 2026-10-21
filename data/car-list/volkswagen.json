@@ -1,0 +1,5809 @@
+{
+ "name": "Volkswagen",
+ "models": [
+  {
+   "name": "Amarok",
+   "variants": [
+    {
+     "name": "2.0L BiTDI 4MOTION AWD 6MT (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BiTDI 6MT (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BiTDI 8AT 4MOTION AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BiTDI RWD 6MT (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 10AT AWD (205 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 10AT AWD (209 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (205 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT RWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT RWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI Blue Motion RWD 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT RWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT RWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L TSI 4MOTION 10AT AWD (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L TDI V6 4MOTION 10AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDI V6 4MOTION 10AT AWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4MOTION 6MT AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4MOTION 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 6MT RWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 4MOTION 8AT (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 4MOTION 8AT AWD (204 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Ameo",
+   "variants": [
+    {
+     "name": "1.0L 5MT FWD (76 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L TDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Arteon",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4 MOTION 7AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT FWD (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Arteon Shooting Brake",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Atlas",
+   "variants": [
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (269 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (282 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT FWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT FWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT FWD (269 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT FWD (282 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD 4MOTION (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT FWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L VR6 4MATIC 8AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L VR6 8AT FWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Atlas Cross Sport",
+   "variants": [
+    {
+     "name": "2.0L 4MOTION 8AT AWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT FWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTIN 8AT (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 4MOTION 8AT AWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT FWD (276 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Beetle",
+   "variants": [
+    {
+     "name": "1.1L 4MT RWD (25 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT RWD (30 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT RWD (35 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT RWD (41 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT RWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT RWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4MT RWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT RWD (43 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT RWD (51 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI Bluemotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI Bluemotion 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 4AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT RWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L V5 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4MOTION 6MT AWD (224 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Beetle Cabrio",
+   "variants": [
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT RWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT RWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L Turbo 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6AT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5MT RWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT RWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6AT RWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT RWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Caddy",
+   "variants": [
+    {
+     "name": "1.2L TSI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BMT 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BMT 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT 4MOTION AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L SDI 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "TDI (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "TDI (74 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "TSI (114 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CC",
+   "variants": [
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4Motion 6AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 4Motion 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 4Motion 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Corrado",
+   "variants": [
+    {
+     "name": "1.8L G60 4AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L G60 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L VR6 4AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L VR6 5MT FWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cross UP!",
+   "variants": [
+    {
+     "name": "1.0L 5AT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Derby",
+   "variants": [
+    {
+     "name": "1.1L 4MT (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT (60 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "e-Golf",
+   "variants": [
+    {
+     "name": "24 kWh (115 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "35.8 kWh CVT (134 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "e-UP!",
+   "variants": [
+    {
+     "name": "18.7 KWh (82 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "32.3 KWh (83 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Eos",
+   "variants": [
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i FSI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TFSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6AT FWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Fox",
+   "variants": [
+    {
+     "name": "1.2L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Golf",
+   "variants": [
+    {
+     "name": "1.0L 4MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L eTSI 7AT FWD (110 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.0L TSI (6MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L FSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 7MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L eTSI 7AT FWD (130 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L eTSI 7AT FWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (116 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L 4AT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5AT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 7AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Bifuel - Petrol 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L D 4MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L D 5MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L FSI 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 4MOTION 5MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 4Motion 6MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L SDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L SDI 6MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4Motion 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L V5 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 VR6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L VR6 Syncro 5MT AWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf Alltrack",
+   "variants": [
+    {
+     "name": "1.6L TDI 6MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TSI 4MOTION 6AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 4MOTION 6MT AWD (168 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT AWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "eTSI 7AT",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Golf Cabrio",
+   "variants": [
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Golf GTD Variant",
+   "variants": [
+    {
+     "name": "2.0L TDI 6AT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (184 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Golf GTI / GTD / GTE",
+   "variants": [
+    {
+     "name": "1.4L TSI 6AT FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L 3AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 3AT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (129 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT FWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-FSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T-FSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 7AT FWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TFSI 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 6MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (242 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (242 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Edition 35 - 2.0L TSI 6AT FWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Edition 35 - 2.0L TSI 6MT FWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "G60 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GTI TCR 2.0L 7AT FWD (290 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf GTI cabrio",
+   "variants": [
+    {
+     "name": "2.0L TSI 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf Plus",
+   "variants": [
+    {
+     "name": "1.2L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L FSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 5MT FWD (160 hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 6AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Golf R",
+   "variants": [
+    {
+     "name": "2.0L 4MOTION 6MT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MOTION 7AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MOTION 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6MT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6MT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION BlueMotion 6AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION BlueMotion 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2 V6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT AWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf R Cabrio",
+   "variants": [
+    {
+     "name": "2.0L TSI 6AT (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf R Variant",
+   "variants": [
+    {
+     "name": "2.0L 4MOTION 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6MT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Golf Sportsvan",
+   "variants": [
+    {
+     "name": "1.0L TSI 5MT (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (110)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Golf Variant",
+   "variants": [
+    {
+     "name": "1.0L eTSI 7AT FWD (110 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP) BlueMotion",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L eTSI 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT (116 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueTDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueTDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L FSI 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 4MOTION 6MT AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP) BlueMotion",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT 4Motion AWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT BlueMotion FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L VR6 Syncro 5MT AWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ID. Buzz",
+   "variants": [
+    {
+     "name": "82 KWh (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "91 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "GTX 91 KWh 4MOTION AWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.3",
+   "variants": [
+    {
+     "name": "45 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "50 KWh (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "58 KWh RWD (145 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "58 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "77 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "79 KWh (190 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.3 GTX",
+   "variants": [
+    {
+     "name": "84 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance 84 KWh RWD (326 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.4",
+   "variants": [
+    {
+     "name": "77 KWh (299 HP) 4MOTION",
+     "fuel": "Electric"
+    },
+    {
+     "name": "82 KWh (201 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.5",
+   "variants": [
+    {
+     "name": "82 KWh RWD (174 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "82 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.5 GTX",
+   "variants": [
+    {
+     "name": "82 KWh AWD (299 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.7",
+   "variants": [
+    {
+     "name": "GTX 91 KWh 4MOTION AWD (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Pro 82 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Pro S 91 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.7 GTX",
+   "variants": [
+    {
+     "name": "91 kWh 4MOTION AWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.7 GTX Tourer",
+   "variants": [
+    {
+     "name": "86 KWh 4MOTION",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.7 Tourer",
+   "variants": [
+    {
+     "name": "GTX 91 KWh 4MOTION AWD (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Pro 82 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Pro S 91 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.Cross",
+   "variants": [
+    {
+     "name": "37 KWh FWD (116 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "37 KWh FWD (135 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "52 KWh FWD (211 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ID.Polo GTI",
+   "variants": [
+    {
+     "name": "52 KWh FWD (226 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Jetta / Vento / Bora",
+   "variants": [
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (170 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L 6MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 8AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 8AT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8 Turbo 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT 4Motion (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 4AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 4AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT 4Motion (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT 4Motion (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT 4Motion (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT 4Motion (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT 4Motion AWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT 4Motion AWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5M FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TFSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 6MT 4Motion AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT 4Motion AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 6MT (204 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Jetta GLI",
+   "variants": [
+    {
+     "name": "2.0L 8AT FWD (231 hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (228 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lavida",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lupo",
+   "variants": [
+    {
+     "name": "1.0L 5MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TDI 5AT (61 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V FSI 5AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.7L SDI 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Multivan",
+   "variants": [
+    {
+     "name": "1.4L eHybrid 7AT FWD (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L eHybrid 7AT FWD (218 HP) LWB",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (136 HP) LWB",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 4MOTION 6MT AWD (150 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 4MOTION 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 4MOTION 7AT AWD (150 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 4MOTION 7AT AWD (204 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 5MT FWD (110 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 6MT FWD (150 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 7AT FWD (150 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0i TDI BMT 7AT FWD (204 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (199 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD ((150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD ((150 HP) LWB",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (199 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (204 HP) LWB",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI 6MT FWD (174 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L V6 6AT FWD (235 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nivus",
+   "variants": [
+    {
+     "name": "200 TSI 6AT (128 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passat",
+   "variants": [
+    {
+     "name": "1.3L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BMT 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BMT 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6d 4MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 4MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L D 4MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L D 4MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L FSI 6AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L G60 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI BlueMotion 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9d 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9d 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 4MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 4AT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 4MOTION 6MT AWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI Evo 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION BlueMotion 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION BlueMotion 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR BlueMotion 6AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR BlueMotion 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo FSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L V5 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (170 H",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI V6 6MT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI V6 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI V6 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 4AT FWD (174 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 5AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT AWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 4AT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 FSI 4MOTION 6AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L FSI 4MOTION 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L W8 6MT AWD (275 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passat Alltrack",
+   "variants": [
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 TSI 4Motion 6AT AWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4Motion 6AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4Motion 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT 4MOTION AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT 4MOTION AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT 4MOTION AWD (272 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passat GTE",
+   "variants": [
+    {
+     "name": "1.4L TSI 6AT (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (218 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Passat R",
+   "variants": [
+    {
+     "name": "3.6L V6 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passat Variant",
+   "variants": [
+    {
+     "name": "1.3L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP) BlueMotion",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L eTSI MHEV 48V (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L D 4MT AWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L D 4MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L FSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TD 5MT AWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT AWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 7AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L G60 5MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI BlueMotion 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "19.7 KWh PHEV (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "19.7 KWh PHEV (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L FSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (170 HP) BlueMotion",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP) BlueMotion",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION BlueMotion 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION BlueMotion 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR BlueMotion 6AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR BlueMotion 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo FSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT AWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L V5 5AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L V5 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L VR5 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L TDI V6 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI AWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 TDI FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 5MT AWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 5MT FWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V6 VR6 5MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 FSI 6MT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 FSI 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L W8 6MT AWD (275 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Passat Variant GTE",
+   "variants": [
+    {
+     "name": "1.4 TSI 6AT (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT AWD (156 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Phaeton",
+   "variants": [
+    {
+     "name": "3.0L V6 TDI 6AT AWD (224 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 6AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L V6 6AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 FSI 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 5AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 6AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "5.0L V10 TDI 6AT AWD (312 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.0L W12 5AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 5AT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Pointer",
+   "variants": [
+    {
+     "name": "1.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Polo",
+   "variants": [
+    {
+     "name": "0.9L 4MT FWD (40 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 4MT FWD (40 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 4MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TGI 6MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2 TSI BlueMotion 7AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 12V 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L BlueMotion 5MT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.2L TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 7AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI Bluemotion 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI Bluemotion 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 7AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 7AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 7AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3 D 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L D 5MT FWD (45 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 4AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4AT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 7AT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L D 5MT FWD (48 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L FSI 5MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L FSI 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI BlueMotion 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI BlueMotion 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI BlueMotion 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L TDI BlueMotion 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6 MPI 6AT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI BlueMotion 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Polo BlueGT",
+   "variants": [
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Polo GTI",
+   "variants": [
+    {
+     "name": "1.4L TSI 7AT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI BlueMotion 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TSI BlueMotion 7AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (207 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Polo Variant",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5TM FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (64 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L SDI 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Routan",
+   "variants": [
+    {
+     "name": "3.6L V6 FSI 6AT FWD (283 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 6AT FWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V6 6AT FWD (253 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Santana",
+   "variants": [
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L D 4MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TD 5MT FWD (71 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 4MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Scirocco",
+   "variants": [
+    {
+     "name": "1.3L 4MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT FWD (85 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5M FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6AT FWD (185 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6AT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI BlueMotion 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Scirocco R",
+   "variants": [
+    {
+     "name": "2.0L TSI R 6AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI R 6MT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 2.0L TSI 6AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 2.0L TSI 6MT FWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sharan",
+   "variants": [
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L Turbo 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L VR6 5MT (174 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T-Cross",
+   "variants": [
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 7AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (95 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "T-Roc",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (116 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 4MOTION 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T-Roc R",
+   "variants": [
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Taigo",
+   "variants": [
+    {
+     "name": "1.0L TSI 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Taos",
+   "variants": [
+    {
+     "name": "1.4L TSI 8AT FWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 4MOTION 8AT AWD (176 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 8AT FWD (176 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tayron",
+   "variants": [
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tiguan",
+   "variants": [
+    {
+     "name": "1.4L TSI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 4MOTION 6MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT 4MOTION 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT BlueMotion 6AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI ACT BlueMotion 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI FWD 6AT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI FWD 6MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI FWD 6MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L eTSI MHEV OPF 7AT FWD (130 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV OPF 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0 TFSI 4MOTION 6MT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT (184 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 8AT",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT AWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT AWD (193 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI BlueMotion FWD 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 6MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI FWD 7AT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 4MOTION 7AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 6MT (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TFSI 4MOTION 6AT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 4MOTION 6AT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TFSI 4MOTION 6MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6AT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 6MT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (204 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (265 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L TSI 8AT (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 8AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI FWD 6AT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI FWD 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T TSI 16V 8AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T TSI 16V 8AT FWD (184 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tiguan Allspace",
+   "variants": [
+    {
+     "name": "1.4L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 4MOTION 7AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (245 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Touareg",
+   "variants": [
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (249 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 8AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L TDI 6MT AWD (175 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI R5 6MT AWD (174 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDI SCR V6 8AT AWD (234 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDI SCR V6 8AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDI V6 4MOTION 8AT AWD (231 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDI V6 4MOTION 8AT AWD (286 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TFSI V6 8AT AWD (333 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L TSI V6 4MOTION 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L TSI V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L TSI V6 eHybrid 4MOTION 8AT AWD (381 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L V6 TDI 6AT AWD (225 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 6MT AWD (225 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 8AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI Bluemotion 8AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI Bluemotion 8AT AWD (262 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI Bluemotion Tech 8AT AWD (262 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI Technology Terrain Tech 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TSI Hybrid 8AT AWD (280 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.2L V6 6MT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 FSI 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 FSI 8AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L TDI V8 8AT AWD (421 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.2L V8 6AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 FSI 6AT AWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 TDI 8AT AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "5.0L V10 TDI 6AT AWD (310 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "5.0L V10 TDI 6AT AWD (333 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.0L W12 6MT AWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Touareg R",
+   "variants": [
+    {
+     "name": "3.0L TSI V6 4MOTION 8AT AWD (462 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L V6 4MOTION TSI 8AT (462 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Touran",
+   "variants": [
+    {
+     "name": "1.0L TSI 6MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L TSI BlueMotion 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI 7AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L TSI BlueMotion 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L FSI 6MT (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (105 HP) BlueMotion",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L TDI SCR BlueMotion 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TSI 7AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TDI (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 6MT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 7AT FWD (105 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 TDI BlueMotion 6MT FWD (140)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L EcoFuel 5MT (109 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L FSI 6MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI SCR 7AT FWD (190 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Transporter Kombi",
+   "variants": [
+    {
+     "name": "2.0L TDI 5MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 6MT FWD (84 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4MOTION 7AT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (204 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "up!",
+   "variants": [
+    {
+     "name": "1.0 TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5AT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L BlueMotion 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L TSI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "up! GTI",
+   "variants": [
+    {
+     "name": "1.0 TSI 6MT (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vento",
+   "variants": [
+    {
+     "name": "1.6L MPI 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MPI 6AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TDI 5MT FWD (105 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "XL1",
+   "variants": [
+    {
+     "name": "1.0L 7AT (48 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  }
+ ]
+}

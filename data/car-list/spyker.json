@@ -1,0 +1,54 @@
+{
+ "name": "Spyker",
+ "models": [
+  {
+   "name": "C12 LaTurbie",
+   "variants": [
+    {
+     "name": "6.0L W12 6MT (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C8",
+   "variants": [
+    {
+     "name": "4.2L V8 6MT (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 T 6MT (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C8 Double 12 S",
+   "variants": [
+    {
+     "name": "4.2 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C8 Laviolette",
+   "variants": [
+    {
+     "name": "4.2 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C8 Preliator",
+   "variants": [
+    {
+     "name": "4.2L V8 6MT RWD (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

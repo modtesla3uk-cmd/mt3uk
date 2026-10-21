@@ -1,0 +1,51 @@
+{
+ "name": "Ariel",
+ "models": [
+  {
+   "name": "Atom",
+   "variants": [
+    {
+     "name": "1.6L DOHC 6MT RWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L i-VTEC 6MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Supercharged 6MT (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Supercharged 6MT RWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (233 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 6MT (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nomad",
+   "variants": [
+    {
+     "name": "2.4 i-VTEC 6MT (238 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "name": "DMC",
+ "models": [
+  {
+   "name": "DeLorean DMC-12",
+   "variants": [
+    {
+     "name": "2.6L V6 5MT (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 3AT (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT (132 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

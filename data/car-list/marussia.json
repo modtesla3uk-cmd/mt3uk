@@ -1,0 +1,39 @@
+{
+ "name": "Marussia",
+ "models": [
+  {
+   "name": "B1",
+   "variants": [
+    {
+     "name": "2.8L Turbo (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L Turbo (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "B2",
+   "variants": [
+    {
+     "name": "2.8L Turbo 6AT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L Turbo 6AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

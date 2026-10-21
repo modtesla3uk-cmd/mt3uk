@@ -1,0 +1,97 @@
+{
+ "name": "Caterham",
+ "models": [
+  {
+   "name": "Classic",
+   "variants": [
+    {
+     "name": "1.4 5MT (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CSR",
+   "variants": [
+    {
+     "name": "2.3 5MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3 6MT (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roadsport",
+   "variants": [
+    {
+     "name": "1.6L 5MT RWD (127 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT RWD (142 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT Duratec RWD (177 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Seven 160",
+   "variants": [
+    {
+     "name": "0.66 (80 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Seven 620",
+   "variants": [
+    {
+     "name": "R 2.0 Duratec (314 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Superlight",
+   "variants": [
+    {
+     "name": "R400 2.0 Duratec (213 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R500 2.0 Duratec (266 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Supersport",
+   "variants": [
+    {
+     "name": "1.6 (142 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 2.0 Duratec (182 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "The Super Seven 1600",
+   "variants": [
+    {
+     "name": "1.6L 5MT (135 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,3448 @@
+{
+ "name": "Peugeot",
+ "models": [
+  {
+   "name": "1007",
+   "variants": [
+    {
+     "name": "1.4L 16V 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 5AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "104",
+   "variants": [
+    {
+     "name": "1.0L 4MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "106",
+   "variants": [
+    {
+     "name": "1.0L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 3AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L D 5MT FWD (50 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L D 5MT FWD (58 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 3AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "107",
+   "variants": [
+    {
+     "name": "1.0L 2-Tronic Blue LION 5AT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDI 5MT FWD (54 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "108",
+   "variants": [
+    {
+     "name": "1.0L e-VTi 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5AT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "2008",
+   "variants": [
+    {
+     "name": "1.2L PureTech 100 6MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 130 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 130 6MT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 130 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 130 8AT FWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 155 8AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTECH 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi Blue Lion 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (132 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi Blue Lion 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "100 KW FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "E-2008 54 KWh FWD (156 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "PureTech 6AT FWD (138 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "205",
+   "variants": [
+    {
+     "name": "1.0L 4MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT FWD (54 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V Turbo 5MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TD 5MT FWD (78 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 5MT (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (102 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "206",
+   "variants": [
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 4AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 4AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "206 CC",
+   "variants": [
+    {
+     "name": "1.6L 16V 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "206 SW",
+   "variants": [
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "206+",
+   "variants": [
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "207",
+   "variants": [
+    {
+     "name": "1.4L 16V 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V VTi 5AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V Turbo 5MT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi Economique 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "207 CC",
+   "variants": [
+    {
+     "name": "1.6L 16V 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V HDi 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V Turbo 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi Blue Lion 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "207 SW",
+   "variants": [
+    {
+     "name": "1.4L 16V 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V HDiF 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "208",
+   "variants": [
+    {
+     "name": "1.0L PureTech 5MT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L PureTech 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VTi 5MT FWD (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MHEV 6AT e-DSC FWD (110 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (100 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 100 8AT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT Low Emissions FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L e-HDi 5MT FWD (HP 68)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "46.3 KWh FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "50 KWh 1AT FWD (136 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "51 kWh FWD (156 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "GT 1.2L PureTech 6MT (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "208 GTI",
+   "variants": [
+    {
+     "name": "1.6L 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L e-THP 6MT (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "208 XY",
+   "variants": [
+    {
+     "name": "1.6L e-HDi Stop & Start 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi Stop & Start 6AT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi Stop & Start 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3008",
+   "variants": [
+    {
+     "name": "1.2L BlueHdi 8AT Start & Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHdi 6MT Start & Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI FAP 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PureTech 8AT Start & Stop FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT AWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi FAP 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi FWD FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Hybrid4 6AT FWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "225 e-EAT8 90 KW",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300 e-EAT8 (90 KW)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "73 KWh FWD (213 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual motor 73 kWh AWD (326 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 98 KWh FWD (231 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "301",
+   "variants": [
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PureTech 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 6AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "306",
+   "variants": [
+    {
+     "name": "1.1L 5MT FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (124 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (124 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "307",
+   "variants": [
+    {
+     "name": "1.4L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDi 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "307 CC",
+   "variants": [
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "307 SW",
+   "variants": [
+    {
+     "name": "1.4L 16V 5MT (90)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 16V 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 4AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 4AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "308",
+   "variants": [
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L THP Puretech 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L THP Puretech 6AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L THP Puretech 6MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT Start & Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6 THP 6MT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-THP 6MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L e-THP 6MT FWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDI 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDiF 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDIF 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PHEV 7AT FWD (195 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech 6MT FWD (263 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 81 KW 8AT FWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 8AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "225 81 KW 8AT FWD (180 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "58.3 FWD (156 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "308 CC",
+   "variants": [
+    {
+     "name": "1.6L eHDI 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (165 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (165 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi FAP 6AT FWD (140 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "308 SW",
+   "variants": [
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6 THP 6MT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PHEV 7AT FWD (195 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech 8AT (180 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L PureTech 8AT (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L THP 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 8AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi FAP 6AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi FAP 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "58.3 FWD (156 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "4007",
+   "variants": [
+    {
+     "name": "2.2L HDi 6AT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6MT AWD (156 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 5MT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "4008",
+   "variants": [
+    {
+     "name": "1.6L HDi FAP 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L HDi FAP FWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "405",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TD 5MT (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 4AT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L D 5MT (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L i 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "406",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 4AT (112HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 4AT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 4AT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT (112HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4MT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (168 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V HPI 5MT (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 5MT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 5MT (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 5MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 4AT (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 4AT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 4AT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (194 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "406 Break",
+   "variants": [
+    {
+     "name": "1.8L 16V 4AT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 4AT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V HPI 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 5MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 4AT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "407",
+   "variants": [
+    {
+     "name": "1.6L HDi 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDiF 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 6MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L V6 HDi 6MT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L V6 HDiF 26V 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 HDi 6AT FWD (241 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "407 SW",
+   "variants": [
+    {
+     "name": "1.6L HDi 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 6MT RWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 6MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L V6 HDiF 24V 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 6AT RWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "408",
+   "variants": [
+    {
+     "name": "1.2L MHEV 6AT FWD (143 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.6L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (145 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PHEV (237 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 e-EAT8 FWD (177 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "225 e-EAT8 FWD (222 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "58 KWh (210 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "PureTech 130 EAT8 FWD (131 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "5008",
+   "variants": [
+    {
+     "name": "1.2L MHEV 6AT FWD (136 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L MHEV 6AT FWD (145 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.2L PureTech 6AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6AT (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT Start &Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT Start &Stop FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6AT (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDI 6MT (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi FAP 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PHEV 7AT FWD (196 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech 8AT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 8AT Start & Stop FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 8AT (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHdi 8AT Start & Stop FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Dual motor 73 kWh AWD (326 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 98 KWh FWD (231 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single motor 73 kWh FWD (213 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "504",
+   "variants": [
+    {
+     "name": "1.8L 4MT RWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4MT RWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MT RWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L D 4MT RWD (65 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L D 4MT RWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L V6 4MT RWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 5MT RWD (143 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "505",
+   "variants": [
+    {
+     "name": "2.0L 4MT RWD (96 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L i 5MT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L Turbo 5MT RWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L D 5MT RWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L TD 5MT RWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT RWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT RWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT RWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L V6 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "508",
+   "variants": [
+    {
+     "name": "1.2L PureTech 8AT FWD (130 Hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L 8AT FWD (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L e-HDI 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi micro-hybrid 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT 4WD (360 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (180 Hp)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (225 Hp)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (360 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI EAT 8AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI EAT 8AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Hybrid4 6AT FWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.2L HDI 6AT FWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "508 RXH",
+   "variants": [
+    {
+     "name": "2.0 HDI FAP 6AT (163 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT AWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "508 SW",
+   "variants": [
+    {
+     "name": "1.2L PureTech 8AT FWD (130 Hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi S&S 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDI 6AT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L e-HDi 6AT FWD (115 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L e-HDI 6MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (180 Hp)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (225 Hp)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT AWD (360 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT FWD (180 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L PureTech PHEV 8AT FWD (225 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDI 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 8AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDI 8AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDI 6AT FWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "PSE 1.6L PureTech PHEV 8AT 4WD (360 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "604",
+   "variants": [
+    {
+     "name": "2.3L TD 4MT RWD (80 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT RWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L 4MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L 5MT RWD (155 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "605",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 4AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L D 5MT FWD (83 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 4AT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "607",
+   "variants": [
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 4AT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 4AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 4AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 4AT FWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 4AT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L V6 HDi 6AT FWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 4AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 5MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 24V 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "806",
+   "variants": [
+    {
+     "name": "1.8L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TD 4AT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TD 5MT FWD (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V HDI 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L TD 12V 5MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.1L TD 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "807",
+   "variants": [
+    {
+     "name": "2.0L 16V 4AT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 4AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 16V 5MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L HDi 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 4AT FWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Hoggar",
+   "variants": [
+    {
+     "name": "1.4L 6MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6MT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "iOn",
+   "variants": [
+    {
+     "name": "16 KWh (67 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Landtrek",
+   "variants": [
+    {
+     "name": "1.9d 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9d 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 6MT RWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4i 6MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L AWD 6AT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L AWD 6MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L RWD 6MT (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Partner Combi",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Pick Up",
+   "variants": [
+    {
+     "name": "2.5L 5MT AWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5MT RWD (115 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "RCZ",
+   "variants": [
+    {
+     "name": "1.6L THP 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (158 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (202 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDi 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 6MT FWD (165 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "RCZ R",
+   "variants": [
+    {
+     "name": "1.6L THP 6MT (270 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RIFTER",
+   "variants": [
+    {
+     "name": "1.2L PureTech 6MT 5-Seats FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT 7-Seats FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDI 5MT 5-Seats FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 5MT 7-Seats FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT 5-Seats FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 6MT 7-Seats FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT 5-Seats FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDI 8AT 7-Seats FWD (130 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Tepee",
+   "variants": [
+    {
+     "name": "1.3L HDI 5AT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.3L HDI 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L HDI 5MT FWD (70 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDI 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP 92 BVM5",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP BVM5 5MT (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi FAP BVM5 5MT FWD (111 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L VTi 120 BVM5",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 98 BVM5",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L HDI 5MT FWD (98 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Traveller",
+   "variants": [
+    {
+     "name": "1.5L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT LWB FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT LWB FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT LWB FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 8AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 8AT LWB FWD (180 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

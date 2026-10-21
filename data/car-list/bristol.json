@@ -1,0 +1,108 @@
+{
+ "name": "Bristol",
+ "models": [
+  {
+   "name": "411",
+   "variants": [
+    {
+     "name": "6.3L V8 3AT (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "412",
+   "variants": [
+    {
+     "name": "6.6L V8 3AT (264 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "603",
+   "variants": [
+    {
+     "name": "5.9 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V8 3AT (172 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Blenheim",
+   "variants": [
+    {
+     "name": "5.6L V8 5AT RWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9 V8 4AT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V8 4AT (350 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "5.9L V8 4AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V8 4AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V8 4AT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bullet",
+   "variants": [
+    {
+     "name": "4.8L V8 6AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT RWD (370 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Fighter",
+   "variants": [
+    {
+     "name": "8.0L V10 6MT RWD (1026 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L V10 6MT RWD (532 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L V10 6MT RWD (636 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Series 6",
+   "variants": [
+    {
+     "name": "5.9L V8 4AT (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,218 @@
+{
+ "name": "McLaren",
+ "models": [
+  {
+   "name": "12C GT Sprint",
+   "variants": [
+    {
+     "name": "3.8L 7AT (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "540C",
+   "variants": [
+    {
+     "name": "3.8 V8 7AT (540 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "570GT",
+   "variants": [
+    {
+     "name": "3.8 V8 7AT (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "570S",
+   "variants": [
+    {
+     "name": "3.8 V8 7AT (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "600LT",
+   "variants": [
+    {
+     "name": "3.8L V8 7AT (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "620R",
+   "variants": [
+    {
+     "name": "3.8L V8 7AT (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "650S",
+   "variants": [
+    {
+     "name": "3.8L V8 7AT (650 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 7AT RWD (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "675LT",
+   "variants": [
+    {
+     "name": "3.8 V8 7AT (675 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 7AT RWD (675 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "720S",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT RWD (720 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "750S",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT RWD (750 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 RWD 7AT (750 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "765LT",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT (765 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Artura",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT (680 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 PHEV 8AT (700 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Elva",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT (815 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F1",
+   "variants": [
+    {
+     "name": "6.1 V12 6MT (622 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT RWD (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GTS",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT RWD (635 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MP4-12C",
+   "variants": [
+    {
+     "name": "3.8 v8 7AT (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 7AT RWD (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 7AT RWD (625 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "P1",
+   "variants": [
+    {
+     "name": "3.8 V8 7AT (737 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Senna",
+   "variants": [
+    {
+     "name": "4.0 V8 (800 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Speedtail",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (1050 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "W1",
+   "variants": [
+    {
+     "name": "4.0L V8 PHEV 8AT RWD (1275 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,229 @@
+{
+ "name": "Rolls-Royce",
+ "models": [
+  {
+   "name": "Camargue",
+   "variants": [
+    {
+     "name": "6.75L V8 3AT (192 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Corniche",
+   "variants": [
+    {
+     "name": "6.75L V8 3AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cullinan",
+   "variants": [
+    {
+     "name": "6.75L V12 8AT AWD (571 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Dawn",
+   "variants": [
+    {
+     "name": "6.6L V12 8AT RWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V12 8AT RWD (601 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Flying Spur",
+   "variants": [
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ghost",
+   "variants": [
+    {
+     "name": "6.6L V12 8AT RWD (563 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V12 TwinTurbo 8AT (570 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V12 TwinTurbo 8AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V12 Vspec 8AT RWD (593 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V12 8AT AWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V12 8AT AWD EWB (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Black Badge 6.75L V12 8AT AWD (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "La Rose Noire",
+   "variants": [
+    {
+     "name": "6.75L V12 AWD (593 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Park Ward",
+   "variants": [
+    {
+     "name": "5.4 V12",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Phantom",
+   "variants": [
+    {
+     "name": "6.75 V12 6AT (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75 V12 8AT (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75 V12 8AT (563 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V12 6AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.3 V12",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.7",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silver Dawn",
+   "variants": [
+    {
+     "name": "4.2L 4MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L 4MT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silver Seraph",
+   "variants": [
+    {
+     "name": "5.4L V12 5AT (326 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silver Shadow",
+   "variants": [
+    {
+     "name": "6.2 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silver Spirit",
+   "variants": [
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 3AT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT (304 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Silver Spur",
+   "variants": [
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Spectre",
+   "variants": [
+    {
+     "name": "563 HP",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor 120 KWh AWD (650 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Wraith",
+   "variants": [
+    {
+     "name": "6.6L V12 8AT RWD (632 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

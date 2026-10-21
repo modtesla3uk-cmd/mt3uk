@@ -1,0 +1,743 @@
+{
+ "name": "Infiniti",
+ "models": [
+  {
+   "name": "EX",
+   "variants": [
+    {
+     "name": "3.0d 7AT AWD (238 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V6 5AT RWD (297 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 7AT RWD (297 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 AWD 5AT (297 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 AWD 7AT (297 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "FX",
+   "variants": [
+    {
+     "name": "30d AWD 7AT (238 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "35 AWD 7AT (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "35 RWD 7AT (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "37 AWD 7AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "37 RWD 7AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "50 AWD 7AT (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "FX35 3.5L V6 5AT RWD (281 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "FX45 4.5L V8 5AT (315 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "G",
+   "variants": [
+    {
+     "name": "2.5L RWD V6 (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 7AT AWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT (348 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT RWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT RWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT (343 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT (348 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (328 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "G20",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (145 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "G35",
+   "variants": [
+    {
+     "name": "3.5L V6 5AT AWD (309 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT RWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT RWD (298 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT RWD (309 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (309 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "I",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (227 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (227 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (258 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "J",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT (213 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "JX",
+   "variants": [
+    {
+     "name": "3.5L V6 CVT (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "M",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT RWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT RWD (164 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "30d V6 7AT RWD (238 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "35h V6 7AT RWD (364 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "37 V6 7AT AWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "37 V6 7AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 5AT RWD 345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M35 3.5i V6 5AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M35 3.5i V6 5AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M45 4.5i V8 5AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M56 V8 7AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "M56 V8 7AT RWD (426 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Q",
+   "variants": [
+    {
+     "name": "4.1L 4AT (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 4AT (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 5AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 5AT FWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Q40",
+   "variants": [
+    {
+     "name": "3.7L V6 7AT AWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (328 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Q50",
+   "variants": [
+    {
+     "name": "2.0L 7AT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT RWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 7AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2d 6MT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2d 7AT RWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L Sport 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 7AT AWD (360 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 7AT FWD (360 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 7AT RWD (360 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 Hybrid 7AT AWD (365 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 Hybrid 7AT RWD (365 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (332 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (332 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Q60",
+   "variants": [
+    {
+     "name": "2.0L 7AT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT RWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0t V6 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0t V6 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0t V6 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0t V6 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7 V6 VVEL 7AT (348 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 6MT RWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 6MT RWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 6MT RWD (352 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 7AT AWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 7AT RWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 7AT RWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VVEL 7AT RWD (352 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Q70",
+   "variants": [
+    {
+     "name": "2.2d 7AT RWD (168 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d V6 7AT RWD (235 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V6 DRH 7AT RWD (365 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (330 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT FWD (330 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 7AT AWD (420 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "5.6L V8 7AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 7AT RWD (426 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX",
+   "variants": [
+    {
+     "name": "3.3L V6 4AT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT AWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 2WD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 4WD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 5AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 5AT RWD (315 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX30",
+   "variants": [
+    {
+     "name": "1.5d 6MT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5d 7AT FWD (109 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6 t 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6 t 7AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 t 7AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT RWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2d 7AT AWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2d 7AT FWD (170 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "QX50",
+   "variants": [
+    {
+     "name": "2.0L CVT AWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 7AT AWD (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (334 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX55",
+   "variants": [
+    {
+     "name": "2.0L CVT (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX60",
+   "variants": [
+    {
+     "name": "2.0L 9AT AWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 9AT FWD (271 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 9AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 9AT FWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L ECCV AWD (250 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L ECCV FWD (250 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L L4 CVT AWD (250 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L L4 CVT FWD (230 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT iAWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 CVT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 CVT AWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 CVT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 CVT FWD (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX65",
+   "variants": [
+    {
+     "name": "2.0L VC-Turbo 9AT AWD (268 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX70",
+   "variants": [
+    {
+     "name": "3.7L V6 7AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT AWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 7AT RWD (329 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 7AT AWD (395 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "QX80",
+   "variants": [
+    {
+     "name": "3.5L V6 Twin-Turbo 9AT AWD (456 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 Twin-Turbo 9AT RWD (456 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.6L V8 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "name": "Zenvo",
+ "models": [
+  {
+   "name": "Aurora",
+   "variants": [
+    {
+     "name": "6.6L V12 7AT AWD (1876 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "6.6L V12 7AT RWD (1471 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "ST1",
+   "variants": [
+    {
+     "name": "6.8 V8 7AT (1104 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TSR-S",
+   "variants": [
+    {
+     "name": "5.8L V8 7AT (1177 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

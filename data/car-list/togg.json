@@ -1,0 +1,39 @@
+{
+ "name": "Togg",
+ "models": [
+  {
+   "name": "T10F",
+   "variants": [
+    {
+     "name": "88.5 KWh AWD (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 88.5 KWh RWD (218 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 52.4 KWh RWD (218 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "T10X",
+   "variants": [
+    {
+     "name": "88.5 KWh AWD (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 88.5 KWh RWD (218 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 52.4 RWD (218 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

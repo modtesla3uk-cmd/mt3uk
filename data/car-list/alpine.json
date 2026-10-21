@@ -1,0 +1,105 @@
+{
+ "name": "Alpine",
+ "models": [
+  {
+   "name": "A110",
+   "variants": [
+    {
+     "name": "0.9L 4MT (51 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT (66 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 4MT (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (125 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 7AT RWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 7AT RWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A110 1.8L 7AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A110S 1.8L 7AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GT 1.8L 7AT RWD (304 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "A110S",
+   "variants": [
+    {
+     "name": "1.8L 7AT (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 7AT (304 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "A290",
+   "variants": [
+    {
+     "name": "GT 52 KWh (177 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "GT Performance 52 KWh (218 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "A390",
+   "variants": [
+    {
+     "name": "GT 89 KWh (400 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "GTS 89 KWh (470 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

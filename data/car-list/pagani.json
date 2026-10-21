@@ -1,0 +1,84 @@
+{
+ "name": "Pagani",
+ "models": [
+  {
+   "name": "Huayra",
+   "variants": [
+    {
+     "name": "6.0 V12 7AT (730 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (764 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (802 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Imola",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT (827 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Utopia",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT RWD (864 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Zonda",
+   "variants": [
+    {
+     "name": "7.3L V12 6MT RWD (555 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Zonda Cinque",
+   "variants": [
+    {
+     "name": "7.3 V12 6AT (678 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.3L V12 6AT RWD (678 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Zonda F",
+   "variants": [
+    {
+     "name": "7.3 V12",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.3L V12 6MT RWD (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Zonda S",
+   "variants": [
+    {
+     "name": "7.3L V12 6MT RWD (555 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

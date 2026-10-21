@@ -1,0 +1,604 @@
+{
+ "name": "Aston Martin",
+ "models": [
+  {
+   "name": "Cygnet",
+   "variants": [
+    {
+     "name": "1.3L 6MT (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L CVT (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB AR1",
+   "variants": [
+    {
+     "name": "5.9L V12 6MT (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB11",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 8AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 8AT RWD (608 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB11 Volante",
+   "variants": [
+    {
+     "name": "4.0 V8 8AT (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB12",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT RWD (680 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB12 Volante",
+   "variants": [
+    {
+     "name": "4.0L V8 Turbo 8AT RWD (680 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB6",
+   "variants": [
+    {
+     "name": "4.0L 5MT (286 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB6 Volante",
+   "variants": [
+    {
+     "name": "4.0L 5MT (286 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB7",
+   "variants": [
+    {
+     "name": "3.2L 4AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9 V12 6MT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 5AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT (435 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB7 Volante",
+   "variants": [
+    {
+     "name": "3.2L 4AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 5AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB9",
+   "variants": [
+    {
+     "name": "5.9L V12 6AT (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 6AT (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT RWD (477 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT RWD (477 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DB9 Volante",
+   "variants": [
+    {
+     "name": "5.9L V12 6AT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 6AT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 6MT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT (477 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT (477 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DBS",
+   "variants": [
+    {
+     "name": "4.0L 5MT (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 8AT (725 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 8AT RWD (770 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6AT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT RWD (517 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DBS Volante",
+   "variants": [
+    {
+     "name": "5.9L V12 6AT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 6MT RWD (517 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DBX",
+   "variants": [
+    {
+     "name": "4.0L V8 9AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9AT AWD (727 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 Twin Turbo 9AT AWD (707 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lagonda",
+   "variants": [
+    {
+     "name": "5.4L V8 3AT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 3AT (313 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "One-77",
+   "variants": [
+    {
+     "name": "7.3 V12 6AT (760 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rapide",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT (476 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rapide AMR",
+   "variants": [
+    {
+     "name": "6.0L V12 8AT RWD (603 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rapide E",
+   "variants": [
+    {
+     "name": "450 Kw (610 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Rapide S",
+   "variants": [
+    {
+     "name": "6.0L V12 6AT (558 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V12 Speedster",
+   "variants": [
+    {
+     "name": "5.2L V12 Twin-Turbo 8AT RWD (700 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V12 Vantage",
+   "variants": [
+    {
+     "name": "5.2L V12 8AT (690 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 8AT RWD (700 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT RWD (517 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (573 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT (592 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V12 Vantage AMR",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT (603 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7MT (603 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V12 Vantage S",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT (573 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V12 Zagato",
+   "variants": [
+    {
+     "name": "6.0L V12 6MT (517 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V8 Vantage",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 Twin Turbo 8AT RWD (665 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8 6AT (436 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8 6MT (436 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6MT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6MT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 7AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 5MT (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 6MT (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 4.0L V8 Twin Turbo 8AT RWD (680 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V8 Vantage S",
+   "variants": [
+    {
+     "name": "4.7L V8 7AT (436 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "V8 Volante",
+   "variants": [
+    {
+     "name": "4.3L V8 6MT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6MT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6MT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 5MT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 6MT RWD (557 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Valhalla",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (937 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Vanquish",
+   "variants": [
+    {
+     "name": "5.2L V12 RWD (835 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 (573 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 5MT RWD (457 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vanquish S",
+   "variants": [
+    {
+     "name": "5.9L V12 6AT RWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.9L V12 8AT RWD (580 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vanquish Volante",
+   "variants": [
+    {
+     "name": "5.2L V12 8AT RWD (835 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT (573 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vantage",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vantage GT12",
+   "variants": [
+    {
+     "name": "6.0L V12 7AT RWD (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vantage GT8",
+   "variants": [
+    {
+     "name": "4.7L V8 6MT RWD (446 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 7AT RWD (446 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Virage",
+   "variants": [
+    {
+     "name": "5.3L V8 4AT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 5MT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT (496 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Virage Volante",
+   "variants": [
+    {
+     "name": "5.3L V8 5MT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT (497 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vulcan",
+   "variants": [
+    {
+     "name": "7.0L V12 6AT RWD (800 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

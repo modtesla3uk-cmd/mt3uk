@@ -1,0 +1,757 @@
+{
+ "name": "Ferrari",
+ "models": [
+  {
+   "name": "12Cilindri",
+   "variants": [
+    {
+     "name": "6.5L V12 8AT (830 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "288 GTO/F40/F50/Enzo/LaFerrari",
+   "variants": [
+    {
+     "name": "2.9L V8 5MT (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT (478 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V12 6MT (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 6AT (660 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.3 V12 7AT (963 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "296 GTB",
+   "variants": [
+    {
+     "name": "3.0L V6 PHEV 8AT RWD (830 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "296 GTS",
+   "variants": [
+    {
+     "name": "3.0L V6 Turbo 8AT RWD (830 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "296 Speciale",
+   "variants": [
+    {
+     "name": "3.0L V6 PHEV 8AT RWD (880 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "308 GTB/GTS",
+   "variants": [
+    {
+     "name": "2.9L V8 5MT RWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT RWD (214 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V8 5MT RWD (255 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "328 GTB/GTS",
+   "variants": [
+    {
+     "name": "3.2L V8 5MT RWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 5MT RWD (270 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "348",
+   "variants": [
+    {
+     "name": "3.4 V8 5MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4 V8 5MT (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "360",
+   "variants": [
+    {
+     "name": "4.0L V8 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "360 Challenge Stradale",
+   "variants": [
+    {
+     "name": "3.6L V8 6AT (425 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "360 Modena",
+   "variants": [
+    {
+     "name": "4.0L V8 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "365",
+   "variants": [
+    {
+     "name": "4.4L V12 5MT (352 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V12 5MT RWD (352 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "365GT4 BB/ 512BB/ 512 BBi",
+   "variants": [
+    {
+     "name": "4.4L B12 5MT RWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L B12 5MT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L B12i 5MT RWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "400",
+   "variants": [
+    {
+     "name": "4.8L V12 3AT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V12 3AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V12 3AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V12 5MT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V12 5MT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V12 5MT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V12 3AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V12 5MT RWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "456 GT",
+   "variants": [
+    {
+     "name": "5.5 V12",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V12 4AT RWD (442 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.5L V12 6MT RWD (442 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "458",
+   "variants": [
+    {
+     "name": "4.5 7AT (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "458 Italia",
+   "variants": [
+    {
+     "name": "4.5 V8 7AT (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "458 Speciale",
+   "variants": [
+    {
+     "name": "4.5L V8 7AT (605 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "458 Speciale A",
+   "variants": [
+    {
+     "name": "4.5L V8 7AT RWD (605 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "488",
+   "variants": [
+    {
+     "name": "3.9L V8 7AT (670 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "488 GTB",
+   "variants": [
+    {
+     "name": "3.9L V8 7AT (670 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "488 Pista",
+   "variants": [
+    {
+     "name": "3.9L V8 7AT (720 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "550 Barchetta/575M Superamerica",
+   "variants": [
+    {
+     "name": "5.5L V12 6MT (485 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V12 6AT RWD (540 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V12 6MT RWD (540 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "550/575M Maranello",
+   "variants": [
+    {
+     "name": "5.5L V12 6MT (485 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V12 6AT (515 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7 V12 6MT (515 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "599",
+   "variants": [
+    {
+     "name": "6.0L V12 6AT RWD (620 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6AT RWD (670 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 6MT RWD (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "612 Scaglietti",
+   "variants": [
+    {
+     "name": "5.7L V12 6AT RWD (540 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V12 6MT RWD (540 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "812",
+   "variants": [
+    {
+     "name": "6.5L V12 7AT (800 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT RWD (800 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Amalfi",
+   "variants": [
+    {
+     "name": "3.9L V8 8AT RWD (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT RWD (640 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "California T",
+   "variants": [
+    {
+     "name": "3.8L V8 7AT (560 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CZ26",
+   "variants": [
+    {
+     "name": "4.0L V8 PHEV 8AT (986 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Daytona",
+   "variants": [
+    {
+     "name": "6.5L V12 7AT (840 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Dino",
+   "variants": [
+    {
+     "name": "2.0 V6 5MT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L V8 5MT RWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4 V6 5MT (196 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT (255 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F12 Berlinetta",
+   "variants": [
+    {
+     "name": "6.3 V12 7AT (741 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F12 TRS",
+   "variants": [
+    {
+     "name": "6.3 V12 7AT (740 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F12tdf",
+   "variants": [
+    {
+     "name": "6.3L V12 7AT RWD (780 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F149 California",
+   "variants": [
+    {
+     "name": "4.3L V8 6MT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 7AT (490 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 7AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 7AT RWD (490 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F355",
+   "variants": [
+    {
+     "name": "3.5 V8 6AT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5 V8 6MT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 6AT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 6AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 6MT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 6MT RWD (380 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F430",
+   "variants": [
+    {
+     "name": "4.3L V8 6AT (490 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 6AT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 6MT (490 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F60 America",
+   "variants": [
+    {
+     "name": "6.3L V12 7AT (740 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F8",
+   "variants": [
+    {
+     "name": "3.9L V8 7AT (720 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 Turbo 7AT RWD (710 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "F80",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT AWD (1200 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "FF",
+   "variants": [
+    {
+     "name": "6.3L V12 7AT (660 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "FXX",
+   "variants": [
+    {
+     "name": "6.3L V12 6AT (800 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GTC4Lusso",
+   "variants": [
+    {
+     "name": "6.3L V12 7AT AWD (690 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GTC4Lusso T",
+   "variants": [
+    {
+     "name": "3.9 V8 7AT (610 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LaFerrari",
+   "variants": [
+    {
+     "name": "6.3L V12 7AT RWD (963 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Luce",
+   "variants": [
+    {
+     "name": "122 kWh AWD (1050 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Mondial",
+   "variants": [
+    {
+     "name": "3.0 V8 5MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT RWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT RWD (214 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT RWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V8 5MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 5MT RWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 5MT RWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L V8 5MT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Monza",
+   "variants": [
+    {
+     "name": "6.5L V12 7AT (810 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT RWD (810 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Portofino",
+   "variants": [
+    {
+     "name": "3.9L V8 (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9L V8 8AT (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Purosangue",
+   "variants": [
+    {
+     "name": "6.5L V12 8AT AWD (725 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roma",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT RWD (620 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Scuderia",
+   "variants": [
+    {
+     "name": "4.3L V8 6MT RWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SF90",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (1000 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (780 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (797 HP",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Testarossa",
+   "variants": [
+    {
+     "name": "4.0L V8 PHEV 8AT AWD (1050 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Testarossa/512 TR/512M",
+   "variants": [
+    {
+     "name": "4.0L V8 PHEV 8AT AWD (1050 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.9L B12 5MT (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V12 5MT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V12 5MT RWD (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

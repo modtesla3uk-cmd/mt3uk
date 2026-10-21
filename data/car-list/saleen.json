@@ -1,0 +1,23 @@
+{
+ "name": "Saleen",
+ "models": [
+  {
+   "name": "S7",
+   "variants": [
+    {
+     "name": "7.0 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "S7TT",
+   "variants": [
+    {
+     "name": "7.0L V8 Twin Turbo 6MT (750 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

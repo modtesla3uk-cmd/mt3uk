@@ -1,0 +1,921 @@
+{
+ "name": "Land Rover",
+ "models": [
+  {
+   "name": "Defender 110",
+   "variants": [
+    {
+     "name": "2.0L SD4 8AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L SD4 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Si4 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L TD 6MT (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4 Td5 6MT (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (86 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L P400 8AT AWD (400 Hp)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L P400 8AT AWD (400 HP) 5+2 Seats",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V8 5MT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 P525 8AT AWD (525 Hp)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Hard Top 3.0L D250 8AT AWD (249 Hp)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "Hard Top 3.0L D300 8AT AWD (299 Hp)",
+     "fuel": "Mild hybrid diesel"
+    }
+   ]
+  },
+  {
+   "name": "Defender 130",
+   "variants": [
+    {
+     "name": "D250 3.0L 8AT AWD (246 HP) 5-Seats",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D250 3.0L 8AT AWD (246 HP) 8-Seats",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D300 3.0L 8AT AWD (296 HP) 5-Seats",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D300 3.0L 8AT AWD (296 HP) 8-Seats",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "P400 3.0L 8AT AWD (395 HP) 5-Seats",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "P400 3.0L 8AT AWD (395 HP) 8-Seats",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Defender 90",
+   "variants": [
+    {
+     "name": "2.0L SD4 8AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L SD4 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Si4 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L TD 6MT (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4 Td5 6MT (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDi 5MT AWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L 8AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 4AT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT 4x4 AWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 P525 8AT AWD (525 Hp)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Defender Octa",
+   "variants": [
+    {
+     "name": "4.4L V8 MHEV 8AT AWD (635 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Discovery",
+   "variants": [
+    {
+     "name": "2.0L SD4 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5 Td5",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI 4AT AWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L Td 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L TD V6 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L TD V6 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L SCV6 8AT (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L SD V6 8AT AWD (256 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L SDV6 8AT (256 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TD V6 6AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TD V6 8AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 Si6 8AT AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TD6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V8 5MT AWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V6 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5MT AWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 6AT AWD (219 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 6AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT AWD (375 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Discovery Sport",
+   "variants": [
+    {
+     "name": "2.0L D150 6MT FWD (150 HP) 5-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D150 6MT FWD (150 HP) 7-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D150 9AT AWD (150 HP) 5-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D150 9AT AWD (150 HP) 7-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D180 9AT AWD (180 HP) 5-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D180 9AT AWD (180 HP) 7-Seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L SD4 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L SD4 9AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 9AT AWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Discovery SVX",
+   "variants": [
+    {
+     "name": "5.0L V8 8AT (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Freelander",
+   "variants": [
+    {
+     "name": "1.8i 5MT AWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT AWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0d 5MT AWD (97 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Si4 GTDi 4WD 6AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Td4 5MT AWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 6AT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 6MT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L eD4 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L SD4 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 6AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 6AT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 6MT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5i V6 4AT AWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5i V6 5AT AWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6AT AWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6AT AWD (233 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover",
+   "variants": [
+    {
+     "name": "118.5 kWh (550 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "2.5L D 4AT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT AWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (121 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TDI AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.9L TD V6 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.9L V6 TD 5AT AWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L D350 8AT AWD (350 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "3.0L P360 8AT AWD (360 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L P400 8AT AWD (400 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L SC V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L TDV6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (258 HP) biturbo",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 Hybrid 8AT AWD (340 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "3.5L V8 5MT AWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L TD V8 5AT AWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.6L V8 6AT AWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.9L V8 5MT AWD (121 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.9L V8 5MT AWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4AT AWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5MT AWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 5MT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 Supercharged 5AT AWD (396 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 5AT AWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 5AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 6AT AWD (313 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.4L V8 8AT AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.4L V8 P530 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 4AT AWD (226 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L SC V8 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT AWD (307 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (525 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (565 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 SC 6AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover Evoque",
+   "variants": [
+    {
+     "name": "1.5L P160 8AT FWD (160 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L P160 MHEV 8AT FWD (160 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L P300e PHEV 8AT AWD (309 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L D165 6MT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D165 6MT FWD (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L D165 9AT AWD (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L D165 MHEV 9AT AWD (163 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L D200 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L D200 MHEV 9AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L eD4 2WD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L P200 MHEV 9AT AWD (200 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L P250 MHEV 9AT AWD (249 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L Sd4 9AT AWD (240 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L Si4 4WD 6AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Si4 4WD 9AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (200 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (249 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L Si4 9AT AWD (300 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L TD4 4WD 6MT (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TD4 4WD 9AT (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Td4 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TD4 9AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Td4 9AT AWD (150 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.0L TD4 9AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Td4 9AT AWD (180 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "2.2L 2WD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L SD4 4WD 6AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L SD4 4WD 6MT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L SD4 4WD 9AT (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 4WD 6AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TD4 4WD 6MT (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover L",
+   "variants": [
+    {
+     "name": "3.0L TDV6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.4L SDV8 8AT AWD (339 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "5.0L SC V8 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover PHEV",
+   "variants": [
+    {
+     "name": "2.0L P400e 8AT AWD (404 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (340 HP)",
+     "fuel": "Hybrid diesel"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover Sport",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.7L TDV6 6AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L Hybrid 8AT AWD (340 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L SDV6 8AT AWD (292 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L SDV6 8AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDV6 6AT AWD (245 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDV6 8AT AWD (211 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDV6 8AT AWD (256 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDV6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L TDV6 8AT AWD (258 HP) biturbo",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (306 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SC 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L TDV8 6AT AWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.2L V8 SC 6AT AWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L TDV8 8AT AWD (340 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.4L V8 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 MHEV 8AT AWD (635 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "5.0L SC V8 8AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L SVR V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT AWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 Supercharged 6AT AWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "D250 3.0L 8AT AWD (245 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D300 3.0L 8AT AWD (296 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D350 3.0L 8AT AWD (345 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "P400 3.0L PHEV 8AT AWD (395 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "P440e 3.0L PHEV 8AT AWD (434 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "P510e 3.0L PHEV 8AT AWD (503 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "P530 4.4L V8 8AT AWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P550e 3.0L 8AT AWD (550 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "P550e PHEV 8AT AWD (550 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover Sport PHEV",
+   "variants": [
+    {
+     "name": "2.0L P400e 8AT AWD (404 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover Sport SVR",
+   "variants": [
+    {
+     "name": "5.0L V8 8AT AWD (551 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Range Rover Velar",
+   "variants": [
+    {
+     "name": "D 180 2.0L 8AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D 200 2.0L 8AT AWD (204 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D 200 2.0L 8AT AWD (204 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "D 240 2.0L 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D 300 3.0L 8AT AWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "D 300 3.0L 8AT AWD (300 HP)",
+     "fuel": "Mild hybrid diesel"
+    },
+    {
+     "name": "P 250 2.0L 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P 340 3.0L V6 8AT AWD (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "P 380 3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P250 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P340 8AT AWD (340 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "P400 8AT AWD (400 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "P400e 8AT AWD (404 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  }
+ ]
+}

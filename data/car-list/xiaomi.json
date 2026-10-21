@@ -1,0 +1,14 @@
+{
+ "name": "Xiaomi",
+ "models": [
+  {
+   "name": "SU7",
+   "variants": [
+    {
+     "name": "73.6 KWh RWD (299 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,93 @@
+{
+ "name": "Hummer",
+ "models": [
+  {
+   "name": "H1 2 Door Hardtop",
+   "variants": [
+    {
+     "name": "6.5L V8 4AT AWD (197 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "H1 4 Door",
+   "variants": [
+    {
+     "name": "6.5L V8 4AT AWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.5L V8 4AT AWD (207 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "H1 4 Door Hardtop",
+   "variants": [
+    {
+     "name": "6.5L V8 4AT AWD (197 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "H1 4 Door Opentop",
+   "variants": [
+    {
+     "name": "6.5L V8 4AT AWD (197 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.5L V8 4AT AWD (207 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "H2",
+   "variants": [
+    {
+     "name": "6.0L V8 4AT (322 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 4AT (329 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "H2 SUT",
+   "variants": [
+    {
+     "name": "6.0L V8 4AT (329 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "H3",
+   "variants": [
+    {
+     "name": "3.5L 5MT AWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L 5MT AWD (245 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "H3 Alpha",
+   "variants": [
+    {
+     "name": "5.3L V8 4AT (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

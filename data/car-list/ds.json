@@ -1,0 +1,374 @@
+{
+ "name": "DS",
+ "models": [
+  {
+   "name": "AUTOMOBILES DS 3",
+   "variants": [
+    {
+     "name": "1.2L PureTech 5AT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L VTi 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "e-Tense 54 kWh FWD (156 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 3 Cabrio",
+   "variants": [
+    {
+     "name": "1.2L PureTech 5MT Start&Stop FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 5MT Start&Stop FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6AT Start&Stop FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 6MT Start&Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L VTi 5MT (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L BlueHDi 5MT Start&Stop FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT Start&Stop FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 5AT (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L eHDi 5MT (92 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6MT (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT Start&Stop FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 4AT (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L VTi 5MT (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Performance 1.6L THP 6MT Start&Stop FWD (206 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 3 Crossback",
+   "variants": [
+    {
+     "name": "1.2L PureTech 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E-Tense CVT 50 KWh RWD (136 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 4",
+   "variants": [
+    {
+     "name": "1.2L PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech 8AT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L PureTech E-Tense PHEV 8AT FWD (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "58.3 KWh (213 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "PHEV 7AT FWD (225 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 5",
+   "variants": [
+    {
+     "name": "1.6L BlueHDi 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6AT AWD (200 HP)",
+     "fuel": "Hybrid diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 5LS",
+   "variants": [
+    {
+     "name": "1.6L BlueHDi 6AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L BlueHDi 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L THP 6AT FWD (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L THP 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L ETG 6AT AWD (200 HP)",
+     "fuel": "Hybrid diesel"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 7",
+   "variants": [
+    {
+     "name": "1.2L PureTech 6MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L PureTech 8AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L BlueHDi 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L BlueHDi 8AT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L Puretech 8AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Puretech 8AT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L BlueHDi 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "E-Tense 1.6L PureTech 8AT AWD (300 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "E-Tense 1.6L PureTech PHEV 8AT FWD (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "E-TENSE 225 PureTech 180 8AT (110 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "E-TENSE 4x4 300",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "Long Range 97.2 KWh FWD (245 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS 9",
+   "variants": [
+    {
+     "name": "E-TENSE PureTech 8AT (225 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "E-TENSE PureTech 8AT (250 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "E-TENSE PureTech 8AT AWD (360 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "PureTech 8AT (225 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "AUTOMOBILES DS N8",
+   "variants": [
+    {
+     "name": "74 KWh FWD (230 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 97.2 KWh AWD (350 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 97.2 KWh FWD (245 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

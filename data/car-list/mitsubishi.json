@@ -1,0 +1,1337 @@
+{
+ "name": "Mitsubishi",
+ "models": [
+  {
+   "name": "3000 GT",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT AWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC 24v 4AT (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC 24v 5MT (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 Turbo 5MT AWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 Turbo 6MT AWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "DOHC 24v V6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "DOHC 24v V6 twin-turbo",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "SOHC 12v V6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ASX / RVR / Outlander Sport",
+   "variants": [
+    {
+     "name": "1.0L Turbo 6MT FWD (91 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L Turbo MHEV 6MT FWD (140 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.3L Turbo MHEV 7AT FWD (158 Hp)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.6L 2WD 5MT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L DI-D 6MT (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L DI-D AWD 6MT (114 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.6L HEV 4+2 FWD (143 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.6L PHEV 4+2 FWD (143 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.8L DI-D 2WD 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DI-D 2WD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DI-D AWD 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DI-D AWD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DiD AWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DiD AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DiD FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DiD FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DiD FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MIVEC 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MIVEC CVT AWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L DI-D AWD 6AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L DI-D AWD 6MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L DiD 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Attrage",
+   "variants": [
+    {
+     "name": "1.2l 5MT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2l CVT (78 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Carisma",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Colt",
+   "variants": [
+    {
+     "name": "1.0L 5MT FWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 6MT FWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 6AT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L ClearTec 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 16v Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 6AT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L DI-D 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L GTi 5MT FWD (124 HP",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Hybrid FWD",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.8L GTi 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L GTi 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Colt CZC",
+   "variants": [
+    {
+     "name": "1.5L 16V 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 16V Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Eclipse",
+   "variants": [
+    {
+     "name": "1.8L 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16v 5MT (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 4AT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 4AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 4AT FWD (198 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16v Turbo 5MT (213 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4 16v",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4 16v 5MT (165 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16v 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 V6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 V6 6MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 5AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 6MT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "75 KWh FWD",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Eclipse Cross",
+   "variants": [
+    {
+     "name": "1.5L MIVEC CVT FWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-MIVEC 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-MIVEC CVT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-MIVEC CVT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "87 KWh (218 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Endeavor",
+   "variants": [
+    {
+     "name": "3.8L V6 4AT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT AWD (218 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Galant",
+   "variants": [
+    {
+     "name": "1.8i 5MT FWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L TD 5MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 GTi 5MT FWD (144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 5MT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L GDI 4AT FWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L V6 GTI 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V 4AT FWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V 4AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L GDI 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5l V6 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 Biturbo 5MT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (195 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (232 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Galant Station",
+   "variants": [
+    {
+     "name": "2.0L 16V 5AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L GDI 4AT FWD (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TD 5MT FWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L GDI 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 Biturbo 5MT AWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Grandis",
+   "variants": [
+    {
+     "name": "2.0L DI-D 6MT FWD (134 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 5MT FWD (165 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "i-MiEV",
+   "variants": [
+    {
+     "name": "49 kW",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "L 200",
+   "variants": [
+    {
+     "name": "2.0L 16V 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V 5MT RWD (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L MI-D 5AT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L MI-D 6MT AWD (154 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L MI-D 6MT AWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5 DI-D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5 TD",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L D 5MT RWD (76 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L DI-D 5MT RWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L DI-D 5MT RWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L DI-D 6MT RWD (136 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (133 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (98 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L D 5MT AWD (97 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L TDI 5MT AWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L TDI 5MT RWD (132 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L DI-D 5MT RWD (165 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V6 4AT AWD (178 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "L300",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (69 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Lancer",
+   "variants": [
+    {
+     "name": "1.3i 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 12V 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT AWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CVT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI CVT AWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI CVT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI CVT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L MIVEC 4AT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L MIVEC 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (108 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MIVEC 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L MVTEC 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8 D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 16V CVT AWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V CVT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CVT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DI-D 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L DI-D 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L GTi 5MT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L GTi 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L MIVEC 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L MIVEC 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L MIVEC CVT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L MVTEC CVT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 MIVEC Turbo 6AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 MIVEC Turbo 6AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L CVT AWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L DI-D 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L MIVEC 5MT FWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L CVT AWD (168 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L GTS 5MT FWD (168 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lancer Combi",
+   "variants": [
+    {
+     "name": "1.5i 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 5MT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (96 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L D 5MT FWD (60 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L GDI CVT FWD (114 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT FWD (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 5MT FWD (68 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Lancer Evolution",
+   "variants": [
+    {
+     "name": "2.0 16v Turbo",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0i 16V 5MT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 6MT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 16V Turbo 5MT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT AWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT AWD (295 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mirage",
+   "variants": [
+    {
+     "name": "1.0L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC 5MT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC 5MT FWD (77 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC CVT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC CVT FWD (77 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mirage G4",
+   "variants": [
+    {
+     "name": "1.2L 5MT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT FWD (76 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L CVT (78 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L CVT FWD (76 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Outlander / Airtrek",
+   "variants": [
+    {
+     "name": "2.0L 16V 5MT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT AWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CVT AWD (203 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L Di-D 6MT AWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L MIVEC 4WD 6AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MIVEC 5MT 2WD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L MIVEC CVT (121 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L MIVEC CVT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L DI-D 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L MIVEC 6AT 4WD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L MIVEC 6MT 2WD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L MIVEC 6MT 4WD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 16V 5MT AWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V CVT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L MIVEC CVT (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L MIVEC CVT AWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L MIVEC CVT FWD (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L MIVEC CVT FWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L MIVEC S-AWC CVT AWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L MIVEC 6AT (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L MIVEC 6AT AWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT AWD (220 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Pajero",
+   "variants": [
+    {
+     "name": "2.5 TD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (84 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L TD 5MT AWD (99 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L TD 5MT AWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 24V 5MT AWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT AWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT AWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT AWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2 DI-D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L DI-D 5AT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L DI-D 5MT (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L DI-D 5MT AWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L DI-D 5MT AWD (165 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.2L DI-D 5MT AWD (200 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5 GDI V6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L GDI V6 5MT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5MT AWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 GDI 5AT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 5AT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 5AT AWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Pajero Pinin / Shogun Pinin / Montero iO",
+   "variants": [
+    {
+     "name": "1.8 16V",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8 GDI",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 GDI",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Raider",
+   "variants": [
+    {
+     "name": "3.7L V6 5AT RWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 6MT RWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5AT RWD (230 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sigma",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC 4AT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 DOHC 5MT FWD (205 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Space Runner",
+   "variants": [
+    {
+     "name": "1.8L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TD 5MT FWD (82 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Space Star",
+   "variants": [
+    {
+     "name": "1.0L MIVEC 5MT FWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L MIVEC Cleartec 5MT FWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC 6MT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L MIVEC CVT FWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 16V 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 4AT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (112 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L DI-D 5MT FWD (102 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Starion",
+   "variants": [
+    {
+     "name": "2.0L 16V Turbo 5MT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V Turbo 5MT (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6L Turbo 5MT (155 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

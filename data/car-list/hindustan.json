@@ -1,0 +1,48 @@
+{
+ "name": "Hindustan",
+ "models": [
+  {
+   "name": "Ambassador",
+   "variants": [
+    {
+     "name": "1.5L D 4MT RWD (37 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 5MT RWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 5MT RWD (51 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Pushpak/Trekker",
+   "variants": [
+    {
+     "name": "1.5 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0 D",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "RTV/Ranger",
+   "variants": [
+    {
+     "name": "1.8 CNG",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0 D",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

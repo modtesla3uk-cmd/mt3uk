@@ -1,0 +1,60 @@
+{
+ "name": "Rivian",
+ "models": [
+  {
+   "name": "R1S",
+   "variants": [
+    {
+     "name": "(835 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "105 KWh AWD (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "135 KWh AWD (764 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "180 KWh AWD (710 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "R1T",
+   "variants": [
+    {
+     "name": "105 KWh AWD (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "135 KWh AWD (764 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "180 KWh AWD (710 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "R2",
+   "variants": [
+    {
+     "name": "Performance Dual Motor 87.9 KWh AWD (656 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Premium Dual Motor 87.9 KWh AWD (450 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Long Range 87.9 KWh RWD (350 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

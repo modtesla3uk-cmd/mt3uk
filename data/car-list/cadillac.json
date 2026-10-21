@@ -1,0 +1,943 @@
+{
+ "name": "Cadillac",
+ "models": [
+  {
+   "name": "Allante",
+   "variants": [
+    {
+     "name": "4.1L V8 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT FWD (295 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ATS",
+   "variants": [
+    {
+     "name": "2.0L Turbo 6MT AWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT RWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo AWD 6AT (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo RWD 6AT (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo RWD 6MT (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT RWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 6AT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 RWD 6AT (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ATS-V",
+   "variants": [
+    {
+     "name": "3.6L V6 6MT RWD (464 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT RWD (464 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "BLS",
+   "variants": [
+    {
+     "name": "1.9D 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9D 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9D 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9D 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L D 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L Turbo 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT AWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT FWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT AWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT FWD (255 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Brougham",
+   "variants": [
+    {
+     "name": "5.7",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Catera",
+   "variants": [
+    {
+     "name": "3.0L V6 (200 HP) 4AT",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Celestiq",
+   "variants": [
+    {
+     "name": "111 KWh AWD (600 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CT4",
+   "variants": [
+    {
+     "name": "2.0L Turbo 8AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 8AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L Turbo 8AT AWD (313 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L Turbo 8AT RWD (313 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CT4-V",
+   "variants": [
+    {
+     "name": "2.7L 10AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 10AT (472 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CT5",
+   "variants": [
+    {
+     "name": "2.0L 10AT RWD (237 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 10AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 10AT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L Turbo V6 10AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L Turbo V6 10AT RWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 10AT RWD (335 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CT5-V",
+   "variants": [
+    {
+     "name": "3.0L V6 10 AT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 10AT AWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 10AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L Supercharged V8 10AT (668 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (668 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6MT RWD (668 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CT6",
+   "variants": [
+    {
+     "name": "2.0L 8AT RWD (269 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T LTG EVT RWD (340 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (409 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 10AT (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CTS",
+   "variants": [
+    {
+     "name": "2.0L Turbo 6AT AWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT RWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6L V6 5AT RWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6L V6 5MT RWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5AT RWD (212 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 5MT RWD (212 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT RWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6MT RWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT RWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5MT RWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT RWD (253 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5MT RWD (253 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (321 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (321 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT RWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT RWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT RWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 6AT (322 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 RWD 6AT (322 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 Twin-Turbo 8AT RWD (426 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CTS Sport",
+   "variants": [
+    {
+     "name": "3.0L V6 6AT RWD (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (322 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (322 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CTS V-Series",
+   "variants": [
+    {
+     "name": "5.7L V8 6MT (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2 V8 8AT (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6MT RWD (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CTS-V",
+   "variants": [
+    {
+     "name": "6.2L SC V8 6AT RWD (564 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L SC V8 6MT RWD (564 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CTS-V Sport",
+   "variants": [
+    {
+     "name": "6.2L SC V8 RWD 6AT (564 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L SC V8 RWD 6MT (564 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DeVille",
+   "variants": [
+    {
+     "name": "4.6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (294 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "DTS",
+   "variants": [
+    {
+     "name": "4.6L V8 4AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT FWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT FWD (295 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Eldorado",
+   "variants": [
+    {
+     "name": "4.6L 4AT FWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L 4AT FWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L 4AT FWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 3AT (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 3AT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.7",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.2",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ELR",
+   "variants": [
+    {
+     "name": "1.4L CVT (207 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Escalade",
+   "variants": [
+    {
+     "name": "200 KWh (680 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "3.0L DOHC I-6 10AT AWD (277 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L DOHC I-6 10AT RWD (277 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "5.3L 4AT RWD (299 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L 4AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L 6AT (409 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT AWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT AWD (682 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 2WD 8AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 4WD 8AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 EcoTec3 FlexFuel 2WD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 EcoTec3 FlexFuel 4WD 6AT (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 Supercharged 10AT AWD (682 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Escalade ESV",
+   "variants": [
+    {
+     "name": "3.0L DOHC I-6 10AT AWD (277 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L DOHC I-6 10AT RWD (277 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "6.0 4AT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 10AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 EcoTec3 FlexFuel 6AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 EcoTec3 FlexFuel AWD 6AT (426 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Escalade EXT",
+   "variants": [
+    {
+     "name": "6.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V8 6AT (409 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Escalade IQL",
+   "variants": [
+    {
+     "name": "Dual Motor AWD 205 KWh (750 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Lyriq",
+   "variants": [
+    {
+     "name": "102 KWh (347 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "102 KWh (507 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Lyriq-V",
+   "variants": [
+    {
+     "name": "Dual Motor 102 KWh AWD (615 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Optiq",
+   "variants": [
+    {
+     "name": "Dual Motor 85 KWh AWD (300 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Optiq-V",
+   "variants": [
+    {
+     "name": "Dual Motor 85 KWh AWD (519 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Seville",
+   "variants": [
+    {
+     "name": "4.6L V8 4AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SRX",
+   "variants": [
+    {
+     "name": "2.8L V6 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT AWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (309 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (309 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 32V 5AT AWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 32V 5AT RWD (328 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5AT (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "STS",
+   "variants": [
+    {
+     "name": "3.6L V6 5AT AWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT RWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 5AT RWD (257 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.4L V8 6AT RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5MT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 6AT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 6AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 6AT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Vistiq",
+   "variants": [
+    {
+     "name": "102 KW AWD (615 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "XLR",
+   "variants": [
+    {
+     "name": "4.4L V8 6AT RWD (449 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6 V8 5AT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5AT RWD (326 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XLR V-Series",
+   "variants": [
+    {
+     "name": "4.4L V8 6AT RWD (449 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XT4",
+   "variants": [
+    {
+     "name": "2.0L 9AT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 9AT FWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbocharged 9AT FWD (238 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XT5",
+   "variants": [
+    {
+     "name": "2.0L 8AT AWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT FWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VVT 9AT FWD (237 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (314 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT FWD (314 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 VVT 9AT FWD (310 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "XTS",
+   "variants": [
+    {
+     "name": "2.0L 6AT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

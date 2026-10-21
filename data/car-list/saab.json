@@ -1,0 +1,998 @@
+{
+ "name": "Saab",
+ "models": [
+  {
+   "name": "9-2X",
+   "variants": [
+    {
+     "name": "2.0L 5MT (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT (173 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-3",
+   "variants": [
+    {
+     "name": "1.8L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8t 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8t 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TiD 5AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 5MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0t 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0t 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L TiD 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Viggen 5MT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Turbo 6AT FWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Turbo 6MT FWD (255 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-3 Aero",
+   "variants": [
+    {
+     "name": "2.0L 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-3 Sport",
+   "variants": [
+    {
+     "name": "1.8i 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8t 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8t 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TiD 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiDS 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiDS 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9T TiD 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9T TiD 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 4AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (154 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (205 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L V6 Turbo 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0t 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0t 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L TiD 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TiD 5MT FWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TiD 6MT FWD (125 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 6MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Turbo 6AT FWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Turbo 6MT AWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Turbo 6MT FWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-3 SportCombi",
+   "variants": [
+    {
+     "name": "1.8i 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8T 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TiD 6MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiDS 6AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiDS 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6AT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6MT FWD (130 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TTiD 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 5MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TS 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5AT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 5AT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT AWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Aero 6AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L V6 Aero 6MT FWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-3X",
+   "variants": [
+    {
+     "name": "1.9L TTiD 6MT FWD (180 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0T 6MT AWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-5",
+   "variants": [
+    {
+     "name": "1.6T 6MT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L TiD 5AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 5MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TiD 6AT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TiD 6MT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TiD 6MT FWD (160 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TiD 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0t 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0t 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 6MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T BioPower 6AT AWD (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0T BioPower 6MT AWD (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0T BioPower 6MT FWD (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.2L TiD 5AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TiD 5MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3L 5AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5AT FWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5MT FWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t 4AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t Aero 4AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3t Aero 5MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8T 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L TiD 5MT FWD (176 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9-5 SportCombi",
+   "variants": [
+    {
+     "name": "1.9L TiD 5AT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L TiD 5MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L 5AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L TiD 5AT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L TiD 5MT FWD (120 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.3 Turbo Aero 5MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5AT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 4AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T Aero 4AT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T Aero 5MT FWD (230 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5AT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5AT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT FWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5AT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 TiD 5MT FWD (176 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "9-7X",
+   "variants": [
+    {
+     "name": "4.2L 4AT (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 4AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V8 4AT (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "90",
+   "variants": [
+    {
+     "name": "2.0L 5MT (100 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "900",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "900 Cabrio",
+   "variants": [
+    {
+     "name": "2.0L 3AT FWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 3AT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 3AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5AT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.1L 5MT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 4AT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 5MT (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 4AT (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "9000",
+   "variants": [
+    {
+     "name": "2.0i 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L T 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 4AT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3i 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L T 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo 5MT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo Aero 5MT FWD (224 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i V6 4AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0i V6 5MT FWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

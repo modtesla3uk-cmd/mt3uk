@@ -1,0 +1,14 @@
+{
+ "name": "Borgward",
+ "models": [
+  {
+   "name": "BX7",
+   "variants": [
+    {
+     "name": "2.0L 6AT AWD (224 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

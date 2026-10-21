@@ -1,0 +1,35 @@
+{
+ "name": "Qoros",
+ "models": [
+  {
+   "name": "3",
+   "variants": [
+    {
+     "name": "1.6L 6AT FWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6MT FWD (126 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Turbo 6AT FWD (156 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L Turbo 6MT FWD (156 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "5",
+   "variants": [
+    {
+     "name": "1.6L Turbo 6AT (156 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

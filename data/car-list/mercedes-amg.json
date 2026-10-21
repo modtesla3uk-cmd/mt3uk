@@ -1,0 +1,679 @@
+{
+ "name": "Mercedes-AMG",
+ "models": [
+  {
+   "name": "A-Class",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 7AT AWD (381 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 45 2.0L 8AT AWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A 45 S 2.0L 8AT AWD (421 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C-Class",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 9AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0 V6 4MATIC 9AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 9AT AWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 7AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 S 7AT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9G RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9G RWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C-CLASS",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 9AT AWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L PHEV 4MATIC+ 9AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0 V6 4MATIC 9AT (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 7AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 S 7AT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 4.0L V8 7AT RWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "C-CLASS T-MODELL",
+   "variants": [
+    {
+     "name": "3.0 V6 4MATIC 9AT (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CLA 45 Shooting Brake",
+   "variants": [
+    {
+     "name": "94 kWh 4MATIC+ (680 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "CLA Shooting brake",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 7AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 7AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC CLA 45 8AT AWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC CLA 45 S 8AT AWD (421 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "35 4MATIC 8AT AWD 306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CLA-Class",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 7AT AWD (381 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "35 4MATIC 8AT AWD (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "45 S 4MATIC+ 8AT AWD (421 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "CLA 45 2.0L 8AT AWD (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "CLA 45 S 2.0L 8AT AWD (421 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CLE",
+   "variants": [
+    {
+     "name": "3.0L MHEV 4MATIC+ 9AT AWD (449 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "CLE 53 3.0L MHEV 4MATIC+ 9AT AWD (449 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "CLS-Class",
+   "variants": [
+    {
+     "name": "3.0 4MATIC+ 9AT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "53 4MATIC+ 9AT (435 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "E-Class",
+   "variants": [
+    {
+     "name": "3.0 4MATIC+ 9AT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT (435 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (435 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (585 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (585 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (612 HP) DYNAMIC PLUS",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT AWD (401 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC 9AT AWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC+ 9AT AWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9AT 4MATIC+ AWD (571 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 S 4MATIC 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 S 4MATIC+ 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 S 9AT 4MATIC+ AWD (612 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "EQE",
+   "variants": [
+    {
+     "name": "43 4MATIC AWD 350 KW (476 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "53 4MATIC+ AMG DYNAMIC PLUS AWD 505 KW (687 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "53 4MATIC+ AWD 460 KW (626 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "EQE SUV",
+   "variants": [
+    {
+     "name": "43 4MATIC (476 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "53 4MATIC (626 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "EQS",
+   "variants": [
+    {
+     "name": "53 4MATIC+ AMG Dynamic Plus 107.8 KWh AWD (761 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "EQS 53 4MATIC+ 107.8 KWh AWD (658 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "G 63",
+   "variants": [
+    {
+     "name": "4.0 V8 4MATIC 9AT (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 MHEV 9AT AWD (585 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "GLA",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 7AT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 7AT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC+ 8AT (387 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4MATIC+ 8AT AWD (421 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 2.0L 4MATIC+ 8AT (421 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GLB",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GLC",
+   "variants": [
+    {
+     "name": "2.0L MHEV 4MATIC 9AT AWD (421 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT AWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC 9AT AWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "63 S E Performance 2.0L PHEV 4MATIC 9AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "GLC 53 4MATIC+ 9AT AWD (449 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "GLC 63 4.0L V8 9AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GLC 63 S 4.0L V8 9AT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 4.0L V8 4MATIC 9AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GLC-Class",
+   "variants": [
+    {
+     "name": "2.0L 4MATIC PHEV 9AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4MATIC 9AT AWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC 9AT AWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GLC 63 4.0L V8 9AT AWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GLC 63 S 4.0L V8 9AT AWD (510 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GLE",
+   "variants": [
+    {
+     "name": "3.0L 4MATIC 9AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MATIC+ 9AT AWD (449 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L 9AT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L MATIC+ PHEV 9AT AWD (585 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "3.0L V6 9At (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 4MATIC V8 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 4MATIC+ V8 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC MHEV EQ Boost 9AT AWD (612 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "53 4MATIC 9AT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "63 4MATIC 7AT AWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "63 S 4MATIC 7AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GLE 63 4.0L V8 9AT AWD 4MATIC+ (571 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "GLE 63 S 4.0L V8 9AT AWD 4MATIC+ (612 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "GLS- Class",
+   "variants": [
+    {
+     "name": "4.0L V8 4MATIC MHEV EQ Boost 9AT AWD (612 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "4.0L V8 Biturbo 4MATIC+ 9AT AWD (603 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "5.5L V8 4MATIC 7AT (585 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT",
+   "variants": [
+    {
+     "name": "2.0L MHEV 9AT RWD (421 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "4.0 V8 7AT (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 7AT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0 V8 7AT (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT (522 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT FWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (462 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (557 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9AT AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 Biturbo 9AT AWD (805 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.0L V8 Turbo 7AT (585 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT 4-DOOR",
+   "variants": [
+    {
+     "name": "3.0 L6 4MATIC 9AT AWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 9AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9G AWD (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 9G AWD (639 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 Biturbo 9AT AWD (843 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "53 4MATIC+ 9AT AWD (435 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "55 106 kWh 4MATIC+ (816 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "63 106 kWh 4MATIC+ (1169 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ONE",
+   "variants": [
+    {
+     "name": "1.6L V6 PHEV Turbo 7AT AWD (1063 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "S-Class",
+   "variants": [
+    {
+     "name": "4.0 V8 4MATIC 9AT (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC 9AT AWD (612 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 4MATIC+ 9AT AWD (791 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "5.5 V8 4MATIC 7AT (585 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12 7AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 7AT AWD (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SL-Class",
+   "variants": [
+    {
+     "name": "4.0L V8 PHEV 9AT AWD (816 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "SL 43 9AT RWD (381 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "SL 55 4MATIC+ V8 9AT AWD (476 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "SL 63 4MATIC+ V8 9AT AWD (585 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SLC",
+   "variants": [
+    {
+     "name": "3.0 V6 9AT (367 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

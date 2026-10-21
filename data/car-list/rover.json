@@ -1,0 +1,22 @@
+{
+ "name": "Rover",
+ "models": [
+  {
+   "name": "100 Cabrio",
+   "variants": [
+    {
+     "name": "111 FWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "114 1.4L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "114 1.4L FWD (102 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

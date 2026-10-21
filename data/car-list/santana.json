@@ -1,0 +1,45 @@
+{
+ "name": "Santana",
+ "models": [
+  {
+   "name": "300 - 350",
+   "variants": [
+    {
+     "name": "300 5MT AWD (90 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "350 5MT AWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "PS 10 Pickup",
+   "variants": [
+    {
+     "name": "2.8L TD 5MT AWD (125 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "PS 10 Plus",
+   "variants": [
+    {
+     "name": "2.8L TD 5MT AWD (125 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "PS 10 Shortline",
+   "variants": [
+    {
+     "name": "2.8L TD 5MT AWD (125 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

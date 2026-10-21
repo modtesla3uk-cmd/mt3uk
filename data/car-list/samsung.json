@@ -1,0 +1,48 @@
+{
+ "name": "Samsung",
+ "models": [
+  {
+   "name": "SM 3",
+   "variants": [
+    {
+     "name": "1.5L 5MT (100 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SM 5",
+   "variants": [
+    {
+     "name": "1.8L 5MT (134 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 4AT (173 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SM 7",
+   "variants": [
+    {
+     "name": "2.3",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5 V6",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

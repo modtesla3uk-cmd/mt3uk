@@ -1,0 +1,412 @@
+{
+ "name": "Bentley",
+ "models": [
+  {
+   "name": "Arnage",
+   "variants": [
+    {
+     "name": "6.75 V8 6AT (456 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 6AT (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Azure",
+   "variants": [
+    {
+     "name": "6.75L V8 4AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (426 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 6AT RWD (457 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 6AT RWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.8L V8 6AT RWD (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Batur",
+   "variants": [
+    {
+     "name": "6.0L W12 (750 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bentayga",
+   "variants": [
+    {
+     "name": "3.0L V6 TFSi 8AT AWD (449 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (435 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (608 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bentayga Speed",
+   "variants": [
+    {
+     "name": "4.0L V8 AWD (650 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L V12 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 TSI 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Brooklands",
+   "variants": [
+    {
+     "name": "6.75L V8 6AT RWD (537 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Continental",
+   "variants": [
+    {
+     "name": "4.0 V8 8AT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 W12 6AT (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT (426 CP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.75L V8 4AT RWD (426 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Continental Flying Spur",
+   "variants": [
+    {
+     "name": "6.0i W12 6AT AWD (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT AWD (610 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Continental GT",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (782 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 AWD (529 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 S 8AT AWD (528 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 W12 8AT (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L TSI W12 8AT AWD (659 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (582 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (659 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (710 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GT S 4.0L V8 8AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Speed 6.0L W12 8AT (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Speed 6.0L W12 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 4.0L V8 8AT (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 S 4.0L V8 8AT (528 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Continental GTC",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (529 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.0L V8 PHEV 8AT AWD (782 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.0L V8 S 8AT AWD (528 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 W12 8AT (710 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L 8AT (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6AT AWD (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 6MT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (575 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (590 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Speed 6.0L W12 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Speed 6.0L W12 8AT AWD (642 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 4.0L V8 8AT AWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "V8 S 4.0L V8 8AT AWD (528 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Flying Spur",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (507 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 AWD (782 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 TFSI PHEV 8AT AWD (680 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "6.0L W12 8AT AWD (625 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 4.0L V8 8AT AWD (528 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 6.0L W12 8AT AWD (635 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mulliner",
+   "variants": [
+    {
+     "name": "6.0L W12 TSI 8AT AWD (659 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "W12 8AT (731 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mulsanne",
+   "variants": [
+    {
+     "name": "6.75L V8 8AT RWD (512 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Speed 6.75L V8 8AT RWD (537 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T1",
+   "variants": [
+    {
+     "name": "6.2L V8 3AT (195 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T2",
+   "variants": [
+    {
+     "name": "6.75 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

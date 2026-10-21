@@ -1,0 +1,436 @@
+{
+ "name": "Maserati",
+ "models": [
+  {
+   "name": "Bora",
+   "variants": [
+    {
+     "name": "4.7L V8 5MT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V8 5MT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V8 5MT (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Coupe",
+   "variants": [
+    {
+     "name": "3.2L V8 4AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 6MT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6MT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 Cambiocorsa 6AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 GranSport 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ghibli",
+   "variants": [
+    {
+     "name": "2.0L eBooster 48V 8AT RWD (330 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "3.0d V6 8AT RWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0d V6 8AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 8AT RWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9 V8 SS",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L V6 8AT RWD (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.0L V6 8AT RWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S Q4 3.0L V6 8AT AWD (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S Q4 3.0L V6 8AT AWD (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GranCabrio",
+   "variants": [
+    {
+     "name": "3.0L V6 RWD (542 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7 V8 6AT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "92.5 KWh AWD (829 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "MC 4.7L V8 6AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 4.7L V8 6AT RWD (460 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GranSport",
+   "variants": [
+    {
+     "name": "4.2L V8 6AT (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GranTurismo",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT RWD (496 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (558 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 6AT RWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT RWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 6MT RWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "92.5 KWh AWD (762 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "MC 4.7L V8 6AT RWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Sport 4.7L V8 6AT RWD (460 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Grecale",
+   "variants": [
+    {
+     "name": "105 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "2.0L MHEV AWD 8AT (296 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.0L MHEV AWD 8AT (325 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Grecale Trofeo",
+   "variants": [
+    {
+     "name": "3.0L V6 AWD 8AT (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT2 Stradale",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT RWD (640 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Indy",
+   "variants": [
+    {
+     "name": "4.2L V8 5MT RWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5MT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9L V8 5MT RWD (321 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Levante",
+   "variants": [
+    {
+     "name": "2.0L GDI 48V 8AT AWD (330 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 S 8AT AWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 8AT AWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 8AT AWD (590 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "GTS 3.8L V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MC 12",
+   "variants": [
+    {
+     "name": "6.0L V12 6AT RWD (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MC20",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 RWD (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MCPura",
+   "variants": [
+    {
+     "name": "3.0L V6 Twin Turbo RWD (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MCPura Cielo",
+   "variants": [
+    {
+     "name": "3.0L V6 Twin Turbo RWD (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Merak",
+   "variants": [
+    {
+     "name": "2.0L V6 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 SS 5MT RWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Quattroporte",
+   "variants": [
+    {
+     "name": "2.8L V6 Biturbo 6MT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0 V6 5MT (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (250 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT RWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 AWD 8AT (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 RWD 8AT (275 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 RWD 8AT (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V8 Biturbo 6MT (336 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 8AT (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 8AT RWD (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V8 RWD 8AT (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.1 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.1L V8 5MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.9 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Quattroporte Sport GT S",
+   "variants": [
+    {
+     "name": "4.7L V8 6AT RWD (440 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Spyder",
+   "variants": [
+    {
+     "name": "4.2L GT V8 6MT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 Cambiocorsa 6AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.2L V8 GT 6MT RWD (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

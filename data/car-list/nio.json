@@ -1,0 +1,98 @@
+{
+ "name": "NIO",
+ "models": [
+  {
+   "name": "EC6",
+   "variants": [
+    {
+     "name": "100 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "100 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (544 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "EP9",
+   "variants": [
+    {
+     "name": "4WD (1360 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ES6",
+   "variants": [
+    {
+     "name": "100 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "100 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "84 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "84 KWh (544 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ES8",
+   "variants": [
+    {
+     "name": "100 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "84 KWh (544 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ET7",
+   "variants": [
+    {
+     "name": "100 KWh (653 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "150 KWh (653 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 KWh (653 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

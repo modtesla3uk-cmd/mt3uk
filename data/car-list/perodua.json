@@ -1,0 +1,98 @@
+{
+ "name": "Perodua",
+ "models": [
+  {
+   "name": "Alza",
+   "variants": [
+    {
+     "name": "1.5L 4AT (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aruz",
+   "variants": [
+    {
+     "name": "1.5i 4AT (102 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Axia",
+   "variants": [
+    {
+     "name": "1.0L 4AT FWD (66 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (66 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VVT-i 4AT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L VVT-i 5MT (68 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Bezza",
+   "variants": [
+    {
+     "name": "1.0L 4AT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4AT (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT (95 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Myvi",
+   "variants": [
+    {
+     "name": "1.3L 4AT FWD (91 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (91 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (103 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

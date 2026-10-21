@@ -1,0 +1,374 @@
+{
+ "name": "Lamborghini",
+ "models": [
+  {
+   "name": "Aventador",
+   "variants": [
+    {
+     "name": "6.5 V12 7AT (740 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 (700 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT (690 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT (750 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT AWD (740 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT AWD (750 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT AWD (770 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 7AT AWD (780 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 9AT AWD (770 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Centenario",
+   "variants": [
+    {
+     "name": "6.5L V12 7AT AWD (770 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Countach",
+   "variants": [
+    {
+     "name": "3.9L V12 5MT (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2 V12 5MT (455 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V12 5MT (455 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Diablo",
+   "variants": [
+    {
+     "name": "5.7 V12 5MT (492 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V12 5MT (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.0 V12",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Espada",
+   "variants": [
+    {
+     "name": "3.9L V12 S1 5MT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9L V12 S2 5MT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Fenomeno",
+   "variants": [
+    {
+     "name": "6.5L V12 8AT AWD (1080 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Gallardo",
+   "variants": [
+    {
+     "name": "5.0 V10 (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 6MT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 6MT AWD (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2 V10 (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2 V10 (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2 V10 (570 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2 V10 6AT (570 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 6AT AWD (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 6AT RWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 6MT AWD (552 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 6MT AWD (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 6MT RWD (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Huracan",
+   "variants": [
+    {
+     "name": "5.2 V10 7AT (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT AWD (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT AWD (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT RWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT RWD (610 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L V10 7AT RWD (640 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Jalpa",
+   "variants": [
+    {
+     "name": "3.5 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Jarama",
+   "variants": [
+    {
+     "name": "400 V12 5MT RWD (351 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400L GTS V12 5MT (365 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LM 002",
+   "variants": [
+    {
+     "name": "5.2L V12 5MT (450 HP",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Miura",
+   "variants": [
+    {
+     "name": "3.9L V12 5MT RWD (415 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P400 S V12 5MT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P400 SV V12 5MT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P400 V12 5MT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Murcielago",
+   "variants": [
+    {
+     "name": "6.2L V12 6MT AWD (579 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.2L V12 6MT AWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 6MT AWD (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 6MT AWD (670 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Reventon",
+   "variants": [
+    {
+     "name": "6.5L V12 6MT AWD (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Revuelto",
+   "variants": [
+    {
+     "name": "6.5L V12 8AT 4WD (1065 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.5L V12 8AT AWD (1015 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Sian",
+   "variants": [
+    {
+     "name": "6.5L V12 7AT (819 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "6.5L V12 7AT AWD (819 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Silhouette",
+   "variants": [
+    {
+     "name": "3.0 V8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Temerario",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (800 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Urraco",
+   "variants": [
+    {
+     "name": "P200 V8 5MT RWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P250 V8 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "P300 V8 5MT RWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Urus",
+   "variants": [
+    {
+     "name": "4.0L PHEV 8AT AWD (800 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT 4WD (666 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (650 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (666 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Veneno",
+   "variants": [
+    {
+     "name": "6.5 V12 (750 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.5L V12 (750 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

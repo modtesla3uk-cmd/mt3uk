@@ -1,0 +1,69 @@
+{
+ "name": "Polestar",
+ "models": [
+  {
+   "name": "1",
+   "variants": [
+    {
+     "name": "2.0L (600 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "2",
+   "variants": [
+    {
+     "name": "435 HP",
+     "fuel": "Electric"
+    },
+    {
+     "name": "78 KWh (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long range Dual motor 82 KWh AWD (421 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long range Dual motor Performance Pack 82 KWh AWD (476 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long range Single motor 82 KWh RWD (299 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard range Single motor 69 KWh RWD (272 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "3",
+   "variants": [
+    {
+     "name": "Long Range Dual motor 111 KWh (490 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance Pack 111 KWh AWD (517 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "5",
+   "variants": [
+    {
+     "name": "Dual Motor 112 KWh (748 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance 112 KWh (884 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

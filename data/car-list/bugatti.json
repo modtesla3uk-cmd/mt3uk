@@ -1,0 +1,114 @@
+{
+ "name": "Bugatti",
+ "models": [
+  {
+   "name": "Bolide",
+   "variants": [
+    {
+     "name": "8.0L W16 7AT AWD (1850 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Brouillard",
+   "variants": [
+    {
+     "name": "8.0L W16 7AT AWD (1600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Centodieci",
+   "variants": [
+    {
+     "name": "8.0L W16 7AT (1600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Chiron",
+   "variants": [
+    {
+     "name": "8.0 W16 (1,500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT (1500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT (1600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT AWD (1500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Divo",
+   "variants": [
+    {
+     "name": "8.0L W16 AWD (1500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "EB 110",
+   "variants": [
+    {
+     "name": "3.5L 6MT (600 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V12 6MT AWD (560 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "La Voiture Noire",
+   "variants": [
+    {
+     "name": "8.0L (1500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tourbillon",
+   "variants": [
+    {
+     "name": "8.3L V16 8AT AWD (1800 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Veyron",
+   "variants": [
+    {
+     "name": "8.0L W16 7AT (1001 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT (1200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT (1201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "8.0L W16 7AT AWD (1001 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

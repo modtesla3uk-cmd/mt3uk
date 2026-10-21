@@ -1,0 +1,967 @@
+{
+ "name": "MINI",
+ "models": [
+  {
+   "name": "Aceman",
+   "variants": [
+    {
+     "name": "E 38.5 kWh FWD (184 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "SE 49.2 kWh FWD (218 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Classic",
+   "variants": [
+    {
+     "name": "1.3L 4MT (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "156 HP",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "204 HP",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (178 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Clubman",
+   "variants": [
+    {
+     "name": "Cooper 1.5L 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.6L 6AT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 2.0L 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 2.0L 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 2.0L 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 7AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 2.0L 7AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 6MT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 8AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 7AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0L 7AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6MT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT FWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.5 6AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.5 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.5L 7AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 6AT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 6MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One D 1.5L 6AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One D 1.5L 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One D 1.5L 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One D 1.6L 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Clubvan",
+   "variants": [
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (122 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One 1.4L 6MT FWD (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Convertible",
+   "variants": [
+    {
+     "name": "2.0L 7AT (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "32.6 KWh (184 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Cooper 1.5L 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 7AT (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L CVT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.5L 6AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.5L 6MT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.5L 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.5L 7AT (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6MT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 8AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 8AT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 8AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 6AT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 6MT FWD (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Countryman",
+   "variants": [
+    {
+     "name": "(170 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "66.45 KWh AWD (313 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Cooper 1.5L 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 7AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6AT FWD 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper ALL 4 1.6L 6AT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper ALL 4 1.6L 6MT AWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper ALL4 1.5L 6MT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper ALL4 1.5L 8AT AWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.6L 6AT FWD (111 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (111 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 2.0L 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 2.0L 8AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 1.6L 6AT AWD (111 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 1.6L 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 1.6L 6MT AWD (111 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 1.6L 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 2.0L 6MT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL4 2.0L 8AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 7AT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL 4 1.6 6AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL 4 1.6L 6MT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 1.6L 6AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 1.6L 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 2.0L 6MT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 2.0L 8AT AWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 2.0L 8AT AWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 8AT FWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL 4 2.0L 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0L 6AT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0L 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0L 8AT AWD (190 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SE ALL4 1.5L 6AT AWD (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "Cooper SE ALL4 1.5L 6MT AWD (224 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6AT (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6AT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT AWD (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT AWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6MT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT AWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT FWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works Countryman ALL4 2.0L AWD (312 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "One 1.6L 6AT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 6MT FWD (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One D 1.5L 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One D 1.5L 7AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One D 1.6L 6MT FWD (90 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Coupe",
+   "variants": [
+    {
+     "name": "Cooper 1.6L 6AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD C(184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6AT FWD (211 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Hatch",
+   "variants": [
+    {
+     "name": "1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 8AT FWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "54.2 KWh (218 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Cooper 1.3L 4MT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.5L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6i 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.5L 6AT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.5L 6MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6L 6MT FWD (110 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper One 1.5L 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.3L 4MT FWD (63 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.5L 6MT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (1745 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L Turbo 5MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L Turbo 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 8AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 2.0L 8AT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 8AT FWD (170 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SE 135 Kw (184 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 6MT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 2.0L 8AT FWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works GP 8AT FWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.2L 6AT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.2L 6AT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.2L 6MT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.2L 6MT FWD (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.4L 6MT FWD (75 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One 1.4L 6MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.4L 6MT FWD (88 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One 1.4L 6MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One 1.6L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One D 1.5L 6MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "One First 1.2L 6MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "One First 1.2L 6MT FWD (75 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Paceman",
+   "variants": [
+    {
+     "name": "Cooper 1.6L 6AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper D 1.6D 6AT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D 1.6D 6MT FWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL 4 1.6D 6AT AWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper D ALL 4 1.6D 6MT AWD (112 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL 4 1.6L 6MT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S ALL4 1.6L 6AT AWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0D 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0D 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0D 6AT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD ALL4 2.0D 6MT AWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6AT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT FWD (218 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roadster",
+   "variants": [
+    {
+     "name": "Cooper 1.6L 6AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper 1.6L 6MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper S 1.6L 6MT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Cooper SD 2.0L 6AT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "Cooper SD 2.0L 6MT FWD (143 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "John Cooper Works 1.6L 6MT FWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

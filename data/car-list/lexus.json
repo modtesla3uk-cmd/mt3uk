@@ -1,0 +1,919 @@
+{
+ "name": "Lexus",
+ "models": [
+  {
+   "name": "CT",
+   "variants": [
+    {
+     "name": "1.8L e-CVT (136 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "200h (136 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "200h e-CVT FWD (136 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "200h F Sport e-CVT FWD (99 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ES",
+   "variants": [
+    {
+     "name": "250 6AT FWD (184 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 8AT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 8AT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 5AT FWD (213 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300h CVT FWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h CVT FWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h CVT FWD (201 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h e-CVT FWD (215 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h eCVT FWD (200 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h eCVT FWD (218 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "330 V6 5AT FWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6AT (276 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6AT FWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 F Sport 8AT FWD (302 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT FWD (248 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT FWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350h CVT AWD (247 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350h CVT FWD (247 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "GS",
+   "variants": [
+    {
+     "name": "200t 8AT RWD (244 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 6AT RWD (209 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5AT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5AT RWD (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 L6 4AT RWD (212 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 6AT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 6AT RWD (249 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300h eCVT RWD (223 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350 8AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 8AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 AWD 6AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 RWD 6AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350H V6 CVT RWD (339 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400 V8 5AT RWD (294 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5AT RWD (283 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 6AT RWD (283 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 6AT RWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450h eCVT RWD (345 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 eCVT RWD (345 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "460 8AT RWD (347 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 V8 8AT RWD (347 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GS F",
+   "variants": [
+    {
+     "name": "5.0L V8 8AT RWD (467 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GX",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6 V8 6AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 (301 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 6AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "470 V8 5AT AWD (235 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "HS",
+   "variants": [
+    {
+     "name": "2.4L Hybrid CVT FWD (190 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "IS",
+   "variants": [
+    {
+     "name": "2.0L 8AT RWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200 6MT RWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200t 8AT AWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200t 8AT RWD (241 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "220 D 6MT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "220d 6AT RWD (177 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "250 6AT RWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 6AT RWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 6MT RWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 V6 6MT RWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 V6 AWD 6AT (204 HP) (US)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 V6 RWD 6AT (204 HP) (US)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 V6 RWD 6AT (207 HP) (EU)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT AWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT AWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT RWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5AT RWD (214 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 5AT RWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 6AT AWD (255 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300h",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h eCVT (223 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h RWD e-CVT (220 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350 6AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 8AT AWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 8AT RWD (306 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 6AT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 AWD 8AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 RWD 8AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (423 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "F Sport 5.0L V8 8AT RWD (472 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LBX",
+   "variants": [
+    {
+     "name": "1.5L e-CVT FWD (136 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L E-Four e-CVT AWD (136 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "Morizo RR 1.6L 6MT AWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Morizo RR 1.6L 8AT AWD (304 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LC",
+   "variants": [
+    {
+     "name": "5.0L V8 10AT RWD (471 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 V8 10AT RWD (475 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500h eCVT+4AT RWD (360 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "LFA",
+   "variants": [
+    {
+     "name": "4.8L V10 6AT RWD (560 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LM",
+   "variants": [
+    {
+     "name": "2.5L AWD (250 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "LS",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT (416 HP) AWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT (416 HP) RWD",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 4AT V8 (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 4AT (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 5AT (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 6AT (242 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5AT (281 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 (LWB) V8 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 F SPORT 8AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 F V8 SPORT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 L V8 8AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 L V8 8AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 Long 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 V8 8AT AWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 V8 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "460 V8 8AT RWD (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 3.5L V6 10AT AWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500 3.5L V6 10AT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500h V6 4AT (354 HP) AWD",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "500h V6 4AT (354 HP) RWD",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "500h V6 4AT AWD (369 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "600h (LWB) V8 8AT RWD (445 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "600h eCVT AWD (445 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "600h L CVT AWD (445 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "600h Long eCVT AWD (445 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "600h V8 8AT RWD (445 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "LX",
+   "variants": [
+    {
+     "name": "3.3L V6 10AT (295 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V6 10AT (409 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450 V8 5MT (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "450d 6AT AWD (272 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "470 V8 4AT (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "570 6AT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "570 8AT AWD (367 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "570 8AT AWD (383 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "570 V8 6AT AWD (383 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "NX",
+   "variants": [
+    {
+     "name": "200t 6AT AWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200t 6AT FWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 2.5L 8AT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250 2.5L 8AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 6AT AWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 6AT FWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300h CVT AWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h CVT FWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h eCVT AWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300h eCVT FWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350 2.4L 8AT AWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350h 2.5L CVT AWD (239 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h+ 2.5L CVT AWD (302 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "RC",
+   "variants": [
+    {
+     "name": "300h CVT RWD (223 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350 3.5L V6 8AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 3.5L V6 8AT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT AWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT RWD (311 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 6AT RWD (477 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 8AT RWD (467 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RC F",
+   "variants": [
+    {
+     "name": "5.0 V8 8AT (467 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RX",
+   "variants": [
+    {
+     "name": "200t 6AT AWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "200t 6AT FWD (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "270 FWD 6AT (188 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 8AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 4AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 4AT AWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "300 V6 5AT FWD (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "330 V6 5AT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 2.4L 8AT AWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 3.5L V6 8AT AWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 3.5L V6 8AT FWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6AT AWD (277 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 6AT FWD (277 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 AWD 6AT (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 F SPORT AWD 8AT (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 FWD 6AT (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 5AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT AWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 V6 8AT FWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350h 2.5L CVT AWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "350L 3.5L V6 8AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400h V6 CVT AWD (210 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "400h V6 CVT FWD (210 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h CVT AWD (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h CVT FWD (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h eCVT AWD (308 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 AWD CVT (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 eCVT AWD (308 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 eCVT AWD (313 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 eCVT FWD (313 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h V6 FWD CVT (299 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "450h+ 2.5L PHEV CVT AWD (306 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "500h 2.4L 6AT AWD (371 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "RZ",
+   "variants": [
+    {
+     "name": "450e 71.4 KWh (331 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "77 KWh AWD (408 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "SC",
+   "variants": [
+    {
+     "name": "300 5MT RWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.3L V8 6AT RWD (288 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 4AT RWD (254 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "400 V8 4AT RWD (264 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "430 V8 5AT (286 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TX",
+   "variants": [
+    {
+     "name": "350 2.4L 8AT AWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "350 2.4L 8AT FWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "500h 2.4L 6AT AWD (366 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "550h+ 3.5L V6 CVT AWD (406 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  },
+  {
+   "name": "TZ",
+   "variants": [
+    {
+     "name": "95.82 kWh AWD (408 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "UX",
+   "variants": [
+    {
+     "name": "200 2.0L CVT FWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "250h 2.0L CVT AWD (181 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "300e 150 Kw (204 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "54.3 KWh (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

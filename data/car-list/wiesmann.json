@@ -1,0 +1,79 @@
+{
+ "name": "Wiesmann",
+ "models": [
+  {
+   "name": "GT MF4",
+   "variants": [
+    {
+     "name": "4.4L V8 6AT (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT MF4-S",
+   "variants": [
+    {
+     "name": "4.0L V8 7AT (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GT MF5",
+   "variants": [
+    {
+     "name": "4.4L V8 6AT (555 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 7MT RWD (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MF4",
+   "variants": [
+    {
+     "name": "4.4 V8 6AT (407 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT RWD (367 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MF4-S",
+   "variants": [
+    {
+     "name": "4.0L V8 6MT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 7AT RWD (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MF5",
+   "variants": [
+    {
+     "name": "4.4 V8 6AT (555 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V10 7AT (507 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

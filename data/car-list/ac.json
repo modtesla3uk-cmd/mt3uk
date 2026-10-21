@@ -1,0 +1,48 @@
+{
+ "name": "AC",
+ "models": [
+  {
+   "name": "Ace",
+   "variants": [
+    {
+     "name": "4.9L V8 4AT RWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aceca",
+   "variants": [
+    {
+     "name": "3.5L V8 32V Turbo 6MT RWD (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5MT RWD (326 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Frua",
+   "variants": [
+    {
+     "name": "7.0L V8 3AT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 3AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 4MT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "7.0L V8 4MT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

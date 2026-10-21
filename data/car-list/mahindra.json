@@ -1,0 +1,65 @@
+{
+ "name": "Mahindra",
+ "models": [
+  {
+   "name": "Bolero",
+   "variants": [
+    {
+     "name": "2.5L D (63 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Scorpio / GOA",
+   "variants": [
+    {
+     "name": "2.2D 5MT 4WD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2D 6AT 4WD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6D 5MT 4WD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6D 5MT 4WD (116 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Thar",
+   "variants": [
+    {
+     "name": "2.5D 2WD (63 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5D 4WD (63 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L CRDe 5MT AWD (105 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Verito",
+   "variants": [
+    {
+     "name": "1.4L MFPI (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L dCI (65 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "name": "Gordon Murray Automotive",
+ "models": [
+  {
+   "name": "T.33",
+   "variants": [
+    {
+     "name": "3.9L V12 6MT RWD (600 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "T.50",
+   "variants": [
+    {
+     "name": "3.9L V12 6MT RWD (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

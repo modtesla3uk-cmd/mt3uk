@@ -1,0 +1,314 @@
+{
+ "name": "Daihatsu",
+ "models": [
+  {
+   "name": "Altis",
+   "variants": [
+    {
+     "name": "2.4i 16V 4AT AWD (159 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4i 16V 4AT FWD (159 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT AWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT FWD (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT RWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CVT (203 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Applause",
+   "variants": [
+    {
+     "name": "1.6L 16V 4AT FWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT FWD (99 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 3AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 6MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Ayla",
+   "variants": [
+    {
+     "name": "1.0L 4AT (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT (65 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4AT (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT (88 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Copen",
+   "variants": [
+    {
+     "name": "0.7L Turbo 4AT FWD (67 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L Turbo 5MT FWD (67 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 4AT FWD FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cuore",
+   "variants": [
+    {
+     "name": "1.0L 4AT FWD (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (69 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Feroza Hardtop",
+   "variants": [
+    {
+     "name": "1.6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Feroza Softtop",
+   "variants": [
+    {
+     "name": "1.6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Gran Move",
+   "variants": [
+    {
+     "name": "1.5L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (91 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Materia",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (91 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (103 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Move",
+   "variants": [
+    {
+     "name": "0.8L 5MT FWD (42 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0i 3AT FWD (56 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0i 5MT FWD (56 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (58 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rocky",
+   "variants": [
+    {
+     "name": "2.0L 5MT (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8 D 5MT (73 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L Turbo D (102 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L Turbo D (91 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Rocky Hardtop",
+   "variants": [
+    {
+     "name": "2.0L 5MT AWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.8L D 5MT AWD (73 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.8L Turbo D 5MT AWD (91 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Sirion",
+   "variants": [
+    {
+     "name": "1.0l 5MT (69 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sirion 2",
+   "variants": [
+    {
+     "name": "1.0L 5MT FWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Terios",
+   "variants": [
+    {
+     "name": "1.3i 4AT (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3i 4AT AWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3i 5MT (83 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3i 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT AWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT RWD (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Trevis",
+   "variants": [
+    {
+     "name": "1.0L 4AT FWD (58 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (58 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Valera",
+   "variants": [
+    {
+     "name": "1.5L 4AT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

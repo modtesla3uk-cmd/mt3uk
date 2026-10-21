@@ -1,0 +1,39 @@
+{
+ "name": "Arcfox",
+ "models": [
+  {
+   "name": "Alpha S",
+   "variants": [
+    {
+     "name": "65.6 KWh RWD (218 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "65.6 KWh RWD (238 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "93.6 KWh AWD (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "94.5 KWh AWD (435 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Alpha T",
+   "variants": [
+    {
+     "name": "65.6 KWh RWD (238 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "93.6 KWh AWD (435 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

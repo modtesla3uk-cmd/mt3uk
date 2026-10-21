@@ -1,0 +1,98 @@
+{
+ "name": "XPeng",
+ "models": [
+  {
+   "name": "G3",
+   "variants": [
+    {
+     "name": "460 55 KWh FWD (197 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "47.1 KWh FWD (197 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "47.6 kWh FWD (197 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "520 66 kWh FWD (197 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "G6",
+   "variants": [
+    {
+     "name": "Dual-Motor AWD (480 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single motor RWD (296 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "G9",
+   "variants": [
+    {
+     "name": "Long Range 98 kWh RWD (313 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance 98 kWh AWD (551 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard 78.2 kWh RWD (313 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "P5",
+   "variants": [
+    {
+     "name": "460 55.9 kWh FWD (211 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "510 61.3 kWh FWD (211 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "550 66.2 kWh FWD (211 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "600 71.4 kWh FWD (211 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "P7",
+   "variants": [
+    {
+     "name": "High Performance 80 kWh 4WD (430 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 70.8 kWh RWD (267 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 60.2 KWh RWD (267 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Super Long Range 80 KWh RWD (267 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

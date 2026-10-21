@@ -1,0 +1,211 @@
+{
+ "name": "Tesla",
+ "models": [
+  {
+   "name": "Cybertruck",
+   "variants": [
+    {
+     "name": "123 KWh Dual Motor AWD (600 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Cyberbeast Tri Motor 123 KWh AWD (845 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor RWD",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Model 3",
+   "variants": [
+    {
+     "name": "Dual Motor Standard Range AWD (444 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor Standard Range RWD (279 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 75 KWh AWD (346 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 75 KWh RWD (283 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Mid Range 62 KWh RWD (283 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance 75 KWh AWD (450 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 50 KWh RWD (283 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range Plus 54 KWh RWD (283 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Model S",
+   "variants": [
+    {
+     "name": "100D",
+     "fuel": "Electric"
+    },
+    {
+     "name": "60 RWD (380 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 AWD (315 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70 RWD (387 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70D AWD (328 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "70D RWD (525 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "85 RWD (380 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "85D RWD (376 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "90D AWD (417 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "90D AWD (525 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 100 KWh Dual Motor AWD (670 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P100D AWD (613 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P85D AWD (691 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P90D AWD (532 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P90D AWD (762 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Plaid 100 KWh Tri Motor AWD (1020 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Model X",
+   "variants": [
+    {
+     "name": "75D AWD (333 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "90D AWD (525 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor AWD 100 kWh (670 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range AWD 100 kWh (670 Hp)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P100D AWD (613 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P100D AWD (680 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "P90D AWD (762 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Plaid Dual Motor AWD 100 kWh (1020 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Plaid Tri Motor AWD 100 kWh (1020 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Model Y",
+   "variants": [
+    {
+     "name": "62.5 KWh RWD (299 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 78.4 KWh RWD (347 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range Dual Motor 78.4 KWh AWD (514 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Y Standard Range 60 KWh (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Roadster",
+   "variants": [
+    {
+     "name": "568 KW AWD (772 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "AC induction (248 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "AC induction 1AT (248 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "SPORT AC induction (288 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

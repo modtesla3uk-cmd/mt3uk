@@ -1,0 +1,383 @@
+{
+ "name": "Lotus",
+ "models": [
+  {
+   "name": "2 Eleven",
+   "variants": [
+    {
+     "name": "1.8 6MT (256 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "3 Eleven",
+   "variants": [
+    {
+     "name": "3.5 V6 6MT (436 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Elan",
+   "variants": [
+    {
+     "name": "1.5L 4MT (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 16V 5MT (132 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6i 16V Turbo 5MT (167 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT (106 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Eletre",
+   "variants": [
+    {
+     "name": "Dual Motor 112 KWh AWD (603 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor 112 KWh AWD (905 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Elise",
+   "variants": [
+    {
+     "name": "1.6L S 6MT RWD (134 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (118 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT FWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L R 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L S 5MT RWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L SC 6AT RWD (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L SC 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Elite",
+   "variants": [
+    {
+     "name": "1.2L 4MT (72 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 4MT (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (144 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (162 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Emeya",
+   "variants": [
+    {
+     "name": "Dual Motor 102 KWh AWD (612 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Emira",
+   "variants": [
+    {
+     "name": "2.0L 8AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Esprit",
+   "variants": [
+    {
+     "name": "2.0L 5MT RWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (254 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (174 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (213 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (268 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (289 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (304 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V8 5MT RWD (355 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Europa",
+   "variants": [
+    {
+     "name": "1.5L 4MT RWD (79 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4MT RWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT RWD (128 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 Turbo 6MT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 Turbo 6MT (222 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Evija",
+   "variants": [
+    {
+     "name": "1471 KW AWD (2000 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Evora",
+   "variants": [
+    {
+     "name": "3.5L V6 6AT (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT AWD (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT RWD (406 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT RWD (436 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT AWD (422 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (406 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (416 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT RWD (436 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Excel",
+   "variants": [
+    {
+     "name": "2.2L 4AT RWD (183 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT RWD (162 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Exige",
+   "variants": [
+    {
+     "name": "1.8 5MT (179 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8 6MT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8 6MT (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 6MT RWD (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CUP 260 6MT RWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L S 240 6MT RWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L S 6MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT (390 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT (410 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6MT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S 3.5L V6 6MT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "S Roadster 3.5L V6 6MT (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

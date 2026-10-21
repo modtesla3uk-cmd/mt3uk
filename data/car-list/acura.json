@@ -1,0 +1,540 @@
+{
+ "name": "Acura",
+ "models": [
+  {
+   "name": "ADX",
+   "variants": [
+    {
+     "name": "1.5L VTEC CVT AWD (190 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CL",
+   "variants": [
+    {
+     "name": "2.2L 5MT (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5AT FWD (225 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Type S 3.2L V6 5AT FWD (263 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Type S 3.2L V6 6MT FWD (263 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "CSX",
+   "variants": [
+    {
+     "name": "2.0i 16V 5MT (157 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5AT (157 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 16V 5MT (157 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Type S 2.0L 6MT (157 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "EL",
+   "variants": [
+    {
+     "name": "1.6L 16V 5MT (107 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ILX",
+   "variants": [
+    {
+     "name": "1.5L Hybrid CVT FWD (111 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.0L 5AT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V i-VTEC 8AT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6MT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 8AT FWD (201 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Integra",
+   "variants": [
+    {
+     "name": "1.5L VTEC CVT (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (113 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (196 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD 140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L GS-R 4AT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L GS-R 5MT FWD (170 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L RS 4AT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L RS 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VTEC 6MT FWD (324 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Legend",
+   "variants": [
+    {
+     "name": "2.5L V6 5AT FWD (151 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (151 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 5AT FWD (161 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 5MT FWD (161 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2 V6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5MT (202 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MDX",
+   "variants": [
+    {
+     "name": "3.0L V6 10 AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 10AT FWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT FWD (294 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (321 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 AWD 6AT (294 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 5AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 AWD 6AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "NSX",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT RWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT RWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (573 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "RDX",
+   "variants": [
+    {
+     "name": "2.0L 10AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VTEC 10AT (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VTEC 10AT AWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo AWD 5AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Turbo FWD 5AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 6AT AWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 AWD 6AT (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 FWD 6AT (273 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RL",
+   "variants": [
+    {
+     "name": "3.5L V6 5AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VTEC AWD 5AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VTEC AWD 6AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RLX",
+   "variants": [
+    {
+     "name": "3.5L V6 10AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 AWD (377 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.5L V6 FWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 Sport Hybrid 7AT (377 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "RSX",
+   "variants": [
+    {
+     "name": "2.0L 5AT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "RSX TYPE-S",
+   "variants": [
+    {
+     "name": "2.0L 5AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT FWD (210 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "SLX",
+   "variants": [
+    {
+     "name": "3.2L V6 4AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT AWD (216 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TL",
+   "variants": [
+    {
+     "name": "2.3L 4AT FWD (176 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT FWD (176 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 24V V6 5AT FWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 24V V6 6MT FWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT FWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT FWD (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT FWD (273 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 VTEC FWD 5AT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 VTEC FWD 6AT (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VTEC AWD 5AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VTEC AWD 6AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7L V6 VTEC AWD 6MT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Type S 3.2L V6 5AT FWD (263 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TLX",
+   "variants": [
+    {
+     "name": "2.0L 10AT FWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 8AT FWD (206 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 8AT FWD (209 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 10AT",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT AWD (294 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 9AT FWD (294 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TSX",
+   "variants": [
+    {
+     "name": "2.4L 16V 5AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 16V 6MT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5AT (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 5AT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L i-VTEC 6MT FWD (201 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 VTEC 5AT FWD (280 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ZDX",
+   "variants": [
+    {
+     "name": "3.7L V6 VTEC 6AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "A-Spec 102 KWh (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Type S Dual motor 102 KWh (500 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

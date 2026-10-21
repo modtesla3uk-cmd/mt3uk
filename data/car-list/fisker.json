@@ -1,0 +1,31 @@
+{
+ "name": "Fisker",
+ "models": [
+  {
+   "name": "Karma",
+   "variants": [
+    {
+     "name": "2.0L 1Speed (400 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Ocean",
+   "variants": [
+    {
+     "name": "Dual Motor AWD (540 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor AWD (550 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor FWD (275 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

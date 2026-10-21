@@ -1,0 +1,35 @@
+{
+ "name": "Lucid",
+ "models": [
+  {
+   "name": "Motors Air",
+   "variants": [
+    {
+     "name": "Dream Edition Performance AWD (1111 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dream Edition Range AWD (933 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Grand Touring AWD (800 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Touring AWD (620 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Motors Gravity",
+   "variants": [
+    {
+     "name": "800 HP",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

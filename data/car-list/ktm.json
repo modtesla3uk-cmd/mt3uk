@@ -1,0 +1,26 @@
+{
+ "name": "KTM",
+ "models": [
+  {
+   "name": "X-Bow",
+   "variants": [
+    {
+     "name": "2.0 6MT (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 6MT (N/A)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "R 2.0L 6MT (240 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

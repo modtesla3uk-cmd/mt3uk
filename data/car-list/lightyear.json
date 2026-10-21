@@ -1,0 +1,23 @@
+{
+ "name": "Lightyear",
+ "models": [
+  {
+   "name": "Lightyear 0",
+   "variants": [
+    {
+     "name": "60 kWh AWD (172 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Lightyear 2",
+   "variants": [
+    {
+     "name": "60 KWh AWD (174 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

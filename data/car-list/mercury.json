@@ -1,0 +1,175 @@
+{
+ "name": "Mercury",
+ "models": [
+  {
+   "name": "Cougar",
+   "variants": [
+    {
+     "name": "2.0 16V",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 V6",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Grand Marquis",
+   "variants": [
+    {
+     "name": "4.6 V8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6 V8 Duratec 4AT (224 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Marauder",
+   "variants": [
+    {
+     "name": "4.6L V8 4AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mariner",
+   "variants": [
+    {
+     "name": "2.3L 16V 4AT AWD (153 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.3L 16V 4AT AWD (153 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L 16V 4AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.3L Hybrid 4AT FWD (135 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5 Hybrid CVT (250 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.5L 5MT FWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT AWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (171 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT AWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (202 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (240 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Milan",
+   "variants": [
+    {
+     "name": "2.3L 16V 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L DOHC 6AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L DOHC Hybrid CVT FWD (191HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L DOHC 6AT AWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L DOHC 6AT FWD (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (110 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Montego",
+   "variants": [
+    {
+     "name": "3.0 V6 6AT (203 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Monterey",
+   "variants": [
+    {
+     "name": "4.2L V6 6AT (203 H{P)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mountaineer",
+   "variants": [
+    {
+     "name": "4.0L V6 5AT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 6AT (292 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sable",
+   "variants": [
+    {
+     "name": "3.5L V6 6AT (266 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Villager",
+   "variants": [
+    {
+     "name": "3.0L V6 4AT FWD (151 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 4AT FWD (173 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

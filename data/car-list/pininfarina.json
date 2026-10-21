@@ -1,0 +1,23 @@
+{
+ "name": "Pininfarina",
+ "models": [
+  {
+   "name": "B95",
+   "variants": [
+    {
+     "name": "120 KWh (1900 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Battista",
+   "variants": [
+    {
+     "name": "120 KWh (1904 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

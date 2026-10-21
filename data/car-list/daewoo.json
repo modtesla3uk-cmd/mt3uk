@@ -1,0 +1,365 @@
+{
+ "name": "Daewoo",
+ "models": [
+  {
+   "name": "Cielo",
+   "variants": [
+    {
+     "name": "1.5L 4AT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CNG 5MT (71 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Damas II",
+   "variants": [
+    {
+     "name": "0.8 LPG",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Espero",
+   "variants": [
+    {
+     "name": "1.5L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "G2X",
+   "variants": [
+    {
+     "name": "2.0L 5MT (264 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Gentra",
+   "variants": [
+    {
+     "name": "1.2L 5MT FWD (73 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5MT FWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lacetti",
+   "variants": [
+    {
+     "name": "1.4L 5MT FWD (95 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 4AT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 4AT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (121 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 5AT FWD (121 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D 5MT FWD (121 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Lanos",
+   "variants": [
+    {
+     "name": "1.3L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (86 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Leganza",
+   "variants": [
+    {
+     "name": "1.8L 4AT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (146 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4AT FWD (136 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 5MT FWD (136 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Magnus",
+   "variants": [
+    {
+     "name": "2.0L 4AT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (148 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 4AT FWD (157 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Matiz",
+   "variants": [
+    {
+     "name": "0.8L 5MT FWD (52 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (64 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (67 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Nubira",
+   "variants": [
+    {
+     "name": "1.6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 16V 5MT (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT (133 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT (133 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Statesman",
+   "variants": [
+    {
+     "name": "3.6L V6 5AT RWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT RWD (207 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT RWD (232 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 4AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 4AT RWD (333 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tacuma",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (107 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 4AT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (101 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (122 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (127 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tico",
+   "variants": [
+    {
+     "name": "0.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Tosca",
+   "variants": [
+    {
+     "name": "2.0L 5MT (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 5MT (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L 5AT (160 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Winstorm",
+   "variants": [
+    {
+     "name": "2.0L D 5AT AWD (152 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D 5MT AWD (152 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT FWD (230 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

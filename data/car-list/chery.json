@@ -1,0 +1,92 @@
+{
+ "name": "Chery",
+ "models": [
+  {
+   "name": "TIGGO 7",
+   "variants": [
+    {
+     "name": "1.5L T PHEV FWD (279 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L TGDI 7AT AWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L TGDI 7AT FWD (147 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TIGGO 8",
+   "variants": [
+    {
+     "name": "1.6L TGDI 7AT FWD (147 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "CSH 1.5L PHEV 7AT AWD (279 HP) 7 Seat",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "Pro 1.5T PHEV 3AT FWD (326 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "Pro 1.5T PHEV 3AT FWD (326 HP) 7 Seat",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "Pro 290 TGDI 7AT FWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Pro 290 TGDI 7AT FWD (197 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Pro 390 TGDI 7AT AWD (254 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Pro 390 TGDI 7AT AWD (254 HP) 7 Seat",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "TIGGO 9",
+   "variants": [
+    {
+     "name": "2.0L TGDI 7AT FWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TGDI 7AT FWD (261 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TGDI 8AT AWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TGDI 8AT AWD (261 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TGDI 8AT FWD (261 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TGDI 8AT FWD (261 HP) 7 Seat",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "CSH 1.5L TGDI PHEV AWD (428 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  }
+ ]
+}

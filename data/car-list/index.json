@@ -1,0 +1,811 @@
+{
+ "_source": "Makes, models and engines from vehicle-makes-models (github.com/gor3a/vehicle-makes-models), built from autoevolution.com data. Petrol, diesel, electric and hybrid engines only.",
+ "_licence": "Open Database License (ODbL) v1.0. Attribution required; adapted versions offered under the ODbL. See LICENSE-DATA in the source repository.",
+ "_built": "2026-10-21",
+ "makes": [
+  {
+   "name": "AC",
+   "slug": "ac",
+   "models": 3,
+   "variants": 7
+  },
+  {
+   "name": "Acura",
+   "slug": "acura",
+   "models": 19,
+   "variants": 110
+  },
+  {
+   "name": "Alfa Romeo",
+   "slug": "alfa-romeo",
+   "models": 43,
+   "variants": 331
+  },
+  {
+   "name": "Alpine",
+   "slug": "alpine",
+   "models": 4,
+   "variants": 20
+  },
+  {
+   "name": "Arcfox",
+   "slug": "arcfox",
+   "models": 2,
+   "variants": 6
+  },
+  {
+   "name": "Ariel",
+   "slug": "ariel",
+   "models": 2,
+   "variants": 9
+  },
+  {
+   "name": "Aro",
+   "slug": "aro",
+   "models": 3,
+   "variants": 13
+  },
+  {
+   "name": "Artega",
+   "slug": "artega",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "Aston Martin",
+   "slug": "aston-martin",
+   "models": 39,
+   "variants": 101
+  },
+  {
+   "name": "Audi",
+   "slug": "audi",
+   "models": 78,
+   "variants": 1648
+  },
+  {
+   "name": "Aurus",
+   "slug": "aurus",
+   "models": 1,
+   "variants": 2
+  },
+  {
+   "name": "BAIC",
+   "slug": "baic",
+   "models": 1,
+   "variants": 1
+  },
+  {
+   "name": "Bentley",
+   "slug": "bentley",
+   "models": 15,
+   "variants": 83
+  },
+  {
+   "name": "BMW",
+   "slug": "bmw",
+   "models": 65,
+   "variants": 1529
+  },
+  {
+   "name": "Borgward",
+   "slug": "borgward",
+   "models": 1,
+   "variants": 1
+  },
+  {
+   "name": "Bristol",
+   "slug": "bristol",
+   "models": 7,
+   "variants": 17
+  },
+  {
+   "name": "Bufori",
+   "slug": "bufori",
+   "models": 3,
+   "variants": 5
+  },
+  {
+   "name": "Bugatti",
+   "slug": "bugatti",
+   "models": 9,
+   "variants": 16
+  },
+  {
+   "name": "Buick",
+   "slug": "buick",
+   "models": 19,
+   "variants": 95
+  },
+  {
+   "name": "BYD",
+   "slug": "byd",
+   "models": 5,
+   "variants": 18
+  },
+  {
+   "name": "Cadillac",
+   "slug": "cadillac",
+   "models": 38,
+   "variants": 187
+  },
+  {
+   "name": "Caterham",
+   "slug": "caterham",
+   "models": 8,
+   "variants": 13
+  },
+  {
+   "name": "Chery",
+   "slug": "chery",
+   "models": 3,
+   "variants": 18
+  },
+  {
+   "name": "Chevrolet",
+   "slug": "chevrolet",
+   "models": 56,
+   "variants": 665
+  },
+  {
+   "name": "Chrysler",
+   "slug": "chrysler",
+   "models": 17,
+   "variants": 130
+  },
+  {
+   "name": "Citroën",
+   "slug": "citroen",
+   "models": 52,
+   "variants": 677
+  },
+  {
+   "name": "Cupra",
+   "slug": "cupra",
+   "models": 8,
+   "variants": 53
+  },
+  {
+   "name": "Dacia",
+   "slug": "dacia",
+   "models": 28,
+   "variants": 172
+  },
+  {
+   "name": "Daewoo",
+   "slug": "daewoo",
+   "models": 16,
+   "variants": 70
+  },
+  {
+   "name": "Daihatsu",
+   "slug": "daihatsu",
+   "models": 17,
+   "variants": 56
+  },
+  {
+   "name": "Datsun",
+   "slug": "datsun",
+   "models": 4,
+   "variants": 10
+  },
+  {
+   "name": "DMC",
+   "slug": "dmc",
+   "models": 1,
+   "variants": 3
+  },
+  {
+   "name": "Dodge",
+   "slug": "dodge",
+   "models": 24,
+   "variants": 250
+  },
+  {
+   "name": "Donkervoort",
+   "slug": "donkervoort",
+   "models": 2,
+   "variants": 7
+  },
+  {
+   "name": "DR",
+   "slug": "dr",
+   "models": 3,
+   "variants": 6
+  },
+  {
+   "name": "DS",
+   "slug": "ds",
+   "models": 9,
+   "variants": 81
+  },
+  {
+   "name": "Eagle",
+   "slug": "eagle",
+   "models": 3,
+   "variants": 12
+  },
+  {
+   "name": "Ferrari",
+   "slug": "ferrari",
+   "models": 56,
+   "variants": 118
+  },
+  {
+   "name": "Fiat",
+   "slug": "fiat",
+   "models": 72,
+   "variants": 572
+  },
+  {
+   "name": "Fisker",
+   "slug": "fisker",
+   "models": 2,
+   "variants": 4
+  },
+  {
+   "name": "Ford",
+   "slug": "ford",
+   "models": 85,
+   "variants": 1177
+  },
+  {
+   "name": "FSO",
+   "slug": "fso",
+   "models": 6,
+   "variants": 16
+  },
+  {
+   "name": "Geely",
+   "slug": "geely",
+   "models": 5,
+   "variants": 10
+  },
+  {
+   "name": "Genesis",
+   "slug": "genesis",
+   "models": 8,
+   "variants": 58
+  },
+  {
+   "name": "GMC",
+   "slug": "gmc",
+   "models": 21,
+   "variants": 175
+  },
+  {
+   "name": "Gordon Murray Automotive",
+   "slug": "gordon-murray-automotive",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "GTA",
+   "slug": "gta",
+   "models": 1,
+   "variants": 1
+  },
+  {
+   "name": "Hindustan",
+   "slug": "hindustan",
+   "models": 3,
+   "variants": 7
+  },
+  {
+   "name": "Holden",
+   "slug": "holden",
+   "models": 31,
+   "variants": 230
+  },
+  {
+   "name": "Honda",
+   "slug": "honda",
+   "models": 52,
+   "variants": 499
+  },
+  {
+   "name": "Hummer",
+   "slug": "hummer",
+   "models": 8,
+   "variants": 12
+  },
+  {
+   "name": "Hyundai",
+   "slug": "hyundai",
+   "models": 50,
+   "variants": 659
+  },
+  {
+   "name": "Ineos",
+   "slug": "ineos",
+   "models": 1,
+   "variants": 2
+  },
+  {
+   "name": "Infiniti",
+   "slug": "infiniti",
+   "models": 22,
+   "variants": 157
+  },
+  {
+   "name": "Isuzu",
+   "slug": "isuzu",
+   "models": 10,
+   "variants": 62
+  },
+  {
+   "name": "Jaguar",
+   "slug": "jaguar",
+   "models": 19,
+   "variants": 204
+  },
+  {
+   "name": "Jeep",
+   "slug": "jeep",
+   "models": 14,
+   "variants": 225
+  },
+  {
+   "name": "Karma",
+   "slug": "karma",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "KGM",
+   "slug": "kgm",
+   "models": 6,
+   "variants": 24
+  },
+  {
+   "name": "Kia",
+   "slug": "kia",
+   "models": 47,
+   "variants": 564
+  },
+  {
+   "name": "Koenigsegg",
+   "slug": "koenigsegg",
+   "models": 9,
+   "variants": 13
+  },
+  {
+   "name": "KTM",
+   "slug": "ktm",
+   "models": 1,
+   "variants": 4
+  },
+  {
+   "name": "Lada",
+   "slug": "lada",
+   "models": 9,
+   "variants": 32
+  },
+  {
+   "name": "Lamborghini",
+   "slug": "lamborghini",
+   "models": 21,
+   "variants": 66
+  },
+  {
+   "name": "Lancia",
+   "slug": "lancia",
+   "models": 27,
+   "variants": 187
+  },
+  {
+   "name": "Land Rover",
+   "slug": "land-rover",
+   "models": 16,
+   "variants": 209
+  },
+  {
+   "name": "Lexus",
+   "slug": "lexus",
+   "models": 22,
+   "variants": 201
+  },
+  {
+   "name": "Lightyear",
+   "slug": "lightyear",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "Lincoln",
+   "slug": "lincoln",
+   "models": 15,
+   "variants": 118
+  },
+  {
+   "name": "Lotus",
+   "slug": "lotus",
+   "models": 14,
+   "variants": 77
+  },
+  {
+   "name": "Lucid",
+   "slug": "lucid",
+   "models": 2,
+   "variants": 5
+  },
+  {
+   "name": "Mahindra",
+   "slug": "mahindra",
+   "models": 4,
+   "variants": 10
+  },
+  {
+   "name": "Marussia",
+   "slug": "marussia",
+   "models": 2,
+   "variants": 6
+  },
+  {
+   "name": "Maruti Suzuki",
+   "slug": "maruti-suzuki",
+   "models": 9,
+   "variants": 12
+  },
+  {
+   "name": "Maserati",
+   "slug": "maserati",
+   "models": 19,
+   "variants": 84
+  },
+  {
+   "name": "Maybach",
+   "slug": "maybach",
+   "models": 3,
+   "variants": 7
+  },
+  {
+   "name": "Mazda",
+   "slug": "mazda",
+   "models": 39,
+   "variants": 389
+  },
+  {
+   "name": "McLaren",
+   "slug": "mclaren",
+   "models": 21,
+   "variants": 27
+  },
+  {
+   "name": "Mercedes-AMG",
+   "slug": "mercedes-amg",
+   "models": 26,
+   "variants": 136
+  },
+  {
+   "name": "Mercedes-Benz",
+   "slug": "mercedes-benz",
+   "models": 88,
+   "variants": 1973
+  },
+  {
+   "name": "Mercury",
+   "slug": "mercury",
+   "models": 10,
+   "variants": 30
+  },
+  {
+   "name": "MG",
+   "slug": "mg",
+   "models": 17,
+   "variants": 81
+  },
+  {
+   "name": "MINI",
+   "slug": "mini",
+   "models": 10,
+   "variants": 228
+  },
+  {
+   "name": "Mitsubishi",
+   "slug": "mitsubishi",
+   "models": 28,
+   "variants": 298
+  },
+  {
+   "name": "Morgan",
+   "slug": "morgan",
+   "models": 11,
+   "variants": 22
+  },
+  {
+   "name": "NIO",
+   "slug": "nio",
+   "models": 5,
+   "variants": 17
+  },
+  {
+   "name": "Nissan",
+   "slug": "nissan",
+   "models": 58,
+   "variants": 567
+  },
+  {
+   "name": "Oldsmobile",
+   "slug": "oldsmobile",
+   "models": 7,
+   "variants": 19
+  },
+  {
+   "name": "Omoda",
+   "slug": "omoda",
+   "models": 1,
+   "variants": 1
+  },
+  {
+   "name": "Opel",
+   "slug": "opel",
+   "models": 50,
+   "variants": 952
+  },
+  {
+   "name": "Pagani",
+   "slug": "pagani",
+   "models": 7,
+   "variants": 11
+  },
+  {
+   "name": "Panoz",
+   "slug": "panoz",
+   "models": 5,
+   "variants": 6
+  },
+  {
+   "name": "Perodua",
+   "slug": "perodua",
+   "models": 5,
+   "variants": 17
+  },
+  {
+   "name": "Peugeot",
+   "slug": "peugeot",
+   "models": 55,
+   "variants": 792
+  },
+  {
+   "name": "Pininfarina",
+   "slug": "pininfarina",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "Plymouth",
+   "slug": "plymouth",
+   "models": 6,
+   "variants": 26
+  },
+  {
+   "name": "Polestar",
+   "slug": "polestar",
+   "models": 4,
+   "variants": 11
+  },
+  {
+   "name": "Pontiac",
+   "slug": "pontiac",
+   "models": 18,
+   "variants": 116
+  },
+  {
+   "name": "Porsche",
+   "slug": "porsche",
+   "models": 98,
+   "variants": 400
+  },
+  {
+   "name": "Proton",
+   "slug": "proton",
+   "models": 14,
+   "variants": 40
+  },
+  {
+   "name": "Qoros",
+   "slug": "qoros",
+   "models": 2,
+   "variants": 5
+  },
+  {
+   "name": "Ram",
+   "slug": "ram",
+   "models": 3,
+   "variants": 67
+  },
+  {
+   "name": "Renault",
+   "slug": "renault",
+   "models": 64,
+   "variants": 859
+  },
+  {
+   "name": "Rimac",
+   "slug": "rimac",
+   "models": 1,
+   "variants": 2
+  },
+  {
+   "name": "Rivian",
+   "slug": "rivian",
+   "models": 3,
+   "variants": 10
+  },
+  {
+   "name": "Rolls-Royce",
+   "slug": "rolls-royce",
+   "models": 16,
+   "variants": 36
+  },
+  {
+   "name": "Rover",
+   "slug": "rover",
+   "models": 1,
+   "variants": 3
+  },
+  {
+   "name": "Saab",
+   "slug": "saab",
+   "models": 13,
+   "variants": 232
+  },
+  {
+   "name": "Saleen",
+   "slug": "saleen",
+   "models": 2,
+   "variants": 2
+  },
+  {
+   "name": "Samsung",
+   "slug": "samsung",
+   "models": 3,
+   "variants": 7
+  },
+  {
+   "name": "Santana",
+   "slug": "santana",
+   "models": 4,
+   "variants": 5
+  },
+  {
+   "name": "Saturn",
+   "slug": "saturn",
+   "models": 8,
+   "variants": 23
+  },
+  {
+   "name": "Scion",
+   "slug": "scion",
+   "models": 8,
+   "variants": 19
+  },
+  {
+   "name": "SEAT",
+   "slug": "seat",
+   "models": 29,
+   "variants": 465
+  },
+  {
+   "name": "Smart",
+   "slug": "smart",
+   "models": 12,
+   "variants": 76
+  },
+  {
+   "name": "Spyker",
+   "slug": "spyker",
+   "models": 5,
+   "variants": 6
+  },
+  {
+   "name": "SsangYong",
+   "slug": "ssangyong",
+   "models": 10,
+   "variants": 82
+  },
+  {
+   "name": "Subaru",
+   "slug": "subaru",
+   "models": 29,
+   "variants": 206
+  },
+  {
+   "name": "Suzuki",
+   "slug": "suzuki",
+   "models": 25,
+   "variants": 219
+  },
+  {
+   "name": "Tata",
+   "slug": "tata",
+   "models": 11,
+   "variants": 40
+  },
+  {
+   "name": "Tesla",
+   "slug": "tesla",
+   "models": 6,
+   "variants": 44
+  },
+  {
+   "name": "Togg",
+   "slug": "togg",
+   "models": 2,
+   "variants": 6
+  },
+  {
+   "name": "Toyota",
+   "slug": "toyota",
+   "models": 69,
+   "variants": 819
+  },
+  {
+   "name": "TVR",
+   "slug": "tvr",
+   "models": 10,
+   "variants": 33
+  },
+  {
+   "name": "Vauxhall",
+   "slug": "vauxhall",
+   "models": 33,
+   "variants": 321
+  },
+  {
+   "name": "VinFast",
+   "slug": "vinfast",
+   "models": 2,
+   "variants": 6
+  },
+  {
+   "name": "Volkswagen",
+   "slug": "volkswagen",
+   "models": 80,
+   "variants": 1351
+  },
+  {
+   "name": "Volvo",
+   "slug": "volvo",
+   "models": 51,
+   "variants": 710
+  },
+  {
+   "name": "Wiesmann",
+   "slug": "wiesmann",
+   "models": 6,
+   "variants": 11
+  },
+  {
+   "name": "Xiaomi",
+   "slug": "xiaomi",
+   "models": 1,
+   "variants": 1
+  },
+  {
+   "name": "XPeng",
+   "slug": "xpeng",
+   "models": 5,
+   "variants": 17
+  },
+  {
+   "name": "Zeekr",
+   "slug": "zeekr",
+   "models": 4,
+   "variants": 12
+  },
+  {
+   "name": "Zenvo",
+   "slug": "zenvo",
+   "models": 3,
+   "variants": 4
+  },
+  {
+   "name": "Škoda",
+   "slug": "skoda",
+   "models": 36,
+   "variants": 581
+  }
+ ]
+}

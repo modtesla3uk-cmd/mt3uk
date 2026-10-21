@@ -1,0 +1,480 @@
+{
+ "name": "Buick",
+ "models": [
+  {
+   "name": "Cascada",
+   "variants": [
+    {
+     "name": "1.6L Ecotec 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Century",
+   "variants": [
+    {
+     "name": "2.5L 3AT FWD (110 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.1L V6 4AT (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.1L V6 4AT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 3AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 4AT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.2L 3MT (143 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Enclave",
+   "variants": [
+    {
+     "name": "2.5L Turbo 8AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L Turbo 8AT FWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT (288 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (288 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT FWD (301 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 9AT (301 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Encore",
+   "variants": [
+    {
+     "name": "1.2L ECOTEC CVT FWD (137 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L Ecotec CVT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L ECOTEC 9AT AWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L Ecotec 9AT AWD (157 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L ECOTEC 9AT FWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L Ecotec CVT FWD (157 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6AT AWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6AT FWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 6AT Start&Stop AWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L Turbo AWD 6AT (138 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L Turbo FWD 6AT (138 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Envision",
+   "variants": [
+    {
+     "name": "2.0 6AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 9AT AWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo ECOTEC 9AT AWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo ECOTEC 9AT AWD (234 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo ECOTEC 9AT FWD (234 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 7AT AWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 7AT FWD (169 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0T 9AT AWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 6AT AWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5 6AT FWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT AWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 6AT FWD (197 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Plus 552T MHEV 9AT FWD (214 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "Plus 652T MHEV 9AT AWD (240 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "Plus 652T MHEV 9AT FWD (240 HP)",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Envista",
+   "variants": [
+    {
+     "name": "1.2L VVT Turbo 6AT FWD (138 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Gran Sport",
+   "variants": [
+    {
+     "name": "7.5L V8 4MT RWD (355 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LaCrosse",
+   "variants": [
+    {
+     "name": "2.4L 6AT FWD (197 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.4L Ecotec 6AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 6AT FWD (258 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 V6 9AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 4AT FWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (284 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 6AT (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 4AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3i V8 16V 4AT FWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LeSabre",
+   "variants": [
+    {
+     "name": "3.8L V6 4AT (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Lucerne",
+   "variants": [
+    {
+     "name": "3.8L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9L V6 4AT FWD (227 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 4AT FWD (209 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Park Avenue",
+   "variants": [
+    {
+     "name": "3.8L Supercharged V6 4AT FWD (243 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (208 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rainier",
+   "variants": [
+    {
+     "name": "4.2L 4AT RWD (279 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L 4AT AWD (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L 4AT RWD (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Reatta",
+   "variants": [
+    {
+     "name": "3.8",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Regal",
+   "variants": [
+    {
+     "name": "2.0L 6AT (270 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6AT FWD (259 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VVT 8AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L VVT 9AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6AT FWD (185 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L eAssist Start & Stop 6AT FWD (185 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "2.4L ECOTEC 6AT (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.1",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 Supercharged",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Rendezvous",
+   "variants": [
+    {
+     "name": "3.4L V6 4AT FWD (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 4AT AWD (198 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 4AT AWD (247 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Riviera",
+   "variants": [
+    {
+     "name": "3.8",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.6L V8 3AT RWD (329 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Skylark",
+   "variants": [
+    {
+     "name": "3.3",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.3L V8 3AT (200 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Terraza",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT AWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.9L V6 4AT FWD (237 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Verano",
+   "variants": [
+    {
+     "name": "2.0L Turbo 6AT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L Turbo 6MT FWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L EcoTec FWD (182 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

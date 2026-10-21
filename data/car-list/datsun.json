@@ -1,0 +1,65 @@
+{
+ "name": "Datsun",
+ "models": [
+  {
+   "name": "GO",
+   "variants": [
+    {
+     "name": "1.2L 5MT (68 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.2L 5MT (69 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GO+",
+   "variants": [
+    {
+     "name": "1.2L 5MT (69 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Mi-Do",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (88 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (88 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "on-Do",
+   "variants": [
+    {
+     "name": "1.6L 4AT FWD (87 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (82 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (87 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

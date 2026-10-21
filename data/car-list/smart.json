@@ -1,0 +1,369 @@
+{
+ "name": "Smart",
+ "models": [
+  {
+   "name": "1",
+   "variants": [
+    {
+     "name": "66 kWh RWD (272 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "3",
+   "variants": [
+    {
+     "name": "66 KWh AWD (428 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "66 KWh RWD (272 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "5",
+   "variants": [
+    {
+     "name": "100 KWh AWD (587 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "100 KWh RWD (363 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "76 KWh RWD (340 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "crossblade",
+   "variants": [
+    {
+     "name": "0.6L 6AT (70 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Electric Drive",
+   "variants": [
+    {
+     "name": "17.6 kWh (81 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "17.6 kWh RWD (81 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Electric drive (75 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "forfour",
+   "variants": [
+    {
+     "name": "0.9L 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L 6AT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT RWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 6AT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (64 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.1L 5MT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (94 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (109 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L CDi 5MT FWD (67 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.5L CDi 5MT FWD (95 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "41 Kw (82 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "forfour Brabus",
+   "variants": [
+    {
+     "name": "1.5L 16V 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "fortwo",
+   "variants": [
+    {
+     "name": "0.6L 6AT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 6AT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 6AT FWD (62 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 6AT FWD (70 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 6MT FWD (45 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.6L 6MT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6MT FWD (50 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6MT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.8L CDI 5AT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDI 5MT FWD (45 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDi 6AT FWD (41 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDi 6MT FWD (41 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.9L 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L 6AT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT RWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 6AT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L micro hybrid drive (71 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "41 Kw (82 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "fortwo Brabus",
+   "variants": [
+    {
+     "name": "0.7L 6AT (74 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0: 5MT (98 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L Brabus (102 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "fortwo Cabrio",
+   "variants": [
+    {
+     "name": "0.6L 6AT FWD (55 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6AT FWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6AT FWD (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.8L CDI 5AT (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDI 5AT FWD (45 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDI 5AT FWD (54 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDi 6AT FWD (40 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDi 6AT FWD (41 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.8L CDi 6MT FWD (40 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "0.9L Turbo 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.9L Turbo 6AT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5AT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 5MT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0L 6AT RWD (71 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "41 Kw (82 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "fortwo Cabrio Brabus",
+   "variants": [
+    {
+     "name": "0.7 6AT (75 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0 5AT (102 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.0 5AT (98 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Roadster",
+   "variants": [
+    {
+     "name": "0.7L 6AT RWD (61 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6AT RWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6MT RWD (60 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "0.7L 6MT RWD (80 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L V6 6AT RWD (170 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

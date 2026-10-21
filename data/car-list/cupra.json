@@ -1,0 +1,257 @@
+{
+ "name": "Cupra",
+ "models": [
+  {
+   "name": "Ateca",
+   "variants": [
+    {
+     "name": "2.0L TSI 7AT AWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Born",
+   "variants": [
+    {
+     "name": "45KWh AWD (148 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "58 KWh AWD (201 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "58 KWh AWD (228 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "61 kWh RWD (190 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "77 KWh AWD (228 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "84 kWh RWD (231 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "VZ 84 kWh RWD (326 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Formentor",
+   "variants": [
+    {
+     "name": "1.4L TSI 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.4L TSI 6AT FWD (245 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI 7AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI EVO 7AT AWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "VZ 2.0L TSI 7AT 4DRIVE (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "VZ5 2.5L TSI 7AT AWD (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Leon",
+   "variants": [
+    {
+     "name": "1.4L TSI PHEV FWD (245 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI 6MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 7AT FWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI FWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L TSI FWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Leon Sportstourer",
+   "variants": [
+    {
+     "name": "1.0L EcoTSi 6MT Start & Stop FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L EcoTSI Evo 6MT Start & Stop FWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L EcoTSI Evo 6MT Start & Stop FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L EcoTSI Evo 7AT Start & Stop FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (204 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "1.6L TDI 5MT Start & Stop FWD (115 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI 7AT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI CR 6MT Start & Stop FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TDI CR 7AT Start & Stop FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L TSI 4Drive 7AT AWD (333 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Raval",
+   "variants": [
+    {
+     "name": "37 KWh FWD (115 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "37 KWh FWD (135 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "52 KWh (210 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "52 KWh (225 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Tavascan",
+   "variants": [
+    {
+     "name": "Dual motor 82 KWh AWD (340 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single motor 82 KWh RWD (286 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Terramar",
+   "variants": [
+    {
+     "name": "1.5L eTSI MHEV 7AT FWD (150 HP)",
+     "fuel": "Mild hybrid"
+    },
+    {
+     "name": "1.5L TSI PHEV 6AT FWD (272 HP)",
+     "fuel": "Plug-in hybrid"
+    },
+    {
+     "name": "2.0L TSI 7AT AWD (265 HP)",
+     "fuel": "Plug-in hybrid"
+    }
+   ]
+  }
+ ]
+}

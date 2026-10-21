@@ -1,0 +1,23 @@
+{
+ "name": "Karma",
+ "models": [
+  {
+   "name": "Revero GT",
+   "variants": [
+    {
+     "name": "2.0L (403 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Revero GTS",
+   "variants": [
+    {
+     "name": "394 KW (536 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

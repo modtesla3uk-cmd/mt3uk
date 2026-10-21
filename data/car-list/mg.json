@@ -1,0 +1,414 @@
+{
+ "name": "MG",
+ "models": [
+  {
+   "name": "F/ TF",
+   "variants": [
+    {
+     "name": "1.6L 5MT RWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 5MT (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i VVC 5MT (145 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CVT RWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L SE Trophy 5MT (160 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "GS",
+   "variants": [
+    {
+     "name": "1.5L TGI 6MT (166 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L TGI 7AT (166 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "HS",
+   "variants": [
+    {
+     "name": "1.5T GDI 6MT FWD (162 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5T GDI 7AT FWD (162 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "IM5",
+   "variants": [
+    {
+     "name": "Dual Motor 100 KWh AWD (751 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 100 KWh RWD (407 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 75 KWh RWD (295 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "IM6",
+   "variants": [
+    {
+     "name": "Long Range 100 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 75 KWh",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Marvel R",
+   "variants": [
+    {
+     "name": "Comfort / Luxury 70 KWh (180 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance 70 KWh (288 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MG 3",
+   "variants": [
+    {
+     "name": "1.3L 5AT FWD (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.3L 5MT FWD (92 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5AT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L Atkinson 3AT FWD (194 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L VTi-TECH 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "MG 4",
+   "variants": [
+    {
+     "name": "435 HP",
+     "fuel": "Electric"
+    },
+    {
+     "name": "51 KWh RWD (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "64 KWh RWD (204 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MG 5",
+   "variants": [
+    {
+     "name": "50.3 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "61.1 KWh (154 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "MG 6",
+   "variants": [
+    {
+     "name": "1.8L TCI 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.9L DTi 6MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.9L DTi FWD (150 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "S5 EV",
+   "variants": [
+    {
+     "name": "SE 49 KWh FWD (170 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "SE Long Range 64 KWh FWD (231 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Trophy Long Range 64 KWh FWD (231 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "U9",
+   "variants": [
+    {
+     "name": "2.5L 8AT AWD (218 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "XPower",
+   "variants": [
+    {
+     "name": "4.6L V8 5MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 5MT RWD (405 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ZR",
+   "variants": [
+    {
+     "name": "1.4d 5MT FWD (100 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4d 5MT FWD (103 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4d 5MT FWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.4L 5MT FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.4L 5TM FWD (105 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 16V 5MT FWD (117 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 16V CVT FWD (117 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "1.8L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L CVT FWD (117 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0D 5MT FWD (103 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0d 5MT FWD (115 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "ZS",
+   "variants": [
+    {
+     "name": "1.0T GDI 6AT FWD (111 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L VTI-tech 5MT FWD (106 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (117 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "100 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "115 D",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "115 D 5MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "120",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "120 5MT FWD (121 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "180 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L D 5MT FWD (101 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L D 5MT FWD (113 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (177 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "Long Range 70 KWh",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Standard Range 50.3 KWh",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "ZT",
+   "variants": [
+    {
+     "name": "1.8i 16V 5AT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8i 16V 5MT FWD (120 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.8L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0d 5AT FWD (131 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0d 5MT FWD (116 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0d 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L CDTi 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 5AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.6L V8 5MT FWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "ZT-T",
+   "variants": [
+    {
+     "name": "1.8L 5MT FWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CDTi 5MT FWD (131 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L V6 5AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 5MT FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V6 FWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L V8 5TM FWD (260 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

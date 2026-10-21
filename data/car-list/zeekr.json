@@ -1,0 +1,73 @@
+{
+ "name": "Zeekr",
+ "models": [
+  {
+   "name": "001",
+   "variants": [
+    {
+     "name": "Dual Motor 103 KWh AWD (925 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Dual Motor 95 KWh AWD (925 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor 103 KWh RWD (503 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "7GT",
+   "variants": [
+    {
+     "name": "100 KWh AWD (646 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "75 KWh RWD (422 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Long Range 100 KWh RWD (422 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "7X",
+   "variants": [
+    {
+     "name": "100 KWh AWD (646 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "100 KWh RWD (422 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "75 KWh RWD (422 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "X",
+   "variants": [
+    {
+     "name": "Dual Motor 69 KWh AWD (428 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor 49 KWh RWD (272 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Single Motor 69 KWh RWD (272 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

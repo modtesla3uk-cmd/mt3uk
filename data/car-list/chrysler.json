@@ -1,0 +1,610 @@
+{
+ "name": "Chrysler",
+ "models": [
+  {
+   "name": "200",
+   "variants": [
+    {
+     "name": "2.4L 6AT FWD (173 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 6AT FWD (176 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L MultiAir 9AT FWD (181 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (278 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT AWD (291 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT FWD (291 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "300",
+   "variants": [
+    {
+     "name": "3.0D V6 RWD 5AT (239 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT RWD (292 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 8AT (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 AWD 8AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 RWD 8AT (296 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 RWD 8AT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L HEMI V8 AWD 5AT (368 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L HEMI V8 RWD 5AT (368 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 8AT RWD (363 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4 SRT V8 5AT (477 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "300C",
+   "variants": [
+    {
+     "name": "2.7L V6 4AT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L CRD 5AT RWD (215 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 CRD 5AT RWD (215 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.5L V6 4AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 5AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT RWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.1L V8 5AT (425 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L HEMI V8 8AT (485 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 3AT RWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "6.4L V8 3AT RWD (390 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "300M",
+   "variants": [
+    {
+     "name": "2.7L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (248 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Aspen",
+   "variants": [
+    {
+     "name": "4.7L V8 5AT AWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5AT AWD (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5AT RWD (235 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.7L V8 5AT RWD (303 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT AWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT AWD (375 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT RWD (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.7L V8 5AT RWD (375 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Concorde",
+   "variants": [
+    {
+     "name": "2.7L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 4AT FWD (222 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 4AT FWD (153 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (214 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (234 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L V6 4AT FWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Crossfire",
+   "variants": [
+    {
+     "name": "3.2L V6 5AT (335 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 5AT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT RWD (218 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Daytona",
+   "variants": [
+    {
+     "name": "2.5L 3AT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Grand Voyager",
+   "variants": [
+    {
+     "name": "2.8L CRD 6AT FWD (163 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.3i V6 4AT FWD (172 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 6AT FWD (193 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "LeBaron",
+   "variants": [
+    {
+     "name": "2.2L 3AT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L 4MT FWD (84 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 3AT FWD (100 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.6L 3AT FWD (92 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "New Yorker",
+   "variants": [
+    {
+     "name": "3.5",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Pacifica",
+   "variants": [
+    {
+     "name": "3.5L V6 4AT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT AWD (287 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 9AT FWD (287 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 eCVT FWD (287 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (213 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V6 6AT AWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V6 6AT FWD (256 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "PT Cruiser",
+   "variants": [
+    {
+     "name": "1.6L 5MT FWD (115 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.6L 5MT FWD (116 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 4AT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L CRD 5MT FWD (121 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L CRD 5MT FWD (150 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 4AT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (143 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L GT Turbo 5MT FWD (223 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo 4AT FWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo 4AT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo 5MT FWD (223 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Saratoga",
+   "variants": [
+    {
+     "name": "2.5L 3AT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT FWD (97 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 4AT FWD (141 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Sebring",
+   "variants": [
+    {
+     "name": "2.0L 5MT FWD (139 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT FWD (193 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L CRD 6MT (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.0L CRD 6MT FWD (140 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.4L 4AT (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 4AT FWD (175 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT (141 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (152 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo 5MT FWD (215 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L Turbo 5MT FWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 4AT (192 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 4AT FWD (194 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 4AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 4AT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L V6 5MT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 5MT FWD (203 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT (238 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.5L 6AT FWD (253 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Town & Country",
+   "variants": [
+    {
+     "name": "2.4L 5MT (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CRD 5MT (145 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.3L V6 4AT (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 4AT FWD (178 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT FWD (286 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT (208 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 6AT FWD (200 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V6 6AT FWD (257 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Voyager",
+   "variants": [
+    {
+     "name": "2.4L 4AT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L 5MT FWD (147 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L CRD 4AT FWD (141 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.5L CRD 5MT FWD (141 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.3L V6 4AT AWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L V6 4AT FWD (182 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT AWD (217 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L V6 4AT FWD (217 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  }
+ ]
+}

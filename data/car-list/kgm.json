@@ -1,0 +1,131 @@
+{
+ "name": "KGM",
+ "models": [
+  {
+   "name": "Actyon",
+   "variants": [
+    {
+     "name": "1.5L 6AT FWD (150 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "1.5L GDI 6AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI 6AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L GDI 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Korando",
+   "variants": [
+    {
+     "name": "1.5L T-GDI 6AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "e-Motion 61.5 kWh FWD (190 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Musso",
+   "variants": [
+    {
+     "name": "80.6 kWh AWD (414 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "80.6 kWh FWD (207 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Rexton",
+   "variants": [
+    {
+     "name": "2.2L e-XDi 8AT AWD (202 HP) 5 seat",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "2.2L e-XDi 8AT AWD (202 HP) 7 seat",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Tivoli",
+   "variants": [
+    {
+     "name": "1.5L T-GDI 6AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT FWD (135 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Torres",
+   "variants": [
+    {
+     "name": "1.5L T-GDI 6AT AWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6AT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI 6MT FWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "1.5L T-GDI FHEV e-DHT FWD (204 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "EVX 73.4 kWh FWD (207 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "EVX 80.6 kWh FWD (207 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

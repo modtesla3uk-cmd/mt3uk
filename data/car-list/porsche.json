@@ -1,0 +1,2095 @@
+{
+ "name": "Porsche",
+ "models": [
+  {
+   "name": "718",
+   "variants": [
+    {
+     "name": "4.0L 6MT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Boxster",
+   "variants": [
+    {
+     "name": "2.0L 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Boxster GTS",
+   "variants": [
+    {
+     "name": "2.5L 6MT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 7AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Boxster S",
+   "variants": [
+    {
+     "name": "2.5L 6MT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 7AT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Cayman",
+   "variants": [
+    {
+     "name": "2.0 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0 7AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 6MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Cayman GT4",
+   "variants": [
+    {
+     "name": "3.8L 6MT RWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Cayman GTS",
+   "variants": [
+    {
+     "name": "2.5L 6MT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 7AT RWD (365 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "718 Cayman S",
+   "variants": [
+    {
+     "name": "2.5L 6MT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 7AT RWD (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera",
+   "variants": [
+    {
+     "name": "1.6L 5MT RWD (90 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L E 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L S 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L E 5MT RWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.4L S 5MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (394 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2 5MT (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2 5MT (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L G-Kat 5MT RWD (218 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4 5AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7MT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L7MT RWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 5AT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 6MT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 7AT RWD (345 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera 4",
+   "variants": [
+    {
+     "name": "3.4L 5AT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT AWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7MT AWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 5MT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (272 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 7AT AWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 7AT RWD (345 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera 4 GTS",
+   "variants": [
+    {
+     "name": "3.0L 8AT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L T-Hybrid 8AT AWD (541 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.8 7MT AWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT AWD (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera 4S",
+   "variants": [
+    {
+     "name": "3.0L 8AT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 5AT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT AWD (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT AWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT AWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera GTS",
+   "variants": [
+    {
+     "name": "3.8 7AT (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 7MT (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT RWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT RWD (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera RS",
+   "variants": [
+    {
+     "name": "2.7 5MT (210 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 5MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7 5MT (305 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.7 6MT (331 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera S",
+   "variants": [
+    {
+     "name": "3.0L 7AT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT RWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 6MT (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 5AT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Carrera T",
+   "variants": [
+    {
+     "name": "3.0L 7AT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT RWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (380 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 GT2",
+   "variants": [
+    {
+     "name": "3.6L 6MT (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (462 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (530 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 GT2 RS",
+   "variants": [
+    {
+     "name": "3.6L 6MT (620 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT (700 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 GT3",
+   "variants": [
+    {
+     "name": "3.6 6MT (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 6MT (415 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (381 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 7AT (475 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT RWD (435 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT PDK (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (510 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (525 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 GT3 RS",
+   "variants": [
+    {
+     "name": "3.6L 6MT (381 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (415 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 6MT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L 7AT RWD (520 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 R",
+   "variants": [
+    {
+     "name": "4.0 6MT (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Sport Classic",
+   "variants": [
+    {
+     "name": "3.8L 6MT RWD (408 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Targa",
+   "variants": [
+    {
+     "name": "2.0L 5MT RWD (130 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L E 5MT RWD (140 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L S 5MT RWD (160 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.2L E 5MT RWD (155 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (150 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (180 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5MT RWD (231 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 5MT (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 4AT RWD (285 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (285 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Targa 4",
+   "variants": [
+    {
+     "name": "3.0L 7AT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 7MT AWD (370 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L BiTurbo 8AT AWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT AWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7MT AWD (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.L6 7AT (345 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Targa 4 GTS",
+   "variants": [
+    {
+     "name": "3.0L 8AT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (430 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT AWD (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Targa 4S",
+   "variants": [
+    {
+     "name": "3.0L BiTurbo 7MT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L BiTurbo 8AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 5AT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (355 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7MT (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Turbo",
+   "variants": [
+    {
+     "name": "3.0 4MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 4MT RWD (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3 4MT (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L 4MT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L 5MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.3L 5MT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 6MT (408 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5MT RWD (360 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8 7AT (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (540 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 8AT AWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L Turbo 6MT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L Turbo 6MT RWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L Turbo 7AT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L Turbo 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "911 Turbo S",
+   "variants": [
+    {
+     "name": "3.6L 5AT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 5AT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT AWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 6MT RWD (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L 8AT AWD (711 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.6L B6 T-Hybrid 8AT AWD (711 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.8 7AT (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT (530 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (560 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (580 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 7AT AWD (650 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "918",
+   "variants": [
+    {
+     "name": "4.6 V8 7AT (899 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "928",
+   "variants": [
+    {
+     "name": "4.4L V8 5MT RWD (240 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "928 GT",
+   "variants": [
+    {
+     "name": "5.0L V8 5MT RWD (330 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "928 GTS",
+   "variants": [
+    {
+     "name": "5.4L V8 4AT (350 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.4L V8 5MT (350 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "928 S",
+   "variants": [
+    {
+     "name": "4.6L V8 5MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 4AT RWD (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "5.0L V8 5MT RWD (320 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "944",
+   "variants": [
+    {
+     "name": "2.5L 5MT RWD (163 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (165 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "944 S",
+   "variants": [
+    {
+     "name": "2.5L 5MT RWD (190 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 5MT RWD (211 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "944 Turbo",
+   "variants": [
+    {
+     "name": "2.5L Turbo 5MT RWD (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L Turbo S 5MT RWD (250 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "959",
+   "variants": [
+    {
+     "name": "2.9L 6MT RWD (450 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "968",
+   "variants": [
+    {
+     "name": "3.0L 6MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 6MT RWD (240 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "968 Turbo S",
+   "variants": [
+    {
+     "name": "3.0L 6MT RWD (305 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Boxster",
+   "variants": [
+    {
+     "name": "2.5L 5AT (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.5L 5MT (204 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5AT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5AT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5AT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5AT RWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT (220 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT (240 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (228 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 6MT (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 6MT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 7AT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 6MT RWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 7AT RWD (256 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.8L 6MT RWD (375 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Boxster S",
+   "variants": [
+    {
+     "name": "3.2L 5AT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5AT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 5AT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT (260 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT RWD (252 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L 6MT RWD (280 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 5AT RWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT RWD (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (315 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (330 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Carrera GT",
+   "variants": [
+    {
+     "name": "5.7L V10 (612 HP) 6MT",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (353 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (470 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.0L V6 8AT FWD (462 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.2L V6 6AT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.2L V6 6MT AWD (250 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6AT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT AWD (290 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 Tiptronic 8AT AWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (474 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (640 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 6AT AWD (345 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 6MT AWD (345 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Diesel",
+   "variants": [
+    {
+     "name": "3.0 V6 TDI 6AT (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (262 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 8AT AWD (240 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 TDI 8AT AWD (245 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Electric",
+   "variants": [
+    {
+     "name": "113 KWh AWD (442 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne GTS",
+   "variants": [
+    {
+     "name": "3.6L V6 8AT AWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 Tiptronic S 8AT AWD (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6AT AWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT AWD (405 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 8AT (420 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S",
+   "variants": [
+    {
+     "name": "2.9L V6 8AT AWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT AWD (380 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "3.6L V6 8AT AWD (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (474 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 6AT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 6MT AWD (340 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6AT AWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT AWD (385 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 8AT AWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S Diesel",
+   "variants": [
+    {
+     "name": "4.1L 8AT AWD (385 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "4.2L TDI V8 8AT AWD (382 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S E-Hybrid",
+   "variants": [
+    {
+     "name": "3.0L 8AT (416 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S Electric",
+   "variants": [
+    {
+     "name": "113 KWh AWD (666 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S Hybrid",
+   "variants": [
+    {
+     "name": "3.0L V6 Hybrid 8AT AWD (385 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne S TransSyberia",
+   "variants": [
+    {
+     "name": "4.8L V8 6MT AWD (385 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Turbo",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.5L V8 6AT (450 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L 8AT (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6AT (500 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 8AT AWD (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Turbo E-Hybrid",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (739 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (739 HP) GT Package",
+     "fuel": "Mild hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Turbo Electric",
+   "variants": [
+    {
+     "name": "113 kWh AWD (1156 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Turbo S",
+   "variants": [
+    {
+     "name": "4.5L V8 6AT (521 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 8AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 8AT AWD (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayenne Turbo S E-Hybrid",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Cayman",
+   "variants": [
+    {
+     "name": "2.7L 5AT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 5MT RWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 6MT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.7L 7AT (275 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 6MT RWD (265 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L 7AT RWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayman R",
+   "variants": [
+    {
+     "name": "3.4L 6MT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (330 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Cayman S",
+   "variants": [
+    {
+     "name": "3.4L 5AT (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT (295 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 6MT RWD (325 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT (320 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.4L 7AT RWD (325 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan",
+   "variants": [
+    {
+     "name": "2.0L 7AT AWD (245 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.0L 7AT AWD (252 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan 4 Electric",
+   "variants": [
+    {
+     "name": "100 KWh (408 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Macan GTS",
+   "variants": [
+    {
+     "name": "100 KWh AWD (571 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "2.9L V6 7AT AWD (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V6 BiTurbo 7AT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT AWD (360 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan S",
+   "variants": [
+    {
+     "name": "2.9L V6 BiTurbo 7AT (380 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT AWD (354 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 7AT PDK AWD (258 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 7AT PDK AWD (340 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan S Diesel",
+   "variants": [
+    {
+     "name": "3.0L V6 7AT AWD (258 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Macan T",
+   "variants": [
+    {
+     "name": "2.0L 7AT AWD (265 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan Turbo",
+   "variants": [
+    {
+     "name": "2.9L Biturbo V6 7AT AWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Macan Turbo Electric",
+   "variants": [
+    {
+     "name": "100 KWh (639 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Panamera",
+   "variants": [
+    {
+     "name": "2.9L V6 8AT (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L 8AT RWD (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 V6 7AT (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 6MT RWD (300 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 7AT RWD (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4",
+   "variants": [
+    {
+     "name": "2.9L V6 8AT (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "2.9L V6 8AT RWD (353 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0L V6 8AT (330 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6 V6 7AT AWD (310 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.6L V6 7AT (300 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4 E-Hybrid",
+   "variants": [
+    {
+     "name": "2.9L V6 8AT AWD (462 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4 E-Hybrid Sport Turismo",
+   "variants": [
+    {
+     "name": "2.9 V6 8AT (462 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4 Sport Turismo",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT AWD (330 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4S",
+   "variants": [
+    {
+     "name": "2.9 V6 8AT (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "3.0 V6 7AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT AWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4S Diesel",
+   "variants": [
+    {
+     "name": "4.0 V8 8AT (422 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4S Diesel Sport Turismo",
+   "variants": [
+    {
+     "name": "4.0 V8 8AT (422 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4S E-Hybrid",
+   "variants": [
+    {
+     "name": "2.9L V6 8AT (560 HP)",
+     "fuel": "Hybrid"
+    },
+    {
+     "name": "2.9L V6 8AT(560 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera 4S Sport Turismo",
+   "variants": [
+    {
+     "name": "2.9 V6 8AT (440 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Diesel",
+   "variants": [
+    {
+     "name": "3.0L D 8AT (300 HP)",
+     "fuel": "Diesel"
+    },
+    {
+     "name": "3.0L V6 8AT (300 HP)",
+     "fuel": "Diesel"
+    }
+   ]
+  },
+  {
+   "name": "Panamera GTS",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (460 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT RWD (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT AWD (440 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7MT (430 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera GTS Sport Turismo",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (480 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.0L V8 8AT AWD (460 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera S",
+   "variants": [
+    {
+     "name": "3.0 V6 7AT (420 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 6MT RWD (400 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT RWD (400 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera S E-Hybrid",
+   "variants": [
+    {
+     "name": "3.0 V6 8AT (416 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera S Hybrid",
+   "variants": [
+    {
+     "name": "3.0L V6 8AT (380 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT AWD (520 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT RWD (500 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo E Hybrid",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo S",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (630 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT (550 HP)",
+     "fuel": "Petrol"
+    },
+    {
+     "name": "4.8L V8 7AT (570 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo S E-Hybrid",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo S E-Hybrid Sport Turismo",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT AWD (680 HP)",
+     "fuel": "Hybrid"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo S Sport Turismo",
+   "variants": [
+    {
+     "name": "4.0L V8 8AT (630 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Panamera Turbo Sport Turismo",
+   "variants": [
+    {
+     "name": "4.0 V8 8AT (550 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Speedster",
+   "variants": [
+    {
+     "name": "4.0L 6MT (502 HP)",
+     "fuel": "Petrol"
+    }
+   ]
+  },
+  {
+   "name": "Taycan",
+   "variants": [
+    {
+     "name": "4S 89 KWh (544 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "79.2 KWh (402 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "79.2 KWh (530 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "89 KWh (408 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "93.4 KWh (571 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance Battery Plus 93.4 KWh (469 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance Battery Plus 97 KWh (435 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Taycan Cross Turismo",
+   "variants": [
+    {
+     "name": "4 105 KWh (435 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "4 93.4 KWh AWD (476 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "4S 105 KWh (598 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "4S 93.4 KWh AWD (490 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Turbo 105 KWh (884 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Turbo 93.4 KWh AWD (625 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Turbo S 105 KWh (952 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Turbo S 93.4 KWh AWD (761 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Taycan GTS",
+   "variants": [
+    {
+     "name": "105 KWh AWD (700 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Performance Plus 93.4 kWh (590 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Taycan GTS Sport Turismo",
+   "variants": [
+    {
+     "name": "Performance Plus 93.4 kWh (590 Hp)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Taycan Sport Turismo",
+   "variants": [
+    {
+     "name": "105 KWh (435 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  },
+  {
+   "name": "Taycan Turbo",
+   "variants": [
+    {
+     "name": "105 KWh RWD (789 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "460 KW AWD (625 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "S 460 KW AWD (625 HP)",
+     "fuel": "Electric"
+    },
+    {
+     "name": "Weissach package 105 KWh RWD (789 HP)",
+     "fuel": "Electric"
+    }
+   ]
+  }
+ ]
+}

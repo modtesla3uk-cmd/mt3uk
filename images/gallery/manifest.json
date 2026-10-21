@@ -1,5 +1,15 @@
 [
   {
+    "file": "photo-5.jpg",
+    "caption": "PHOTO 5",
+    "name": "LHC3",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-10-21",
+    "group": "photo-5.jpg"
+  },
+  {
     "file": "photo--by-rich-hc.jpg",
     "name": "RICH HC",
     "color": "Black",

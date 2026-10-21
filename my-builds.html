@@ -1586,15 +1586,9 @@ document.addEventListener('DOMContentLoaded', function () {
           <span class="mb-car-spec">
           <select class="mb-car-color-select" id="mb-car-make-select" aria-label="Make">
             <option value="">Make</option>
-            <option value="Tesla">Tesla</option>
-            <option value="Hyundai">Hyundai</option>
-            <option value="Porsche">Porsche</option>
           </select>
           <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
             <option value="">Model</option>
-            <optgroup label="Tesla"></optgroup>
-            <optgroup label="Hyundai"></optgroup>
-            <optgroup label="Porsche"></optgroup>
           </select>
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
@@ -1784,6 +1778,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
 <script src="js/vehicle-data.js?v=20270210"></script>
+<script src="js/car-pick.js?v=3"></script>
 <script src="js/mods-builder.js?v=20270102"></script>
 <script>
   (function () {
@@ -2833,20 +2828,40 @@ document.addEventListener('DOMContentLoaded', function () {
           return '<option value="' + escapeHtml(m) + '"' + (m === keep ? ' selected' : '') + '>' + escapeHtml(m) + '</option>';
         }).join('');
       };
+      // Cars: every make and model in the car list (js/car-pick.js), A to Z. Bikes keep the vehicle library's lists.
+      var otherSeq = 0;
       var fillOtherModels = function () {
-        var V = window.MT3UKVehicles, makes = (V && V[addCarType()]) || {};
-        addCarOtherModel.innerHTML = pickOptions(addCarMake.value ? makes[addCarMake.value] || [] : [], addCarMake.value ? 'Choose the model' : 'Choose the make first', addCarOtherModel.value);
-        addCarOtherModel.disabled = !addCarMake.value;
+        var V = window.MT3UKVehicles, make = addCarMake.value, keep = addCarOtherModel.value, mine = ++otherSeq;
+        addCarOtherModel.disabled = !make;
+        if (!make) { addCarOtherModel.innerHTML = pickOptions([], 'Choose the make first', ''); return; }
+        if (addCarType() === 'bike') {
+          var makes = (V && V[addCarType()]) || {};
+          addCarOtherModel.innerHTML = pickOptions(makes[make] || [], 'Choose the model', keep);
+          return;
+        }
+        MT3UKCarPick.models(make).then(function (list) {
+          if (mine !== otherSeq) return;
+          addCarOtherModel.innerHTML = pickOptions(withLibrary(list, libraryModels(make)), 'Choose the model', keep);
+        }).catch(function () {});
       };
       var fillOtherLists = function () {
-        var V = window.MT3UKVehicles;
-        if (!V) return;
-        V.load().then(function () {
-          var makes = V[addCarType()] || {};
-          addCarMake.innerHTML = pickOptions(Object.keys(makes).filter(function (m) { return m !== 'Tesla'; })
-            .sort(function (a, b) { return a.localeCompare(b); }), 'Choose the make', addCarMake.value);
+        if (addCarType() === 'bike') {
+          var V = window.MT3UKVehicles;
+          if (!V) return;
+          V.load().then(function () {
+            var makes = V[addCarType()] || {};
+            addCarMake.innerHTML = pickOptions(Object.keys(makes).filter(function (m) { return m !== 'Tesla'; })
+              .sort(function (a, b) { return a.localeCompare(b); }), 'Choose the make', addCarMake.value);
+            fillOtherModels();
+          });
+          return;
+        }
+        MT3UKCarPick.makes().then(function (list) {
+          var V = window.MT3UKVehicles;
+          var names = withLibrary(list.map(function (m) { return m.name; }), libraryCars()).filter(function (n) { return n !== 'Tesla' && !(V && V.loaded && V.makeAway(n, 'car')); });
+          addCarMake.innerHTML = pickOptions(names, 'Choose the make', addCarMake.value);
           fillOtherModels();
-        });
+        }).catch(function () {});
       };
       // The form's words follow Car or bike (name, colour, the notes and the examples).
       var wordForType = function () {
@@ -3267,7 +3282,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!lib) return FALLBACK_MODELS[make] || [];
       return lib[make] && lib[make].length ? lib[make] : (make === 'Tesla' ? FALLBACK_MODELS.Tesla : []);
     }
-    function makeOffered(make) { var lib = vehicleLib(); return !lib || make === 'Tesla' || !!lib[make]; }
+    function makeOffered(make) { var V = window.MT3UKVehicles; return make === 'Tesla' || !(V && V.loaded && V.makeAway(make, 'car')); }
     function syncMakeChips() {
       document.querySelectorAll('form [data-make-pick] input[name="makePick"]').forEach(function (r) {
         if (r.value === '__other__') return;
@@ -3338,47 +3353,67 @@ document.addEventListener('DOMContentLoaded', function () {
     var carDriveTouched = false;
     // The make a car shows: its own, else the one its listed model belongs to.
     function makeOfCar(car) { return (car && car.make) || MAKE_OF_MODEL[(car && car.model) || ''] || ''; }
-    // The Model drop-down offers the chosen make's models: the listed ones, or for another make the vehicle
-    // list's (js/vehicle-data.js) plus the car's own, which is kept when saving.
-    // The Tesla, Hyundai and Porsche groups hold the vehicle list's models (see renderModelChips); the list of any
-    // other make is added by showMakeModels.
-    function fillMakeGroups() {
-      var V = window.MT3UKVehicles;
-      Array.prototype.slice.call(carModelSelect.querySelectorAll('optgroup')).forEach(function (g) {
-        var models = modelsFor(g.label);
-        g.innerHTML = models.map(function (m) { return '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>'; }).join('');
-      });
+    // The Make drop-down lists every make in the car list (js/car-pick.js), A to Z. A make the admin hid or removed on the
+    // Vehicles panel is left out, except the one the car already has, and Tesla is always offered.
+    var drawnMake = '';
+    // The car list's names with the vehicle library's (the admin's own additions on the Vehicles panel), A to Z.
+    function withLibrary(names, library) {
+      var out = names.slice();
+      (library || []).forEach(function (n) { if (out.indexOf(n) === -1) out.push(n); });
+      return out.sort(function (a, b) { return a.localeCompare(b, 'en', { sensitivity: 'base', numeric: true }); });
     }
-    // A make the admin hid or removed is not offered here either (a car that already has it keeps showing it).
-    function syncCarMakes() {
-      Array.prototype.slice.call(carMakeSelect.querySelectorAll('option')).forEach(function (o) {
-        if (o.value && !o.hasAttribute('data-extra')) o.hidden = !makeOffered(o.value);
-      });
+    function libraryCars() { var V = window.MT3UKVehicles; return V && V.loaded && V.car ? Object.keys(V.car) : []; }
+    function libraryModels(make) { var V = window.MT3UKVehicles; return V && V.loaded && V.car && V.car[make] ? V.car[make] : []; }
+    function fillCarMakes() {
+      MT3UKCarPick.makes().then(function (list) {
+        var names = withLibrary(list.map(function (m) { return m.name; }), libraryCars()).filter(function (n) { return n === drawnMake || makeOffered(n); });
+        if (drawnMake && names.indexOf(drawnMake) === -1) names.push(drawnMake);
+        carMakeSelect.innerHTML = '<option value="">Make</option>' + names.map(function (n) {
+          return '<option value="' + escapeHtml(n) + '"' + (n === drawnMake ? ' selected' : '') + '>' + escapeHtml(n) + '</option>';
+        }).join('');
+      }).catch(function () {});
     }
-    fillMakeGroups();
-    syncCarMakes();
-    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(function () {
-      var now = carModelSelect.value;
-      fillMakeGroups();
-      carModelSelect.value = now;
-      syncCarMakes();
-    });
+    fillCarMakes();
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(fillCarMakes);
+    // The Model drop-down lists the chosen make's models from the car list, A to Z. The car's own model is kept when
+    // it is not on the list.
+    var modelSeq = 0;
     function showMakeModels(make, keep) {
-      var V = window.MT3UKVehicles, listed = V && V.car && V.car[make] && CHIP_MAKES.indexOf(make) === -1 ? V.car[make] : [];
-      Array.prototype.slice.call(carModelSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
-      Array.prototype.slice.call(carModelSelect.querySelectorAll('optgroup')).forEach(function (g) { g.hidden = g.label !== make; });
-      listed.concat(keep && listed.indexOf(keep) === -1 ? [keep] : []).forEach(function (m) {
-        if (Array.prototype.some.call(carModelSelect.options, function (o) { return o.value === m; })) return;
-        var extra = document.createElement('option');
-        extra.value = m;
-        extra.textContent = m;
-        extra.setAttribute('data-extra', '');
-        carModelSelect.appendChild(extra);
-      });
+      var mine = ++modelSeq;
+      carModelSelect.innerHTML = '<option value="">Model</option>' + (keep ? '<option value="' + escapeHtml(keep) + '">' + escapeHtml(keep) + '</option>' : '');
+      carModelSelect.value = keep || '';
+      var from = make || 'Tesla';
+      return MT3UKCarPick.models(from).then(function (list) {
+        if (mine !== modelSeq) return;
+        var names = withLibrary(list, libraryModels(from));
+        if (keep && names.indexOf(keep) === -1) names.push(keep);
+        carModelSelect.innerHTML = '<option value="">Model</option>' + names.map(function (m) {
+          return '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>';
+        }).join('');
+        carModelSelect.value = keep || '';
+      }).catch(function () {});
     }
+    // The Version box: the vehicle library's versions for the model when it has them, else the car list's variants,
+    // each with its fuel type. The name is what is saved.
+    var versionSeq = 0;
+    function fillCarVersion(make, model, value) {
+      MB.fillVersions(carVersionSelect, model, value, make);
+      var mine = ++versionSeq;
+      if (!model) return;
+      MT3UKCarPick.variants(make || 'Tesla', model).then(function (list) {
+        if (mine !== versionSeq || !list.length) return;
+        if (carMakeSelect.value !== make || carModelSelect.value !== model) return;
+        if (carVersionSelect.options.length > 1) return;
+        carVersionSelect.innerHTML = '<option value="">Version</option>' + list.map(function (v) {
+          return '<option value="' + escapeHtml(v.name) + '"' + (v.name === value ? ' selected' : '') + '>' + escapeHtml(v.name) + ' (' + escapeHtml(v.fuel) + ')</option>';
+        }).join('');
+      }).catch(function () {});
+    }
+    var drawSeq = 0;
     function drawCarModel(car) {
       var model = (car && car.model) || '', make = makeOfCar(car);
       carDriveTouched = false;
+      drawnMake = make;
       Array.prototype.slice.call(carMakeSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
       if (make && !Array.prototype.some.call(carMakeSelect.options, function (o) { return o.value === make; })) {
         var extraMake = document.createElement('option');
@@ -3388,9 +3423,13 @@ document.addEventListener('DOMContentLoaded', function () {
         carMakeSelect.appendChild(extraMake);
       }
       carMakeSelect.value = make;
-      showMakeModels(make, model);
-      carModelSelect.value = model;
-      MB.fillVersions(carVersionSelect, model, (car && car.version) || '', make);
+      var mine = ++drawSeq;
+      showMakeModels(make, model).then(function () {
+        if (mine !== drawSeq) return;
+        carModelSelect.value = model;
+        fillCarVersion(make, model, (car && car.version) || '');
+        applyCarLocks();
+      });
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
       if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
       if (carWeightInput) carWeightInput.value = (car && car.weight) || '';
@@ -3415,14 +3454,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // Choosing another make offers its models; another model its versions; nothing is saved until Save.
     carMakeSelect.addEventListener('change', function () {
+      drawnMake = carMakeSelect.value;
       showMakeModels(carMakeSelect.value, '');
-      carModelSelect.value = '';
       MB.fillVersions(carVersionSelect, '', '');
       workOutCarDrive();
       applyCarLocks();
     });
     carModelSelect.addEventListener('change', function () {
-      MB.fillVersions(carVersionSelect, carModelSelect.value, '', carMakeSelect.value);
+      fillCarVersion(carMakeSelect.value, carModelSelect.value, '');
       workOutCarDrive();
       applyCarLocks();
     });

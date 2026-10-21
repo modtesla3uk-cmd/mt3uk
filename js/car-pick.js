@@ -187,5 +187,30 @@
     });
   }
 
-  window.MT3UKCarPick = { mount: mount };
+  // For other pickers (My Garage): every make, a make's models, and a model's variants, all from the same list.
+  function slugOf(name) {
+    return loadIndex().then(function (d) {
+      var m = d.makes.filter(function (x) { return x.name === name; })[0];
+      return m ? m.slug : null;
+    });
+  }
+  function makeFile(name) {
+    return slugOf(name).then(function (slug) { return slug ? loadMake(slug) : null; });
+  }
+  function makes() {
+    return loadIndex().then(function (d) { return d.makes.slice().sort(byName); });
+  }
+  function models(name) {
+    return makeFile(name).then(function (m) {
+      return m ? m.models.map(function (x) { return x.name; }).sort(cmp) : [];
+    });
+  }
+  function variants(name, model) {
+    return makeFile(name).then(function (m) {
+      var found = m && m.models.filter(function (x) { return x.name === model; })[0];
+      return found ? found.variants.slice().sort(byName) : [];
+    });
+  }
+
+  window.MT3UKCarPick = { mount: mount, makes: makes, models: models, variants: variants };
 })();

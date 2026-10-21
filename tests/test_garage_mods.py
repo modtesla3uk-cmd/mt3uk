@@ -142,8 +142,9 @@ def test_a_model_changed_on_the_vehicles_panel_shows_in_the_garage(device_page):
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
     page.locator("#mb-car-name-edit").click()
     page.select_option("#mb-car-make-select", "Hyundai")
-    options = page.locator("#mb-car-model-select optgroup[label=Hyundai] option").evaluate_all("els => els.map(e => e.value)")
-    assert options == ["Ioniq 5", "Ioniq 7"]
+    page.wait_for_function("document.querySelectorAll('#mb-car-model-select option').length > 1", timeout=5000)
+    options = page.locator("#mb-car-model-select option").evaluate_all("els => els.map(e => e.value)")
+    assert {"Ioniq 5", "Ioniq 7"} <= set(options), options
     page.select_option("#mb-car-model-select", "Ioniq 7")
     assert "Prestige RWD" in page.locator("#mb-car-version-select option").all_inner_texts()
     assert page.errors == [], diagnostics(page)
@@ -174,8 +175,9 @@ def test_a_hidden_or_removed_make_is_not_offered_in_the_garage(device_page):
     page.wait_for_function("window.MT3UKVehicles && window.MT3UKVehicles.loaded", timeout=10000)
     page.locator(".mb-car-tile").first.click(timeout=10000)
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
-    hidden = page.locator("#mb-car-make-select option").evaluate_all("els => els.filter(e => e.hidden).map(e => e.value)")
-    assert hidden == ["Hyundai", "Porsche"]
+    # Not in the list at all: the car list's makes, less the ones hidden or removed, with Tesla always there
+    values = page.locator("#mb-car-make-select option").evaluate_all("els => els.map(e => e.value)")
+    assert "Hyundai" not in values and "Porsche" not in values and "Tesla" in values, values
     assert page.errors == [], diagnostics(page)
 
 
@@ -201,11 +203,14 @@ def test_existing_car_gets_a_model_picker(device_page):
     # A Model 3 saved before makes existed shows Tesla.
     assert page.locator("#mb-car-make-select").input_value() == "Tesla"
     # The other makes are in the list too, each with its models; picking a make offers only its models.
-    assert page.locator("#mb-car-model-select optgroup").evaluate_all("els => els.map(e => e.label)") == ["Tesla", "Hyundai", "Porsche"]
+    makes = page.locator("#mb-car-make-select option").all_inner_texts()
+    assert "Hyundai" in makes and "Porsche" in makes
     page.locator("#mb-car-name-edit").click()
     page.select_option("#mb-car-make-select", "Hyundai")
+    page.wait_for_function("document.querySelectorAll('#mb-car-model-select option').length > 1", timeout=5000)
     assert page.locator("#mb-car-model-select").input_value() == ""
-    assert page.locator("#mb-car-model-select optgroup:not([hidden])").evaluate_all("els => els.map(e => e.label)") == ["Hyundai"]
+    models = page.locator("#mb-car-model-select option").all_inner_texts()
+    assert "Ioniq 6" in models and "Model 3" not in models
     page.select_option("#mb-car-model-select", "Ioniq 6")
     assert "N 84 kWh AWD" in page.locator("#mb-car-version-select option").all_inner_texts()
     page.select_option("#mb-car-version-select", "N 84 kWh AWD")

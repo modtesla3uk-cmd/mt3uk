@@ -6,6 +6,7 @@
   limits what can be typed.
 
   MT3UKVehicles.load()    -> promise; fills car and bike ({ make: [models] })
+  MT3UKVehicles.makeAway(name, type) -> true when the admin hid or removed that make on the Vehicles panel (type car or bike)
   MT3UKVehicles.merge(base, extra, { all }) -> { car, bike, versions, versionRules, hidden } (the admin panel uses it too;
     hidden makes are left out unless all is true)
   MT3UKVehicles.versionsFor({ make, model }) -> the model's variants for the Version box (edited on the same panel)
@@ -37,17 +38,18 @@
     var maps = { car: {}, bike: {} }, vers = { car: {}, bike: {} }, rules = { car: {}, bike: {} };
     function copyVersions(v) { var o = {}; Object.keys(v || {}).forEach(function (k) { o[k] = (v[k] || []).slice(); }); return o; }
     function copyRules(r) { var o = {}; Object.keys(r || {}).forEach(function (k) { if (r[k] && (r[k].required || r[k].free)) o[k] = { required: !!r[k].required, free: !!r[k].free }; }); return o; }
+    var removedBy = { car: {}, bike: {} };
     (base.makes || []).forEach(function (m) { if (m && m.name) { maps[typeOf(m)][m.name] = (m.models || []).slice(); vers[typeOf(m)][m.name] = copyVersions(m.versions); rules[typeOf(m)][m.name] = copyRules(m.versionRules); } });
     (extra.makes || []).forEach(function (m) {
       if (!m || !m.name) return;
-      if (m.removed) { delete maps[typeOf(m)][m.name]; delete vers[typeOf(m)][m.name]; delete rules[typeOf(m)][m.name]; return; }
+      if (m.removed) { delete maps[typeOf(m)][m.name]; delete vers[typeOf(m)][m.name]; delete rules[typeOf(m)][m.name]; removedBy[typeOf(m)][m.name] = true; return; }
       maps[typeOf(m)][m.name] = (m.models || []).slice();
       if (m.versions) vers[typeOf(m)][m.name] = copyVersions(m.versions);
       if (m.versionRules) rules[typeOf(m)][m.name] = copyRules(m.versionRules);
     });
     var hid = {};
     (extra.hiddenMakes || []).forEach(function (h) { if (h && h.name) hid[typeOf(h) + '|' + String(h.name).toLowerCase()] = true; });
-    var out = { versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, hidden: { car: {}, bike: {} } };
+    var out = { versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, hidden: { car: {}, bike: {} }, removed: removedBy };
     TYPES.forEach(function (t) {
       out[t] = {};
       Object.keys(maps[t]).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) {
@@ -214,6 +216,11 @@
     loading = Promise.all([get('data/vehicles.json'), get(API + '/vehicles')]).then(function (r) {
       var m = merge(r[0], r[1] && r[1].extra);
       api.car = m.car; api.bike = m.bike; api.versions = m.versions; api.versionRules = m.versionRules; api.loaded = true;
+      // Makes the admin hid or removed (any car or bike make), in lower case, for the car pickers that list every make.
+      api.away = { car: {}, bike: {} };
+      ['hidden', 'removed'].forEach(function (key) {
+        ['car', 'bike'].forEach(function (t) { Object.keys(m[key][t] || {}).forEach(function (n) { api.away[t][n.toLowerCase()] = true; }); });
+      });
       api.drives = (r[1] && r[1].extra && r[1].extra.drives) || {};
       api.weights = Object.assign({}, (r[0] && r[0].weights) || {}, (r[1] && r[1].extra && r[1].extra.weights) || {});
       return api;
@@ -221,7 +228,8 @@
     return loading;
   }
 
-  var api = { car: {}, bike: {}, versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, drives: {}, loaded: false, merge: merge, load: load, title: title, modelKey: modelKey, modelInName: modelInName, versionsFor: versionsFor, versionRule: versionRule, DRIVES: DRIVES,
+  function makeAway(name, type) { var k = String(name || '').toLowerCase(); return !!(api.away && api.away[type || 'car'][k]); }
+  var api = { car: {}, bike: {}, versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, drives: {}, away: { car: {}, bike: {} }, loaded: false, merge: merge, load: load, makeAway: makeAway, title: title, modelKey: modelKey, modelInName: modelInName, versionsFor: versionsFor, versionRule: versionRule, DRIVES: DRIVES,
     drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey, driveVariantKey: driveVariantKey,
     // The kerb weight (kg) of a vehicle: its variant's, else its model's, from the Vehicles panel; null when not set.
     weights: {}, weight: function (v) { var w = api.weights || {}; return w[driveVariantKey(v)] || w[driveModelKey(v)] || null; } };

@@ -60,8 +60,10 @@ def test_add_a_car_of_another_make(device_page):
     expect(page.locator("#mb-addcar-other")).to_contain_text("Make or model not on the list?")
     page.select_option("#mb-addcar-make", "Kia")
     expect(page.locator("#mb-addcar-othermodel")).to_be_enabled()
+    page.wait_for_function("document.querySelectorAll('#mb-addcar-othermodel option').length > 1", timeout=5000)
     models = page.locator("#mb-addcar-othermodel option").evaluate_all("els => els.map(e => e.value)")
-    assert models == ["", "EV6 GT", "EV6", "EV9"], models
+    # The car list's Kia models, with the vehicle library's, A to Z after the placeholder
+    assert models[0] == "" and {"EV6 GT", "EV6", "EV9"} <= set(models), models
     page.select_option("#mb-addcar-othermodel", "EV6 GT")
     # The driven wheels are worked out from the make and model picked too.
     expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")

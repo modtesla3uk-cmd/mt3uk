@@ -402,8 +402,11 @@
   .lh-skip-row { text-align: center; padding: 8px 16px 32px; font-size: 0.95rem; color: #3d4659; }
   .lh-skip-row input { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
   /* Any car, any make: in the hero, so it is seen on the first screen. */
-  .lh-hero .lh-cars { font-size: 0.95rem; margin: 4px 0 20px; max-width: 34em; }
-  .lh-cars b { color: #fff; }
+  .lh-hero .lh-how { margin: 4px 0 20px; max-width: 34em; }
+  .lh-how h2 { font-size: 1.05rem; margin: 0 0 6px; color: #fff; }
+  .lh-how ol { margin: 0; padding-left: 1.3em; color: #d3d8e2; font-size: 0.95rem; }
+  .lh-how li { margin: 0 0 6px; }
+  .lh-how b { color: #fff; }
   @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
   /* The Laps reel: the vertical video in the right column, beside the words. On a phone it comes after the buttons and the
      notes, and before the Free to access panel. The copy column is laid out as its own items on a phone. */
@@ -427,7 +430,7 @@
     /* With the intro skipped the heading shows as a heading, under the Show intro button */
     .lh-hero.is-skipped .lh-copy > h1.lh-sr { position: static; width: auto; height: auto; margin: 0 0 12px; padding: 0; overflow: visible; clip: auto; white-space: normal; border: 0; }
     .lh-copy > #lh-actions { order: 3; }
-    .lh-copy > .lh-cars { order: 4; }
+    .lh-copy > .lh-how { order: 4; }
     .lh-copy > #lh-note { order: 5; }
     .lh-copy > .lh-free { order: 7; }
   }
@@ -507,7 +510,14 @@
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
         <button type="button" class="btn btn-secondary lh-share" id="lh-share" aria-label="Share Laps by MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
       </div>
-      <p class="lh-cars"><b>Any lap timer.</b> RaceBox, VBOX, AiM, Harry&rsquo;s LapTimer, TrackAddict, Tesla Track Mode and more.</p>
+      <div class="lh-how">
+        <h2>How it works</h2>
+        <ol>
+          <li><b>Export the file</b> from your lap timer, such as RaceBox, VBOX, AiM or TrackAddict, or save Track Mode data from your Tesla.</li>
+          <li><b>Add the session.</b> Pick your car and the track, and the laps are found for you.</li>
+          <li><b>See every lap</b> on the track, compare any two, and share the session with a link.</li>
+        </ol>
+      </div>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
       <div class="lh-free" id="free">
         <h2>Free to access</h2>
@@ -520,6 +530,7 @@
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>A monthly top-up of sessions</span></li>
         </ul>
         <p class="lh-free-note">Need more sessions? Ask us. What is included may change, so check back.</p>
+        <p class="lh-free-note lh-trackmode-ask"><b>Have Track Mode?</b></p>
         <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
     </div>

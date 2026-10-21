@@ -338,8 +338,9 @@
   .pf-leave-form { margin-top: 14px; max-width: 360px; }
   .pf-danger { border-color: #b3261e; color: #b3261e; }
   .pf-danger:hover { background: #b3261e; color: #ffffff; border-color: #b3261e; }
-  .pf-danger-solid { background: #b3261e; border-color: #b3261e; color: #ffffff; }
-  .pf-danger-solid:hover { color: #ffffff; opacity: 0.9; border-color: #b3261e; }
+  /* Two classes, so these win over the sign-in button's own white background (the text was white on white). */
+  .si-btn.pf-danger-solid { background: #b3261e; border-color: #b3261e; color: #ffffff; }
+  .si-btn.pf-danger-solid:hover { background: #b3261e; color: #ffffff; opacity: 0.9; border-color: #b3261e; }
   .pf-card p.si-status-ok { color: #1c8a4b; font-weight: 600; }
   .pf-card p.si-status-err { color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); font-weight: 600; }
   @media (max-width: 780px) {

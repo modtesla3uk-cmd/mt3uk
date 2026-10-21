@@ -40,7 +40,7 @@
     'Porsche Taycan': ['Taycan', '4', '4S', 'GTS', 'Turbo', 'Turbo S', 'Turbo GT', 'Turbo GT Weissach Package',
       '4 Cross Turismo', '4S Cross Turismo', 'Turbo Cross Turismo', 'Turbo S Cross Turismo', 'GTS Sport Turismo']
   };
-  var FIRST_CAR_YEAR = 2012;
+  var FIRST_CAR_YEAR = 1985;
 
   // The Version drop-down's options for a model; a saved version that isn't
   // listed stays as an option. With the model's free text rule on (Vehicles panel
@@ -98,7 +98,7 @@
   // The version a Version <select> holds: nothing when "Type it in" is chosen but empty.
   function versionValue(sel) { return sel.value === TYPED ? '' : sel.value; }
 
-  // Years from this year back to 2012, newest first.
+  // Years from this year back to 1985, newest first.
   function yearOptions(value) {
     var now = new Date().getFullYear(), years = [];
     for (var y = now; y >= FIRST_CAR_YEAR; y--) years.push(y);

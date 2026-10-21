@@ -62,11 +62,7 @@ def test_plain_my_garage_still_opens_on_sign_in_and_the_car_name_follows_the_mod
     page.wait_for_function("[...document.querySelectorAll('#mb-submit-pick select[aria-label=Model] option')].some(o => o.textContent === 'Model 3')", timeout=5000)
     box.locator("select[aria-label=Model]").select_option(label="Model 3")
     assert page.locator("#mb-submit-model-hidden").input_value() == "Model 3"
-    name = page.locator("#mb-submit-carname").input_value()
-    assert re.search(r"\w", name), "the car name is filled in from the model"
-    page.locator("#mb-submit-carname").fill("My own name")
     box.locator("select[aria-label=Model]").select_option(label="Model Y")
-    assert page.locator("#mb-submit-carname").input_value() == "My own name"
 
 
 def test_the_signed_in_homepage_hero_has_an_add_photos_shortcut(page):

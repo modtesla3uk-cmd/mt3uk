@@ -107,13 +107,12 @@ def test_laps_adds_a_car_without_a_photo(page):
     page.locator("#tp-addcar-pick select[aria-label=Make]").select_option(label="Kia")
     page.locator("#tp-addcar-pick select[aria-label=Model]").select_option("EV6")
     page.locator("#tp-addcar-pick select[aria-label=Variant]").select_option(index=1)
-    page.fill("#tp-addcar-name", "Track car")
     page.locator("#tp-addcar-save").click()
     # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.
     expect(page.locator("#tp-vtoggle")).to_be_visible()
     page.locator("#tp-vtoggle").click()
     page.wait_for_function("document.querySelectorAll('#tp-cars .tp-car[data-car]').length === 2", timeout=5000)
-    assert fake.added[-1]["vehicleType"] == "car" and fake.added[-1]["name"] == "Track car"
+    assert fake.added[-1]["vehicleType"] == "car" and fake.added[-1]["name"] == ""
     assert fake.added[-1]["make"] == "Kia" and fake.added[-1]["model"] == "EV6"
 
 

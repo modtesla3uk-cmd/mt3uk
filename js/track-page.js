@@ -661,7 +661,7 @@
   // a change here is saved with the session and back to the car.
   function driveFields(a) {
     var DR = (window.MT3UKVehicles && window.MT3UKVehicles.DRIVES) || ['FWD', 'RWD', 'AWD'];
-    return '<div class="tp-field"><span class="tp-lbl">Driven wheels</span><div class="tp-chips" data-drive>' + DR.map(function (d) {
+    return '<div class="tp-field"><span class="tp-lbl">Which wheels drive it?</span><div class="tp-chips" data-drive>' + DR.map(function (d) {
       return '<button type="button" class="chip' + (a.drive === d ? ' is-on' : '') + '" data-v="' + d + '" aria-pressed="' + (a.drive === d) + '">' + d + '</button>';
     }).join('') + '</div>' + (a.drive ? '' : '<p class="tp-small">Pick which wheels drive the ' + VW + '. It is shown with the tyres on the leaderboard.</p>') + '</div>';
   }
@@ -1999,7 +1999,7 @@
       '<div class="tp-addcar-pick" id="tp-addcar-pick"></div>' +
       '<div class="tp-addcar-grid">' +
         '<div class="tp-field"><label for="tp-addcar-year">Year (optional)</label><input class="field" id="tp-addcar-year" type="number" inputmode="numeric" min="1950" max="' + (new Date().getFullYear() + 1) + '" placeholder="e.g. 2022"></div>' +
-        '<div class="tp-field"><label for="tp-addcar-name">Name it (optional)</label><input class="field" id="tp-addcar-name" maxlength="150" placeholder="e.g. Track car"></div>' +
+        
       '</div>' +
       '<p class="tp-small tp-addcar-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we’ll add it.</p>' +
       '<p class="tp-addcar-msg" id="tp-addcar-msg" role="status"></p>' +
@@ -2047,7 +2047,6 @@
       // The words follow Car or bike.
       var bike = type === 'bike';
       document.getElementById('tp-addcar-save').textContent = bike ? 'Add bike' : 'Add car';
-      document.getElementById('tp-addcar-name').placeholder = bike ? 'e.g. Track bike' : 'e.g. Track car';
     });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -2057,7 +2056,7 @@
       var btn = document.getElementById('tp-addcar-save');
       btn.disabled = true;
       msg.textContent = '';
-      api('POST', '/my-builds/car/new', { make: choice.make, model: choice.model, version: choice.variant, fuel: choice.fuel, year: document.getElementById('tp-addcar-year').value, vehicleType: type, name: document.getElementById('tp-addcar-name').value.trim() }).then(function (d) {
+      api('POST', '/my-builds/car/new', { make: choice.make, model: choice.model, version: choice.variant, fuel: choice.fuel, year: document.getElementById('tp-addcar-year').value, vehicleType: type, name: '' }).then(function (d) {
         btn.disabled = false;
         if (!d.success) { msg.textContent = d.message || 'Could not add the car. Please try again.'; return; }
         mine = null;

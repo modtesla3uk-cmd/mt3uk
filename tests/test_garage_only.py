@@ -58,7 +58,6 @@ def test_add_a_car_of_another_make(device_page):
     assert page.locator("#mb-addcar-fuel-hidden").input_value() in FUELS
     expect(form.locator("#mb-addcar-version")).to_have_count(1)
     expect(page.locator("#mb-addcar-form .mb-other-missing")).to_contain_text("Make or model not on the list?")
-    page.fill("#mb-addcar-carname", "Kit")
     page.select_option("#mb-addcar-color", "Grey")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
     assert overflow_width(page) <= 0
@@ -85,7 +84,6 @@ def test_bikes_are_not_offered_for_now(device_page):
     makes = page.locator("#mb-addcar-pick select[aria-label=Make] option").all_inner_texts()
     assert "Zero" not in makes and "Energica" not in makes
     expect(page.locator("#mb-addcar-drive-field")).to_be_visible()
-    expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Car name")
     expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add car")
     # Tesla is picked from the same list: no extra fields, and it is not kept in the garage.
     pick_add_car(page, "Tesla", "Model 3", 1)
@@ -178,7 +176,6 @@ def test_a_hyundai_or_porsche_is_kept_in_the_garage(device_page):
     expect(page.locator("#mb-addcar-version")).to_have_count(1)
     variant = page.locator("#mb-addcar-version").input_value()
     assert variant, "a variant is picked from the car list"
-    page.fill("#mb-addcar-carname", "Blue N")
     page.select_option("#mb-addcar-color", "Other")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
     page.click("#mb-addcar-submit-btn")

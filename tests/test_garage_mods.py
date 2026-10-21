@@ -75,11 +75,9 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     assert page.locator("#mb-addcar-fuel-hidden").input_value() in FUELS
     # The driven wheels are worked out from the pick, and the member can change them.
     assert page.locator("#mb-addcar-drive").input_value() in ("", "FWD", "RWD", "AWD")
-    page.fill("#mb-addcar-carname", "Blue Why")
     page.select_option("#mb-addcar-color", "Grey")
-    page.fill("#mb-addcar-caption", "Grey Model Y")
     years = page.locator("#mb-addcar-year option").all_inner_texts()
-    assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2012"
+    assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "1985"
     # Every make on the car list is offered, A to Z, with Tesla among them and no make chips.
     makes = page.locator("#mb-addcar-pick select[aria-label=Make] option").all_inner_texts()
     assert makes[0] == "Choose the make" and "Tesla" in makes and "Alpine" in makes and makes.index("Alpine") < makes.index("Tesla")
@@ -549,7 +547,7 @@ def test_version_and_year_next_to_the_model(device_page):
     page.wait_for_function("!document.getElementById('mb-car-version-select').disabled", timeout=5000)
     page.select_option("#mb-car-year-select", "2015")
     years = page.locator("#mb-car-year-select option").all_inner_texts()
-    assert years[-1] == "2012"
+    assert years[-1] == "1985"
     page.locator("#mb-car-name-save").click()
     page.wait_for_function("document.getElementById('mb-car-year-select').disabled === true", timeout=5000)
     body = last_put(page)
@@ -623,12 +621,8 @@ def test_a_car_can_be_added_without_a_caption(device_page):
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
-    for field in ("mb-submit-caption", "mb-addcar-caption", "mb-upload-caption"):
-        assert page.locator("#" + field).get_attribute("required") is None, field
-        assert page.locator("label[for=%s]" % field).inner_text() == "Caption (optional)", field
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     pick_add_car(page, "Tesla", "Model Y", 1)
-    page.fill("#mb-addcar-carname", "No Caption Y")
     page.select_option("#mb-addcar-color", "Grey")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
     page.click("#mb-addcar-submit-btn")

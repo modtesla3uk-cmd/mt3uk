@@ -1056,7 +1056,8 @@
 /* Laps-only accounts (joined on Laps, not MT3UK members): no Gallery, Reel or Voting choices, and no vote panel. */
 body.laps-only label.mb-toggle, body.laps-only .mb-photo-toggle, body.laps-only #mb-upload-garage-note, body.laps-only .mb-vote-hint,
 body.laps-only #mb-lightbox-reel, body.laps-only #mb-lightbox-gallery, body.laps-only #mb-lightbox-votes, body.laps-only #mb-lightbox-share-note,
-body.laps-only [data-link="reel"], body.laps-only [data-link="vote"], body.laps-only [data-link="gallery"] { display: none !important; }
+body.laps-only [data-link="reel"], body.laps-only [data-link="vote"], body.laps-only [data-link="gallery"],
+body.laps-only .mb-other-note { display: none !important; }
 </style>
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
 <script>try{if(localStorage.getItem('mt3ukLapsOpen')==='1'){document.documentElement.classList.add('laps-open');}}catch(e){}</script>
@@ -1351,10 +1352,6 @@ document.addEventListener('DOMContentLoaded', function () {
           <input type="hidden" name="make" id="mb-submit-make-hidden">
           <input type="hidden" name="model" id="mb-submit-model-hidden">
           <input type="hidden" name="fuel" id="mb-submit-fuel-hidden">
-                    <div class="mb-field">
-            <label class="mono" for="mb-submit-carname">Car name</label>
-            <input type="text" id="mb-submit-carname" name="carName" placeholder="Enter a name for this build" required>
-          </div>
           <div class="mb-field">
             <label class="mono" for="mb-submit-email">Email</label>
             <input type="email" id="mb-submit-email" name="email" placeholder="you@example.com" autocomplete="email" required>
@@ -1384,10 +1381,6 @@ document.addEventListener('DOMContentLoaded', function () {
               <option value="Green">Green</option>
               <option value="Other">Other</option>
             </select>
-          </div>
-          <div class="mb-field">
-            <label class="mono" for="mb-submit-caption">Caption (optional)</label>
-            <input type="text" id="mb-submit-caption" name="caption" placeholder="e.g. Viper Green Model Y">
           </div>
           </details>
           <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once you're in, you can build your mods list.</span></p>
@@ -1488,13 +1481,9 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
             </div>
             <div class="mb-field" id="mb-addcar-drive-field">
-              <label for="mb-addcar-drive">Driven wheels</label>
+              <label for="mb-addcar-drive">Which wheels drive it?</label>
               <select id="mb-addcar-drive" name="drive"><option value="">Not sure</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
               <span class="mb-field-hint" id="mb-addcar-drive-hint">Filled in from the model once you pick it. Change it if it's wrong.</span>
-            </div>
-            <div class="mb-field">
-              <label class="mono" for="mb-addcar-carname"><span data-vword-cap>Car</span> name</label>
-              <input type="text" id="mb-addcar-carname" name="carName" placeholder="Enter a name for this build" required>
             </div>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-color"><span data-vword-cap>Car</span> colour</label>
@@ -1509,10 +1498,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="Green">Green</option>
                 <option value="Other">Other</option>
               </select>
-            </div>
-            <div class="mb-field">
-              <label class="mono" for="mb-addcar-caption">Caption (optional)</label>
-              <input type="text" id="mb-addcar-caption" name="caption" placeholder="e.g. Viper Green Model Y">
             </div>
             <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your <span data-vword>car</span> is in the garage we'll help you build its mods list, one area at a time.</span></p>
             <div class="mb-field">
@@ -1566,7 +1551,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
-          <select class="mb-car-color-select" id="mb-car-drive-select" aria-label="Driven wheels"><option value="">Driven wheels</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
+          <select class="mb-car-color-select" id="mb-car-drive-select" aria-label="Which wheels drive it?"><option value="">Which wheels drive it?</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
           <input type="number" class="mb-car-color-select" id="mb-car-weight" min="300" max="4000" step="5" placeholder="Kerb weight (kg)" aria-label="Kerb weight in kg" title="Kerb weight in kg: leave it blank to use the maker's figure for the model and version">
           </span>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
@@ -1593,10 +1578,6 @@ document.addEventListener('DOMContentLoaded', function () {
           <h2>Add a photo</h2>
           <p>Add another photo to this car. It'll go live straight away, wherever you choose below.</p>
           <form id="mb-upload-form">
-            <div class="mb-field">
-              <label class="mono" for="mb-upload-caption">Caption (optional)</label>
-              <input type="text" id="mb-upload-caption" name="caption" placeholder="e.g. Viper Green Model Y">
-            </div>
             <p class="mb-field-hint" id="mb-upload-garage-note" hidden>This car is kept in your garage, so the photo isn't shown in the Gallery, the Reel or Build of the Week.</p>
             <div class="mb-toggles">
               <label class="mb-toggle"><input type="checkbox" id="mb-upload-gallery" checked> Gallery</label>
@@ -1753,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="js/mods-view.js"></script>
 <script src="js/vehicle-data.js?v=20270210"></script>
 <script src="js/car-pick.js?v=5"></script>
-<script src="js/mods-builder.js?v=20270102"></script>
+<script src="js/mods-builder.js?v=20271022"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -2693,15 +2674,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var wantsPhotoForm = /^#(add-photo|build-upload)$/.test(window.location.hash);
     if (wantsPhotoForm) showSignedOutMode('photo');
 
-    // The car name starts from the model picked, so there is one less thing to type. It can still be changed.
     if (submitForm) {
-      var carNameBox = document.getElementById('mb-submit-carname');
-      var carNameEdited = false;
-      carNameBox.addEventListener('input', function () { carNameEdited = true; });
-      submitForm.addEventListener('change', function (e) {
-        if (!e.target || e.target.name !== 'model' || carNameEdited || e.target.value === '__other__') return;
-        carNameBox.value = e.target.value;
-      });
       // A required Version inside the closed "More details" would block the send with no message: open it.
       submitForm.addEventListener('invalid', function () { document.getElementById('mb-submit-more').open = true; }, true);
     }
@@ -2734,8 +2707,7 @@ document.addEventListener('DOMContentLoaded', function () {
               submitFuelHidden.value = c.fuel || '';
               submitVersionSel.innerHTML = '<option value="">Version</option>' + (c.variant ? '<option value="' + escapeHtml(c.variant) + '" selected>' + escapeHtml(c.variant) + '</option>' : '');
               submitVersionSel.value = c.variant || '';
-              if (!carNameEdited && c.model) carNameBox.value = c.model;
-            }
+                  }
           });
         };
         if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(mountNow, mountNow);
@@ -2967,7 +2939,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       var formData = new FormData();
-      formData.append('caption', document.getElementById('mb-upload-caption').value.trim());
       formData.append('photo', file);
       formData.append('gallery', document.getElementById('mb-upload-gallery').checked ? '1' : '0');
       formData.append('reel', document.getElementById('mb-upload-reel').checked ? '1' : '0');

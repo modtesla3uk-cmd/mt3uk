@@ -6416,10 +6416,11 @@ function signInSite(body) {
 }
 function lapsAccountKey(email) { return 'laps-account:' + email; }
 
-// A Laps-only account: it joined on Laps and is not an MT3UK member. Its cars and photos are kept in its garage, so
-// Gallery, Reel and Voting are never on for it (My Garage hides them, and the worker keeps them off).
+// A Laps-only account: it joined on Laps and has not joined MT3UK. Its cars and photos are kept in its garage, so
+// Gallery, Reel and Voting are never on for it (My Garage hides them, and the worker keeps them off). The laps-account
+// record is what marks it (the admin's Laps members list reads it the same way, and joining MT3UK removes it). A
+// subscriber record is not used: adding a photo writes one, which would make a Laps-only account look like a member.
 async function isLapsOnlyAccount(env, email) {
-  if ((await env.VOTES.get('subscriber:' + email)) !== null) return false;
   return (await env.VOTES.get(lapsAccountKey(email))) !== null;
 }
 function cleanLapsIntro(v) { return String(v || '').replace(/[\u0000-\u0009\u000b-\u001f<>]/g, ' ').trim().slice(0, 400); }

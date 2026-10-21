@@ -91,7 +91,7 @@
   var SETUPS = [
     { id: 'tyres', label: 'Tyres', get: function (s) { return s.tyres || ''; } },
     { id: 'pads', label: 'Brake pads', get: function (s) { return s.pads || ''; } },
-    { id: 'drive', label: 'Which wheels drive it?', get: function (s) { return s.drive || ''; } },
+    { id: 'drive', label: 'FWD, RWD, AWD?', get: function (s) { return s.drive || ''; } },
     { id: 'conditions', label: 'Conditions', get: function (s) { return s.conditions || ''; } },
     { id: 'logger', label: 'Logger', get: function (s) { return s.logger || ''; } }
   ];
@@ -274,7 +274,7 @@
       ['Best lap', timed(s) ? fmtLap(s.bestTime) : ''], ['Top speed', num(s.vmax) > 0 ? fmtSpeed(s.vmax) : ''],
       ['Peak braking', num(s.brakeG) > 0 ? s.brakeG.toFixed(2) + ' g' : ''], ['Hottest brakes', num(m.brakeTemp) != null ? pctTxt(m.brakeTemp) : ''],
       ['Charge used', u != null ? u.toFixed(1) + '%' : ''], ['Peak power', num(m.power) != null ? Math.round(m.power) + ' kW' : ''],
-      ['Peak regen', num(m.regen) != null ? Math.round(m.regen) + ' kW' : ''], ['Tyres', esc(s.tyres || '')], ['Brake pads', esc(s.pads || '')], ['Which wheels drive it?', esc(s.drive || '')]
+      ['Peak regen', num(m.regen) != null ? Math.round(m.regen) + ' kW' : ''], ['Tyres', esc(s.tyres || '')], ['Brake pads', esc(s.pads || '')], ['FWD, RWD, AWD?', esc(s.drive || '')]
     ].filter(function (f) { return f[1] !== ''; });
     return '<div class="tm-card ma-pick" id="ma-pick"><h2>' + esc(niceDate(s.date)) + ', ' + esc(trackOf(s)) + '</h2>' +
       '<dl class="ma-facts">' + facts.map(function (f) { return '<div><dt>' + esc(f[0]) + '</dt><dd>' + f[1] + '</dd></div>'; }).join('') + '</dl>' +
@@ -347,7 +347,7 @@
         var v = m.get(s);
         return '<div class="ma-fig"><i style="background:' + dayColour(m, v, pool) + '"></i><div><span>' + esc(m.label) + '</span><b>' + esc(m.fmt(v)) + '</b></div></div>';
       }).join('');
-      var facts = [['Tyres', s.tyres], ['Brake pads', s.pads], ['Which wheels drive it?', s.drive], ['Conditions', s.conditions], ['Logger', s.logger]]
+      var facts = [['Tyres', s.tyres], ['Brake pads', s.pads], ['FWD, RWD, AWD?', s.drive], ['Conditions', s.conditions], ['Logger', s.logger]]
         .filter(function (f) { return f[1]; });
       return '<section class="ma-sess' + (s.id === state.picked ? ' is-picked' : '') + '">' +
         '<div class="ma-sess-head"><b>' + esc(s.time || '') + '</b><span>' + esc(carName(s.carId)) + '</span>' +

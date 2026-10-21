@@ -127,7 +127,7 @@ def test_what_laps_does_comes_first_then_the_lap_timers_then_track_mode_and_no_e
     open_home(page)
     ids = page.evaluate("[...document.querySelectorAll('main > section')].map(s => s.id)")
     assert ids[:3] == ["timers", "trackmode", "fastest"] and "any-make" not in ids and "free" not in ids, ids
-    expect(page.locator(".lh-hero .lh-cars")).to_contain_text("Any car, any make")
+    expect(page.locator(".lh-hero .lh-cars")).to_contain_text("Any lap timer")
     page.locator("#lh-fast a").first.wait_for(state="attached")
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)
 
@@ -138,7 +138,7 @@ def test_track_mode_has_its_own_section_and_fastest_right_now_is_off_the_front_p
     expect(page.locator("#trackmode h2")).to_contain_text("Tesla Track Mode")
     expect(page.locator("#trackmode .lh-card")).to_have_count(6)
     expect(page.locator("#fastest")).to_be_hidden()
-    expect(page.locator(".lh-hero .lh-cars")).to_contain_text("Tesla, Hyundai, Kia, Porsche and more")
+    expect(page.locator(".lh-hero .lh-cars")).to_contain_text("RaceBox, VBOX, AiM, Harry’s LapTimer, TrackAddict, Tesla Track Mode")
     expect(page.locator(".lh-makes")).to_have_count(0)
 
 

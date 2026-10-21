@@ -1790,8 +1790,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // ({ file, caption, votes }), or null.
     var voteEntry = null;
     var currentCarId = null;
-    // A car just added, opened once the garage reloads.
+    // A car just added, opened once the garage reloads. Sessions sends a member here after their first car
+    // (?car=<id>) so its full mods list is the next thing they see; the parameter is taken out of the address after.
     var openCarAfterLoad = null;
+    try { openCarAfterLoad = new URLSearchParams(location.search).get('car'); } catch (e) { /* no URL support */ }
 
     var signinView = document.getElementById('mb-signin-view');
     var appView = document.getElementById('mb-app-view');
@@ -1989,6 +1991,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (carsData[i].id === carId) return carsData[i];
       }
       return null;
+    }
+
+    // Take ?car= out of the address once it has been used, so a reload does not open the car again.
+    function dropCarParam() {
+      try {
+        var u = new URL(location.href);
+        if (!u.searchParams.has('car')) return;
+        u.searchParams.delete('car');
+        history.replaceState(null, '', u.pathname + u.search + u.hash);
+      } catch (e) { /* history blocked: the car opens again on a reload */ }
     }
 
     // The page's own Back (to the page before) is only on the garage; a car has its own Back to the garage.
@@ -2437,6 +2449,7 @@ document.addEventListener('DOMContentLoaded', function () {
           var alerts = computeCommentAlerts(carsData);
           var openNew = openCarAfterLoad;
           openCarAfterLoad = null;
+          if (openNew) dropCarParam();
           if (openNew && findCar(openNew)) {
             showDetail(openNew);
           } else if (currentCarId && findCar(currentCarId)) {

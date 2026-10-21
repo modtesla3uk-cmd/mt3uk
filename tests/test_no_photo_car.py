@@ -1,6 +1,7 @@
 """A car added without a photo: "Add your car" on the Laps pages (track.html) and how My Garage shows it. The worker
 parts run in node (tests/no_photo_car_check.mjs)."""
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -93,14 +94,18 @@ def test_laps_adds_a_car_without_a_photo(page):
     variant = pick.locator("select[aria-label=Variant] option:checked").text_content()
     page.fill("#tp-addcar-year", "2019")
     page.locator("#tp-addcar-save").click()
-    # The new car is chosen, ready for its first session.
-    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche Taycan")
-    expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
     body = fake.added[0]
     assert body["make"] == "Porsche" and body["model"] == "Taycan" and body["year"] == "2019" and body["vehicleType"] == "car"
     assert body["name"] == "" and body["version"] + " (" + body["fuel"] + ")" == variant
     assert body["fuel"] in ("Petrol", "Diesel", "Electric", "Hybrid", "Plug-in hybrid", "Mild hybrid", "Mild hybrid diesel", "Hybrid diesel")
-    # Another car can be added from Your cars; no bike makes are offered.
+    # A first car goes on to its full mods list in My Garage, opened on that car.
+    page.wait_for_url(re.compile(r"my-builds\.html\?car=new1$"), timeout=5000)
+    expect(page.locator("#mb-mods-builder")).to_be_attached()
+    # Back on Sessions, the new car is chosen, ready for its first session.
+    page.go_back()
+    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche Taycan")
+    expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
+    # Another car can be added from Your cars; no bike makes are offered. A later car stays on Sessions.
     page.locator("#tp-vtoggle").click()
     page.locator("#tp-car-add-open").click()
     expect(page.locator("#tp-addcar-save")).to_have_text("Add car")
@@ -109,6 +114,7 @@ def test_laps_adds_a_car_without_a_photo(page):
     page.locator("#tp-addcar-pick select[aria-label=Variant]").select_option(index=1)
     page.locator("#tp-addcar-save").click()
     # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.
+    expect(page).to_have_url(re.compile(r"track\.html"))
     expect(page.locator("#tp-vtoggle")).to_be_visible()
     page.locator("#tp-vtoggle").click()
     page.wait_for_function("document.querySelectorAll('#tp-cars .tp-car[data-car]').length === 2", timeout=5000)

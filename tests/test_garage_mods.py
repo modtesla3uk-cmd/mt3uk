@@ -692,3 +692,15 @@ def test_a_car_with_no_sessions_is_invited_to_laps(device_page):
     expect(strip.locator(".ls-empty")).to_contain_text("No sessions for this car yet")
     expect(strip.locator(".ls-rows")).to_have_count(0)
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_link_with_a_car_opens_that_car_and_its_mods_list(device_page):
+    """Sessions sends a member here after their first car (my-builds.html?car=<id>): the car opens at once, its mods
+    builder is shown, and the car is taken out of the address so a reload does not open it again."""
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html?car=car-1")
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
+    assert "Test Model 3" in page.locator("#mb-mods-builder .mbm-welcome").inner_text()
+    assert "car=" not in page.url

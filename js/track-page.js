@@ -1989,7 +1989,7 @@
   // The make, model and variant come from the car pick (js/car-pick.js): every make on the list, then its models and
   // variants, each with its fuel type. The car is saved with them (POST /my-builds/car/new).
   function addCarHtml(first) {
-    return '<form class="card tp-intro tp-addcar" id="tp-addcar" novalidate>' +
+    return '<form class="card tp-intro tp-addcar" id="tp-addcar" data-first="' + (first ? '1' : '') + '" novalidate>' +
       '<h2>' + (first ? 'Add your car' : 'Add a car') + '</h2>' +
       '<p>' + (first ? 'Sessions belong to a car, so your times can be matched to its mods. ' : '') + 'No photo needed: you can add photos later in My Garage.</p>' +
       (first ? '<p class="tp-small">Got any mods on it? Add them in My Garage once the car is added, so each session shows what they did.</p>' : '') +
@@ -2063,6 +2063,8 @@
         mine = null;
         currentCar = d.car.id;
         try { localStorage.setItem('mt3ukTrackCar', currentCar); } catch (er) {}
+        // A first car goes on to its full mods list in My Garage; a car added later stays on Sessions.
+        if (form.getAttribute('data-first') === '1') { location.href = 'my-builds.html?car=' + encodeURIComponent(currentCar); return; }
         showHome();
       }).catch(function () { btn.disabled = false; msg.textContent = 'Could not reach the server. Please try again.'; });
     });

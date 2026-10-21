@@ -1602,7 +1602,7 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     # On desktop the line is behind the ? button by the title, which opens it (js/laps-heading-what.js).
     page.locator(".lh-title .tp-what-q").first.click()
     expect(fold.locator("p")).to_be_visible()
-    expect(fold.locator("p")).to_contain_text("Real times from EVs on tracks and drag strips")
+    expect(fold.locator("p")).to_contain_text("Real times from any car on tracks and drag strips")
     # Refresh on the list: fetches the page's own script again and reloads on the same view.
     expect(page.locator(".tp-board-card").first).to_be_visible()
     seen = []

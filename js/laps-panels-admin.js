@@ -1,6 +1,6 @@
 /*
   Admin: the Laps front page sections as panels (laps.html: Fastest right now, What Laps does, Every kind of day,
-  Works with your lap timer, EVs any make). For each one: its heading, intro line, cards or chips, and where it
+  Works with your lap timer). For each one: its heading, intro line, cards or chips, and where it
   shows: the front page, and for signed-in members Sessions and the Leaderboard. laps.html holds the built-in words,
   read here for the placeholders; the changes go to the worker (KV laps-panels) and js/laps-panels.js applies them.
 */

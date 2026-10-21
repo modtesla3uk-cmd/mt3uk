@@ -2,7 +2,7 @@
   "id": "/laps",
   "name": "Laps by MT3UK",
   "short_name": "Laps",
-  "description": "Lap times, track day data and leaderboards for modified and electric cars, from your own lap timer files.",
+  "description": "Lap times, track day data and leaderboards for any modified car, from your own lap timer files.",
   "lang": "en-GB",
   "dir": "ltr",
   "start_url": "/track.html",

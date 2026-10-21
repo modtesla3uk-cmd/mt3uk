@@ -20,7 +20,7 @@
   })();
 </script>
 <title>Laps by MT3UK: lap times, track days and leaderboards</title>
-<meta name="description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for modified EVs.">
+<meta name="description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for any modified car.">
 <link rel="canonical" href="https://laps.mt3uk.com/laps.html">
 <link rel="icon" type="image/svg+xml" href="images/laps/favicon.svg">
 <link rel="icon" type="image/x-icon" href="images/laps/favicon.ico">
@@ -35,7 +35,7 @@
 <meta name="application-name" content="Laps by MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Laps by MT3UK: lap times, track days and leaderboards">
-<meta property="og:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for modified EVs.">
+<meta property="og:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for any modified car.">
 <meta property="og:image" content="https://mt3uk.com/images/laps/share-laps.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -43,7 +43,7 @@
 <meta property="og:url" content="https://laps.mt3uk.com/laps.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Laps by MT3UK: lap times, track days and leaderboards">
-<meta name="twitter:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for modified EVs.">
+<meta name="twitter:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days and drag runs, for any modified car.">
 <meta name="twitter:image" content="https://mt3uk.com/images/laps/share-laps.jpg">
 <script type="application/ld+json">
 {
@@ -71,7 +71,7 @@
       "url": "https://laps.mt3uk.com/laps.html",
       "applicationCategory": "SportsApplication",
       "operatingSystem": "Any (web browser)",
-      "description": "Upload the file from your lap timer (RaceBox, VBOX and others) and see every lap mapped, compared and ranked on the leaderboards. Track days and drag runs, for modified EVs.",
+      "description": "Upload the file from your lap timer (RaceBox, VBOX and others) and see every lap mapped, compared and ranked on the leaderboards. Track days and drag runs, for any modified car.",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
       "publisher": { "@id": "https://mt3uk.com/#organization" }
     }
@@ -401,9 +401,9 @@
   .lh-welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .lh-skip-row { text-align: center; padding: 8px 16px 32px; font-size: 0.95rem; color: #3d4659; }
   .lh-skip-row input { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
-  /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
-  .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 20px; max-width: 34em; }
-  .lh-evs b { color: #fff; }
+  /* Any car, any make: in the hero, so it is seen on the first screen. */
+  .lh-hero .lh-cars { font-size: 0.95rem; margin: 4px 0 20px; max-width: 34em; }
+  .lh-cars b { color: #fff; }
   @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
   /* The Laps reel: the vertical video in the right column, beside the words. On a phone it comes after the buttons and the
      notes, and before the Free to access panel. The copy column is laid out as its own items on a phone. */
@@ -427,7 +427,7 @@
     /* With the intro skipped the heading shows as a heading, under the Show intro button */
     .lh-hero.is-skipped .lh-copy > h1.lh-sr { position: static; width: auto; height: auto; margin: 0 0 12px; padding: 0; overflow: visible; clip: auto; white-space: normal; border: 0; }
     .lh-copy > #lh-actions { order: 3; }
-    .lh-copy > .lh-evs { order: 4; }
+    .lh-copy > .lh-cars { order: 4; }
     .lh-copy > #lh-note { order: 5; }
     .lh-copy > .lh-free { order: 7; }
   }
@@ -507,11 +507,11 @@
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
         <button type="button" class="btn btn-secondary lh-share" id="lh-share" aria-label="Share Laps by MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Share</button>
       </div>
-      <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche and more.</p>
+      <p class="lh-cars"><b>Any car, any make.</b> Tesla, Hyundai, Kia, Porsche and more.</p>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
       <div class="lh-free" id="free">
         <h2>Free to access</h2>
-        <p class="lh-free-lead">Every member starts on Free access, whatever EV you drive.</p>
+        <p class="lh-free-lead">Every member starts on Free access, whatever car you drive.</p>
         <ul class="lh-free-list">
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg><span>Your laps on the map, with your speed through every corner</span></li>
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19c4-10 12-10 16 0"/><path d="M4 15c4-6 12-6 16 0" stroke-dasharray="3 3"/></svg><span>Compare your best lap with the next one</span></li>
@@ -614,7 +614,7 @@
 <footer>
   <div class="wrap footer-row">
     <a href="laps.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
-    <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
+    <span class="footer-text">Lap times and leaderboards for any modified car &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
     <span class="footer-links"><a href="laps.html" id="tp-play-intro">Play intro</a> <a href="#" id="tp-offline" data-offline-toggle role="button" hidden>Offline mode: off</a> <a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
 </footer>
@@ -754,7 +754,7 @@
 </script>
 
 <script src="js/laps-explainer.js?v=23" defer></script>
-<script src="js/laps-panels.js?v=4" defer></script>
+<script src="js/laps-panels.js?v=5" defer></script>
 <script src="js/laps-home.js?v=20271012" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>

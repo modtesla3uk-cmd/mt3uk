@@ -1,6 +1,6 @@
 /*
   The Laps front page sections (laps.html: Fastest right now, What Laps does, Every kind of day, Works with your lap
-  timer, EVs any make) as panels. laps.html holds the built-in words; the admin's changes come from /laps/panels
+  timer) as panels. laps.html holds the built-in words; the admin's changes come from /laps/panels
   (the Laps panels panel of track-admin.html, KV laps-panels): each section's heading, intro line, cards (title and
   text) or chips, and where it shows. On the front page a section can be taken off; on Sessions and the Leaderboard
   a section chosen for that page is drawn under the page for signed-in members, in <div data-laps-panels="sessions">

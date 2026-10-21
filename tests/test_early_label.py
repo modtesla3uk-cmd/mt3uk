@@ -46,11 +46,14 @@ def test_once_laps_is_open_the_labels_are_hidden_before_the_page_paints(page, ba
     """A browser that has seen Laps open hides the labels before the sign-in check answers, so they do not flash
     on every refresh. The check is still made, and it clears the flag if the preview comes back."""
     page.add_init_script("try { localStorage.setItem('mt3ukLapsOpen', '1'); } catch (e) {}")
-    page.route("**/laps/signin*", lambda route: route.fulfill(
-        status=200, body=json.dumps({"success": True, "preview": False}),
-        headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}))
+    # The sign-in answer is held back, so the labels can only be hidden by the head snippet, not by the answer arriving.
+    held = []
+    page.route("**/laps/signin*", lambda route: held.append(route))
     page.goto("/index.html", wait_until="domcontentloaded")
-    assert page.evaluate("getComputedStyle(document.querySelector('.early-badge')).display") == "none"
+    # Every badge (the navigation, the Sessions card, the menu link) is hidden at this point, before the answer comes
+    assert page.evaluate("(() => { const b = [...document.querySelectorAll('.early-badge')]; return b.length > 0 && b.every(e => getComputedStyle(e).display === 'none'); })()")
+    held[0].fulfill(status=200, body=json.dumps({"success": True, "preview": False}),
+                    headers={"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"})
 
 
 def test_a_returning_preview_clears_the_open_flag(page, base_url):

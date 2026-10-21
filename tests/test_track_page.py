@@ -6466,12 +6466,22 @@ def test_the_line_picker_shows_only_the_fastest_lap_and_a_marker_sits_on_it(page
     best = page.evaluate("document.querySelector('#tp-tap polyline.tv-line').getAttribute('points').split(' ').length")
     assert abs(segs - (best - 1)) <= 1 and best > 600, (segs, best)
     page.get_by_role("button", name="Clear markers").click()
+    # Clearing redraws the map and its toolbar: wait until the toolbar shows there are no markers, then until the map stops moving.
+    expect(page.get_by_role("button", name="Clear markers")).to_be_disabled()
+    # Centre the map on screen, so the point taken on the line is not under the page's fixed header.
+    page.evaluate("document.getElementById('tp-tap').scrollIntoView({ block: 'center' })")
+    page.locator("#tp-tap").evaluate("""el => new Promise(done => {
+      let last = '', still = 0;
+      const step = () => { const r = JSON.stringify(el.getBoundingClientRect()); still = r === last ? still + 1 : 0; last = r; still >= 8 ? done() : requestAnimationFrame(step); };
+      step();
+    })""")
     pt = _trace_point(page, 0.3)
     # The clicked point in the map's own coordinates (the page may scroll when a marker is placed).
     want = page.evaluate("""(pt) => {
       const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
       return [vb.x + (pt[0] - r.left) * vb.width / r.width, vb.y + (pt[1] - r.top) * vb.height / r.height, vb.width / r.width];
     }""", pt)
+    assert page.evaluate("(pt) => { const el = document.elementFromPoint(pt[0], pt[1]); return !!el && !!document.getElementById('tp-tap').contains(el); }", pt), "the point on the line is on the map"
     page.mouse.click(pt[0], pt[1])
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
     got = page.evaluate("""() => {

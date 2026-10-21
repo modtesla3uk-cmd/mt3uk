@@ -173,6 +173,48 @@
       var masked = at > 0 ? email.slice(0, Math.min(2, at)) + '\u2022\u2022\u2022' + email.slice(at) : '';
       $('si-signed-in-text').textContent = 'Signed in as ' + (first || masked || 'a member') + (first && masked ? ' (' + masked + ')' : '') +
         (SITE === 'laps' ? '. You can add your track sessions and see the leaderboards.' : '. You can now like and comment on builds and interviews.');
+      if (SITE === 'laps') offerCar();
+    }
+
+    // Laps: a member with no car yet is offered the car pick here, as on Sessions. Skip is kept per member in this browser,
+    // the same key Sessions uses, so skipping on either page holds on both.
+    var carOffered = false;
+    function offerCar() {
+      if (carOffered || !window.MT3UKCarPick) return;
+      carOffered = true;
+      var email = read(EMAIL_KEY), skipKey = 'mt3ukCarSkipped-' + email;
+      try { if (localStorage.getItem(skipKey) === '1') return; } catch (e) { /* storage blocked: offer it */ }
+      fetch(API + '/my-builds', { cache: 'no-store', headers: { 'X-Session-Token': read(SESSION_KEY) } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.cars || d.cars.length) return;
+          var choice = null, status = $('si-car-status');
+          $('si-car').hidden = false;
+          window.MT3UKCarPick.mount($('si-car-pick'), { placeholder: true, onChange: function (c) { choice = c; } });
+          $('si-car-skip').addEventListener('click', function () {
+            try { localStorage.setItem(skipKey, '1'); } catch (e) { /* storage blocked: it comes back next time */ }
+            $('si-car').hidden = true;
+          });
+          $('si-car-add').addEventListener('click', function () {
+            if (!choice || !choice.make) { status.textContent = 'Choose the make.'; return; }
+            if (!choice.model) { status.textContent = 'Choose the model.'; return; }
+            if (!choice.variant) { status.textContent = 'Choose the variant.'; return; }
+            var btn = $('si-car-add');
+            btn.disabled = true;
+            status.textContent = '';
+            fetch(API + '/my-builds/car/new', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Session-Token': read(SESSION_KEY) },
+              body: JSON.stringify({ make: choice.make, model: choice.model, version: choice.variant, fuel: choice.fuel, year: '', vehicleType: 'car', name: '' })
+            }).then(function (r) { return r.json().then(function (res) { return { ok: r.ok, res: res }; }); })
+              .then(function (out) {
+                btn.disabled = false;
+                if (!out.ok || !out.res.success) { status.textContent = out.res.message || 'Could not add the car. Please try again.'; return; }
+                $('si-car').hidden = true;
+                $('si-signed-in-text').textContent += ' Your car is in My Garage.';
+              }).catch(function () { btn.disabled = false; status.textContent = 'Could not reach the server. Please try again.'; });
+          });
+        }).catch(function () { /* no car list: the card is simply not offered */ });
     }
 
     function showCode(email) {

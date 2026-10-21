@@ -49,6 +49,11 @@ def mock(page, separate=True):
         elif req.method == "POST" and ("/my-builds/request-link" in url or "/my-builds/join" in url):
             state["posts"].append({"path": url.split(API_HOST)[1].split("?")[0], "body": json.loads(req.post_data)})
             data = {"success": True, "message": "Check your email."}
+        elif req.method == "GET" and url.split(API_HOST)[1].split("?")[0] == "/my-builds":
+            data = {"success": True, "cars": state.get("cars", [])}
+        elif req.method == "POST" and "/my-builds/car/new" in url:
+            state.setdefault("car_posts", []).append(json.loads(req.post_data))
+            data = {"success": True, "car": {"id": "car-new"}}
         elif "/my-builds/session" in url:
             data = state.get("session") or {"success": True, "session": "sess-1", "email": "member@example.com", "joined": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers=headers)
@@ -89,6 +94,41 @@ def test_without_a_page_to_go_back_to_the_signed_in_card_offers_laps(page):
     expect(card).to_be_visible()
     expect(card.get_by_role("link", name="Your sessions")).to_have_attribute("href", "track.html")
     expect(page.locator("#si-signed-in-text")).to_contain_text("track sessions")
+
+
+def test_a_signed_in_member_with_no_car_is_offered_the_car_pick_on_the_sign_in_page(page):
+    state = mock(page)
+    page.goto(LAPS + "/laps-signin.html?token=abc")
+    expect(page.locator("#si-signed-in")).to_be_visible()
+    expect(page.locator("#si-car")).to_be_visible()
+    page.wait_for_function("document.querySelectorAll('#si-car-pick select[aria-label=Make] option').length > 5")
+    page.locator("#si-car-pick select[aria-label=Make]").select_option("Tesla")
+    page.wait_for_function("document.querySelectorAll('#si-car-pick select[aria-label=Model] option').length > 3")
+    page.locator("#si-car-pick select[aria-label=Model]").select_option("Model 3")
+    page.wait_for_function("document.querySelectorAll('#si-car-pick select[aria-label=Variant] option').length > 0 && !document.querySelector('#si-car-pick select[aria-label=Variant]').disabled")
+    # Index 0 is the placeholder, "Choose the variant"; index 1 is the first real variant.
+    page.locator("#si-car-pick select[aria-label=Variant]").select_option(index=1)
+    page.click("#si-car-add")
+    expect(page.locator("#si-car")).to_be_hidden()
+    expect(page.locator("#si-signed-in-text")).to_contain_text("Your car is in My Garage.")
+    posted = state["car_posts"][-1]
+    assert posted["make"] == "Tesla" and posted["model"] == "Model 3" and posted["vehicleType"] == "car"
+    assert posted["version"] and posted["fuel"]
+
+
+def test_the_car_pick_is_not_offered_to_a_member_who_has_a_car_or_has_skipped_it(page):
+    state = mock(page)
+    state["cars"] = [{"id": "car1", "make": "Tesla", "model": "Model 3"}]
+    page.goto(LAPS + "/laps-signin.html?token=abc")
+    expect(page.locator("#si-signed-in")).to_be_visible()
+    page.wait_for_timeout(300)
+    expect(page.locator("#si-car")).to_be_hidden()
+    state["cars"] = []
+    page.evaluate("localStorage.setItem('mt3ukCarSkipped-member@example.com', '1')")
+    page.reload()
+    expect(page.locator("#si-signed-in")).to_be_visible()
+    page.wait_for_timeout(300)
+    expect(page.locator("#si-car")).to_be_hidden()
 
 
 def test_joining_laps_in_early_preview_says_so_and_welcomes_onto_the_list(page):

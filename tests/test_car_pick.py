@@ -96,7 +96,7 @@ def test_a_preset_pick_opens_on_that_car(page):
     variant = next(v for v in model["variants"] if v["fuel"] == "Electric")
     open_pick(page, pick=f"Hyundai|Ioniq 5|{variant['name']}")
     expect(page.locator("select[aria-label=Variant] option").first).to_have_count(len(model["variants"]))
-    assert page.locator("select[aria-label=Make]").input_value() == SLUG["Hyundai"]
+    assert page.locator("select[aria-label=Make]").input_value() == "Hyundai"
     assert page.locator("select[aria-label=Model]").input_value() == "Ioniq 5"
     chosen = page.locator("select[aria-label=Variant] option:checked").text_content()
     assert chosen == f"{variant['name']} ({variant['fuel']})"

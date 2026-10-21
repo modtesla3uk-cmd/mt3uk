@@ -56,12 +56,16 @@ def test_plain_my_garage_still_opens_on_sign_in_and_the_car_name_follows_the_mod
     assert page.locator("#mb-signin-card").is_visible()
     assert not page.locator("#mb-submit-card").is_visible()
     page.locator("#mb-new-toggle-btn").click()
-    page.locator('#mb-submit-form input[name="makePick"][value="Tesla"]').locator("xpath=..").click()
-    page.locator('#mb-submit-form [data-model-field] label.chip').first.click()
+    # The make, model and variant come from the car pick, as on Add a vehicle.
+    box = page.locator("#mb-submit-pick")
+    box.locator("select[aria-label=Make]").select_option(label="Tesla")
+    page.wait_for_function("[...document.querySelectorAll('#mb-submit-pick select[aria-label=Model] option')].some(o => o.textContent === 'Model 3')", timeout=5000)
+    box.locator("select[aria-label=Model]").select_option(label="Model 3")
+    assert page.locator("#mb-submit-model-hidden").input_value() == "Model 3"
     name = page.locator("#mb-submit-carname").input_value()
     assert re.search(r"\w", name), "the car name is filled in from the model"
     page.locator("#mb-submit-carname").fill("My own name")
-    page.locator('#mb-submit-form [data-model-field] label.chip').nth(1).click()
+    box.locator("select[aria-label=Model]").select_option(label="Model Y")
     assert page.locator("#mb-submit-carname").input_value() == "My own name"
 
 

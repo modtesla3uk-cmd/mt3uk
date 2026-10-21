@@ -5,9 +5,17 @@
   (open data licence ODbL, built from autoevolution.com data) by scripts/build_car_list.py, and the line under the
   pick says so.
 
-  MT3UKCarPick.mount(box, { pick: 'Make|Model|Variant', placeholder: false, onChange: function (choice) {} })
-  choice is { make, model, variant, fuel }. pick is optional: a make name, then a model and a variant from that make.
-  placeholder: true starts with 'Choose the make', then 'Choose the model' and 'Choose the variant', so nothing is chosen until the member picks it.
+  MT3UKCarPick.mount(box, {
+    pick: 'Make|Model|Variant',      optional: a make name, then a model and a variant from that make
+    placeholder: true,               starts with 'Choose the make', 'Choose the model' and 'Choose the variant'
+    onChange: function (choice) {},  choice is { make, model, variant, fuel }
+    offered: function (make) {},     optional: false leaves a make out (My Garage's hidden makes)
+    library: {                       optional: the admin's additions on the Vehicles panel (My Garage)
+      makes: function () {},         -> [make names]
+      models: function (make) {},    -> [model names]
+      versions: function (make, model) {}  -> [variant names, with no fuel]
+    }
+  })
 */
 (function () {
   var BASE = '/data/car-list/';
@@ -88,6 +96,8 @@
   function mount(box, opts) {
     opts = opts || {};
     var pick = (opts.pick || '').split('|');
+    var lib = opts.library || null;
+    var offered = opts.offered || function () { return true; };
     box.innerHTML = '';
     box.classList.add('car-pick');
     var makeF = field('Make');
@@ -103,8 +113,23 @@
     [makeF.label, modelF.label, variantF.label, note, credit].forEach(function (el) { box.appendChild(el); });
     note.textContent = 'Loading the car list...';
 
-    var makeData = null;  // the chosen make, once its file has loaded: { name, models }
+    var makeData = null;  // the chosen make, once its list is ready: { name, models: [{ name, variants: [{ name, fuel }] }] }
     var token = 0;        // the latest make asked for, so an older answer that arrives late is ignored
+
+    // The car list's make, with the admin's additions from the vehicle library laid on it.
+    function withLibrary(name, data) {
+      var models = data ? data.models.map(function (m) { return { name: m.name, variants: m.variants.slice() }; }) : [];
+      if (lib && lib.models) {
+        (lib.models(name) || []).forEach(function (mn) {
+          var m = models.filter(function (x) { return x.name === mn; })[0];
+          if (!m) { m = { name: mn, variants: [] }; models.push(m); }
+          ((lib.versions && lib.versions(name, mn)) || []).forEach(function (vn) {
+            if (!m.variants.some(function (v) { return v.name === vn; })) m.variants.push({ name: vn, fuel: '' });
+          });
+        });
+      }
+      return { name: name, models: models };
+    }
 
     function modelsOf() { return makeData ? makeData.models.slice().sort(byName) : []; }
     function modelNamed(name) {
@@ -133,7 +158,7 @@
       var chosen = '';
       list.forEach(function (v, i) { if (v.name === variantName && chosen === '') chosen = String(i); });
       var items = list.map(function (v, i) {
-        return { value: String(i), text: v.name + ' (' + v.fuel + ')' };
+        return { value: String(i), text: v.fuel ? v.name + ' (' + v.fuel + ')' : v.name };
       });
       if (opts.placeholder) items.unshift({ value: '', text: 'Choose the variant' });
       fill(variantF.sel, items, chosen);
@@ -145,10 +170,10 @@
       fill(modelF.sel, items, modelName || '');
       showVariants(variantName);
     }
-    function chooseMake(slug, modelName, variantName) {
+    function chooseMake(name, modelName, variantName) {
       var mine = ++token;
       makeData = null;
-      if (!slug) {
+      if (!name) {
         setLoading(modelF.sel, 'Choose the make first');
         setLoading(variantF.sel, 'Choose the model first');
         note.textContent = '';
@@ -158,9 +183,9 @@
       setLoading(modelF.sel, 'Loading...');
       setLoading(variantF.sel, 'Loading...');
       notify();
-      return loadMake(slug).then(function (data) {
+      return makeFile(name).then(function (data) {
         if (mine !== token) return;
-        makeData = data;
+        makeData = withLibrary(name, data);
         note.textContent = '';
         showModels(modelName, variantName);
       }).catch(function () {
@@ -175,19 +200,27 @@
     modelF.sel.addEventListener('change', function () { showVariants(); });
     variantF.sel.addEventListener('change', notify);
 
-    loadIndex().then(function (data) {
+    // Every make on the car list, with the library's makes, A to Z, leaving out any the picker is not offered.
+    function makeList(index) {
+      var names = index ? index.makes.map(function (m) { return m.name; }) : [];
+      ((lib && lib.makes) ? lib.makes() : []).forEach(function (n) { if (names.indexOf(n) === -1) names.push(n); });
+      return names.filter(function (n) { return offered(n) || n === pick[0]; })
+        .sort(function (a, b) { return cmp(a, b); });
+    }
+
+    loadIndex().catch(function () { return null; }).then(function (index) {
       note.textContent = '';
-      var makes = data.makes.slice().sort(byName);
-      var items = makes.map(function (m) { return { value: m.slug, text: m.name }; });
+      var names = makeList(index);
+      var items = names.map(function (n) { return { value: n, text: n }; });
       if (opts.placeholder) items.unshift({ value: '', text: 'Choose the make' });
-      fill(makeF.sel, items, (makes.filter(function (m) { return m.name === pick[0]; })[0] || {}).slug || '');
+      fill(makeF.sel, items, pick[0] || '');
       return chooseMake(makeF.sel.value, pick[1], pick[2]);
     }).catch(function () {
       note.textContent = 'The car list could not be loaded. Try again in a moment.';
     });
   }
 
-  // For other pickers (My Garage): every make, a make's models, and a model's variants, all from the same list.
+  // For other pickers: every make, a make's models, and a model's variants, all from the same list.
   function slugOf(name) {
     return loadIndex().then(function (d) {
       var m = d.makes.filter(function (x) { return x.name === name; })[0];
@@ -195,7 +228,9 @@
     });
   }
   function makeFile(name) {
-    return slugOf(name).then(function (slug) { return slug ? loadMake(slug) : null; });
+    return slugOf(name).then(function (slug) {
+      return slug ? loadMake(slug) : { name: name, models: [] };
+    });
   }
   function makes() {
     return loadIndex().then(function (d) { return d.makes.slice().sort(byName); });

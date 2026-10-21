@@ -12,7 +12,7 @@ import pytest
 from playwright.sync_api import expect
 
 from test_devices import all_devices, device_page, browsers, diagnostics, overflow_width  # noqa: F401
-from test_garage_mods import open_car, signed_in
+from test_garage_mods import open_car, pick_add_car, signed_in, FUELS, car_list  # noqa: F401
 
 ROOT = Path(__file__).resolve().parent.parent
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
@@ -37,36 +37,26 @@ def test_a_car_of_another_make_is_kept_in_the_garage_in_the_worker():
 
 @all_devices
 def test_add_a_car_of_another_make(device_page):
-    """Another make shows Car or bike, Make and Model (drop-downs from data/vehicles.json, nothing typed) in
-    place of Version, and says the car is kept in the garage. The worker is told it is another make."""
+    """Another make is any make on the car list but the one the member is not offered: the car is kept in the garage,
+    and it is sent as another make (otherMake) with its make, model, variant and fuel, all picked as on Laps."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
-    form.locator(".mb-model-pick .chip", has_text="Another make").click()
+    pick_add_car(page, "Kia", "EV6", 1)
     expect(page.locator("#mb-addcar-other")).to_be_visible()
-    expect(form.locator("[data-model-field]")).to_be_hidden()
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_contain_text("Kept in your garage")
-    expect(page.locator("#mb-addcar-version")).to_be_hidden()
-    # The makes on the list are offered, Tesla is not (it has its own chips), and a bike's makes are its own.
-    # Make and model are drop-downs: nothing can be typed, and the model waits for the make.
-    page.wait_for_function("document.querySelectorAll('#mb-addcar-make option').length > 5", timeout=5000)
-    makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
-    assert "Kia" in makes and "Tesla" not in makes and "Zero" not in makes
-    assert page.locator("#mb-addcar-make").evaluate("el => el.tagName") == "SELECT"
-    expect(page.locator("#mb-addcar-othermodel")).to_be_disabled()
-    expect(page.locator("#mb-addcar-other")).to_contain_text("Make or model not on the list?")
-    page.select_option("#mb-addcar-make", "Kia")
-    expect(page.locator("#mb-addcar-othermodel")).to_be_enabled()
-    page.wait_for_function("document.querySelectorAll('#mb-addcar-othermodel option').length > 1", timeout=5000)
-    models = page.locator("#mb-addcar-othermodel option").evaluate_all("els => els.map(e => e.value)")
-    # The car list's Kia models, with the vehicle library's, A to Z after the placeholder
-    assert models[0] == "" and {"EV6 GT", "EV6", "EV9"} <= set(models), models
-    page.select_option("#mb-addcar-othermodel", "EV6 GT")
-    # The driven wheels are worked out from the make and model picked too.
-    expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")
+    # Every make is offered, with the car list's models and variants; nothing is typed.
+    makes = page.locator("#mb-addcar-pick select[aria-label=Make] option").all_inner_texts()
+    assert "Kia" in makes and "Zero" not in makes and "Energica" not in makes
+    assert page.locator("#mb-addcar-pick select[aria-label=Make]").evaluate("el => el.tagName") == "SELECT"
+    assert page.locator("#mb-addcar-make-hidden").input_value() == "Kia"
+    assert page.locator("#mb-addcar-model-hidden").input_value() == "EV6"
+    assert page.locator("#mb-addcar-fuel-hidden").input_value() in FUELS
+    expect(form.locator("#mb-addcar-version")).to_have_count(1)
+    expect(page.locator("#mb-addcar-form .mb-other-missing")).to_contain_text("Make or model not on the list?")
     page.fill("#mb-addcar-carname", "Kit")
     page.select_option("#mb-addcar-color", "Grey")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
@@ -76,36 +66,31 @@ def test_add_a_car_of_another_make(device_page):
     submits = page.mock_state.get("submits", [])
     if submits and submits[-1]:
         body = submits[-1]
-        assert 'name="otherMake"' in body and 'name="make"' in body and "Kia" in body and "EV6 GT" in body and 'name="vehicleType"' in body, body[:2000]
-        assert "__other__" not in body and 'name="version"' not in body
+        assert 'name="otherMake"' in body and 'name="make"' in body and "Kia" in body and "EV6" in body, body[:2000]
+        assert 'name="vehicleType"' in body and 'name="fuel"' in body and 'name="makePick"' not in body, body[:2000]
     assert page.errors == [], diagnostics(page)
-
 
 @all_devices
 def test_bikes_are_not_offered_for_now(device_page):
-    """Laps is for cars only for now (October 2026): Another make has no Car or bike choice, and only car makes."""
+    """Laps is for cars only for now (October 2026): the Add a vehicle form has no Car or bike choice, and no bike makes."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
-    form.locator(".mb-model-pick .chip", has_text="Another make").click()
-    expect(page.locator("#mb-addcar-other .chip", has_text="Bike")).to_be_hidden()
-    expect(page.locator("#mb-addcar-type-label")).to_be_hidden()
-    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-make option')].some(o => o.value === 'Kia')", timeout=5000)
-    makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
+    assert page.locator("#mb-addcar-type-label").count() == 0
+    assert page.locator('[data-addcar-type="bike"], [data-vword="bike"]').count() == 0
+    page.wait_for_function("document.querySelectorAll('#mb-addcar-pick select[aria-label=Make] option').length > 5", timeout=5000)
+    makes = page.locator("#mb-addcar-pick select[aria-label=Make] option").all_inner_texts()
     assert "Zero" not in makes and "Energica" not in makes
     expect(page.locator("#mb-addcar-drive-field")).to_be_visible()
     expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Car name")
     expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add car")
-    # The Tesla path is unchanged: picking a Tesla again hides the extra fields and needs no make.
-    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
-    form.locator(".mb-model-pick .chip", has_text="Model 3").click()
+    # Tesla is picked from the same list: no extra fields, and it is not kept in the garage.
+    pick_add_car(page, "Tesla", "Model 3", 1)
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
-    expect(page.locator("#mb-addcar-version")).to_be_visible()
-    assert page.locator("#mb-addcar-make").evaluate("el => el.required") is False
+    assert page.locator("#mb-addcar-make-hidden").input_value() == "Tesla"
     assert page.errors == [], diagnostics(page)
-
 
 @all_devices
 def test_a_car_kept_in_the_garage_has_no_gallery_switches_and_can_ask_to_be_shown(device_page):
@@ -181,19 +166,17 @@ def test_the_other_makes_panel_approves_and_declines(page):
 
 @all_devices
 def test_a_hyundai_or_porsche_is_kept_in_the_garage(device_page):
-    """Their model chips come from the vehicle list (with their versions), and the car is sent as another make with
-    its make filled in, from the make picked."""
+    """A Hyundai or a Porsche is another make: its models and variants come from the car list, and the car is sent as
+    another make with its make filled in. A Tesla is still not another make."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
-    form = page.locator("#mb-addcar-form")
-    form.locator("[data-make-pick] .chip", has_text="Hyundai").click()
-    form.locator(".mb-model-pick .chip:visible", has_text="Ioniq 5").first.click()
+    pick_add_car(page, "Hyundai", "Ioniq 5", 1)
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_be_visible()
-    expect(page.locator("#mb-addcar-other-fields")).to_be_hidden()
-    expect(page.locator("#mb-addcar-version")).to_be_visible()
-    page.select_option("#mb-addcar-version", "N 84 kWh AWD")
+    expect(page.locator("#mb-addcar-version")).to_have_count(1)
+    variant = page.locator("#mb-addcar-version").input_value()
+    assert variant, "a variant is picked from the car list"
     page.fill("#mb-addcar-carname", "Blue N")
     page.select_option("#mb-addcar-color", "Other")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
@@ -202,15 +185,13 @@ def test_a_hyundai_or_porsche_is_kept_in_the_garage(device_page):
     submits = page.mock_state.get("submits", [])
     if submits and submits[-1]:
         body = submits[-1]
-        assert 'name="otherMake"' in body and 'name="make"' in body and "Hyundai" in body and "Ioniq 5" in body and "N 84 kWh AWD" in body, body[:2000]
+        assert 'name="otherMake"' in body and 'name="make"' in body and "Hyundai" in body and "Ioniq 5" in body, body[:2000]
     # A Tesla is still not another make.
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
-    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
-    form.locator(".mb-model-pick .chip", has_text="Model Y").click()
+    pick_add_car(page, "Tesla", "Model Y", 1)
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
     assert page.errors == [], diagnostics(page)
-
 
 def test_the_admin_can_keep_an_older_other_make_in_the_garage(page):
     posts = []

@@ -13699,6 +13699,7 @@ export default {
       model: postedModel,
       vehicleType: (formData.get('vehicleType') || '').toString() || 'car',
       version: (formData.get('version') || '').toString(),
+      fuel: (formData.get('fuel') || '').toString(),
       year: (formData.get('year') || '').toString(),
       drive: (formData.get('drive') || '').toString()
     }) : null;
@@ -13800,8 +13801,10 @@ export default {
         if (otherMake) newCarRecord.garageOnly = true;
         await saveCarRecord(env, newCarRecord);
         var submitModel = otherMake ? otherModel : cleanCarModel({
+          make: (formData.get('make') || '').toString(),
           model: (formData.get('model') || '').toString(),
           version: (formData.get('version') || '').toString(),
+          fuel: (formData.get('fuel') || '').toString(),
           year: (formData.get('year') || '').toString(),
           drive: (formData.get('drive') || '').toString()
         });

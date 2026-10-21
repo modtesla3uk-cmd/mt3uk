@@ -1063,7 +1063,7 @@
           '<ul class="tp-ticks">' + bullets.map(function (b) { return '<li>' + icon('check') + esc(b) + '</li>'; }).join('') + '</ul>' +
           '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="leaderboards.html">' + icon('trophy') + 'Leaderboards</a></div></div>';
       } else if (!m.cars.length) {
-        h += addCarHtml(true);
+        h += carSkipped() ? skippedCarHtml() : addCarHtml(true);
       } else {
         // Leaderboards first, above the cars. Faded until the member has a
         // session of their own to put on a board.
@@ -1986,6 +1986,8 @@
   // ---------- Add a car (no photo needed) ----------
   // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
+  // The make, model and variant come from the car pick (js/car-pick.js): every make on the list, then its models and
+  // variants, each with its fuel type. The car is saved with them (POST /my-builds/car/new).
   function addCarHtml(first) {
     return '<form class="card tp-intro tp-addcar" id="tp-addcar" novalidate>' +
       '<h2>' + (first ? 'Add your car' : 'Add a car') + '</h2>' +
@@ -1994,43 +1996,49 @@
       '<div class="tp-types" role="group" aria-label="Car or bike" hidden>' +
         '<button type="button" class="chip is-on" data-addcar-type="car" aria-pressed="true">Car</button>' +
         '<button type="button" class="chip" data-addcar-type="bike" aria-pressed="false">Bike</button></div>' +
+      '<div class="tp-addcar-pick" id="tp-addcar-pick"></div>' +
       '<div class="tp-addcar-grid">' +
-        '<div class="tp-field"><label for="tp-addcar-make">Make</label><select class="field" id="tp-addcar-make"><option value="">Loading the makes</option></select></div>' +
-        '<div class="tp-field"><label for="tp-addcar-model">Model</label><select class="field" id="tp-addcar-model" disabled><option value="">Choose the make first</option></select></div>' +
         '<div class="tp-field"><label for="tp-addcar-year">Year (optional)</label><input class="field" id="tp-addcar-year" type="number" inputmode="numeric" min="1950" max="' + (new Date().getFullYear() + 1) + '" placeholder="e.g. 2022"></div>' +
         '<div class="tp-field"><label for="tp-addcar-name">Name it (optional)</label><input class="field" id="tp-addcar-name" maxlength="150" placeholder="e.g. Track car"></div>' +
       '</div>' +
-      '<p class="tp-small tp-addcar-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we\u2019ll add it.</p>' +
+      '<p class="tp-small tp-addcar-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we’ll add it.</p>' +
       '<p class="tp-addcar-msg" id="tp-addcar-msg" role="status"></p>' +
       '<div class="tp-actions"><button type="submit" class="btn btn-accent" id="tp-addcar-save">Add car</button>' +
-        (first ? '' : '<button type="button" class="btn btn-secondary" id="tp-addcar-cancel">Cancel</button>') + '</div></form>';
+        (first ? '<button type="button" class="btn btn-secondary" id="tp-addcar-skip">Skip for now</button>' : '<button type="button" class="btn btn-secondary" id="tp-addcar-cancel">Cancel</button>') + '</div></form>';
+  }
+  // Skipped once, the Sessions page says so and offers the form again. The skip is kept per member in this browser.
+  function carSkipKey() {
+    var who = '';
+    try { who = localStorage.getItem('mt3ukMyBuildsEmail') || ''; } catch (e) { /* storage blocked */ }
+    return 'mt3ukCarSkipped-' + who;
+  }
+  function carSkipped() {
+    try { return localStorage.getItem(carSkipKey()) === '1'; } catch (e) { return false; }
+  }
+  function skippedCarHtml() {
+    return '<div class="card tp-intro" id="tp-addcar-later"><h2>Add your car when you are ready</h2>' +
+      '<p>Sessions belong to a car, so add one when you want to upload a session.</p>' +
+      '<div class="tp-actions"><button type="button" class="btn btn-accent" id="tp-addcar-now">Add your car</button></div></div>';
   }
   function wireAddCar() {
+    var now = document.getElementById('tp-addcar-now');
+    if (now) now.addEventListener('click', function () {
+      try { localStorage.removeItem(carSkipKey()); } catch (e) { /* storage blocked */ }
+      showHome();
+    });
     var form = document.getElementById('tp-addcar');
     if (!form) return;
-    var type = 'car';
-    var make = document.getElementById('tp-addcar-make'), model = document.getElementById('tp-addcar-model');
+    var type = 'car', choice = null;
     var msg = document.getElementById('tp-addcar-msg');
     var wrap = document.getElementById('tp-car-add-wrap');
-    var cancel = document.getElementById('tp-addcar-cancel');
+    var cancel = document.getElementById('tp-addcar-cancel'), skip = document.getElementById('tp-addcar-skip');
     if (cancel) cancel.addEventListener('click', function () { wrap.hidden = true; var open = document.getElementById('tp-car-add-open'); if (open) open.hidden = false; });
-    // Make and model are picked from the vehicle list (the Vehicles panel of track-admin.html), never typed, so
-    // every vehicle is named the same way on the boards. Each drop-down keeps its choice while it is filled again.
-    function opts(list, first, keep) {
-      return '<option value="">' + esc(first) + '</option>' + list.map(function (v) { return '<option value="' + esc(v) + '"' + (v === keep ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('');
-    }
-    function models() {
-      var byMake = (window.MT3UKVehicles && window.MT3UKVehicles[type]) || {}, list = make.value ? byMake[make.value] || [] : [];
-      model.innerHTML = opts(list, make.value ? 'Choose the model' : 'Choose the make first', model.value);
-      model.disabled = !make.value;
-    }
-    function lists() {
-      var V2 = window.MT3UKVehicles, byMake = (V2 && V2[type]) || {};
-      make.innerHTML = opts(Object.keys(byMake).sort(function (a, b) { return a.localeCompare(b); }), V2 && V2.loaded === false ? 'Loading the makes' : 'Choose the make', make.value);
-      models();
-    }
-    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(lists, lists);
-    make.addEventListener('change', models);
+    if (skip) skip.addEventListener('click', function () {
+      try { localStorage.setItem(carSkipKey(), '1'); } catch (e) { /* storage blocked: the form comes back next time */ }
+      showHome();
+    });
+    // The pick starts with the make unchosen and reports its choice each time it changes: { make, model, variant, fuel }.
+    if (window.MT3UKCarPick) window.MT3UKCarPick.mount(document.getElementById('tp-addcar-pick'), { placeholder: true, onChange: function (c) { choice = c; } });
     form.addEventListener('click', function (e) {
       var b = e.target.closest('[data-addcar-type]');
       if (!b) return;
@@ -2040,16 +2048,16 @@
       var bike = type === 'bike';
       document.getElementById('tp-addcar-save').textContent = bike ? 'Add bike' : 'Add car';
       document.getElementById('tp-addcar-name').placeholder = bike ? 'e.g. Track bike' : 'e.g. Track car';
-      lists();
     });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!make.value) { msg.textContent = 'Choose the make.'; make.focus(); return; }
-      if (!model.value) { msg.textContent = 'Choose the model.'; model.focus(); return; }
+      if (!choice || !choice.make) { msg.textContent = 'Choose the make.'; return; }
+      if (!choice.model) { msg.textContent = 'Choose the model.'; return; }
+      if (!choice.variant) { msg.textContent = 'Choose the variant.'; return; }
       var btn = document.getElementById('tp-addcar-save');
       btn.disabled = true;
       msg.textContent = '';
-      api('POST', '/my-builds/car/new', { make: make.value.trim(), model: model.value.trim(), year: document.getElementById('tp-addcar-year').value, vehicleType: type, name: document.getElementById('tp-addcar-name').value.trim() }).then(function (d) {
+      api('POST', '/my-builds/car/new', { make: choice.make, model: choice.model, version: choice.variant, fuel: choice.fuel, year: document.getElementById('tp-addcar-year').value, vehicleType: type, name: document.getElementById('tp-addcar-name').value.trim() }).then(function (d) {
         btn.disabled = false;
         if (!d.success) { msg.textContent = d.message || 'Could not add the car. Please try again.'; return; }
         mine = null;

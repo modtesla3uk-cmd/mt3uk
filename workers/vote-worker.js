@@ -5796,6 +5796,9 @@ function cleanPlans(input) {
 
 // The model is one of the listed ones, or, for a vehicle with a make (sent now, or the make it already has),
 // any text typed in. With no make only the listed ones are kept, as before.
+// The fuel types the car pick gives each variant (js/car-pick.js, data/car-list/).
+var CAR_FUELS = ['Petrol', 'Diesel', 'Electric', 'Hybrid', 'Plug-in hybrid', 'Mild hybrid', 'Mild hybrid diesel', 'Hybrid diesel'];
+
 function cleanCarModel(body, knownMake) {
   var out = {};
   if (!body || typeof body !== 'object') return out;
@@ -5804,8 +5807,10 @@ function cleanCarModel(body, knownMake) {
   if (VEHICLE_TYPES.indexOf(body.vehicleType) !== -1) out.vehicleType = body.vehicleType;
   if (CAR_MODELS.indexOf(body.model) !== -1) out.model = body.model;
   else if (make) { var typed = cleanModText(body.model, 50); if (typed) out.model = typed; }
-  var version = cleanModText(body.version, 40);
+  // A variant from the car pick (js/car-pick.js) can be a long engine name, so a version keeps up to 120 characters.
+  var version = cleanModText(body.version, 120);
   if (version) out.version = version;
+  if (CAR_FUELS.indexOf(body.fuel) !== -1) out.fuel = body.fuel;
   // The driven wheels, set by the owner; an empty one goes back to what the car's make, model and version say.
   if (DRIVES.indexOf(body.drive) !== -1) out.drive = body.drive;
   var year = parseInt(body.year, 10);

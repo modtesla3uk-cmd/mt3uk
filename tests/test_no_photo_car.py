@@ -55,6 +55,15 @@ class NoCarWorker(FakeWorker):
         return super().reply(route)
 
 
+CAR_LIST = ROOT / "data" / "car-list"
+
+
+def list_make(name):
+    index = json.loads((CAR_LIST / "index.json").read_text(encoding="utf-8"))
+    slug = next(m["slug"] for m in index["makes"] if m["name"] == name)
+    return json.loads((CAR_LIST / (slug + ".json")).read_text(encoding="utf-8"))
+
+
 def test_laps_adds_a_car_without_a_photo(page):
     fake = NoCarWorker()
     open_page(page, fake)
@@ -63,33 +72,41 @@ def test_laps_adds_a_car_without_a_photo(page):
     # Cars only for now: the Car or bike choice is hidden.
     expect(page.locator('[data-addcar-type="bike"]')).to_be_hidden()
     expect(form).to_contain_text("No photo needed")
-    # Make and model are needed, and are picked from the vehicle list: drop-downs, nothing typed.
-    page.wait_for_function("document.querySelectorAll('#tp-addcar-make option').length > 5", timeout=5000)
-    assert page.locator("#tp-addcar-make").evaluate("el => el.tagName") == "SELECT"
-    expect(page.locator("#tp-addcar-model")).to_be_disabled()
+    # Make, model and variant come from the car pick: drop-downs, nothing typed, each with its fuel type.
+    pick = form.locator("#tp-addcar-pick")
+    page.wait_for_function("document.querySelectorAll('#tp-addcar-pick select[aria-label=Make] option').length > 100", timeout=5000)
+    expect(pick.locator("select[aria-label=Model]")).to_be_disabled()
+    expect(pick.locator("select[aria-label=Make] option").first).to_have_text("Choose the make")
     expect(form).to_contain_text("Make or model not on the list?")
     page.locator("#tp-addcar-save").click()
     expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the make.")
-    page.select_option("#tp-addcar-make", "Porsche")
-    expect(page.locator("#tp-addcar-model")).to_be_enabled()
-    assert page.locator('#tp-addcar-model option[value="Taycan"]').count() == 1
+    pick.locator("select[aria-label=Make]").select_option(label="Porsche")
+    # The models, after the "Choose the model" placeholder
+    expect(pick.locator("select[aria-label=Model] option")).to_have_count(len(list_make("Porsche")["models"]) + 1)
     page.locator("#tp-addcar-save").click()
     expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the model.")
-    page.select_option("#tp-addcar-model", "Taycan")
+    pick.locator("select[aria-label=Model]").select_option("Taycan")
+    expect(pick.locator("select[aria-label=Variant] option").first).to_have_text("Choose the variant")
+    page.locator("#tp-addcar-save").click()
+    expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the variant.")
+    pick.locator("select[aria-label=Variant]").select_option(index=1)
+    variant = pick.locator("select[aria-label=Variant] option:checked").text_content()
     page.fill("#tp-addcar-year", "2019")
     page.locator("#tp-addcar-save").click()
     # The new car is chosen, ready for its first session.
     expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche Taycan")
-    assert fake.added == [{"make": "Porsche", "model": "Taycan", "year": "2019", "vehicleType": "car", "name": ""}]
     expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
+    body = fake.added[0]
+    assert body["make"] == "Porsche" and body["model"] == "Taycan" and body["year"] == "2019" and body["vehicleType"] == "car"
+    assert body["name"] == "" and body["version"] + " (" + body["fuel"] + ")" == variant
+    assert body["fuel"] in ("Petrol", "Diesel", "Electric", "Hybrid", "Plug-in hybrid", "Mild hybrid", "Mild hybrid diesel", "Hybrid diesel")
     # Another car can be added from Your cars; no bike makes are offered.
     page.locator("#tp-vtoggle").click()
     page.locator("#tp-car-add-open").click()
     expect(page.locator("#tp-addcar-save")).to_have_text("Add car")
-    page.wait_for_function("[...document.querySelectorAll('#tp-addcar-make option')].some(o => o.value === 'Kia')", timeout=5000)
-    assert page.locator('#tp-addcar-make option[value="Zero"]').count() == 0
-    page.select_option("#tp-addcar-make", "Kia")
-    page.select_option("#tp-addcar-model", "EV6 GT")
+    page.locator("#tp-addcar-pick select[aria-label=Make]").select_option(label="Kia")
+    page.locator("#tp-addcar-pick select[aria-label=Model]").select_option("EV6")
+    page.locator("#tp-addcar-pick select[aria-label=Variant]").select_option(index=1)
     page.fill("#tp-addcar-name", "Track car")
     page.locator("#tp-addcar-save").click()
     # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.
@@ -97,6 +114,23 @@ def test_laps_adds_a_car_without_a_photo(page):
     page.locator("#tp-vtoggle").click()
     page.wait_for_function("document.querySelectorAll('#tp-cars .tp-car[data-car]').length === 2", timeout=5000)
     assert fake.added[-1]["vehicleType"] == "car" and fake.added[-1]["name"] == "Track car"
+    assert fake.added[-1]["make"] == "Kia" and fake.added[-1]["model"] == "EV6"
+
+
+def test_skipping_the_first_car_shows_a_card_and_the_form_comes_back(page):
+    fake = NoCarWorker()
+    open_page(page, fake)
+    expect(page.locator("#tp-addcar")).to_be_visible()
+    page.locator("#tp-addcar-skip").click()
+    expect(page.locator("#tp-addcar-later")).to_be_visible()
+    expect(page.locator("#tp-addcar")).to_have_count(0)
+    # Still skipped after a reload in this browser
+    page.reload()
+    page.wait_for_selector("#tp-addcar-later")
+    expect(page.locator("#tp-addcar")).to_have_count(0)
+    page.locator("#tp-addcar-now").click()
+    expect(page.locator("#tp-addcar")).to_be_visible()
+    assert fake.added == []
 
 
 from test_devices import all_devices, device_page, browsers, diagnostics  # noqa: E402,F401

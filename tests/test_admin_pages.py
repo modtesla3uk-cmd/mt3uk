@@ -1347,6 +1347,8 @@ def test_admin_session_playback_sound_is_its_own_section_and_saves_apart_from_th
     rows = page.locator("#ss-controls .snd-row")
     expect(rows).to_have_count(7)
     expect(rows.first.locator("output")).to_have_text("1")
+    # Wait for the saved settings to arrive, or they would overwrite the slider after it is moved
+    expect(page.locator("#ss-note")).to_contain_text("Save puts these")
     page.evaluate("""() => { const r = document.querySelectorAll('#ss-controls .snd-row input')[0];
         r.value = '0.5'; r.dispatchEvent(new Event('input', { bubbles: true })); }""")
     page.locator("#ss-save").click()

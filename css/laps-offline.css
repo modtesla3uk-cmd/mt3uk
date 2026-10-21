@@ -53,7 +53,7 @@
 .nav-offline.is-offline[aria-checked="false"] { color: var(--orange, var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000))); }
 .nav-offline:disabled { cursor: progress; opacity: 0.45; }
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
-@media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }
+@media (max-width: 780px) { .nav-offline { width: 28px; min-width: 0; padding: 0; } .nav-offline svg { width: 25px; height: 21px; } }
 .lo-bar.is-info { background: var(--ink, #16233d); }
 /* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
 [data-offline-toggle][hidden] { display: none !important; }

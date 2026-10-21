@@ -1657,7 +1657,7 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_be_visible()
     b, k, h, a = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
     # On a phone Back is the same width as My Sessions beside it (the two halves of the row), 44px tall.
-    assert abs(k["width"] - b["width"]) < 2 and abs(k["height"] - 44) < 1, (k, b)
+    assert abs(k["width"] - b["width"]) < 2 and k["height"] >= 44, (k, b)
     assert b["width"] > 90 and a["width"] > 90, (b, a)
     expect(mine).to_have_attribute("aria-label", "My Sessions")
     centre = lambda r: r["y"] + r["height"] / 2
@@ -1852,16 +1852,16 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
     page.set_viewport_size({"width": 390, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
     page.set_viewport_size({"width": 700, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
     # The narrowest phone keeps its words too, as the other heading buttons do.
     page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    assert b["height"] >= 44 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
 
 

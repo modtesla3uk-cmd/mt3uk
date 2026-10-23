@@ -54,6 +54,14 @@
     return swRegistration().then(function (reg) { return reg.pushManager.getSubscription(); });
   }
 
+  // Waits at most ms for a promise. A browser that blocks service workers never answers, so the page must not wait silently.
+  function within(promise, ms) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error('Notifications could not be checked in this browser.')); }, ms);
+      promise.then(function (v) { clearTimeout(timer); resolve(v); }, function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+
   // Asks for permission if needed (call from a tap), subscribes this device
   // and tells the worker.
   function subscribe(opts) {
@@ -127,7 +135,8 @@
       intro.textContent = 'Notifications are blocked for MT3UK on this device. Allow them in your phone or browser settings, then reload this page.';
       return;
     }
-    currentSubscription()
+    // The toggle shows as soon as the state is known, or after 3 seconds if it is not (then as off, so the member can still act).
+    within(currentSubscription(), 3000)
       .then(function (sub) { showState(!!sub); })
       .catch(function () { showState(false); });
 

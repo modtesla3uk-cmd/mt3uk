@@ -7960,7 +7960,8 @@ def test_the_map_has_a_g_meter_that_follows_playback(page):
 
 
 def test_the_g_meter_is_labelled_on_its_rings_with_no_button_and_no_changing_figures(page):
-    """The G meter has no G button and no changing A and B figures: its rings are labelled 1.5 g at the top, bottom, left and right."""
+    """The G meter has no G button and no changing A and B figures. Its four sides are labelled with the most g pulled in
+    each direction (two decimals), not a fixed figure."""
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     save_thruxton_with_a_member_board(page, FakeWorker())
@@ -7969,6 +7970,35 @@ def test_the_g_meter_is_labelled_on_its_rings_with_no_button_and_no_changing_fig
     expect(page.locator("#tp-gm-toggle")).to_be_hidden()
     expect(page.locator("#tp-gm-ra")).to_be_hidden()
     expect(page.locator("#tp-gmeter .tp-gm-scale")).to_have_count(4)
+    for side in ("up", "down", "left", "right"):
+        expect(page.locator("#tp-gm-" + side)).to_have_text(re.compile(r"^\d\.\d\d$"))
+    assert not errors, errors
+
+
+def test_the_g_meter_sides_show_the_most_pulled_so_far_and_grow_as_the_lap_plays(page):
+    """The four labels on the G meter are the most the car has pulled so far in each direction (up accelerating, down
+    braking, left and right cornering), over both laps shown. They only go up as the lap plays on, and start again when
+    the slider is moved back."""
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    sides = ("up", "down", "left", "right")
+    expect(page.locator("#tp-gm-up")).to_have_text(re.compile(r"^\d\.\d\d$"))
+    # Every session starts at 0.00 on each side, whatever the first readings show.
+    expect(page.locator("#tp-gm-down")).to_have_text("0.00")
+    expect(page.locator("#tp-gm-left")).to_have_text("0.00")
+    start = {k: float(page.locator("#tp-gm-" + k).text_content()) for k in sides}
+    assert all(v == 0 for v in start.values()), start
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.wait_for_timeout(200)
+    later = {k: float(page.locator("#tp-gm-" + k).text_content()) for k in sides}
+    assert all(later[k] >= start[k] for k in sides), (start, later)
+    assert any(later[k] > start[k] for k in sides), (start, later)
+    page.locator("#tp-scrub").evaluate("el => { el.value = 0; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.wait_for_timeout(200)
+    back = {k: float(page.locator("#tp-gm-" + k).text_content()) for k in sides}
+    assert all(back[k] <= later[k] for k in sides), (later, back)
     assert not errors, errors
 
 

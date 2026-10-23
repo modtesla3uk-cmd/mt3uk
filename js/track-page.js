@@ -1005,8 +1005,9 @@
       var proNote = '';
       if (d.proFeatures) {
         var proUntil = d.proTrialUntil ? new Date(d.proTrialUntil + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-        proNote = '<div class="tp-quota-note" style="margin-bottom:10px"><b>Laps Pro is free for everyone'
-          + (proUntil ? ' until ' + proUntil : '') + '.</b> Every analysis tool is open to you.</div>';
+        // The line folds to its heading (closed to start), so the free-until date stays visible without the detail.
+        proNote = '<details class="tp-quota-note tp-free-fold" style="margin-bottom:10px"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px"><b>Laps Pro is free for everyone'
+          + (proUntil ? ' until ' + proUntil : '') + '.</b><svg class="icon tp-free-chev" viewBox="0 0 24 24" aria-hidden="true" style="margin-left:auto;flex:none;width:20px;height:20px"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><p style="margin:4px 0 0">Every analysis tool is open to you.</p></details>';
       }
       box.innerHTML = offer + '<p class="tp-quota-note" role="status" id="tp-trial-note" hidden style="margin:0 0 8px"></p><div class="tp-quota-head"><b>Your free days</b><button type="button" class="tp-quota-toggle" id="tp-quota-toggle" aria-expanded="' + open + '">' + (open ? 'Hide' : 'Show') + '</button></div><div id="tp-quota-body"' + (open ? '' : ' hidden') + '>' + proNote + again + text + '</div>';
       var trialNote = function (msg) { var n = document.getElementById('tp-trial-note'); if (n) { n.textContent = msg; n.hidden = false; } };

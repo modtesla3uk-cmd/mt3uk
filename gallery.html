@@ -1215,7 +1215,7 @@
       var head = '<div class="ls-head">' + lapsIcon('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>') + '<b>' + carEsc(carTitle) + ' on Laps</b></div>';
       if (bests.length) {
         trackBox.innerHTML = head + '<ul class="ls-rows">' + bests.map(function (t) {
-          var res = t.bestTime ? (function (s) { var cs = Math.round(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100; return m ? m + ':' + (r < 10 ? '0' : '') + r.toFixed(2) : r.toFixed(2) + ' s'; })(t.bestTime) : t.quarter ? t.quarter.toFixed(2) + ' s' : '';
+          var res = t.bestTime ? (function (s) { var cs = Math.floor(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100; return m ? m + ':' + (r < 10 ? '0' : '') + r.toFixed(2) : r.toFixed(2) + ' s'; })(t.bestTime) : t.quarter ? t.quarter.toFixed(2) + ' s' : '';
           var what = t.type === 'drag' ? 'Quarter mile' : t.type === 'sprint' ? 'Best run' : 'Best lap';
           var when = t.date ? new Date(t.date + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
           return '<li><a href="track.html?s=' + encodeURIComponent(t.id) + '" data-laps><span class="ls-where"><b>' + carEsc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><span>' + carEsc(what + (when && when !== 'Invalid Date' ? ' \u00b7 ' + when : '')) + '</span></span><span class="ls-time">' + carEsc(res) + '</span>' + chev + '</a></li>';
@@ -1589,7 +1589,7 @@
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=20271032" defer></script>
-<script src="js/laps-strip.js?v=14" defer></script>
+<script src="js/laps-strip.js?v=20271300" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=3" defer></script>
 <script src="js/search.js" defer></script>

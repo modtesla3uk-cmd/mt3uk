@@ -9213,7 +9213,7 @@ function trackLinesMoved(a, b) {
 function trackLineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].map(function (v) { return Math.round(v * 1e7) / 1e7; }).join(', ') : 'not set'; }
 function trackTimeText(t) {
   if (!t) return 'no time';
-  var cs = Math.round(t * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
+  var cs = Math.floor(t * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
   return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
 }
 async function emailAdminAboutLines(env, subject, text) {

@@ -14,8 +14,9 @@
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function lapTime(s) {
     if (!isFinite(s)) return '';
-    var m = Math.floor(s / 60), r = s - m * 60;
-    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
+    // Hundredths cut off, not rounded, as RaceBox shows them.
+    var cs = Math.floor(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = ((cs - m * 6000) / 100).toFixed(2);
+    return m + ':' + (r < 10 ? '0' : '') + r;
   }
   function niceDate(d) {
     var p = String(d || '').split('-');

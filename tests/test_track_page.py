@@ -572,7 +572,7 @@ def test_add_a_session_from_the_racebox_file(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
     expect(notice).to_contain_text("Thruxton")
-    expect(notice).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
+    expect(notice).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78"))
     # Air temperature filled in from Open-Meteo, and said so.
     expect(page.locator("#tp-temp")).to_have_value("19")
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo weather for Thruxton at 14:00: 19°C, no rain")
@@ -581,7 +581,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
     tyre_model(page, "tp-tyre", "Cup 2")
     page.locator(".tp-head [data-units]").click()
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78"))
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 12 km/h")
     expect(page.locator("#tp-tyre-model")).to_have_value("Cup 2")
     expect(page.locator("#tp-temp")).to_have_value("19")
@@ -602,7 +602,7 @@ def test_add_a_session_from_the_racebox_file(page):
     # The session page
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
     expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("19°C (Open-Meteo)")
-    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.79"))
+    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78"))
     # Which lap, without an "of" count that leaves out the out-lap.
     expect(page.locator(".tp-tile.is-hero .s")).to_have_text(re.compile(r"^Lap \d+$"))
     # Comparing laps: zoomed in, the map follows the car as the speed chart
@@ -680,7 +680,7 @@ def test_session_settings_and_leaderboard(page):
     row = page.locator(".lb-row")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Arctic Three")
-    expect(row).to_contain_text(re.compile(r"1:39\.79"))
+    expect(row).to_contain_text(re.compile(r"1:39\.78"))
     page.locator("#lb-models [data-m='Model Y']").click()
     expect(page.locator(".tp-empty")).to_contain_text("Nobody on this board yet for the Model Y")
     # Make it private from the session page.
@@ -1572,7 +1572,7 @@ def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(pag
     expect(group).to_have_attribute("label", "Your other sessions that day")
     opts = group.locator("option")
     expect(opts).to_have_count(2)
-    expect(opts.nth(0)).to_have_text("Session 1, 10:51, 1:39.63")
+    expect(opts.nth(0)).to_have_text("Session 1, 10:51, 1:39.62")
     expect(opts.nth(1)).to_have_text("Session 3, 15:46, 1:26.06")
     page.locator("#tp-lap-pick").select_option("x:lp2")
     expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
@@ -2043,7 +2043,7 @@ def test_phone_layout_has_no_sideways_scroll(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.get_by_role("button", name="Save session").click()
-    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.79"))
+    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78"))
     wide = page.evaluate("document.documentElement.scrollWidth")
     assert wide <= 390, wide
     over = page.evaluate("""() => [...document.querySelectorAll('#tp-app *')].filter(e => {
@@ -2516,7 +2516,7 @@ def test_an_older_session_from_several_files_keeps_its_runs(page):
     expect(page.locator(".tp-file-list li b")).to_have_text(["session-1.vbo", "session-2.vbo"])
     expect(page.locator(".tp-file-when").first).to_contain_text("recorded in the file")
     expect(page.locator(".tp-file > div > span")).to_contain_text("2 sessions")
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.79"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78"))
     # An older session saved from several files keeps its runs: laps never span the gap between files.
     rec = seed_merged(fake)
     assert rec["runs"] == 2 and sorted({l["run"] for l in rec["laps"]}) == [1, 2]
@@ -2700,7 +2700,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Other")
     # Back to a track day: the laps come back from the saved readings.
     page.locator("#settings [data-retype] button[data-v='track']").click()
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78"))
     page.get_by_role("button", name="Save changes").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track" and len(fake.sessions["new1"]["laps"]) == 2
@@ -4795,7 +4795,7 @@ def test_what_each_mod_did_compares_before_and_after(page):
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Coilovers: KW V3")
     expect(row).to_contain_text("1:42.47")
-    expect(row).to_contain_text(re.compile(r"1:39\.79"))
+    expect(row).to_contain_text(re.compile(r"1:39\.78"))
     expect(row.locator("td").nth(3)).to_have_class(re.compile("is-fast"))
     expect(row.locator("td").nth(3)).to_contain_text(re.compile(r"-2\.69 s"))
     # The tyres are written two ways but are the same tyre, so there's no tyre warning.
@@ -5185,7 +5185,7 @@ def test_track_mode_sits_in_laps_pro_and_laps_are_folded(page):
     # The lap times are folded away, with a summary, and open on a tap.
     laps = page.locator("#tp-laps")
     expect(laps).not_to_have_attribute("open", "")
-    expect(laps.locator("summary")).to_contain_text(re.compile(r"Laps\s*\d+ laps, best 1:39\.79"))
+    expect(laps.locator("summary")).to_contain_text(re.compile(r"Laps\s*\d+ laps, best 1:39\.78"))
     expect(laps.locator("table")).to_be_hidden()
     laps.locator("summary").click()
     expect(laps.locator("table")).to_be_visible()
@@ -7877,7 +7877,7 @@ def test_the_laps_pro_card_in_a_session_shows_this_sessions_track_mode_figures(p
     expect(card.locator(".tp-band-fig").nth(3)).to_contain_text("Most grip used")
     expect(card).not_to_contain_text("Where you have driven")
     expect(card).to_contain_text("No Track Mode data in this session")
-    expect(card).to_contain_text("Your best lap in this session was 1:39.79")
+    expect(card).to_contain_text("Your best lap in this session was 1:39.78")
     expect(card).to_contain_text("How to read these figures")
 
 

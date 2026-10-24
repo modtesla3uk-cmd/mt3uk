@@ -1523,8 +1523,8 @@
 
   function fmtLap(s) {
     if (!isFinite(s)) return '';
-    // Hundredths of a second, rounded once so 59.996 reads 1:00.00 and never 0:60.00.
-    var cs = Math.round(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
+    // Hundredths of a second, cut off rather than rounded, as RaceBox shows them: 106.497 reads 1:46.49.
+    var cs = Math.floor(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
     return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
   }
 

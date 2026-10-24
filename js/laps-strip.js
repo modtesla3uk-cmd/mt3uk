@@ -112,8 +112,9 @@
   function lapTime(s) {
     s = Number(s);
     if (!(s > 0)) return '';
-    var m = Math.floor(s / 60), r = s - m * 60;
-    return m ? m + ':' + (r < 10 ? '0' : '') + r.toFixed(2) : r.toFixed(2) + ' s';
+    // Hundredths cut off, not rounded, as RaceBox shows them.
+    var cs = Math.floor(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = ((cs - m * 6000) / 100).toFixed(2);
+    return m ? m + ':' + (r < 10 ? '0' : '') + r : r + ' s';
   }
   function get(url, headers) { return fetch(url, { cache: 'no-store', headers: headers || {} }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
   var ICON = {

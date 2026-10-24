@@ -280,7 +280,7 @@ ok(tn.some(n => /1 wet or damp session is shown but left out/.test(n.text)), 'we
 // Library: the admin's changes on top of the file.
 const merged = T.mergeLibrary(lib, { venues: [{ id: 'thruxton', removed: true }, { id: 'new-one', name: 'New', type: 'circuit', lat: 1, lng: 1, radius: 1000, layouts: [] }] });
 ok(!merged.venues.some(v => v.id === 'thruxton') && merged.venues.some(v => v.id === 'new-one') && merged.venues.length === lib.venues.length, 'library merge adds, replaces and removes');
-ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026', 'formatting');
+ok(T.fmtLap(99.786) === '1:39.78' && T.fmtLap(106.497) === '1:46.49' && T.fmtLap(59.996) === '0:59.99' && T.niceDate('2026-05-28') === '28 May 2026', 'formatting');
 
 // Tesla Track Mode style CSV: elapsed time in milliseconds, a Lap column,
 // acceleration in m/s², and a track with no start line in the list.

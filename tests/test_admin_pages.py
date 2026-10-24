@@ -1670,7 +1670,7 @@ def test_admin_accepting_a_change_updates_the_course_and_re_times_every_session_
     row.get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("Not accepted. It is still waiting")
     assert log["calls"] == [] and log["course"] is None
-    assert "1:42.00 to 1:39.79" in seen[0] and "They saw 0:50.00" in seen[0], seen[0]
+    assert "1:42.00 to 1:39.78" in seen[0] and "They saw 0:50.00" in seen[0], seen[0]
     assert "official start line for Thruxton" in seen[0] and "re-times every other session at Thruxton" in seen[0] and "leaderboards" in seen[0], seen[0]
     page.once("dialog", lambda d: d.accept())
     row.get_by_role("button", name="Accept").click()
@@ -1694,7 +1694,7 @@ def test_admin_accepting_a_change_on_a_session_with_no_listed_course_changes_onl
     seen = []
     page.once("dialog", lambda d: (seen.append(d.message), d.accept()))
     row.get_by_role("button", name="Accept").click()
-    expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.79")
+    expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.78")
     assert "not on a listed course, so only it changes" in seen[0], seen[0]
     assert log["course"] is None and log["rebuilds"] == 0
     assert [r["id"] for r in log["retimes"]] == ["s9"]
@@ -1837,7 +1837,7 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     row.get_by_role("button", name="Check sessions here").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("2 sessions at Thruxton")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-picks")).to_contain_text("2026-05-28 (track): 1:42.00 to 1:39.79")
+    expect(page.locator("#tk-retime-picks")).to_contain_text("2026-05-28 (track): 1:42.00 to 1:39.78")
     assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
     # Re-time here only shows what each session would become: nothing is saved until Re-time selected, after a yes.
     row.get_by_role("button", name="Re-time sessions here").click()

@@ -717,10 +717,10 @@ def test_on_laps_the_mods_list_comes_first_and_the_sessions_and_photos_fold_away
     page.goto(BASE_URL + "/my-builds.html?car=car-1")
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
     assert page.evaluate("document.getElementById('mb-mods-builder').previousElementSibling.classList.contains('mb-car-detail-header')")
-    folds = page.locator("details.mb-laps-fold")
+    folds = page.locator("details.mb-car-fold")
     expect(folds).to_have_count(2)
-    assert page.locator("details.mb-laps-fold[open]").count() == 0
-    assert page.evaluate("!!document.querySelector('details.mb-laps-fold #mb-photo-strip') && !!document.querySelector('details.mb-laps-fold #mb-car-laps')")
+    assert page.locator("details.mb-car-fold[open]").count() == 0
+    assert page.evaluate("!!document.querySelector('details.mb-car-fold #mb-photo-strip') && !!document.querySelector('details.mb-car-fold #mb-car-laps')")
     folds.nth(0).locator("summary").click()
     expect(folds.nth(0)).to_have_attribute("open", "")
     folds.nth(0).locator("summary").click()
@@ -728,10 +728,29 @@ def test_on_laps_the_mods_list_comes_first_and_the_sessions_and_photos_fold_away
 
 
 @all_devices
-def test_on_mt3uk_com_the_garage_keeps_its_order_with_no_folds(device_page):
+def test_on_mt3uk_com_the_garage_keeps_its_order_and_only_the_photos_fold(device_page):
     page = device_page
     signed_in(page)
     page.goto(BASE_URL + "/my-builds.html?car=car-1")
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
-    expect(page.locator("details.mb-laps-fold")).to_have_count(0)
+    folds = page.locator("details.mb-car-fold")
+    expect(folds).to_have_count(1)
+    expect(folds.locator("summary span")).to_have_text("Photos")
     assert page.evaluate("document.getElementById('mb-mods-builder').previousElementSibling.id") == "mb-vote-hint"
+
+
+@all_devices
+def test_several_photos_can_be_added_to_a_car_at_once(device_page):
+    """The add-photo form takes up to 10 photos: each one goes up in turn, and the car shows them all."""
+    page = device_page
+    open_car(page)
+    page.locator("#mb-addphoto-toggle-btn").click()
+    expect(page.locator("#mb-upload-photo")).to_have_attribute("multiple", "")
+    jpg = {"name": "photo.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}
+    page.set_input_files("#mb-upload-photo", files=[dict(jpg, name="one.jpg"), dict(jpg, name="two.jpg"), dict(jpg, name="three.jpg")])
+    before = len(page.api_log)
+    page.click("#mb-upload-submit-btn")
+    expect(page.locator("#mb-upload-status")).to_contain_text("3 photos uploaded")
+    uploads = [line for line in page.api_log[before:] if line.startswith("POST /my-builds/upload")]
+    assert len(uploads) == 3, page.api_log[before:]
+    assert page.errors == [], diagnostics(page)

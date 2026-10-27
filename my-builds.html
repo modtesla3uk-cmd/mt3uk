@@ -963,15 +963,15 @@
   .mbm-fold h3 { margin: 0; }
   .mbm-fold .mv-chev { width: 18px; height: 18px; color: var(--steel); transition: transform .2s; }
   .mbm-fold[aria-expanded="true"] .mv-chev { transform: rotate(180deg); }
-  /* On Laps: the Laps sessions and the photos fold away under the mods list (foldForLaps). */
-  .mb-laps-fold { border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
-  .mb-laps-fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 16px; font-weight: 700; cursor: pointer; list-style: none; }
-  .mb-laps-fold > summary::-webkit-details-marker { display: none; }
-  .mb-laps-fold > summary .mv-chev { width: 18px; height: 18px; flex: none; color: var(--steel); transition: transform .2s; }
-  .mb-laps-fold[open] > summary { border-bottom: 1px solid var(--hairline); }
-  .mb-laps-fold[open] > summary .mv-chev { transform: rotate(180deg); }
-  .mb-laps-fold:has(> #mb-car-laps[hidden]) { display: none; }
-  .mb-laps-fold > .mb-car-laps { border: 0; border-radius: 0; }
+  /* The car's photos (and on Laps the Laps sessions) fold away under the mods list (foldForLaps). */
+  .mb-car-fold { border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .mb-car-fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 16px; font-weight: 700; cursor: pointer; list-style: none; }
+  .mb-car-fold > summary::-webkit-details-marker { display: none; }
+  .mb-car-fold > summary .mv-chev { width: 18px; height: 18px; flex: none; color: var(--steel); transition: transform .2s; }
+  .mb-car-fold[open] > summary { border-bottom: 1px solid var(--hairline); }
+  .mb-car-fold[open] > summary .mv-chev { transform: rotate(180deg); }
+  .mb-car-fold:has(> #mb-car-laps[hidden]) { display: none; }
+  .mb-car-fold > .mb-car-laps { border: 0; border-radius: 0; }
   .mbm-list-head .mbm-meter { flex: 1; min-width: 160px; max-width: 280px; }
   .mbm .mv-body .mbm-area { border: 0; background: none; }
   .mbm .mv-body .mbm-area-body { padding: 8px 0 0; border-top: 0; }
@@ -1619,9 +1619,9 @@ document.addEventListener('DOMContentLoaded', function () {
               <label class="mb-toggle"><input type="checkbox" id="mb-upload-votable" checked> Voting</label>
             </div>
             <div class="mb-field">
-              <label class="mono" for="mb-upload-photo">Photo</label>
-              <input type="file" id="mb-upload-photo" name="photo" accept="image/*" required>
-              <span class="mb-field-hint">JPG, PNG or WEBP only (not HEIC)</span>
+              <label class="mono" for="mb-upload-photo">Photos</label>
+              <input type="file" id="mb-upload-photo" name="photo" accept="image/*" multiple required>
+              <span class="mb-field-hint">JPG, PNG or WEBP only (not HEIC). You can choose up to 10 at once.</span>
             </div>
             <button type="submit" class="mb-btn" id="mb-upload-submit-btn">Upload photo</button>
             <p class="mb-status" id="mb-upload-status"></p>
@@ -2153,6 +2153,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!(car.photos || []).length) {
         photoStrip.innerHTML = '<div class="mb-nophoto"><p>No photos yet. Use <strong>+ Add photo to this ' + vehicleWord(car) + '</strong> above to add one. Its mods list and Track sessions work without one.</p>' +
           '<button type="button" class="btn btn-danger btn-sm" id="mb-car-remove">Remove this car</button></div>';
+        // Shown open: with no photos the note holds the car's Remove button, so it is not left in a shut fold.
+        var fold = photoStrip.closest('details.mb-car-fold');
+        if (fold) fold.open = true;
         return;
       }
       var ordered = orderPhotosByActivity(car);
@@ -3016,13 +3019,17 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    // Each photo goes up on its own, in turn (the worker takes one at a time), so several can be sent in one go.
     uploadForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      var fileInput = document.getElementById('mb-upload-photo');
-      var file = fileInput.files[0];
-      if (!file) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
-      if (file.size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Photo must be under 10MB.', 'err'); return; }
+      var chosen = document.getElementById('mb-upload-photo').files;
+      if (!chosen.length) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
+      if (chosen.length > 10) { setStatus(uploadStatus, 'Please choose up to 10 photos at once.', 'err'); return; }
+      var files = Array.prototype.slice.call(chosen);
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Each photo must be under 10MB.', 'err'); return; }
+      }
       var galleryChecked = document.getElementById('mb-upload-gallery').checked;
       var reelChecked = document.getElementById('mb-upload-reel').checked;
       var votableChecked = document.getElementById('mb-upload-votable').checked;
@@ -3032,45 +3039,53 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      var formData = new FormData();
-      formData.append('photo', file);
-      formData.append('gallery', document.getElementById('mb-upload-gallery').checked ? '1' : '0');
-      formData.append('reel', document.getElementById('mb-upload-reel').checked ? '1' : '0');
-      formData.append('votable', document.getElementById('mb-upload-votable').checked ? '1' : '0');
-      if (currentCarId) formData.append('carId', currentCarId);
-
+      var sent = 0, notes = [];
       uploadSubmitBtn.disabled = true;
-      uploadSubmitBtn.textContent = 'Uploading…';
       setStatus(uploadStatus, '', '');
 
-      fetch(API + '/my-builds/upload', {
-        method: 'POST',
-        headers: { 'X-Session-Token': getSession() },
-        body: formData
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          uploadSubmitBtn.disabled = false;
-          uploadSubmitBtn.textContent = 'Upload photo';
-          if (data.success) {
-            setStatus(uploadStatus, 'Uploaded.', 'ok');
-            if (data.voteNote) mbToast(data.voteNote);
-            uploadForm.reset();
-            document.getElementById('mb-upload-gallery').checked = true;
-            document.getElementById('mb-upload-reel').checked = true;
-            document.getElementById('mb-upload-votable').checked = true;
-            addPhotoCard.style.display = 'none';
-            addPhotoToggleBtn.textContent = '+ Add photo to this ' + vehicleWord(findCar(currentCarId));
-            loadCars();
-          } else {
-            setStatus(uploadStatus, data.message || 'Could not upload, please try again.', 'err');
-          }
+      function fail(msg) {
+        uploadSubmitBtn.disabled = false;
+        uploadSubmitBtn.textContent = 'Upload photo';
+        setStatus(uploadStatus, sent ? sent + ' of ' + files.length + ' uploaded. ' + msg : msg, 'err');
+        if (sent) loadCars();
+      }
+      function finish() {
+        uploadSubmitBtn.disabled = false;
+        uploadSubmitBtn.textContent = 'Upload photo';
+        setStatus(uploadStatus, files.length > 1 ? files.length + ' photos uploaded.' : 'Uploaded.', 'ok');
+        if (notes.length) mbToast(notes[0]);
+        uploadForm.reset();
+        document.getElementById('mb-upload-gallery').checked = true;
+        document.getElementById('mb-upload-reel').checked = true;
+        document.getElementById('mb-upload-votable').checked = true;
+        addPhotoCard.style.display = 'none';
+        addPhotoToggleBtn.textContent = '+ Add photo to this ' + vehicleWord(findCar(currentCarId));
+        loadCars();
+      }
+      function sendNext() {
+        if (sent === files.length) return finish();
+        uploadSubmitBtn.textContent = files.length > 1 ? 'Uploading ' + (sent + 1) + ' of ' + files.length + '\u2026' : 'Uploading\u2026';
+        var formData = new FormData();
+        formData.append('photo', files[sent]);
+        formData.append('gallery', galleryChecked ? '1' : '0');
+        formData.append('reel', reelChecked ? '1' : '0');
+        formData.append('votable', votableChecked ? '1' : '0');
+        if (currentCarId) formData.append('carId', currentCarId);
+        fetch(API + '/my-builds/upload', {
+          method: 'POST',
+          headers: { 'X-Session-Token': getSession() },
+          body: formData
         })
-        .catch(function () {
-          uploadSubmitBtn.disabled = false;
-          uploadSubmitBtn.textContent = 'Upload photo';
-          setStatus(uploadStatus, 'Could not upload, please try again.', 'err');
-        });
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (!data.success) { fail(data.message || 'Could not upload, please try again.'); return; }
+            if (data.voteNote) notes.push(data.voteNote);
+            sent++;
+            sendNext();
+          })
+          .catch(function () { fail('Could not upload, please try again.'); });
+      }
+      sendNext();
     });
 
     // One Edit for the car's details: name, colour, model, version and year are greyed out until
@@ -3277,18 +3292,20 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // On Laps (js/laps-shared.js marks the page) the car's mods list comes straight under the car's details, and the
-    // Laps sessions and the photos fold away beneath it, shut. On mt3uk.com the page is as it was.
+    // The car's photos fold away under its mods list, shut, on both addresses. On Laps (js/laps-shared.js marks the page)
+    // the mods list also comes straight under the car's details, and the Laps sessions fold away beneath it. The folds
+    // hold the sections as they are; the photos keep their own buttons and the add-photo form.
     function foldForLaps() {
-      if (!document.documentElement.classList.contains('laps-shared')) return;
+      var onLaps = document.documentElement.classList.contains('laps-shared');
       var head = document.querySelector('#mb-car-detail-view .mb-car-detail-header');
       var mods = document.getElementById('mb-mods-builder');
-      if (head && mods) head.parentNode.insertBefore(mods, head.nextSibling);
-      [['mb-car-laps', 'Track sessions on Laps'], ['mb-photo-strip', 'Photos']].forEach(function (pair) {
+      if (onLaps && head && mods) head.parentNode.insertBefore(mods, head.nextSibling);
+      var folds = onLaps ? [['mb-car-laps', 'Track sessions on Laps'], ['mb-photo-strip', 'Photos']] : [['mb-photo-strip', 'Photos']];
+      folds.forEach(function (pair) {
         var el = document.getElementById(pair[0]);
         if (!el) return;
         var fold = document.createElement('details');
-        fold.className = 'mb-laps-fold';
+        fold.className = 'mb-car-fold';
         fold.innerHTML = '<summary><span></span><svg class="mv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>';
         fold.querySelector('span').textContent = pair[1];
         el.parentNode.insertBefore(fold, el);

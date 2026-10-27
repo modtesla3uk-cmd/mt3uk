@@ -1,12 +1,48 @@
 [
   {
+    "file": "photo-9.jpg",
+    "caption": "PHOTO 9",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-9.jpg"
+  },
+  {
+    "file": "photo-11.jpg",
+    "caption": "PHOTO 11",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-9.jpg"
+  },
+  {
+    "file": "photo-8.jpg",
+    "caption": "PHOTO 8",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-9.jpg"
+  },
+  {
+    "file": "photo-10.jpg",
+    "caption": "PHOTO 10",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-9.jpg"
+  },
+  {
     "file": "photo-7.jpg",
     "caption": "PHOTO 7",
     "name": "RichardHC",
     "votable": false,
     "color": "Green",
     "added": "2026-10-27",
-    "group": "photo-7.jpg"
+    "group": "photo-9.jpg"
   },
   {
     "file": "photo-6.jpg",
@@ -14,7 +50,7 @@
     "name": "RichardHC",
     "color": "Green",
     "added": "2026-10-27",
-    "group": "photo-7.jpg"
+    "group": "photo-9.jpg"
   },
   {
     "file": "photo-5.jpg",

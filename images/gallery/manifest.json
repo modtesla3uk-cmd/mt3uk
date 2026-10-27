@@ -1,5 +1,22 @@
 [
   {
+    "file": "photo-6.jpg",
+    "caption": "PHOTO 6",
+    "name": "RichardHC",
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-6.jpg"
+  },
+  {
+    "file": "photo-7.jpg",
+    "caption": "PHOTO 7",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-27",
+    "group": "photo-6.jpg"
+  },
+  {
     "file": "photo-5.jpg",
     "caption": "PHOTO 5",
     "name": "LHC3",

@@ -52,6 +52,11 @@ def open_car(page):
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
 
 
+def open_laps_sessions(page):
+    """The Laps sessions fold on the open car is shut by default: open it so its strip can be checked."""
+    page.locator("details.mb-car-fold", has=page.locator("#mb-car-laps")).locator("summary").click()
+
+
 def last_put(page):
     puts = page.mock_state.get("car_puts", [])
     return puts[-1] if puts else {}
@@ -665,6 +670,7 @@ def test_the_open_car_shows_its_laps_strip(device_page):
         {"id": "s4", "carId": "car-9", "type": "track", "venue": "Donington", "venueId": "donington", "layoutId": "gp", "date": "2026-07-01", "bestTime": 100, "privacy": "board"},
     ]
     open_car(page)
+    open_laps_sessions(page)
     strip = page.locator("#mb-car-laps")
     expect(strip).to_be_visible()
     expect(strip.locator(".ls-head b")).to_have_text("Test Model 3 on Laps")
@@ -688,6 +694,7 @@ def test_a_car_with_no_sessions_is_invited_to_laps(device_page):
     page = device_page
     page.mock_state["track_sessions"] = []
     open_car(page)
+    open_laps_sessions(page)
     strip = page.locator("#mb-car-laps")
     expect(strip).to_be_visible()
     expect(strip.locator(".ls-empty")).to_contain_text("No sessions for this car yet")
@@ -728,14 +735,17 @@ def test_on_laps_the_mods_list_comes_first_and_the_sessions_and_photos_fold_away
 
 
 @all_devices
-def test_on_mt3uk_com_the_garage_keeps_its_order_and_only_the_photos_fold(device_page):
+def test_on_mt3uk_com_the_laps_sessions_and_photos_fold_away_and_the_mods_list_keeps_its_place(device_page):
     page = device_page
     signed_in(page)
     page.goto(BASE_URL + "/my-builds.html?car=car-1")
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=10000)
+    # Both sections fold, the Laps sessions first; the mods list keeps its place on mt3uk.com.
     folds = page.locator("details.mb-car-fold")
-    expect(folds).to_have_count(1)
-    expect(folds.locator("summary span")).to_have_text("Photos")
+    expect(folds).to_have_count(2)
+    expect(folds.nth(0).locator("summary span")).to_have_text("Track sessions on Laps")
+    expect(folds.nth(1).locator("summary span")).to_have_text("Photos")
+    assert page.locator("details.mb-car-fold[open]").count() == 0
     assert page.evaluate("document.getElementById('mb-mods-builder').previousElementSibling.id") == "mb-vote-hint"
 
 

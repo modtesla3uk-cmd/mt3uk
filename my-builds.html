@@ -3292,15 +3292,15 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // The car's photos fold away under its mods list, shut, on both addresses. On Laps (js/laps-shared.js marks the page)
-    // the mods list also comes straight under the car's details, and the Laps sessions fold away beneath it. The folds
-    // hold the sections as they are; the photos keep their own buttons and the add-photo form.
+    // The Laps sessions and the car's photos fold away, shut, on both addresses. On Laps (js/laps-shared.js marks the page)
+    // the mods list also comes straight under the car's details. The folds hold the sections as they are; the photos keep
+    // their own buttons and the add-photo form.
     function foldForLaps() {
       var onLaps = document.documentElement.classList.contains('laps-shared');
       var head = document.querySelector('#mb-car-detail-view .mb-car-detail-header');
       var mods = document.getElementById('mb-mods-builder');
       if (onLaps && head && mods) head.parentNode.insertBefore(mods, head.nextSibling);
-      var folds = onLaps ? [['mb-car-laps', 'Track sessions on Laps'], ['mb-photo-strip', 'Photos']] : [['mb-photo-strip', 'Photos']];
+      var folds = [['mb-car-laps', 'Track sessions on Laps'], ['mb-photo-strip', 'Photos']];
       folds.forEach(function (pair) {
         var el = document.getElementById(pair[0]);
         if (!el) return;

@@ -11988,6 +11988,86 @@ async function handleGarageGalleryRequest(request, env) {
   return json({ success: true, asked: true });
 }
 
+// GET /my-builds/admin/photo-rename-plan?key=...: a plan for numbering the gallery's photo files. Nothing is changed.
+// A photo whose name has no number yet (N- at its start, N up to 999) is given the next one after the highest in use,
+// in upload order, so the files read in the order they were added. Each photo reports what is kept under its name: its
+// sidecar, the keys built from it (likes, likers, like alerts, comments, reports, owner, claim) and the cars whose
+// records list it. The files in the repo (share pages, data/featured.json, the gallery manifest) are not read here.
+var PHOTO_NUMBER_RE = /^(\d{1,3})-/;
+var PHOTO_KEY_FAMILIES = ['likes:', 'likers:', 'like-alert:', 'comments:', 'photo-reports:', 'photo-owner:', 'claim:'];
+
+async function handlePhotoRenamePlan(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var objects = [], cursor;
+  do {
+    var page = await env.GALLERY_BUCKET.list({ prefix: 'gallery/', cursor: cursor });
+    objects = objects.concat(page.objects);
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+
+  var names = {};
+  objects.forEach(function (o) { names[o.key] = true; });
+  var photos = objects.filter(function (o) { return /^gallery\/[^/]+\.(jpe?g|png|webp)$/i.test(o.key); }).map(function (o) {
+    return { file: o.key.slice('gallery/'.length), uploaded: o.uploaded ? new Date(o.uploaded).toISOString() : '' };
+  });
+
+  // The cars' records: which photos each one lists.
+  var carsByPhoto = {};
+  await Promise.all(objects.filter(function (o) { return /^gallery\/cars\/[^/]+\.json$/.test(o.key); }).map(async function (o) {
+    var obj = await env.GALLERY_BUCKET.get(o.key);
+    var rec = obj ? await obj.json().catch(function () { return null; }) : null;
+    if (!rec || !Array.isArray(rec.photos)) return;
+    var carId = o.key.slice('gallery/cars/'.length, -'.json'.length);
+    rec.photos.forEach(function (f) { (carsByPhoto[f] = carsByPhoto[f] || []).push(carId); });
+  }));
+
+  // The keys built from a file name, counted per family.
+  var keysByPhoto = {};
+  for (var fi = 0; fi < PHOTO_KEY_FAMILIES.length; fi++) {
+    var family = PHOTO_KEY_FAMILIES[fi], kcursor;
+    do {
+      var kpage = await env.VOTES.list({ prefix: family, limit: 1000, cursor: kcursor });
+      kpage.keys.forEach(function (k) {
+        var rest = k.name.slice(family.length);
+        // A like alert is named for the file and the voter: like-alert:<file>:<voter>.
+        var file = family === 'like-alert:' ? rest.slice(0, rest.lastIndexOf(':')) : rest;
+        var refs = keysByPhoto[file] = keysByPhoto[file] || {};
+        refs[family] = (refs[family] || 0) + 1;
+      });
+      kcursor = kpage.list_complete ? undefined : kpage.cursor;
+    } while (kcursor);
+  }
+
+  // The numbers: the files already numbered keep theirs; the rest follow the highest in use, oldest first.
+  var used = 0;
+  photos.forEach(function (p) { var m = PHOTO_NUMBER_RE.exec(p.file); if (m) used = Math.max(used, parseInt(m[1], 10)); });
+  var unnumbered = photos.filter(function (p) { return !PHOTO_NUMBER_RE.test(p.file); })
+    .sort(function (a, b) { return a.uploaded < b.uploaded ? -1 : a.uploaded > b.uploaded ? 1 : a.file < b.file ? -1 : 1; });
+  var next = used;
+  unnumbered.forEach(function (p) { next++; p.to = next + '-' + p.file; });
+
+  var plan = unnumbered.map(function (p) {
+    return {
+      from: p.file,
+      to: p.to,
+      uploaded: p.uploaded,
+      sidecar: !!names['gallery/' + p.file + '.json'],
+      keys: keysByPhoto[p.file] || {},
+      cars: carsByPhoto[p.file] || []
+    };
+  });
+  return json({
+    success: true,
+    dryRun: true,
+    changed: 0,
+    photos: photos.length,
+    numbered: photos.length - unnumbered.length,
+    toNumber: unnumbered.length,
+    highestNumberInUse: used,
+    plan: plan
+  });
+}
+
 async function handleGarageGalleryAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var list = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });
@@ -13641,6 +13721,9 @@ export default {
     }
     if (url.pathname === '/my-builds/admin/other-makes' && (request.method === 'GET' || request.method === 'POST')) {
       return handleOtherMakesAdmin(request, env);
+    }
+    if (url.pathname === '/my-builds/admin/photo-rename-plan' && request.method === 'GET') {
+      return handlePhotoRenamePlan(request, env);
     }
     if (url.pathname === '/my-builds/admin/garage-gallery' && (request.method === 'GET' || request.method === 'POST')) {
       return handleGarageGalleryAdmin(request, env);

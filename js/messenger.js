@@ -86,6 +86,8 @@
     '.mc-tabs[hidden]{display:none}',
     '.mc-tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;border:0;border-radius:999px;background:none;color:#5b6678;font:600 .88rem "IBM Plex Sans",sans-serif;cursor:pointer}',
     '.mc-tab[aria-selected="true"]{background:#16233d;color:#fff}',
+    '[data-theme="jade"] #mt3uk-chat .mc-head{background:#0d3b33}',
+    '[data-theme="jade"] #mt3uk-chat .mc-tab[aria-selected="true"]{background:#0d3b33}',
     '.mc-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e8542a;color:#fff;font:700 .68rem/18px "IBM Plex Sans",sans-serif}',
     '.mc-badge[hidden]{display:none}',
     '.mc-body{flex:1;min-height:0;overflow-y:auto;padding:10px 12px;background:#f6f7f9}',

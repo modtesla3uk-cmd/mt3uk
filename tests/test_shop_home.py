@@ -88,6 +88,7 @@ def test_admin_shop_panel_lists_products_and_saves_the_offer_with_its_items(page
     page.locator("#shop-o-items .shop-pick[value='model-3-brake-master-cylinder-bracket-for-rhd-models-only']").check()
     page.fill("#shop-o-code", "mt3ukmc40")
     page.fill("#shop-highlights", "Tees, hoodies and stickers\nTevo parts for Model 3 and Y")
+    page.fill("#shop-card-tag", "20% off Tevo parts until 31 Oct")
     page.locator("#shop-save").click()
     expect(page.locator("#shop-note")).to_contain_text("Saved")
     home = saved[-1]["home"]
@@ -95,6 +96,7 @@ def test_admin_shop_panel_lists_products_and_saves_the_offer_with_its_items(page
     assert home["offer"]["items"] == [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket", "url": ""}]
     assert home["offer"]["code"] == "MT3UKMC40"
     assert home["highlights"] == ["Tees, hoodies and stickers", "Tevo parts for Model 3 and Y"]
+    assert home["tag"] == "20% off Tevo parts until 31 Oct"
 
 
 def test_admin_adds_a_product_to_the_shop_list(page):
@@ -494,3 +496,20 @@ def test_admin_rebuilds_the_homepage_card_pictures_from_the_sharing_panel(page):
     page.locator("#card-share-rebuild").click()
     expect(page.locator("#card-share-status")).to_contain_text("Started")
     assert asked == ["POST"]
+
+
+def test_an_offer_line_shows_beside_the_shop_pill_on_the_homepage_card(page):
+    """The Shop card's top row holds the Shop pill and, when one is set in the Shop panel, an offer line beside it."""
+    page.add_init_script("try{localStorage.setItem('mt3ukIntroSeen','1');localStorage.setItem('mt3uk-intro','seen');}catch(e){}")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(dict(OFFER, tag="20% off until 31 Oct")), headers=CORS))
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.route("**/home/layout", no_saved_layout)
+    page.goto("/index.html")
+    expect(page.locator(".hp-shop-card .hp-card-top .hp-card-tag")).to_have_text("Shop")
+    expect(page.locator(".hp-shop-card .hp-card-top .hp-card-offer")).to_have_text("20% off until 31 Oct")
+    # Without an offer line the pill stands alone.
+    page.unroute("**/shop/home")
+    page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(OFFER), headers=CORS))
+    page.reload()
+    expect(page.locator(".hp-shop-card .hp-card-tag")).to_have_text("Shop")
+    expect(page.locator(".hp-shop-card .hp-card-offer")).to_have_count(0)

@@ -2591,6 +2591,10 @@
   .hp-shop-card { background: var(--ink, #16233d); color: #ffffff; }
   .hp-shop-card .hp-card-title { color: #ffffff; }
   .hp-card-tag { align-self: flex-start; background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font-weight: 700; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; }
+  /* The Shop pill with an offer line beside it (js/shop-home-cards.js). */
+  .hp-card-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .hp-shop-card .hp-card-top { padding-right: 44px; }  /* clear of the share button */
+  .hp-card-offer { font-weight: 800; font-size: 0.9rem; color: #f2a48c; }
   .hp-card-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
   .hp-card-text, .hp-card-note { margin: 0; font-size: 0.9rem; line-height: 1.4; }
   .hp-card-list { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.5; }
@@ -7062,7 +7066,7 @@
     });
   })();
 </script>
-<script src="js/shop-home-cards.js?v=9" defer></script>
+<script src="js/shop-home-cards.js?v=10" defer></script>
 <script src="js/home-layout.js?v=16" defer></script>
 <script src="js/home-share.js?v=4" defer></script>
 </body>

@@ -63,6 +63,7 @@
     document.getElementById('shop-o-code').value = offer.code || '';
     document.getElementById('shop-placeholder').value = (home && home.placeholder) || '';
     document.getElementById('shop-highlights').value = ((home && home.highlights) || []).join('\n');
+    document.getElementById('shop-card-tag').value = (home && home.tag) || '';
     var picked = (offer.items || []).map(function (i) { return i.id; });
     itemsEl.innerHTML = catalogue.length ? catalogue.map(function (p) {
       return '<label class="iv-note" style="display:block"><input type="checkbox" class="shop-pick" value="' + esc(p.handle) + '"' + (picked.indexOf(p.handle) !== -1 ? ' checked' : '') + '> ' + esc(p.title) + (p.minPrice != null ? ' <span class="iv-sub">£' + esc(p.minPrice) + '</span>' : '') + '</label>';
@@ -152,6 +153,6 @@
     if (offer.on && (!offer.heading || !offer.items.length)) { note('An offer needs a heading and at least one item.', 'error'); return; }
     if (offer.start && offer.end && offer.end < offer.start) { note('The end date is before the start date.', 'error'); return; }
     var highlights = document.getElementById('shop-highlights').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
-    save({ home: { offer: offer, placeholder: document.getElementById('shop-placeholder').value.trim(), highlights: highlights } }, 'Saved. The homepage cards update within a few minutes.');
+    save({ home: { offer: offer, placeholder: document.getElementById('shop-placeholder').value.trim(), highlights: highlights, tag: document.getElementById('shop-card-tag').value.trim() } }, 'Saved. The homepage cards update within a few minutes.');
   });
 })();

@@ -93,7 +93,11 @@
 
   function shopCard(data) {
     var card = el('article', 'hp-card hp-shop-card');
-    card.appendChild(el('span', 'hp-card-tag', 'Shop'));
+    // The Shop pill, with the offer line (if one is set) beside it.
+    var top = el('div', 'hp-card-top');
+    top.appendChild(el('span', 'hp-card-tag', 'Shop'));
+    if (data.tag) top.appendChild(el('span', 'hp-card-offer', data.tag));
+    card.appendChild(top);
     card.appendChild(el('h3', 'hp-card-title', 'In the MT3UK Shop'));
     var hl = data.highlights || [];
     if (hl.length) {

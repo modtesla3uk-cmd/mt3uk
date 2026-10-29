@@ -10107,6 +10107,8 @@ function cleanShopHome(h, old) {
   return {
     highlights: Array.isArray(src.highlights) ? src.highlights.map(function (x) { return String(x || '').trim().slice(0, 140); }).filter(Boolean).slice(0, 12) : (base.highlights || []),
     placeholder: 'placeholder' in src ? String(src.placeholder || '').trim().slice(0, 240) : (base.placeholder || ''),
+    // An offer line shown beside the Shop pill on the homepage card; blank shows the pill alone.
+    tag: 'tag' in src ? String(src.tag || '').trim().slice(0, 60) : (base.tag || ''),
     offer: 'offer' in src ? cleanShopOffer(src.offer) : (base.offer || null)
   };
 }
@@ -10238,6 +10240,7 @@ async function handleShopHomePublic(env) {
     success: true,
     highlights: home.highlights || [],
     placeholder: home.placeholder || '',
+    tag: home.tag || '',
     offer: offer
   });
   res.headers.set('Cache-Control', 'public, max-age=120');

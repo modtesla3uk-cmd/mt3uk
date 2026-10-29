@@ -133,6 +133,7 @@
     'shop-cards-wrap': { t: 'Offers card and Shop card', p: 'The Offers card and the Shop card on the homepage, and the list of products an offer can pick.', i: [
       ['Shop list', 'Every product an offer can pick. Add products here as they are added to the Shop.'],
       ['Offer', 'Shows the offer on the Offers card while it is switched on and today is between its start and end dates. Each item can show its reduced price from the percentage.'],
+      ['Next to the Shop pill', 'An offer line shown beside the Shop pill on the homepage Shop card. Leave it blank to show the pill alone.'],
       ['Shop card highlights', 'One highlight per line, shown as text on the Shop card.'],
     ] },
     'theme-wrap': { t: 'Site theme', p: 'The colours of mt3uk.com and laps.mt3uk.com. Each site can be set on its own.', i: [

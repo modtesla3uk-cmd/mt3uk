@@ -2,3 +2,7 @@ __pycache__/
 .pytest_cache/
 test-results/
 
+
+# Android signing keys: never commit
+*.keystore
+*.jks

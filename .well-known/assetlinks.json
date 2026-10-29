@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mt3uk.lapsapp2026",
+      "sha256_cert_fingerprints": [
+        "CF:DF:ED:A8:BF:C8:44:BC:F2:F5:10:32:98:A3:CF:7D:C4:E6:6B:1A:CF:D4:44:33:BF:42:76:88:83:9C:01:26",
+        "60:01:F3:59:AA:12:1C:BD:1C:E4:75:B5:86:8C:C4:8A:9A:63:69:B4:18:AA:DC:B1:07:7A:76:80:AC:06:FC:99"
+      ]
+    }
+  }
+]

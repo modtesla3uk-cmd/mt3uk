@@ -25,7 +25,7 @@ LOCAL_IMAGE_DIRS = ["images/site"]
 # <image:image> entries under the page that shows them instead.
 R2_PREFIXES = {"gallery/": "gallery.html", "track-days/": "track-day-prep.html"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html", "blog-james.html"]
+PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "delete-account.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html", "blog-james.html"]
 
 # The Laps pages (track sessions and the leaderboards) belong to laps.mt3uk.com, where their canonical
 # address is, so they get their own sitemap there (robots.txt names both). Both addresses serve the same files.

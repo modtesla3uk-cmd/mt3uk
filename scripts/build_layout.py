@@ -31,7 +31,7 @@ FOOTER = ROOT / "partials" / "footer.html"
 # The Laps pages (lap times and leaderboards) have their own header and footer.
 LAPS_HEADER = ROOT / "partials" / "laps-header.html"
 LAPS_FOOTER = ROOT / "partials" / "laps-footer.html"
-LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin", "favourites", "track-mode", "my-analysis", "member")
+LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin", "favourites", "track-mode", "my-analysis", "member", "delete-account")
 # Shared pages: MT3UK pages that a Laps member also uses (Profile, My Garage). They keep the MT3UK header and footer,
 # and also carry the Laps ones in a <template>, which js/laps-shared.js swaps in on laps.mt3uk.com, so a member there
 # stays on Laps instead of being sent to mt3uk.com.
@@ -56,6 +56,7 @@ PAGES = {
     "member": "member.html",
     "profile": "profile.html",
     "privacy": "privacy.html",
+    "delete-account": "delete-account.html",
     "shop": "shop.html",
     "reviews": "reviews.html",
     "contact": "contact.html",

@@ -2187,7 +2187,7 @@
   // Where a file comes from, for the Add a session screen.
   var FILE_SOURCES = [
     ['Tesla Track Mode', 'Save the session\'s telemetry to a USB drive from Track Mode. The file is named like telemetry-v1-2025-04-25-11_35_49.csv. Copy it to your phone or computer and add it here. Besides laps, speed and G-force it holds the car\'s own data: charge, power, throttle, brake pressure, temperatures, tyre pressures and slip.'],
-    ['RaceBox', 'Open the session in the app, share or export it and choose VBO or CSV. A GPX works too, but its times are less accurate.'],
+    ['RaceBox', 'Log in to the RaceBox website and download the data files from your sessions there.'],
     ['VBOX', 'Copy the .vbo file from the SD card.'],
     ['Harry\'s LapTimer or TrackAddict', 'Export the session as CSV and save it to your phone. A GPX works too, but its times are less accurate.'],
     ['AiM', 'Export from Race Studio as CSV with GPS latitude, longitude and speed.'],

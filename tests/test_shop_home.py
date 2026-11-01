@@ -1,4 +1,5 @@
 """The Shop list, the Offers card and the Shop card: the admin panel on admin.html and the homepage cards."""
+import datetime
 import json
 import re
 
@@ -15,7 +16,7 @@ OFFER = {
     "success": True,
     "highlights": ["Tees, hoodies and stickers", "Tevo Solutions parts for Model 3 and Y"],
     "placeholder": "More offers soon",
-    "offer": {"heading": "October offers", "percent": 20, "text": "20% off selected parts this month.", "end": "2026-10-31",
+    "offer": {"heading": "October offers", "percent": 20, "text": "20% off selected parts this month.", "end": (datetime.date.today() + datetime.timedelta(days=30)).isoformat(),
               "items": [{"id": "master-cylinder-brace", "name": "Tevo Master Cylinder Brace", "url": "https://www.tevo.solutions/brace"}]},
 }
 
@@ -33,7 +34,8 @@ def test_the_homepage_shows_the_live_offer_and_the_shop_card_with_its_highlights
     expect(link).to_have_attribute("href", "shop.html#brace")
     expect(page.locator(".hp-shop-card")).to_contain_text("Tees, hoodies and stickers")
     # Dates shown as text, and the offer's copy is shown as text, not markup.
-    expect(page.locator(".hp-offer-card")).to_contain_text("Until 31 Oct 2026")
+    ends = datetime.date.fromisoformat(OFFER["offer"]["end"])
+    expect(page.locator(".hp-offer-card")).to_contain_text("Until %d %s %d" % (ends.day, ends.strftime("%b"), ends.year))
 
 
 def test_with_no_live_offer_the_placeholder_shows_and_the_shop_card_stays(page):
@@ -243,6 +245,8 @@ def test_the_homepage_cards_use_one_body_text_size_on_desktop(page):
     page.route("**/home/layout", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "layout": {"desk": None}}), headers=CORS))
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html")
+    # The cards and the offer are drawn after the page loads, so wait for each element before measuring.
+    page.wait_for_function("""() => ['#hp-hero .hp-hero-excerpt', '#hp-hero-next .hp-next-sub', '#hp-join p', '#hp-hero .hp-laps-text', '#hp-shop-cards .hp-card-text', '#hp-shop-cards .hp-card-list li'].every(s => document.querySelector(s))""", timeout=10000)
     sizes = page.evaluate("""() => [...new Set([
       '#hp-hero .hp-hero-excerpt', '#hp-hero-next .hp-next-sub', '#hp-join p', '#hp-hero .hp-laps-text',
       '#hp-shop-cards .hp-card-text', '#hp-shop-cards .hp-card-list li'
@@ -460,8 +464,8 @@ def test_the_offer_card_shows_the_reduced_price_for_the_percentage_entered(page)
     expect(items.nth(0)).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125) £87.50")
     expect(items.nth(1)).to_have_text("Tevo Brace (£50) £35")
     expect(items.nth(2)).to_have_text("Tevo Kit")
-    # The reduced price is in the site's accent colour (gold, the default scheme), the list price is not.
-    expect(items.nth(0).locator(".hp-card-now")).to_have_css("color", "rgb(224, 180, 74)")
+    # The reduced price is in the site's accent colour (orange, the default navy and orange scheme), the list price is not.
+    expect(items.nth(0).locator(".hp-card-now")).to_have_css("color", "rgb(232, 84, 42)")
 
 
 def test_an_offer_item_saved_with_a_shopify_address_still_links_to_the_shop_page(page):

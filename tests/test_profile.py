@@ -412,6 +412,10 @@ def test_admin_shows_how_long_each_interview_was_current(device_page):
     today = _dt.datetime.now(_Zone("Europe/London")).date()
     data["interviews"][0]["publish"] = (today - _dt.timedelta(days=28)).isoformat()
     data["interviews"][1]["publish"] = (today - _dt.timedelta(days=14)).isoformat()
+    # Only the first two count as published here: later ones go out after today,
+    # so the second is the latest one and is current for 14 days.
+    for i, iv in enumerate(data["interviews"][2:], start=2):
+        iv["publish"] = (today + _dt.timedelta(days=30 + i)).isoformat()
     page.route(re.compile(r".*/data/interviews\.json.*"), lambda route: route.fulfill(
         status=200, body=_json.dumps(data), headers={"Content-Type": "application/json"}))
     page.goto("/admin.html")

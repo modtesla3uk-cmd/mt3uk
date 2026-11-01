@@ -1,8 +1,13 @@
 {
   "name": "mt3uk",
+  "main": "site-router.js",
   "compatibility_date": "2026-09-07",
   "assets": {
     "directory": "./",
-    "html_handling": "none"
-  }
+    "html_handling": "none",
+    "run_worker_first": ["/share/add"]
+  },
+  "services": [
+    { "binding": "VOTE", "service": "late-darkness-ebc8" }
+  ]
 }

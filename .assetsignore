@@ -15,3 +15,5 @@ wrangler.jsonc
 *.md
 partials
 marketing
+
+site-router.js

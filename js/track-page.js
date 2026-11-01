@@ -223,7 +223,11 @@
   // The welcome card's text, as set on the admin page; nothing set means the built-in words.
   var copy = null;
   // Sign in: the Laps one on laps.mt3uk.com (js/account-bar.js), the MT3UK one elsewhere.
-  function signInUrl(next) { return window.mt3ukSignInUrl ? window.mt3ukSignInUrl(next) : 'signin.html?next=' + encodeURIComponent(next); }
+  // The shared script may not have loaded yet when the Add page checks the sign-in, so the Laps address is worked out here too.
+  function signInUrl(next) {
+    if (window.mt3ukSignInUrl) return window.mt3ukSignInUrl(next);
+    return (/^laps\./.test(location.hostname) ? 'laps-signin.html' : 'signin.html') + '?next=' + encodeURIComponent(next);
+  }
   function getCopy() {
     if (copy) return Promise.resolve(copy);
     return api('GET', '/track/copy').then(function (d) { copy = (d && d.copy) || {}; return copy; }).catch(function () { return {}; });
@@ -2190,11 +2194,11 @@
     ['Something else', 'Best with a CSV or VBO that has a time, latitude, longitude and speed. A GPX works too, but its times are less accurate. If the columns are not recognised you can pick them yourself.']
   ];
   function showAdd(carId) {
-    if (!token()) { location.href = signInUrl('/track.html?add=1'); return; }
+    if (!token()) { location.href = signInUrl('/track.html?add=1' + (carId ? '&car=' + encodeURIComponent(carId) : '')); return; }
     loading();
     Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres(), loadPads()]).then(function (r) {
       var m = r[0];
-      if (!m) { location.href = signInUrl('/track.html?add=1'); return; }
+      if (!m) { location.href = signInUrl('/track.html?add=1' + (carId ? '&car=' + encodeURIComponent(carId) : '')); return; }
       if (m.gate) return showGate();
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
@@ -2239,7 +2243,7 @@
       '<li style="margin-bottom:8px"><b>On your phone:</b> export the file from your logger app and save it to Downloads. Then tap <b>Choose files</b> above.</li>' +
       '<li><b>On a computer:</b> tap <b>Send to my computer</b> below and send the link to yourself. Open it on the computer, sign in, choose your file and save.</li>' +
       '</ol>' +
-      '<div style="margin-top:12px"><button type="button" class="btn btn-accent" id="tp-send-computer" data-link="' + esc('https://laps.mt3uk.com/track.html?add=1&car=' + encodeURIComponent(a.car.id)) + '" style="min-height:44px">' +
+      '<div style="margin-top:12px"><button type="button" class="btn btn-accent" id="tp-send-computer" data-link="' + esc('https://laps.mt3uk.com/share/add?car=' + encodeURIComponent(a.car.id)) + '" style="min-height:44px">' +
       '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Send to my computer</button>' +
       '<p id="tp-send-note" role="status" style="margin:6px 0 0;font-size:.9rem"></p></div></div>' +
       '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +

@@ -10697,6 +10697,40 @@ async function putSharePictures(env, slot, state) {
   await env.VOTES.put(SHARE_SLOTS[slot].key, JSON.stringify(state));
   await triggerManifestRebuild(env, 'track-share');
 }
+// The link a member shares to add a session on a computer. Link previews read the page's own HTML, so the car's name
+// is written into this page's title and description here, then the page sends the visitor on to the Add page for that car.
+async function handleShareAdd(request, env) {
+  var url = new URL(request.url);
+  var carId = String(url.searchParams.get('car') || '');
+  var validId = /^[A-Za-z0-9_-]{1,120}$/.test(carId);
+  var car = validId ? await getCarRecord(env, carId) : null;
+  var name = car && car.name ? String(car.name).slice(0, 80) : '';
+  var target = '/track.html?add=1' + (validId && car ? '&car=' + encodeURIComponent(carId) : '');
+  var title = name ? 'Add a session: ' + name + ' | Laps by MT3UK' : 'Add a session | Laps by MT3UK';
+  var desc = name ? 'Add your session for ' + name + ' from a computer on Laps by MT3UK.' : 'Add your session from a computer on Laps by MT3UK.';
+  var esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+  var page = 'https://laps.mt3uk.com' + target;
+  // A fixed picture for this link, so the Track sessions picture the admin sets does not change it.
+  var image = 'https://laps.mt3uk.com/images/track-preview/add-session.jpg';
+  var html = '<!doctype html><html lang="en-GB"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>' + esc(title) + '</title>' +
+    '<meta name="description" content="' + esc(desc) + '">' +
+    '<meta property="og:type" content="website"><meta property="og:site_name" content="Laps by MT3UK">' +
+    '<meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(desc) + '">' +
+    '<meta property="og:url" content="' + esc(page) + '">' +
+    '<meta property="og:image" content="' + esc(image) + '">' +
+    '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="' + esc(title) + '">' +
+    '<meta name="twitter:description" content="' + esc(desc) + '">' +
+    '<meta name="twitter:image" content="' + esc(image) + '">' +
+    '<meta http-equiv="refresh" content="0;url=' + esc(target) + '">' +
+    '<link rel="canonical" href="' + esc(page) + '"></head><body>' +
+    '<p>Opening Laps: <a href="' + esc(target) + '">add a session</a></p>' +
+    '<script>location.replace(' + JSON.stringify(target) + ');</script></body></html>';
+  var res = new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  res.headers.set('Cache-Control', 'public, max-age=300');
+  return res;
+}
 async function handleSharePublic(request, env, slot) {
   var res = json(Object.assign({ success: true, slot: slot }, trackShareView(await getSharePictures(env, slot))));
   res.headers.set('Cache-Control', 'public, max-age=300');
@@ -13684,6 +13718,9 @@ export default {
     }
     if (url.pathname === '/share/versions' && request.method === 'GET') {
       return handleShareVersions(request, env);
+    }
+    if (url.pathname === '/share/add' && request.method === 'GET') {
+      return handleShareAdd(request, env);
     }
     var shareRoute = /^\/share\/(track|home)(\/admin(\/image|\/photo)?)?$/.exec(url.pathname);
     if (shareRoute) {

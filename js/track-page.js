@@ -321,6 +321,14 @@
         '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
         '<p class="tp-small">The <a href="leaderboards.html">Leaderboard</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;
+    var sendBtn = document.getElementById('tp-send-computer');
+    if (sendBtn) sendBtn.addEventListener('click', function () {
+      var url = sendBtn.getAttribute('data-link'), note = document.getElementById('tp-send-note');
+      function say(t) { if (note) note.textContent = t; }
+      if (navigator.share) { navigator.share({ title: 'Add a session on Laps', url: url }).catch(function () { say(''); }); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { say('Link copied. Paste it into an email or message to yourself.'); }, function () { say(url); });
+      else say(url);
+    });
       app.querySelectorAll('[data-shot]').forEach(function (b) { b.addEventListener('click', function () { openShot(parseInt(b.getAttribute('data-shot'), 10), b); }); });
       var f = document.getElementById('tp-gate-form');
       if (f) f.addEventListener('submit', function (e) {
@@ -2237,8 +2245,11 @@
       '<div style="font-size:1rem;line-height:1.5"><p style="margin:0 0 6px">Two ways to add a file:</p>' +
       '<ol style="margin:0;padding-left:20px">' +
       '<li style="margin-bottom:8px"><b>On your phone:</b> export the file from your logger app and save it to Downloads. Then tap <b>Choose files</b> above.</li>' +
-      '<li><b>On a computer:</b> tap <b>Share</b> at the top right of this page and send the link to yourself. Open it on the computer, sign in, choose your file and save.</li>' +
-      '</ol></div>' +
+      '<li><b>On a computer:</b> tap <b>Send to my computer</b> below and send the link to yourself. Open it on the computer, sign in, choose your file and save.</li>' +
+      '</ol>' +
+      '<div style="margin-top:12px"><button type="button" class="btn btn-accent" id="tp-send-computer" data-link="' + esc('https://laps.mt3uk.com/track.html?add=1&car=' + encodeURIComponent(a.car.id)) + '" style="min-height:44px">' +
+      '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Send to my computer</button>' +
+      '<p id="tp-send-note" role="status" style="margin:6px 0 0;font-size:.9rem"></p></div></div>' +
       '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +
       '<p class="tp-small tp-src-steps" id="tp-src-steps">' + esc(FILE_SOURCES[0][1]) + '</p></details>' +
       '<div id="tp-mapping"></div><p class="tp-status" id="tp-status" role="status"></p></div>' +

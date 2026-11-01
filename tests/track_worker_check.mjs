@@ -1934,6 +1934,14 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   kvD.set('track-tiers', JSON.stringify({ mode: 'all', allowance: { start: 3, monthly: 3, cap: 6 } }));
   const allow = { start: 3, monthly: 3, cap: 6 };
   const owner = 'ownerd1', email = 'd@example.com';
+  // The upload gate reads the clock for its month, so hold it in October while these dates are checked.
+  // Otherwise a run in a later month tops the balance up and the refusal below never happens.
+  const RealDate = Date;
+  const PIN = '2026-10-14T10:00:00Z';
+  globalThis.Date = class extends RealDate {
+    constructor(...args) { if (args.length) super(...args); else super(PIN); }
+    static now() { return new RealDate(PIN).getTime(); }
+  };
   const q0 = await mod.trackQuotaState(envD, owner, allow, new Date('2026-10-14T10:00:00Z'));
   ok(q0.balance === 3 && q0.fresh, 'a new free member starts with 3 days');
   let g = await mod.trackUploadGate(envD, email, owner, '2026-10-14');
@@ -1974,6 +1982,7 @@ ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.b
   kvD.set('track-quota:old1', JSON.stringify({ balance: 9, month: 2026 * 12 + 9 }));
   const old = await mod.trackQuotaState(envD, 'old1', allow, new Date('2026-10-20T09:00:00Z'));
   ok(old.balance === 6, 'a balance kept from sessions is capped at 6 days');
+  globalThis.Date = RealDate;
 }
 
 // Adding a day tells the member: a bell notification, and an email sent to them.

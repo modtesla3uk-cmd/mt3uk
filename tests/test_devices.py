@@ -925,6 +925,13 @@ def shared_url(page):
     }""")
 
 
+def open_photo_fold(page):
+    """My Garage folds the photos away under the mods list, so open that fold before using a photo."""
+    fold = page.locator("details.mb-car-fold", has=page.locator("#mb-photo-strip"))
+    if not fold.evaluate("d => d.open"):
+        fold.locator("> summary").click()
+
+
 @all_devices
 def test_share_buttons(device_page):
     page = device_page
@@ -966,6 +973,7 @@ def test_share_buttons(device_page):
     page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
     page.goto("/my-builds.html")
     page.locator(".mb-car-tile").first.click(timeout=10000)
+    open_photo_fold(page)
     page.locator(".mb-photo-thumb img").first.click(timeout=5000)
     button = page.locator("#mb-lightbox-share")
     button.wait_for(state="visible", timeout=5000)
@@ -1009,6 +1017,7 @@ def test_vote_one_entry_and_not_your_own(device_page):
     # My Garage: switching entry warns that its votes will be lost.
     page.goto("/my-builds.html")
     page.locator(".mb-car-tile").first.click(timeout=10000)
+    open_photo_fold(page)
     first = page.locator('.mb-photo-thumb-wrap[data-file="test-build.jpg"] input[data-flag="votable"]')
     second = page.locator('.mb-photo-thumb-wrap[data-file="test-build-2.jpg"] input[data-flag="votable"]')
     first.wait_for(timeout=5000)

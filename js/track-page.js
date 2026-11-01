@@ -321,14 +321,6 @@
         '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
         '<p class="tp-small">The <a href="leaderboards.html">Leaderboard</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;
-    var sendBtn = document.getElementById('tp-send-computer');
-    if (sendBtn) sendBtn.addEventListener('click', function () {
-      var url = sendBtn.getAttribute('data-link'), note = document.getElementById('tp-send-note');
-      function say(t) { if (note) note.textContent = t; }
-      if (navigator.share) { navigator.share({ title: 'Add a session on Laps', url: url }).catch(function () { say(''); }); return; }
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { say('Link copied. Paste it into an email or message to yourself.'); }, function () { say(url); });
-      else say(url);
-    });
       app.querySelectorAll('[data-shot]').forEach(function (b) { b.addEventListener('click', function () { openShot(parseInt(b.getAttribute('data-shot'), 10), b); }); });
       var f = document.getElementById('tp-gate-form');
       if (f) f.addEventListener('submit', function (e) {
@@ -2255,6 +2247,14 @@
       '<div id="tp-mapping"></div><p class="tp-status" id="tp-status" role="status"></p></div>' +
       '<div id="tp-result"></div></div>';
     app.innerHTML = h;
+    var sendBtn = document.getElementById('tp-send-computer');
+    if (sendBtn) sendBtn.addEventListener('click', function () {
+      var url = sendBtn.getAttribute('data-link'), note = document.getElementById('tp-send-note');
+      function say(t) { if (note) note.textContent = t; }
+      if (navigator.share) { navigator.share({ title: 'Add a session on Laps', url: url }).catch(function () { say(''); }); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { say('Link copied. Paste it into an email or message to yourself.'); }, function () { say(url); });
+      else say(url);
+    });
     // The free-plan balance, so the member sees how many sessions this save will use before they save.
     drawQuota();
     var input = document.getElementById('tp-file'), drop = document.getElementById('tp-drop');

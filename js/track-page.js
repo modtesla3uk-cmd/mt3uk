@@ -2234,10 +2234,10 @@
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). Best with a VBO or CSV from your logger. A GPX works too, but its times are less accurate, as it has no speed readings of its own. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
       (a.files && a.files.length ? fileBox() : '') +
       '<details class="tp-help"' + (a.files && a.files.length ? '' : ' open') + '><summary>' + icon('info') + 'Where do I get my file?</summary>' +
-      '<div class="tp-small"><p>Using the Laps app? There are two ways to add a file:</p>' +
-      '<ol class="tp-small">' +
-      '<li><b>On your phone:</b> export the file from your logger app (for example RaceBox, or the Tesla dashcam files) and save it to Downloads. Then tap <b>Choose files</b> above and pick it.</li>' +
-      '<li><b>On a computer:</b> tap the <b>Share</b> icon (the paper plane) at the top right of this page, and send the link to yourself. Open it on your computer and sign in with the same email address. Choose your file there and save. It appears in the Sessions list on your phone after you refresh.</li>' +
+      '<div style="font-size:1rem;line-height:1.5"><p style="margin:0 0 6px">Two ways to add a file:</p>' +
+      '<ol style="margin:0;padding-left:20px">' +
+      '<li style="margin-bottom:8px"><b>On your phone:</b> export the file from your logger app and save it to Downloads. Then tap <b>Choose files</b> above.</li>' +
+      '<li><b>On a computer:</b> tap <b>Share</b> at the top right of this page and send the link to yourself. Open it on the computer, sign in, choose your file and save.</li>' +
       '</ol></div>' +
       '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +
       '<p class="tp-small tp-src-steps" id="tp-src-steps">' + esc(FILE_SOURCES[0][1]) + '</p></details>' +

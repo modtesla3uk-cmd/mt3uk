@@ -1,5 +1,15 @@
 [
   {
+    "file": "photo.jpg",
+    "name": "RVasilev",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "color": "Other",
+    "added": "2026-11-01",
+    "group": "photo.jpg"
+  },
+  {
     "file": "photo-11.jpg",
     "caption": "PHOTO 11",
     "name": "RichardHC",
@@ -195,14 +205,6 @@
   {
     "file": "photo-3.jpg",
     "caption": "PHOTO 3",
-    "name": "The_Colonel",
-    "votable": false,
-    "color": "Grey",
-    "added": "2026-10-03",
-    "group": "photo-3.jpg"
-  },
-  {
-    "file": "photo.jpg",
     "name": "The_Colonel",
     "votable": false,
     "color": "Grey",

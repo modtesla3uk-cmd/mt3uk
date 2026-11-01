@@ -2234,6 +2234,12 @@
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). Best with a VBO or CSV from your logger. A GPX works too, but its times are less accurate, as it has no speed readings of its own. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
       (a.files && a.files.length ? fileBox() : '') +
       '<details class="tp-help"' + (a.files && a.files.length ? '' : ' open') + '><summary>' + icon('info') + 'Where do I get my file?</summary>' +
+      '<div class="tp-small"><p>Using the Laps app? Your file must be added from a computer browser. Here is how:</p>' +
+      '<ol class="tp-small">' +
+      '<li>On your phone, tap the <b>Share</b> icon (the paper plane) at the top right of this page, and send the link to yourself by email or message.</li>' +
+      '<li>On your computer, open that link and sign in with the same email address.</li>' +
+      '<li>Choose your file on the computer, then save. It appears in the Sessions list on your phone after you refresh.</li>' +
+      '</ol></div>' +
       '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +
       '<p class="tp-small tp-src-steps" id="tp-src-steps">' + esc(FILE_SOURCES[0][1]) + '</p></details>' +
       '<div id="tp-mapping"></div><p class="tp-status" id="tp-status" role="status"></p></div>' +

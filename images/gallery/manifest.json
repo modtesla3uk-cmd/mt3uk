@@ -583,6 +583,9 @@
     "file": "night-lights.jpg",
     "caption": "NIGHT LIGHTS",
     "name": "Jezza",
+    "mods": [
+      "test mod"
+    ],
     "votable": false,
     "color": "Red",
     "added": "2026-09-25",

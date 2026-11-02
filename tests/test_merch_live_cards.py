@@ -83,3 +83,33 @@ def test_hovering_live_product_image_applies_zoom(page):
     trigger.hover()
     img = trigger.locator("img")
     assert "zoom-pan" in (img.get_attribute("class") or "")
+
+
+def test_each_product_shows_its_own_units_sold_from_shopify(page):
+    """The units sold come from Shopify's orders (GET /shop/sales): each card shows its own count, and a product with none
+    shows no line."""
+    page.route(
+        "**/shop/sales",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps({"success": True, "source": "shopify", "byHandle": {"black-mt3uk-tee-red-underline-super-soft": 4}}),
+        ),
+    )
+    page.goto("/shop.html")
+    cards = page.locator("#shop-live-products .shop-live-card")
+    expect(cards).to_have_count(2)
+    expect(cards.first.locator(".merch-sold-line")).to_have_text("🔥 4 sold since launch")
+    expect(cards.nth(1).locator(".merch-sold-line")).to_have_count(0)
+
+
+def test_with_shopify_down_the_cards_use_the_manual_sales_file(page):
+    """With Shopify not readable the page falls back to data/merch-sales.json, as it did before."""
+    page.route(
+        "**/shop/sales",
+        lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "source": "manual", "byHandle": {}})),
+    )
+    page.goto("/shop.html")
+    cards = page.locator("#shop-live-products .shop-live-card")
+    expect(cards).to_have_count(2)
+    expect(cards.first.locator(".merch-sold-line")).to_have_text("🔥 3 sold since launch")

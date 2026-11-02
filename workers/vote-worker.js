@@ -10223,6 +10223,87 @@ async function handleSiteThemeAdmin(request, env) {
   return json({ success: true, themes: themes });
 }
 
+// ---------- Units sold, from Shopify's orders (GET /shop/sales) ----------
+// Every product's units sold since SHOPIFY_SALES_SINCE: paid orders that were not cancelled, less what was refunded. The
+// Shopify app reads them with its client ID and secret (SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET, set as worker
+// secrets). The answer is kept in one KV key for an hour. If Shopify cannot be read, the page uses the file
+// data/merch-sales.json instead, which is what it showed before.
+var SHOPIFY_STORE = 'https://mt3uk.myshopify.com';
+var SHOPIFY_SALES_SINCE = '2026-10-01';
+var SHOPIFY_SALES_KEY = 'shop-sales';
+var SHOPIFY_SALES_TTL_MS = 60 * 60 * 1000;
+
+async function shopifyAdminToken(env) {
+  if (!env.SHOPIFY_CLIENT_ID || !env.SHOPIFY_CLIENT_SECRET) throw new Error('Shopify is not set up');
+  var res = await fetch(SHOPIFY_STORE + '/admin/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'mt3uk-shop-sync' },
+    body: new URLSearchParams({ client_id: env.SHOPIFY_CLIENT_ID, client_secret: env.SHOPIFY_CLIENT_SECRET, grant_type: 'client_credentials' }).toString()
+  });
+  var data = res.ok ? await res.json() : null;
+  if (!data || !data.access_token) throw new Error('Shopify did not give a token');
+  return data.access_token;
+}
+
+// The shop's product ids by handle (the public product list has them, and the orders name products by id).
+async function shopifyProductIds() {
+  var res = await fetch(SHOPIFY_PRODUCTS_URL, { headers: { 'User-Agent': 'mt3uk-shop-sync' } });
+  if (!res.ok) throw new Error('Could not reach Shopify');
+  var data = await res.json();
+  var out = {};
+  (data.products || []).forEach(function (p) { if (p.handle && p.id) out[p.handle] = p.id; });
+  return out;
+}
+
+// Units sold by product id since the start date, from every order's line items, less the refunds.
+async function shopifyUnitsByProductId(env) {
+  var token = await shopifyAdminToken(env);
+  var units = {};
+  var url = SHOPIFY_STORE + '/admin/api/2026-10/orders.json?status=any&limit=250&created_at_min=' + SHOPIFY_SALES_SINCE + 'T00:00:00%2B01:00' +
+    '&fields=id,cancelled_at,financial_status,line_items,refunds';
+  while (url) {
+    var res = await fetch(url, { headers: { 'X-Shopify-Access-Token': token, 'User-Agent': 'mt3uk-shop-sync' } });
+    if (!res.ok) throw new Error('Could not read the orders');
+    var data = await res.json();
+    (data.orders || []).forEach(function (o) {
+      if (o.cancelled_at || o.financial_status === 'voided') return;
+      (o.line_items || []).forEach(function (li) {
+        units[li.product_id] = (units[li.product_id] || 0) + (Number(li.quantity) || 0);
+      });
+      (o.refunds || []).forEach(function (r) {
+        (r.refund_line_items || []).forEach(function (rl) {
+          var pid = rl.line_item && rl.line_item.product_id;
+          if (pid) units[pid] = (units[pid] || 0) - (Number(rl.quantity) || 0);
+        });
+      });
+    });
+    var next = /<([^>]+)>;\s*rel="next"/.exec(res.headers.get('Link') || '');
+    url = next ? next[1] : null;
+  }
+  return units;
+}
+
+async function handleShopSales(env) {
+  var kept = await getJsonKey(env, SHOPIFY_SALES_KEY, null);
+  if (kept && Date.now() - Date.parse(kept.updated) < SHOPIFY_SALES_TTL_MS) return json(kept);
+  try {
+    var ids = await shopifyProductIds();
+    var units = await shopifyUnitsByProductId(env);
+    var byHandle = {};
+    Object.keys(ids).forEach(function (handle) {
+      var n = units[ids[handle]] || 0;
+      if (n > 0) byHandle[handle] = n;
+    });
+    var answer = { success: true, source: 'shopify', since: SHOPIFY_SALES_SINCE, updated: new Date().toISOString(), byHandle: byHandle };
+    await env.VOTES.put(SHOPIFY_SALES_KEY, JSON.stringify(answer));
+    return json(answer);
+  } catch (e) {
+    // The last good answer is better than the manual file, as long as it is there.
+    if (kept) return json(kept);
+    return json({ success: true, source: 'manual', byHandle: {} });
+  }
+}
+
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
   // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
@@ -13645,6 +13726,7 @@ export default {
     if (url.pathname === '/admin/daily-summary' && request.method === 'POST') {
       return handleAdminDailySummary(request, env);
     }
+    if (url.pathname === '/shop/sales' && request.method === 'GET') return handleShopSales(env);
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);

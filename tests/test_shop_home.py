@@ -517,3 +517,33 @@ def test_an_offer_line_shows_beside_the_shop_pill_on_the_homepage_card(page):
     page.reload()
     expect(page.locator(".hp-shop-card .hp-card-tag")).to_have_text("Shop")
     expect(page.locator(".hp-shop-card .hp-card-offer")).to_have_count(0)
+
+
+def test_admin_shop_panel_types_in_the_units_sold_for_each_product(page):
+    """Each product's units sold are typed on the Shop panel and saved with the admin key; a product left blank is not sent."""
+    sold_posts = []
+    products = [{"id": "model-3-brake-master-cylinder-bracket-for-rhd-models-only", "name": "Tesla Model 3 Brake Master Cylinder Bracket", "url": "", "line": ""}]
+
+    def home_admin(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": products, "home": {}}), headers=CORS)
+
+    def sold(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            sold_posts.append(body)
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": body["byHandle"]}), headers=CORS)
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": {"model-3-brake-master-cylinder-bracket-for-rhd-models-only": 2}}), headers=CORS)
+
+    open_admin(page, "admin.html")
+    page.route("**/shop/home/admin**", home_admin)
+    page.route("**/shop/sales/admin**", sold)
+    page.route("**/shop-products**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": CATALOGUE}), headers=CORS))
+    page.locator("#shop-cards-wrap summary").click()
+    expect(page.locator("#shop-sold-list")).to_contain_text("Tesla Model 3 Brake Master Cylinder Bracket")
+    field = page.locator(".shop-sold[data-handle='model-3-brake-master-cylinder-bracket-for-rhd-models-only']")
+    expect(field).to_have_value("2")
+    field.fill("3")
+    page.locator("#shop-sold-save").click()
+    expect(page.locator("#shop-sold-note")).to_contain_text("Saved")
+    assert sold_posts[-1]["byHandle"] == {"model-3-brake-master-cylinder-bracket-for-rhd-models-only": 3}, sold_posts

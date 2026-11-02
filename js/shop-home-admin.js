@@ -87,9 +87,45 @@
         products = list;
         note('');
         draw();
+        loadSold();
       });
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
+
+  // The units sold per product, typed in here: the figure shown on each product's card. A blank product keeps the figure in
+  // data/merch-sales.json (the page's own fallback).
+  var soldEl = document.getElementById('shop-sold-list'), soldNote = document.getElementById('shop-sold-note');
+  function drawSold(byHandle) {
+    soldEl.innerHTML = catalogue.length ? '<table class="iv-table"><tbody>' + catalogue.map(function (p) {
+      var value = byHandle[p.handle] !== undefined ? byHandle[p.handle] : '';
+      return '<tr><td>' + esc(p.title) + '</td><td><input type="number" min="0" step="1" class="shop-sold" data-handle="' + esc(p.handle) +
+        '" value="' + esc(value) + '" aria-label="Units sold: ' + esc(p.title) + '" style="width:6em"></td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="empty">No products yet.</p>';
+  }
+  function loadSold() {
+    fetch(API + '/shop/sales/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { drawSold((d && d.byHandle) || {}); })
+      .catch(function () { drawSold({}); });
+  }
+  function saveSold() {
+    var byHandle = {};
+    document.querySelectorAll('.shop-sold').forEach(function (input) {
+      var n = parseInt(input.value, 10);
+      if (input.value.trim() !== '' && n >= 0) byHandle[input.getAttribute('data-handle')] = n;
+    });
+    soldNote.textContent = 'Saving…';
+    fetch(API + '/shop/sales/admin?key=' + encodeURIComponent(key()), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ byHandle: byHandle })
+    })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (out) {
+        soldNote.textContent = out.ok && out.d.success ? 'Saved. The shop shows these figures from now on.' : (out.d.message || 'That did not save.');
+      })
+      .catch(function () { soldNote.textContent = 'Could not reach the server.'; });
+  }
+  var soldSave = document.getElementById('shop-sold-save');
+  if (soldSave) soldSave.addEventListener('click', saveSold);
 
   function save(body, done) {
     return call('POST', body).then(function (d) {

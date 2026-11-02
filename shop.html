@@ -1541,7 +1541,7 @@
               : '') +
             '<h3>' + esc(p.title) + '</h3>' +
             offerPriceHtml(p) +
-            soldHtml(sales.byHandle ? sales.byHandle[p.handle] : (key ? sales[key] : 0)) +
+            soldHtml(p.handle in sales.byHandle ? sales.byHandle[p.handle] : (key ? sales[key] : 0)) +
             '<div class="tee-offer-actions">' +
               '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
               (offerCodes[p.handle] ? '<span class="tag">Use code ' + esc(offerCodes[p.handle]) + ' at checkout</span>' : '') +
@@ -1563,12 +1563,11 @@
       ]).then(function (results) {
         var data = results[0];
         var reviews = Array.isArray(results[1]) ? results[1] : [];
-        // The units sold: Shopify's count for every product when it can be read (each card shows its own), else the file.
-        // The file's keys (tee, stickers, brace and so on) are filled from Shopify for the cards that use them.
+        // The units sold: the figure typed in for each product on the admin's Shop panel, else the figure in data/merch-sales.json.
         var sales = Object.assign({}, results[2] || {});
-        var shopSales = results[4] && results[4].source === 'shopify' ? (results[4].byHandle || {}) : null;
-        if (shopSales) Object.keys(MANUAL_PRODUCT_KEYS).forEach(function (handle) { sales[MANUAL_PRODUCT_KEYS[handle]] = shopSales[handle] || 0; });
-        sales.byHandle = shopSales;
+        var shopSales = results[4] && results[4].byHandle ? results[4].byHandle : null;
+        if (shopSales) Object.keys(MANUAL_PRODUCT_KEYS).forEach(function (handle) { if (handle in shopSales) sales[MANUAL_PRODUCT_KEYS[handle]] = shopSales[handle]; });
+        sales.byHandle = shopSales || {};
         // The offer's code is shown only while the offer is in its dates (the same check as the homepage).
         var home = results[3] || {};
         var offer = home.offer;

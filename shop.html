@@ -519,6 +519,9 @@
   .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: var(--c-mist-grey, #aeb8cc); }
+  /* A discount code is not a struck-out price, so it is not drawn through (the old price, .tee-offer-was, is). */
+  .tee-offer-code { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--c-mist-grey, #aeb8cc); }
+  .tee-modal-body .tee-offer-code { color: var(--c-mist-grey, #aeb8cc); }
   .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
   .tee-offer-actions {
     display: flex;
@@ -1013,7 +1016,7 @@
         <p class="tee-modal-lead">High-support bucket seats molded after the modern Tesla performance design, offering enhanced ergonomics and aggressive styling.</p>
         <div class="tee-offer-price">
           <span class="tee-offer-save">Save 20%</span>
-          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-code">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Compatible with Model 3 &amp; Model Y</p>
@@ -1032,7 +1035,7 @@
         <p class="tee-modal-lead">Complete front and rear cabin upgrade bundle featuring the signature Ludicrous styling layout for maximum visual impact.</p>
         <div class="tee-offer-price">
           <span class="tee-offer-save">Save 20%</span>
-          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-code">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Full front &amp; rear seat pack</p>
@@ -1051,7 +1054,7 @@
         <p class="tee-modal-lead">Designed for ultimate long-distance driving comfort and track support, redistributing pressure points with premium contouring.</p>
         <div class="tee-offer-price">
           <span class="tee-offer-save">Save 20%</span>
-          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-code">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Ergonomic long-distance upgrade</p>
@@ -1070,7 +1073,7 @@
         <p class="tee-modal-lead">Bring the iconic high-bolster, track-ready aesthetic of the flagship Plaid models directly into your cockpit.</p>
         <div class="tee-offer-price">
           <span class="tee-offer-save">Save 20%</span>
-          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-code">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Flagship Plaid inspired aesthetic</p>

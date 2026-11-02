@@ -1,46 +1,35 @@
-# MT3UK site
+# MT3UK
 
-## Add a photo to the gallery
-Drop an image file into `images/gallery/` (GitHub → that folder → **Add file → Upload files**) and commit.
-That's it — the site rebuilds automatically and the photo appears.
+The website for the MT3UK modified Tesla community: photo galleries, owner builds, events, track days and the Laps section.
 
-- Optional: prefix the filename with a number to control its order, e.g. `10-my-new-build.jpg`. Lower numbers show first.
-- The caption on the site is generated from the filename — hyphens become spaces, e.g. `10-viper-green-model-y.jpg` → "VIPER GREEN MODEL Y".
-- Optional: to list mods under the photo, add a sidecar file named `<exact filename>.json` (e.g. `10-my-new-build.jpg.json`) alongside it, containing `{ "mods": ["Coilovers", "Wrap"] }`. The submission form on the site does this automatically when a submitter fills in the mods field.
+Live at [mt3uk.com](https://mt3uk.com).
 
-## Change the main (hero) photo
-Upload a new photo named exactly `hero.jpg` into the `images/` folder — it will overwrite the old one. Same idea: commit, wait ~30 seconds, refresh.
+## What it does
 
-## Pin a specific build to "Build of the Day"
-By default the homepage picks a random gallery photo each day (same pick for everyone, changes at midnight UTC). To pin a specific photo instead, edit `data/featured.json` and set `file` to the exact filename from `images/gallery/`, e.g. `{ "file": "10-my-new-build.jpg" }`. Set it back to `null` to return to the daily random pick.
+- **Galleries and builds:** owner photos, with captions and mod lists generated from the filenames and sidecar files.
+- **Community features:** votes, likes, comments, "My Garage" and moderation tools, handled by a Cloudflare Worker (`workers/vote-worker.js`).
+- **Laps:** a separate section with its own test deployment, so changes can be tried before they go live.
+- **Automation:** around 17 GitHub Actions workflows handle deployment, sitemap and manifest generation, event syncing, moderation and daily summaries.
 
-## Change the logo
-Replace `images/site/mt3uk-wordmark-dark.png` with a new file of the same name.
+## Stack
 
-## How it works
-A GitHub Actions workflow (`.github/workflows/pages.yml`) runs on every push. It scans `images/gallery/`, regenerates `images/gallery/manifest.json` (the list of photos + captions the page reads), and deploys the whole site to GitHub Pages. Nothing needs to be edited by hand for photo updates.
+- Static HTML, CSS and JavaScript, hosted on GitHub Pages and served through Cloudflare
+- Cloudflare Worker (JavaScript) for the dynamic features
+- Python build scripts for generating the sitemap, gallery manifests and share pages
+- Playwright tests, run with pytest
 
-## robots.txt and llms.txt on a fresh clone
-`main` and `dev` intentionally keep different versions of `robots.txt` and `llms.txt` (crawler permissions differ per branch), and merges between the two branches should never overwrite one branch's copy with the other's. This is enforced by `.gitattributes` (`merge=ours` on both files), but the merge driver itself has to be registered locally since Git won't run merge drivers from `.gitattributes` alone. After cloning this repo, run once:
+## Built with
 
-```
-git config merge.ours.driver true
-```
+Built and maintained with Claude Code, from first commit through to deployment.
 
-## Running tests
-End-to-end tests use Playwright (Python) against a local copy of the site. Install once:
+## Running the tests
 
 ```
-pip install -r requirements-test.txt
-python -m playwright install --with-deps chromium
+python -m pytest -q
 ```
 
-Then run the suite (this starts and stops a local static server automatically):
+The full suite takes about 12 minutes.
 
-```
-pytest -v
-```
+## Notes for contributors
 
-A GitHub Actions workflow (`.github/workflows/tests.yml`) runs the same suite on every push and pull request.
-
-<!-- Cloudflare build test: 2026-10-21T20:52:49Z -->
+Day-to-day editing instructions for the site, including how to add photos and change the hero image, are in [BUILD.md](BUILD.md).

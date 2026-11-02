@@ -95,18 +95,32 @@
   // The units sold per product, typed in here: the figure shown on each product's card. A blank product keeps the figure in
   // data/merch-sales.json (the page's own fallback).
   var soldEl = document.getElementById('shop-sold-list'), soldNote = document.getElementById('shop-sold-note');
-  function drawSold(byHandle) {
+  // The shop page's key for each product that has a figure in data/merch-sales.json (the same map as shop.html).
+  var SOLD_KEYS = {
+    'black-mt3uk-tee-red-underline-super-soft': 'tee',
+    'black-mt3uk-tee-yellow-underline': 'tee-yellow',
+    'mt3uk-official-stickers-white-red-line-3-pack': 'stickers',
+    'mt3uk-fire-red-hoodie-yellow-line': 'hoodie-red',
+    'mt3uk-grey-hoodie-red-line': 'hoodie-grey',
+    'model-3-brake-master-cylinder-bracket-for-rhd-models-only': 'brace'
+  };
+  // The figure each product shows now: the one typed in here, else the one in data/merch-sales.json (grey, as a placeholder).
+  function drawSold(typed, file) {
     soldEl.innerHTML = catalogue.length ? '<table class="iv-table"><tbody>' + catalogue.map(function (p) {
-      var value = byHandle[p.handle] !== undefined ? byHandle[p.handle] : '';
+      var value = typed[p.handle] !== undefined ? typed[p.handle] : '';
+      var shownNow = SOLD_KEYS[p.handle] && file[SOLD_KEYS[p.handle]] !== undefined ? file[SOLD_KEYS[p.handle]] : '';
       return '<tr><td>' + esc(p.title) + '</td><td><input type="number" min="0" step="1" class="shop-sold" data-handle="' + esc(p.handle) +
-        '" value="' + esc(value) + '" aria-label="Units sold: ' + esc(p.title) + '" style="width:6em"></td></tr>';
+        '" value="' + esc(value) + '" placeholder="' + esc(shownNow) + '" aria-label="Units sold: ' + esc(p.title) + '" style="width:6em"></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">No products yet.</p>';
   }
   function loadSold() {
-    fetch(API + '/shop/sales/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { drawSold((d && d.byHandle) || {}); })
-      .catch(function () { drawSold({}); });
+    var typedReq = fetch(API + '/shop/sales/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    var fileReq = fetch('data/merch-sales.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+    Promise.all([typedReq, fileReq]).then(function (out) {
+      drawSold((out[0] && out[0].byHandle) || {}, out[1] || {});
+    });
   }
   function saveSold() {
     var byHandle = {};

@@ -464,8 +464,11 @@ def test_the_offer_card_shows_the_reduced_price_for_the_percentage_entered(page)
     expect(items.nth(0)).to_have_text("Tesla Model 3 Brake Master Cylinder Bracket (£125) £87.50")
     expect(items.nth(1)).to_have_text("Tevo Brace (£50) £35")
     expect(items.nth(2)).to_have_text("Tevo Kit")
-    # The reduced price is in the site's accent colour (orange, the default navy and orange scheme), the list price is not.
-    expect(items.nth(0).locator(".hp-card-now")).to_have_css("color", "rgb(232, 84, 42)")
+    # The reduced price takes the site's current accent (whichever colour scheme the visitor has chosen), the same accent as the
+    # offer's tag, so it is checked against the tag rather than a fixed colour.
+    accent = items.nth(0).locator(".hp-card-now").evaluate("el => getComputedStyle(el).color")
+    tag = page.locator(".hp-offer-card .hp-card-tag").evaluate("el => getComputedStyle(el).backgroundColor")
+    assert accent == tag, (accent, tag)
 
 
 def test_an_offer_item_saved_with_a_shopify_address_still_links_to_the_shop_page(page):

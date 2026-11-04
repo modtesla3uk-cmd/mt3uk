@@ -1,0 +1,11 @@
+{
+  "name": "laps-app",
+  "version": "8.0.0",
+  "private": true,
+  "description": "Laps by MT3UK Android app (Capacitor shell that loads laps.mt3uk.com)",
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  }
+}

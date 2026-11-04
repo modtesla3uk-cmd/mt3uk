@@ -1,0 +1,14 @@
+{
+  "appId": "com.mt3uk.lapsapp2026",
+  "appName": "Laps by MT3UK",
+  "webDir": "www",
+  "server": {
+    "url": "https://laps.mt3uk.com/",
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowNavigation": ["laps.mt3uk.com", "mt3uk.com", "www.mt3uk.com"]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

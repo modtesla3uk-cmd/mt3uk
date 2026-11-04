@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Laps by MT3UK</string>
+    <string name="title_activity_main">Laps by MT3UK</string>
+    <string name="package_name">com.mt3uk.lapsapp2026</string>
+    <string name="custom_url_scheme">com.mt3uk.lapsapp2026</string>
+</resources>

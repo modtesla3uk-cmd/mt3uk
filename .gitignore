@@ -6,3 +6,11 @@ test-results/
 # Android signing keys: never commit
 *.keystore
 *.jks
+
+# Capacitor Android project (builds on the developer PC)
+capacitor-app/node_modules/
+capacitor-app/android/app/build/
+capacitor-app/android/.gradle/
+capacitor-app/android/build/
+capacitor-app/android/local.properties
+*.keystore

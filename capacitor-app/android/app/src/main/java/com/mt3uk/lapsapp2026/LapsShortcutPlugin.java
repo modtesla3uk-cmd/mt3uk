@@ -29,7 +29,8 @@ public class LapsShortcutPlugin extends Plugin {
         }
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("https://laps.mt3uk.com/laps.html"));
+        // The start page decides between the intro and Sessions, as the app icon does.
+        intent.setData(Uri.parse("https://laps.mt3uk.com/"));
         ShortcutInfoCompat shortcut = new ShortcutInfoCompat.Builder(getContext(), "laps-home")
             .setShortLabel("Laps by MT3UK")
             .setLongLabel("Laps by MT3UK")

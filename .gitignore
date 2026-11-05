@@ -9,3 +9,6 @@ test-results/
 
 # Firebase config for the Android app (from the Firebase console, never committed)
 capacitor-app/android/app/google-services.json
+
+# The Capacitor Android project lives on the capacitor-app branch, not on main
+/capacitor-app/

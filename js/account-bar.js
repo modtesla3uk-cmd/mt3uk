@@ -500,6 +500,16 @@
     }).catch(function () {});
   }
 
+  // Once per session, ask Google Play for a newer version. If there is one, Play shows its own update screen.
+  if (plugins.AppUpdate && plugins.AppUpdate.checkForUpdate) {
+    try {
+      if (!sessionStorage.getItem('mt3ukUpdateChecked')) {
+        sessionStorage.setItem('mt3ukUpdateChecked', '1');
+        Promise.resolve(plugins.AppUpdate.checkForUpdate()).catch(function () {});
+      }
+    } catch (e) { /* storage blocked: skip the check */ }
+  }
+
   // Each resolves true when the Chrome window opened, false when the app's browser plugin is missing or failed.
   function openTab(url) {
     if (!(plugins.Browser && plugins.Browser.open)) return Promise.resolve(false);

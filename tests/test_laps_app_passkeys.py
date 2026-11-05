@@ -174,3 +174,26 @@ def test_once_the_icon_is_on_the_home_screen_the_card_is_not_offered_again(page)
     page.goto("/laps.html")
     page.wait_for_timeout(500)
     assert page.locator("#lh-home").is_hidden()
+
+
+UPDATE_BRIDGE = """
+window.__updateChecked = 0;
+window.Capacitor = {
+  isNativePlatform: function () { return true; },
+  Plugins: {
+    App: { addListener: function () {} },
+    AppUpdate: { checkForUpdate: function () { window.__updateChecked++; return Promise.resolve({ available: false }); } }
+  }
+};
+"""
+
+
+def test_the_app_asks_google_play_for_an_update_once_a_session(page):
+    page.add_init_script(UPDATE_BRIDGE)
+    page.goto("/laps-signin.html")
+    page.wait_for_timeout(400)
+    assert page.evaluate("window.__updateChecked") == 1
+    # A reload in the same session does not ask Play again (the counter restarts, the session flag does not).
+    page.reload()
+    page.wait_for_timeout(400)
+    assert page.evaluate("window.__updateChecked") == 0

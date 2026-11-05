@@ -196,7 +196,8 @@
     });
     // Offer the passkey when the email box is tapped (keyboard bar or the
     // box's suggestions), for visitors who aren't signed in.
-    if (PK && PK.supported() && !read(SESSION_KEY)) {
+    // Inside the app's window the passkey is asked for once, by the button, so the background request is left out (Chrome allows one at a time).
+    if (PK && PK.supported() && !read(SESSION_KEY) && !(fromApp && params.get('fresh') === '1')) {
       PK.autofill(function (data) { signedIn(data.session, data.email); });
     }
     $('si-passkey-btn').addEventListener('click', function () {

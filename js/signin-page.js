@@ -145,7 +145,16 @@
       PK.autofill(function (data) { signedIn(data.session, data.email); });
     }
     $('si-passkey-btn').addEventListener('click', function () {
-      if (inApp) { if (window.mt3ukAppBridge) window.mt3ukAppBridge.openPasskey(); return; }
+      if (inApp) {
+        // Say what is happening on the screen, so a tap that doesn't open the window is not silent.
+        setStatus($('si-passkey-status'), 'Opening your passkey sign-in\u2026', '');
+        var opening = window.mt3ukAppBridge ? window.mt3ukAppBridge.openPasskey() : Promise.resolve(false);
+        opening.then(function (opened) {
+          if (opened) setStatus($('si-passkey-status'), 'Finish signing in in the window that opens, then tap Open the Laps app.', 'ok');
+          else setStatus($('si-passkey-status'), 'Passkey sign-in needs an updated Laps app. Update it, or sign in with an email code.', 'err');
+        });
+        return;
+      }
       var btn = this;
       btn.disabled = true;
       setStatus($('si-passkey-status'), 'Waiting for your passkey…', '');

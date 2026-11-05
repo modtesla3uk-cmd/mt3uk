@@ -468,11 +468,12 @@
       if (u && /^https:\/\/(laps\.)?mt3uk\.com\//.test(u) && u !== location.href) location.href = u;
     });
   }
+  // Resolves true when the Custom Tab opened, false when the app's browser plugin is missing or failed.
   window.mt3ukAppBridge = {
     openPasskey: function () {
       var url = 'https://laps.mt3uk.com/laps-signin.html?app=1';
-      if (plugins.Browser && plugins.Browser.open) plugins.Browser.open({ url: url });
-      else window.open(url, '_blank');
+      if (!(plugins.Browser && plugins.Browser.open)) return Promise.resolve(false);
+      return Promise.resolve(plugins.Browser.open({ url: url })).then(function () { return true; }, function () { return false; });
     }
   };
 })();

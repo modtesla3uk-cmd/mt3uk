@@ -33,3 +33,20 @@ def test_the_custom_tab_sign_in_page_loads_without_errors(page):
     page.goto("/laps-signin.html?app=1")
     page.wait_for_timeout(500)
     assert errors == [], errors
+
+
+def test_the_passkey_button_says_what_it_is_doing_on_screen(page):
+    page.add_init_script(BRIDGE)
+    page.goto("/laps-signin.html")
+    expect(page.locator("#si-passkey")).to_be_visible()
+    page.locator("#si-passkey-btn").click()
+    expect(page.locator("#si-passkey-status")).to_contain_text("Finish signing in in the window that opens")
+
+
+def test_an_older_app_without_the_browser_plugin_is_told_to_update(page):
+    page.add_init_script(
+        "window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: {} };")
+    page.goto("/laps-signin.html")
+    expect(page.locator("#si-passkey")).to_be_visible()
+    page.locator("#si-passkey-btn").click()
+    expect(page.locator("#si-passkey-status")).to_contain_text("needs an updated Laps app")

@@ -465,7 +465,10 @@
   if (plugins.App && plugins.App.addListener) {
     plugins.App.addListener('appUrlOpen', function (ev) {
       var u = ev && ev.url;
-      if (u && /^https:\/\/(laps\.)?mt3uk\.com\//.test(u) && u !== location.href) location.href = u;
+      if (!(u && /^https:\/\/(laps\.)?mt3uk\.com\//.test(u) && u !== location.href)) return;
+      // Coming back from the passkey window: close it, so the member is left in the app.
+      if (plugins.Browser && plugins.Browser.close) { try { Promise.resolve(plugins.Browser.close()).catch(function () {}); } catch (e) {} }
+      location.href = u;
     });
   }
   // Resolves true when the Custom Tab opened, false when the app's browser plugin is missing or failed.

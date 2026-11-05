@@ -7,7 +7,7 @@ window.__calls = [];
 window.Capacitor = {
   isNativePlatform: function () { return true; },
   Plugins: {
-    Browser: { open: function (o) { window.__calls.push(['browser', o.url]); return Promise.resolve(); } },
+    Browser: { open: function (o) { window.__calls.push(['browser', o.url]); return Promise.resolve(); }, close: function () { fetch('/__passkey_window_closed').catch(function () {}); return Promise.resolve(); } },
     App: { addListener: function (ev, fn) { window.__calls.push(['listen', ev]); window.__appUrl = fn; } }
   }
 };
@@ -50,3 +50,20 @@ def test_an_older_app_without_the_browser_plugin_is_told_to_update(page):
     expect(page.locator("#si-passkey")).to_be_visible()
     page.locator("#si-passkey-btn").click()
     expect(page.locator("#si-passkey-status")).to_contain_text("needs an updated Laps app")
+
+
+def test_a_returning_link_closes_the_passkey_window_and_opens_the_app_page(page):
+    page.add_init_script(BRIDGE)
+    closed = []
+    page.route("**/__passkey_window_closed", lambda route: (closed.append(1), route.fulfill(status=200, body="")))
+    page.goto("/laps-signin.html")
+    page.evaluate("window.__appUrl({ url: 'https://laps.mt3uk.com/laps.html#mt3uk-handover=abc' })")
+    page.wait_for_timeout(800)
+    assert closed, "the passkey window was not closed"
+
+
+def test_a_member_already_signed_in_from_the_app_gets_the_return_step(page):
+    page.add_init_script(BRIDGE)
+    page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
+    page.goto("/laps-signin.html?app=1")
+    expect(page.locator("#si-app-return")).to_be_visible()

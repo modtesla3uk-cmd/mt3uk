@@ -45,6 +45,8 @@
     // In the Laps app, passkeys run in a Chrome Custom Tab opened from the app's sign-in page. That page has ?app=1, and
     // after signing in it hands the session back to the app with a one-time code.
     var fromApp = params.get('app') === '1';
+    // The passkey window stays out of the browser's install prompts: it is only there to bring the member back to the app.
+    if (fromApp) { try { sessionStorage.setItem('mt3ukFromApp', '1'); } catch (e) {} }
     var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     if (next && /^\/(?!\/)/.test(next)) write(NEXT_KEY, JSON.stringify({ url: next, at: Date.now() }));
     // The page to come back to, sent with a Laps request so the emailed link brings the member back to it.
@@ -80,8 +82,11 @@
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session },
         body: JSON.stringify({ firstName: read(FIRST_NAME_KEY) })
       }).then(function (r) { return r.json(); }).then(function (d) {
-        if (d && d.success && d.code) link.setAttribute('href', location.origin + '/laps.html#mt3uk-handover=' + d.code);
-        else setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err');
+        if (d && d.success && d.code) {
+          link.setAttribute('href', location.origin + '/laps.html#mt3uk-handover=' + d.code);
+          // Go back to the app on its own; the button stays for a phone that doesn't open the app from here.
+          setTimeout(function () { location.href = link.getAttribute('href'); }, 400);
+        } else setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err');
       }).catch(function () { setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err'); });
     }
 
@@ -366,7 +371,8 @@
           $('si-welcome').classList.add('si-welcome-err');
         });
     } else if (read(SESSION_KEY)) {
-      showSignedIn();
+      // Already signed in and opened from the app: send the session back to the app.
+      if (fromApp) showAppReturn(read(SESSION_KEY)); else showSignedIn();
     }
   }
 })();

@@ -2839,7 +2839,7 @@
   // shows its own launch screen.
   var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
     navigator.standalone === true || document.referrer.indexOf('android-app://') === 0 || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
-  if (!force && installed) return;
+  if (!force && (installed || (function () { try { return sessionStorage.getItem('mt3ukFromApp') === '1' || /mt3uk-handover/.test(location.hash); } catch (e) { return /mt3uk-handover/.test(location.hash); } })())) return;
   try { localStorage.setItem(KEY, '1'); } catch (e) {}
   show();
 })();
@@ -6654,7 +6654,7 @@
     // per browser session, unless they choose Don't show again.
     var PROMPT_KEY = 'mt3ukOpenAppPromptOff';
     function openAppPrompt() {
-      if (read(PROMPT_KEY) === '1' || document.getElementById('mt3uk-open-app')) return;
+      if (read(PROMPT_KEY) === '1' || document.getElementById('mt3uk-open-app') || (function () { try { return sessionStorage.getItem('mt3ukFromApp') === '1' || /mt3uk-handover/.test(location.hash); } catch (e) { return /mt3uk-handover/.test(location.hash); } })()) return;
       // Wait until the intro splash has been tapped away.
       if (document.getElementById('mt3uk-intro')) { setTimeout(openAppPrompt, 400); return; }
       try { if (sessionStorage.getItem('mt3ukOpenAppPromptShown')) return; sessionStorage.setItem('mt3ukOpenAppPromptShown', '1'); } catch (e) {}
@@ -6912,7 +6912,7 @@
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/laps-strip.js?v=20271300" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=20271102" defer></script>
+<script src="js/account-bar.js?v=20271103" defer></script>
 <script src="js/search.js" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=4" defer></script>

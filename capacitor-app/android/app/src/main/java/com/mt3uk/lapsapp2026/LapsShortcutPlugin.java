@@ -34,4 +34,18 @@ public class LapsShortcutPlugin extends Plugin {
         boolean asked = ShortcutManagerCompat.requestPinShortcut(getContext(), shortcut, null);
         call.resolve(new JSObject().put("asked", asked));
     }
+
+    // Whether the Laps icon is already on the home screen, so the card can be hidden.
+    @PluginMethod
+    public void isPinned(PluginCall call) {
+        boolean pinned = false;
+        try {
+            for (ShortcutInfoCompat s : ShortcutManagerCompat.getShortcuts(getContext(), ShortcutManagerCompat.FLAG_MATCH_PINNED)) {
+                if ("laps-home".equals(s.getId())) { pinned = true; break; }
+            }
+        } catch (Exception e) {
+            pinned = false;
+        }
+        call.resolve(new JSObject().put("pinned", pinned));
+    }
 }

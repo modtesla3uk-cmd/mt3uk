@@ -475,12 +475,15 @@
       location.href = target;
     });
   }
-  // Resolves true when the Custom Tab opened, false when the app's browser plugin is missing or failed.
+  // Each resolves true when the Chrome window opened, false when the app's browser plugin is missing or failed.
+  function openTab(url) {
+    if (!(plugins.Browser && plugins.Browser.open)) return Promise.resolve(false);
+    return Promise.resolve(plugins.Browser.open({ url: url })).then(function () { return true; }, function () { return false; });
+  }
+  var SIGN_IN_TAB = 'https://laps.mt3uk.com/laps-signin.html?app=1';
   window.mt3ukAppBridge = {
-    openPasskey: function () {
-      var url = 'https://laps.mt3uk.com/laps-signin.html?app=1';
-      if (!(plugins.Browser && plugins.Browser.open)) return Promise.resolve(false);
-      return Promise.resolve(plugins.Browser.open({ url: url })).then(function () { return true; }, function () { return false; });
-    }
+    openPasskey: function () { return openTab(SIGN_IN_TAB); },
+    // Set up a passkey on this phone: the window signs the member in if needed, adds the passkey, then goes back to the app.
+    openPasskeySetup: function () { return openTab(SIGN_IN_TAB + '&setup=1'); }
   };
 })();

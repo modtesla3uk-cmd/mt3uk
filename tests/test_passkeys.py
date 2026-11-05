@@ -326,3 +326,18 @@ def test_iphone_keyboard_hints_on_email_and_nickname_boxes():
     for email_id in ("si-join-email", "mb-submit-email"):
         tag = re.search(r'<input[^>]*id="%s"[^>]*>' % email_id, everything).group(0)
         assert 'autocomplete="email"' in tag, email_id
+
+
+@all_devices
+def test_in_the_app_the_profile_passkey_button_opens_the_set_up_window(device_page):
+    """Inside the Laps app, Profile's passkey button opens the set-up window (the bridge in js/account-bar.js)."""
+    from test_laps_app_passkeys import BRIDGE
+    page = device_page
+    signed_in(page)
+    page.add_init_script(BRIDGE)
+    page.goto("/profile.html")
+    page.locator("#pf-pk-setup").wait_for(state="visible", timeout=5000)
+    page.click("#pf-pk-setup")
+    page.wait_for_timeout(300)
+    calls = page.evaluate("window.__calls")
+    assert ["browser", "https://laps.mt3uk.com/laps-signin.html?app=1&setup=1"] in calls, calls

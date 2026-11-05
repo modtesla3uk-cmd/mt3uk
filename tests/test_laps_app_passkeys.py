@@ -79,3 +79,10 @@ def test_a_return_with_its_code_in_the_path_is_put_in_the_page_hash_and_closes_t
     page.wait_for_timeout(800)
     assert closed, "the passkey window was not closed"
     assert ("#mt3uk-handover=" + code) in page.url, page.url
+
+
+def test_the_set_up_window_offers_to_add_a_passkey_before_going_back(page):
+    page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
+    page.goto("/laps-signin.html?app=1&setup=1")
+    expect(page.locator("#si-app-setup")).to_be_visible()
+    expect(page.locator("#si-app-return-wrap")).to_be_hidden()

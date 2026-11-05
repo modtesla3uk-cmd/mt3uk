@@ -45,6 +45,8 @@
     // In the Laps app, passkeys run in a Chrome Custom Tab opened from the app's sign-in page. That page has ?app=1, and
     // after signing in it hands the session back to the app with a one-time code.
     var fromApp = params.get('app') === '1';
+    // From the app's Profile: add a passkey for this phone in the window before going back.
+    var setupPasskey = params.get('setup') === '1';
     // The passkey window stays out of the browser's install prompts: it is only there to bring the member back to the app.
     if (fromApp) { try { sessionStorage.setItem('mt3ukFromApp', '1'); } catch (e) {} }
     var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
@@ -73,10 +75,40 @@
       $('si-signed-in').hidden = true;
       var box = document.createElement('div');
       box.className = 'si-card';
-      box.innerHTML = '<h2>You\u2019re signed in</h2><p>Tap the button to go back to the Laps app.</p>' +
+      var setupHtml = setupPasskey
+        ? '<h2>Add a passkey for this phone</h2><p>Sign in with your face, fingerprint or screen lock next time.</p>' +
+          '<p><button type="button" class="si-btn si-btn-primary" id="si-app-setup">Add a passkey</button></p>' +
+          '<p><button type="button" class="si-btn" id="si-app-setup-skip">Not now</button></p>' +
+          '<p class="si-status" id="si-app-setup-status"></p>'
+        : '';
+      box.innerHTML = (setupPasskey ? '' : '<h2>You\u2019re signed in</h2><p>Tap the button to go back to the Laps app.</p>') + setupHtml +
+        '<div id="si-app-return-wrap"' + (setupPasskey ? ' hidden' : '') + '>' +
         '<p><a class="si-btn si-btn-primary" id="si-app-return" href="' + location.origin + '/laps.html">Open the Laps app</a></p>' +
-        '<p class="si-status" id="si-app-status"></p>';
+        '<p class="si-status" id="si-app-status"></p></div>';
       $('si-signed-in').parentNode.insertBefore(box, $('si-signed-in'));
+      if (setupPasskey) {
+        var finishSetup = function () { $('si-app-return-wrap').hidden = false; fetchReturn(); };
+        $('si-app-setup').addEventListener('click', function () {
+          var btn = this;
+          btn.disabled = true;
+          setStatus($('si-app-setup-status'), 'Follow the prompt on your device\u2026', '');
+          PK.register(session).then(function () {
+            setStatus($('si-app-setup-status'), 'Done. Next time sign in with your passkey.', 'ok');
+            finishSetup();
+          }).catch(function (err) {
+            btn.disabled = false;
+            setStatus($('si-app-setup-status'), (err && err.message ? err.message : 'That did not work.') + ' You can add one later from Profile.', 'err');
+          });
+        });
+        $('si-app-setup-skip').addEventListener('click', finishSetup);
+        return;
+      }
+      fetchReturn();
+    }
+
+    // The one-time code that takes the session back into the app (the link is an Android intent naming the app).
+    function fetchReturn() {
+      var session = read(SESSION_KEY);
       var link = $('si-app-return');
       fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/session/handover', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session },

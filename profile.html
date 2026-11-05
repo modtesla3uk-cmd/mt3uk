@@ -1109,7 +1109,22 @@
       if (!PK) return;
       PK.list(session()).then(function (data) { if (data && data.success) drawPasskeys(data.passkeys); }).catch(function () {});
     }
-    if (!PK || !PK.supported()) {
+    // In the Laps app passkeys are set up in a secure Chrome window, opened from here (js/account-bar.js).
+    var inAppSetup = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    function openPasskeySetup(statusEl) {
+      status(statusEl, 'Opening your secure window\u2026', '');
+      if (!(window.mt3ukAppBridge && window.mt3ukAppBridge.openPasskeySetup)) { status(statusEl, 'Passkey set-up needs an updated Laps app. Update it, or sign in with an email code.', 'err'); return; }
+      window.mt3ukAppBridge.openPasskeySetup().then(function (opened) {
+        if (opened) status(statusEl, 'Add your passkey in the window that opens, then tap Open the Laps app to come back.', 'ok');
+        else status(statusEl, 'Passkey set-up needs an updated Laps app. Update it, or sign in with an email code.', 'err');
+      });
+    }
+    if (inAppSetup) {
+      $('pf-passkey-add').hidden = false;
+      $('pf-passkey-unsupported').hidden = true;
+      $('pf-pk-setup').hidden = false;
+      $('pf-pk-text').textContent = 'Sign in with your face, fingerprint or screen lock. Set-up opens in a secure window and brings you back to the app.';
+    } else if (!PK || !PK.supported()) {
       $('pf-passkey-add').hidden = true;
       $('pf-passkey-unsupported').hidden = false;
       $('pf-pk-setup').hidden = true;
@@ -1128,8 +1143,8 @@
         status(statusEl, err.message, 'err');
       });
     }
-    $('pf-passkey-add').addEventListener('click', function () { addPasskey(this, $('pf-passkey-status')); });
-    $('pf-pk-setup').addEventListener('click', function () { addPasskey(this, $('pf-pk-status')); });
+    $('pf-passkey-add').addEventListener('click', function () { if (inAppSetup) openPasskeySetup($('pf-passkey-status')); else addPasskey(this, $('pf-passkey-status')); });
+    $('pf-pk-setup').addEventListener('click', function () { if (inAppSetup) openPasskeySetup($('pf-pk-status')); else addPasskey(this, $('pf-pk-status')); });
     $('pf-passkeys').addEventListener('click', function (e) {
       var btn = e.target.closest('.pf-passkey-remove');
       if (!btn || !window.confirm('Remove this passkey? You can still sign in with an email code, and add it again later.')) return;
@@ -1222,7 +1237,7 @@
 </script>
 
 <script src="js/share.js?v=20270301" defer></script>
-<script src="js/account-bar.js?v=20271104" defer></script>
+<script src="js/account-bar.js?v=20271105" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=4" defer></script>

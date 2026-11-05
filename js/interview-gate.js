@@ -126,7 +126,7 @@
       return session && email ? { session: session, email: email } : null;
     } catch (e) { return null; }
   }
-  function passkeysAvailable() { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get); }
+  function passkeysAvailable() { if ((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent)) return false; return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get); }
   function loadPasskeys() {
     if (window.mt3ukPasskeys) return Promise.resolve();
     return new Promise(function (resolve, reject) {

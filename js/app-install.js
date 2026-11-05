@@ -46,7 +46,7 @@
     var isFirefox = /Firefox\//.test(ua);
     var isChrome = /Chrome\//.test(ua) && !/EdgA?\/|SamsungBrowser|OPR\/|Firefox|FxiOS|CriOS/.test(ua);
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
-      navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+      navigator.standalone === true || document.referrer.indexOf('android-app://') === 0 || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     if (standalone) { remember(); card.hidden = true; return; }
     card.hidden = false;
 

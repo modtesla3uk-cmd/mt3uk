@@ -90,6 +90,7 @@
 
   window.mt3ukPasskeys = {
     supported: function () {
+      if ((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent)) return false;
       return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create && navigator.credentials.get);
     },
     deviceName: deviceName,

@@ -2838,7 +2838,7 @@
   // Skip it in the installed app (Home Screen or Google Play), which already
   // shows its own launch screen.
   var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
-    navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+    navigator.standalone === true || document.referrer.indexOf('android-app://') === 0 || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
   if (!force && installed) return;
   try { localStorage.setItem(KEY, '1'); } catch (e) {}
   show();
@@ -6500,7 +6500,7 @@
     var SESSION_FLAG = 'mt3ukVisitCounted';
 
     function isStandalone() {
-      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     }
 
     if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled')) return;
@@ -6712,7 +6712,7 @@
       box.hidden = true;
     });
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
-      window.navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+      window.navigator.standalone === true || document.referrer.indexOf('android-app://') === 0 || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     // mt3uk.com/?appcheck=1 shows what this browser reports, to see why the
     // app prompt does or doesn't appear on a given phone.
     if (/[?&]appcheck=1\b/.test(location.search)) {

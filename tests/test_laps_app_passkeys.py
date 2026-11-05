@@ -132,3 +132,32 @@ def test_the_app_sends_its_firebase_token_to_the_site_when_signed_in(page):
     page.evaluate("window.__pn.registration({ value: 'f' + 'a'.repeat(160) })")
     page.wait_for_timeout(500)
     assert sent and ("fa" + "a" * 10) in sent[0], sent
+
+
+SHORTCUT_BRIDGE = """
+window.__pinned = 0;
+window.Capacitor = {
+  isNativePlatform: function () { return true; },
+  Plugins: {
+    App: { addListener: function () {} },
+    LapsShortcut: { pin: function () { window.__pinned++; return Promise.resolve({ asked: true }); } }
+  }
+};
+"""
+
+
+def test_inside_the_app_the_intro_page_offers_a_home_screen_icon(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.add_init_script(SHORTCUT_BRIDGE)
+    page.goto("/laps.html")
+    expect(page.locator("#lh-home")).to_be_visible()
+    page.locator("#lh-home-btn").click()
+    expect(page.locator("#lh-home-status")).to_contain_text("Confirm on your phone")
+    assert page.evaluate("window.__pinned") == 1
+
+
+def test_in_a_browser_the_intro_page_has_no_home_screen_card(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/laps.html")
+    expect(page.locator("#lh-start")).to_be_visible()
+    assert page.locator("#lh-home").is_hidden()

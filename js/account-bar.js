@@ -509,6 +509,11 @@
   window.mt3ukAppBridge = {
     openPasskey: function () { return openTab(SIGN_IN_TAB + '&fresh=1'); },
     // Set up a passkey on this phone: the window signs the member in if needed, adds the passkey, then goes back to the app.
-    openPasskeySetup: function () { return openTab(SIGN_IN_TAB + '&setup=1'); }
+    openPasskeySetup: function () { return openTab(SIGN_IN_TAB + '&setup=1'); },
+    // Asks the phone for a Laps icon on the home screen. Resolves true when Android has been asked.
+    addToHomeScreen: function () {
+      if (!(plugins.LapsShortcut && plugins.LapsShortcut.pin)) return Promise.resolve(false);
+      return Promise.resolve(plugins.LapsShortcut.pin()).then(function (r) { return !!(r && r.asked); }, function () { return false; });
+    }
   };
 })();

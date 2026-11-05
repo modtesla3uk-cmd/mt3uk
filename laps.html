@@ -418,6 +418,12 @@
   .lh-reel-bar { display: none; justify-content: flex-start; margin: 0 0 8px; }
   .lh-skip { min-height: 36px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: transparent; color: #fff; font: 600 0.88rem/1 var(--font-body, sans-serif); cursor: pointer; }
   .lh-skip:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+  /* The home screen card shows only inside the Laps app. */
+  .lh-home { margin: 14px 0 0; border: 2px solid #e4b64f; border-radius: 10px; padding: 14px; background: rgba(255,255,255,.04); }
+  .lh-home b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .lh-home span { display: block; font-size: 14px; color: #b9cfc9; margin-bottom: 10px; line-height: 1.4; }
+  .lh-home .btn { width: 100%; }
+  .lh-home-status { margin: 10px 0 0; font-size: 14px; color: #b9e7c8; }
   /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
   @media (max-width: 780px) {
     .lh-reel-bar { display: flex; order: 0; justify-self: start; }
@@ -505,6 +511,12 @@
     <div class="lh-copy">
       <h1 class="lh-sr" data-no-share>Every lap, mapped and measured.</h1>
       <p>Upload files from your lap timer and see every lap on the track, where you gained and lost time, and how each change moved your times.</p>
+      <div class="lh-home" id="lh-home" hidden>
+        <b>Add Laps to your home screen</b>
+        <span>One tap puts the Laps icon on your home screen. Your phone asks you to confirm.</span>
+        <button type="button" class="btn btn-secondary" id="lh-home-btn">Add to home screen</button>
+        <p class="lh-home-status" id="lh-home-status" role="status"></p>
+      </div>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
@@ -562,6 +574,18 @@
           if (skip) vid.pause();
         }
         if (remembered()) show(true);
+        // Inside the Laps app only: the card asks the phone for a home screen icon (js/account-bar.js).
+        var homeCard = document.getElementById('lh-home'), homeBtn = document.getElementById('lh-home-btn'), homeStatus = document.getElementById('lh-home-status');
+        if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+          homeCard.hidden = false;
+          homeBtn.addEventListener('click', function () {
+            homeStatus.textContent = 'Asking your phone\u2026';
+            var ask = window.mt3ukAppBridge && window.mt3ukAppBridge.addToHomeScreen ? window.mt3ukAppBridge.addToHomeScreen() : Promise.resolve(false);
+            ask.then(function (asked) {
+              homeStatus.textContent = asked ? 'Confirm on your phone, then look for Laps on your home screen.' : 'Your phone did not offer this. Add Laps from the apps list instead, by holding its icon.';
+            });
+          });
+        }
         btn.addEventListener('click', function () {
           var skip = !reel.classList.contains('is-skipped');
           show(skip);
@@ -781,7 +805,7 @@
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>
 <script src="js/laps-logo.js?v=2" defer></script>
-<script src="js/account-bar.js?v=20271107" defer></script>
+<script src="js/account-bar.js?v=20271108" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=5" defer></script>
 <script src="js/messenger.js?v=4" defer></script>

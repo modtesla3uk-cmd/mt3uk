@@ -475,6 +475,31 @@
       location.href = target;
     });
   }
+  // Notifications in the app come from Firebase, not the browser's push. The app's token goes to the site while a
+  // member is signed in, and a tapped notification opens its link in the app.
+  var PN = plugins.PushNotifications;
+  if (PN) {
+    var sendToken = function (token) {
+      var session = null;
+      try { session = localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) {}
+      if (!session || !token) return;
+      fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/push/fcm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': session },
+        body: JSON.stringify({ token: token })
+      }).catch(function () {});
+    };
+    PN.addListener('registration', function (t) { sendToken(t && t.value); });
+    PN.addListener('pushNotificationActionPerformed', function (ev) {
+      var url = ev && ev.notification && ev.notification.data && ev.notification.data.url;
+      if (url) location.href = url.charAt(0) === '/' ? location.origin + url : url;
+    });
+    // The first time, Android asks for permission; after that this only registers the device again.
+    Promise.resolve(PN.requestPermissions()).then(function (r) {
+      if (r && r.receive === 'granted') return PN.register();
+    }).catch(function () {});
+  }
+
   // Each resolves true when the Chrome window opened, false when the app's browser plugin is missing or failed.
   function openTab(url) {
     if (!(plugins.Browser && plugins.Browser.open)) return Promise.resolve(false);

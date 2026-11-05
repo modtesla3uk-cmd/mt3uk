@@ -104,3 +104,31 @@ def test_a_passkey_sign_in_from_the_app_goes_straight_to_the_passkey_prompt(page
     page.goto("/laps-signin.html?app=1&fresh=1")
     # The Laps sign-in page waits up to 3 seconds for its settings before it starts.
     page.wait_for_function("window.__passkeyClicked === true", timeout=6000)
+
+
+PUSH_BRIDGE = """
+window.__pn = {};
+window.Capacitor = {
+  isNativePlatform: function () { return true; },
+  Plugins: {
+    App: { addListener: function () {} },
+    PushNotifications: {
+      addListener: function (ev, fn) { window.__pn[ev] = fn; },
+      requestPermissions: function () { return Promise.resolve({ receive: 'granted' }); },
+      register: function () { return Promise.resolve(); }
+    }
+  }
+};
+"""
+
+
+def test_the_app_sends_its_firebase_token_to_the_site_when_signed_in(page):
+    page.add_init_script(PUSH_BRIDGE)
+    page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
+    sent = []
+    page.route("**/push/fcm", lambda route: (sent.append(route.request.post_data), route.fulfill(status=200, body='{"success":true}', content_type="application/json")))
+    page.goto("/laps-signin.html")
+    page.wait_for_function("typeof window.__pn.registration === 'function'")
+    page.evaluate("window.__pn.registration({ value: 'f' + 'a'.repeat(160) })")
+    page.wait_for_timeout(500)
+    assert sent and ("fa" + "a" * 10) in sent[0], sent

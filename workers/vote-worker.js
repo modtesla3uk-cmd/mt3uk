@@ -4793,6 +4793,14 @@ async function sendPushToMember(env, email, message) {
     var gone = [];
     var sent = 0;
     await Promise.all(subs.map(async function (sub) {
+      if (sub.fcm) {
+        try {
+          var fcmResult = await sendFcm(env, sub.fcm, message);
+          if (fcmResult === 'gone') gone.push(sub.endpoint);
+          else if (fcmResult) sent++;
+        } catch (err) { console.log('FCM push failed:', err.message); }
+        return;
+      }
       try {
         var res = await fetch(sub.endpoint, {
           method: 'POST',
@@ -4822,6 +4830,75 @@ async function sendPushToMember(env, email, message) {
   }
 }
 
+// ---------- Android app push (Firebase Cloud Messaging, HTTP v1) ----------
+// The Laps Android app registers its Firebase token with POST /push/fcm. It is kept with the member's other push
+// devices (endpoint 'fcm:<token>') and sent through FCM with a Google access token made from the service account in
+// the FCM_SERVICE_ACCOUNT secret (set in the Cloudflare dashboard, never in the repo).
+var FCM_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
+var fcmAccess = null;
+function b64urlBytes(bytes) {
+  var s = '';
+  for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlText(text) { return b64urlBytes(new TextEncoder().encode(text)); }
+function pemToDer(pem) {
+  var body = pem.replace(/-----[A-Z ]+-----/g, '').replace(/\s+/g, '');
+  var bin = atob(body), out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+async function fcmAccessToken(env) {
+  if (fcmAccess && fcmAccess.exp > Date.now() + 60000) return fcmAccess.token;
+  var sa = JSON.parse(env.FCM_SERVICE_ACCOUNT);
+  var now = Math.floor(Date.now() / 1000);
+  var input = b64urlText(JSON.stringify({ alg: 'RS256', typ: 'JWT' })) + '.' +
+    b64urlText(JSON.stringify({ iss: sa.client_email, scope: FCM_SCOPE, aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 }));
+  var key = await crypto.subtle.importKey('pkcs8', pemToDer(sa.private_key), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  var sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(input));
+  var res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer') + '&assertion=' + input + '.' + b64urlBytes(new Uint8Array(sig))
+  });
+  var data = await res.json();
+  if (!data.access_token) throw new Error('FCM access: ' + (data.error_description || data.error || res.status));
+  fcmAccess = { token: data.access_token, exp: Date.now() + (data.expires_in || 3600) * 1000 };
+  return fcmAccess.token;
+}
+// Sends one notification to an app device. Resolves true when sent, 'gone' when the token is no longer valid.
+async function sendFcm(env, token, message) {
+  var sa = JSON.parse(env.FCM_SERVICE_ACCOUNT);
+  var access = await fcmAccessToken(env);
+  var res = await fetch('https://fcm.googleapis.com/v1/projects/' + sa.project_id + '/messages:send', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + access, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: {
+      token: token,
+      notification: { title: String(message.title || 'Laps by MT3UK'), body: String(message.body || '') },
+      data: { url: String(message.url || '/') },
+      android: { priority: 'HIGH' }
+    } })
+  });
+  if (res.ok) return true;
+  var text = await res.text();
+  if (res.status === 404 || /UNREGISTERED/.test(text)) return 'gone';
+  console.log('FCM push failed:', res.status, text.slice(0, 200));
+  return false;
+}
+async function handlePushFcmSubscribe(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var token = body && typeof body.token === 'string' ? body.token.trim() : '';
+  if (token.length < 100 || token.length > 4096 || /\s/.test(token)) return json({ success: false, message: 'Invalid token' }, 400);
+  var endpoint = 'fcm:' + token;
+  var subs = (await getPushSubscriptions(env, email)).filter(function (s) { return s.endpoint !== endpoint; });
+  subs.push({ endpoint: endpoint, fcm: token, addedAt: new Date().toISOString() });
+  await env.VOTES.put('push:' + email, JSON.stringify(subs.slice(-MAX_PUSH_SUBSCRIPTIONS)));
+  return json({ success: true });
+}
 function validPushSubscription(sub) {
   return sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) &&
     sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string';
@@ -13812,6 +13889,7 @@ export default {
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);
     }
+    if (url.pathname === '/push/fcm' && request.method === 'POST') return handlePushFcmSubscribe(request, env);
     if (url.pathname === '/push/key' && request.method === 'GET') {
       return handlePushKey(request, env);
     }

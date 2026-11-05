@@ -6,3 +6,6 @@ test-results/
 # Android signing keys: never commit
 *.keystore
 *.jks
+
+# Firebase config for the Android app (from the Firebase console, never committed)
+capacitor-app/android/app/google-services.json

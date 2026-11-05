@@ -511,9 +511,18 @@
     // Set up a passkey on this phone: the window signs the member in if needed, adds the passkey, then goes back to the app.
     openPasskeySetup: function () { return openTab(SIGN_IN_TAB + '&setup=1'); },
     // Asks the phone for a Laps icon on the home screen. Resolves true when Android has been asked.
+    // Resolves true when the Laps icon is already on the home screen.
+    onHomeScreen: function () {
+      if (!(plugins.LapsShortcut && plugins.LapsShortcut.isPinned)) return Promise.resolve(false);
+      return Promise.resolve(plugins.LapsShortcut.isPinned()).then(function (r) { return !!(r && r.pinned); }, function () { return false; });
+    },
     addToHomeScreen: function () {
       if (!(plugins.LapsShortcut && plugins.LapsShortcut.pin)) return Promise.resolve(false);
-      return Promise.resolve(plugins.LapsShortcut.pin()).then(function (r) { return !!(r && r.asked); }, function () { return false; });
+      // Resolves 'already' when the icon is there, 'asked' when Android has been asked, or 'refused'.
+      return Promise.resolve(plugins.LapsShortcut.pin()).then(function (r) {
+        if (r && r.pinned) return 'already';
+        return r && r.asked ? 'asked' : 'refused';
+      }, function () { return 'refused'; });
     }
   };
 })();

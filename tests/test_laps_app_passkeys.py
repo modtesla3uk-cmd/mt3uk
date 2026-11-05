@@ -140,7 +140,10 @@ window.Capacitor = {
   isNativePlatform: function () { return true; },
   Plugins: {
     App: { addListener: function () {} },
-    LapsShortcut: { pin: function () { window.__pinned++; return Promise.resolve({ asked: true }); } }
+    LapsShortcut: {
+      pin: function () { window.__pinned++; return Promise.resolve({ asked: true }); },
+      isPinned: function () { return Promise.resolve({ pinned: window.__alreadyPinned === true }); }
+    }
   }
 };
 """
@@ -160,4 +163,13 @@ def test_in_a_browser_the_intro_page_has_no_home_screen_card(page):
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/laps.html")
     expect(page.locator("#lh-start")).to_be_visible()
+    assert page.locator("#lh-home").is_hidden()
+
+
+def test_once_the_icon_is_on_the_home_screen_the_card_is_not_offered_again(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.add_init_script("window.__alreadyPinned = true;")
+    page.add_init_script(SHORTCUT_BRIDGE)
+    page.goto("/laps.html")
+    page.wait_for_timeout(500)
     assert page.locator("#lh-home").is_hidden()

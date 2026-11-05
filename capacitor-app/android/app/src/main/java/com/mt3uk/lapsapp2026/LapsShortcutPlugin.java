@@ -22,6 +22,11 @@ public class LapsShortcutPlugin extends Plugin {
             call.resolve(new JSObject().put("asked", false));
             return;
         }
+        // Already on the home screen: do not ask again, or some launchers add a second icon.
+        if (pinnedHere()) {
+            call.resolve(new JSObject().put("asked", false).put("pinned", true));
+            return;
+        }
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("https://laps.mt3uk.com/laps.html"));
@@ -38,14 +43,17 @@ public class LapsShortcutPlugin extends Plugin {
     // Whether the Laps icon is already on the home screen, so the card can be hidden.
     @PluginMethod
     public void isPinned(PluginCall call) {
-        boolean pinned = false;
+        call.resolve(new JSObject().put("pinned", pinnedHere()));
+    }
+
+    private boolean pinnedHere() {
         try {
             for (ShortcutInfoCompat s : ShortcutManagerCompat.getShortcuts(getContext(), ShortcutManagerCompat.FLAG_MATCH_PINNED)) {
-                if ("laps-home".equals(s.getId())) { pinned = true; break; }
+                if ("laps-home".equals(s.getId())) return true;
             }
         } catch (Exception e) {
-            pinned = false;
+            return false;
         }
-        call.resolve(new JSObject().put("pinned", pinned));
+        return false;
     }
 }

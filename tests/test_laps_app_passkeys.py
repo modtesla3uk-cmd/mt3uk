@@ -95,3 +95,12 @@ def test_a_passkey_sign_in_from_the_app_starts_signed_out_so_the_passkey_is_aske
     page.wait_for_timeout(300)
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") is None
     expect(page.locator("#si-passkey-btn")).to_be_visible()
+
+
+def test_a_passkey_sign_in_from_the_app_goes_straight_to_the_passkey_prompt(page):
+    page.add_init_script("document.addEventListener('click', function (e) { if (e.target && e.target.id === 'si-passkey-btn') window.__passkeyClicked = true; }, true);")
+    # A phone can run passkeys; a stub stands in so the page offers the button (the prompt itself is not run here).
+    page.add_init_script("window.PublicKeyCredential = function () {}; Object.defineProperty(navigator, 'credentials', { configurable: true, value: { create: function () { return new Promise(function () {}); }, get: function () { return new Promise(function () {}); } } });")
+    page.goto("/laps-signin.html?app=1&fresh=1")
+    # The Laps sign-in page waits up to 3 seconds for its settings before it starts.
+    page.wait_for_function("window.__passkeyClicked === true", timeout=6000)

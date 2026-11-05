@@ -175,6 +175,14 @@
       $('si-passkey').hidden = false;
       if (!PK.hasOnThisDevice()) explainPasskey();
     }
+    // Opened from the app to sign in with a passkey: go straight to the passkey prompt, with the button in view for a tap if the browser asks.
+    if (fromApp && params.get('fresh') === '1' && !setupPasskey && PK && PK.supported()) {
+      $('si-passkey').hidden = false;
+      setTimeout(function () {
+        var b = $('si-passkey-btn');
+        if (b) { b.scrollIntoView({ block: 'center' }); b.click(); }
+      }, 400);
+    }
     // Inside the app's own WebView passkeys can't run, so the button opens this page in a Custom Tab where they can.
     if (inApp) {
       $('si-passkey').hidden = false;

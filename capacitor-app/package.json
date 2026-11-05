@@ -5,6 +5,8 @@
   "description": "Laps by MT3UK Android app (Capacitor shell that loads laps.mt3uk.com)",
   "dependencies": {
     "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/cli": "^8.6.0",
     "@capacitor/core": "^8.6.0"
   }

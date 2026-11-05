@@ -433,3 +433,17 @@ def test_a_new_member_is_welcomed_by_name_with_a_guide_on_the_intro_page(page):
     assert "welcome" not in page.url
     page.locator("#lh-welcome-close").click()
     expect(page.locator("#lh-welcome")).to_be_hidden()
+
+
+def test_a_skipped_intro_stays_skipped_on_the_next_visit(page):
+    """Skip intro is remembered in the browser: the next visit to Laps opens with the words and buttons first."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/laps.html")
+    expect(page.locator("#lh-reel-skip")).to_have_text("Skip intro")
+    page.locator("#lh-reel-skip").click()
+    expect(page.locator("#lh-reel-skip")).to_have_text("Show intro")
+    page.goto("/laps.html")
+    expect(page.locator("#lh-reel-skip")).to_have_text("Show intro")
+    page.locator("#lh-reel-skip").click()
+    page.goto("/laps.html")
+    expect(page.locator("#lh-reel-skip")).to_have_text("Skip intro")

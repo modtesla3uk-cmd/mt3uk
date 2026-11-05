@@ -550,13 +550,22 @@
     <script>
       (function () {
         var reel = document.querySelector('.lh-reel'), hero = document.querySelector('.lh-hero'), btn = document.getElementById('lh-reel-skip'), vid = reel.querySelector('video');
-        btn.addEventListener('click', function () {
-          var skip = !reel.classList.contains('is-skipped');
+        // Remembered in this browser (and in the app), so a skipped intro stays skipped on the next visit.
+        var KEY = 'mt3ukLapsIntroSkipped';
+        function remembered() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+        function remember(on) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {} }
+        function show(skip) {
           reel.classList.toggle('is-skipped', skip);
           hero.classList.toggle('is-skipped', skip);
           btn.textContent = skip ? 'Show intro' : 'Skip intro';
           btn.setAttribute('aria-expanded', String(!skip));
           if (skip) vid.pause();
+        }
+        if (remembered()) show(true);
+        btn.addEventListener('click', function () {
+          var skip = !reel.classList.contains('is-skipped');
+          show(skip);
+          remember(skip);
         });
       })();
       document.getElementById('lh-share').addEventListener('click', function () {

@@ -83,9 +83,14 @@
         body: JSON.stringify({ firstName: read(FIRST_NAME_KEY) })
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.success && d.code) {
-          link.setAttribute('href', location.origin + '/laps.html#mt3uk-handover=' + d.code);
-          // Go back to the app on its own; the button stays for a phone that doesn't open the app from here.
-          setTimeout(function () { location.href = link.getAttribute('href'); }, 400);
+          // Chrome keeps a link to the same site inside the window, so go by an Android intent that names the app.
+          // The code rides in the path (the intent's own # starts after it); if the app isn't installed, the window stays here.
+          var page = location.origin + '/laps.html?mt3uk-handover=' + d.code;
+          var fallback = location.origin + '/laps.html#mt3uk-handover=' + d.code;
+          var intent = 'intent://laps.mt3uk.com/laps.html?mt3uk-handover=' + d.code +
+            '#Intent;scheme=https;package=com.mt3uk.lapsapp2026;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
+          link.setAttribute('href', intent);
+          setTimeout(function () { location.href = intent; }, 400);
         } else setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err');
       }).catch(function () { setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err'); });
     }

@@ -67,3 +67,15 @@ def test_a_member_already_signed_in_from_the_app_gets_the_return_step(page):
     page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
     page.goto("/laps-signin.html?app=1")
     expect(page.locator("#si-app-return")).to_be_visible()
+
+
+def test_a_return_with_its_code_in_the_path_is_put_in_the_page_hash_and_closes_the_window(page):
+    page.add_init_script(BRIDGE)
+    closed = []
+    page.route("**/__passkey_window_closed", lambda route: (closed.append(1), route.fulfill(status=200, body="")))
+    code = "a" * 64
+    page.goto("/laps-signin.html")
+    page.evaluate("window.__appUrl({ url: 'https://laps.mt3uk.com/laps.html?mt3uk-handover=" + code + "' })")
+    page.wait_for_timeout(800)
+    assert closed, "the passkey window was not closed"
+    assert ("#mt3uk-handover=" + code) in page.url, page.url

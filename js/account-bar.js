@@ -465,10 +465,14 @@
   if (plugins.App && plugins.App.addListener) {
     plugins.App.addListener('appUrlOpen', function (ev) {
       var u = ev && ev.url;
-      if (!(u && /^https:\/\/(laps\.)?mt3uk\.com\//.test(u) && u !== location.href)) return;
+      if (!u || !/^https:\/\/(laps\.)?mt3uk\.com\//.test(u)) return;
+      // A return from the passkey window carries its code in the path (?mt3uk-handover=); the app puts it in the # the page reads.
+      var m = /[?&]mt3uk-handover=([a-f0-9]{64})/.exec(u);
+      var target = m ? u.split('?')[0] + '#mt3uk-handover=' + m[1] : u;
+      if (target === location.href) return;
       // Coming back from the passkey window: close it, so the member is left in the app.
       if (plugins.Browser && plugins.Browser.close) { try { Promise.resolve(plugins.Browser.close()).catch(function () {}); } catch (e) {} }
-      location.href = u;
+      location.href = target;
     });
   }
   // Resolves true when the Custom Tab opened, false when the app's browser plugin is missing or failed.

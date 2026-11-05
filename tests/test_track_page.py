@@ -1696,8 +1696,8 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
 
 
 def test_what_are_sessions_is_open_until_a_car_is_added(page):
-    """What are Sessions? lists what Laps does (tyres and pads among it). It starts open for a member with no car, and
-    closes once a car is added."""
+    """What are Sessions? lists what Laps does (tyres and pads among it). It starts shut for everyone, so a member
+    with no car sees Add your car first."""
     open_page(page, FakeWorker(earlier=False), "/track.html", signed_in=True)
     page.locator(".page-hero .tp-what").wait_for(state="attached")
     what = page.locator(".page-hero .tp-what")
@@ -1707,7 +1707,9 @@ def test_what_are_sessions_is_open_until_a_car_is_added(page):
     page.route(re.compile(r".*/my-builds$"), lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "cars": []})))
     page.reload()
     page.locator(".page-hero .tp-what").wait_for(state="attached")
-    expect(what).to_have_attribute("open", "")
+    # Add your car comes first: What are Sessions? stays shut, and the ? button opens it.
+    expect(what).not_to_have_attribute("open", "")
+    expect(page.locator("#tp-addcar")).to_be_visible()
     expect(what.locator(".tp-what-list li")).to_have_count(5)
     expect(what).to_contain_text("Tyres and brake pads")
 

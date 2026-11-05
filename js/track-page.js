@@ -1082,12 +1082,12 @@
       if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
       if (window.MT3UKOffline && m) window.MT3UKOffline.drawPending(app);
       if (m) drawQuota();
-      // A member with no car yet sees What are Sessions? open, so they see what Laps does. Once a car is added it closes.
+      // What are Sessions? starts shut for everyone, so a member with no car sees Add your car first. The ? button opens it.
       var what = document.querySelector('.page-hero .tp-what');
       // Shut with its X once, it stays shut on this page (js/laps-tip.js).
       var whatShut = false;
       try { whatShut = localStorage.getItem('mt3ukWhatShut-' + location.pathname) === '1'; } catch (e) { /* storage blocked */ }
-      if (what && m) what.open = !(m.cars || []).length && !whatShut;
+      if (what && m) what.open = false && !whatShut;
       // Opened by itself, it sits in the page (not over it); the What is...? button opens it as a popover.
       if (what) what.classList.toggle('is-inline', !!what.open);
       if (m && m.cars && m.cars.length) { drawNews(); drawSince(m); }

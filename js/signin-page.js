@@ -47,6 +47,11 @@
     var fromApp = params.get('app') === '1';
     // From the app's Profile: add a passkey for this phone in the window before going back.
     var setupPasskey = params.get('setup') === '1';
+    // A passkey sign-in from the app starts signed out in its window, so the passkey is asked for every time.
+    // (The window keeps its own sign-in, separate from the app's, so signing out in the app does not reach it.)
+    if (fromApp && params.get('fresh') === '1' && !setupPasskey) {
+      try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(EMAIL_KEY); } catch (e) {}
+    }
     // The passkey window stays out of the browser's install prompts: it is only there to bring the member back to the app.
     if (fromApp) { try { sessionStorage.setItem('mt3ukFromApp', '1'); } catch (e) {} }
     var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);

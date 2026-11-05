@@ -482,7 +482,7 @@
   }
   var SIGN_IN_TAB = 'https://laps.mt3uk.com/laps-signin.html?app=1';
   window.mt3ukAppBridge = {
-    openPasskey: function () { return openTab(SIGN_IN_TAB); },
+    openPasskey: function () { return openTab(SIGN_IN_TAB + '&fresh=1'); },
     // Set up a passkey on this phone: the window signs the member in if needed, adds the passkey, then goes back to the app.
     openPasskeySetup: function () { return openTab(SIGN_IN_TAB + '&setup=1'); }
   };

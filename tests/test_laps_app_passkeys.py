@@ -22,7 +22,7 @@ def test_the_passkey_button_opens_the_custom_tab_inside_the_app(page):
     expect(page.locator("#si-passkey")).to_be_visible()
     page.locator("#si-passkey-btn").click()
     calls = page.evaluate("window.__calls")
-    assert ["browser", "https://laps.mt3uk.com/laps-signin.html?app=1"] in calls, calls
+    assert ["browser", "https://laps.mt3uk.com/laps-signin.html?app=1&fresh=1"] in calls, calls
     assert ["listen", "appUrlOpen"] in calls, calls
     assert errors == [], errors
 
@@ -86,3 +86,12 @@ def test_the_set_up_window_offers_to_add_a_passkey_before_going_back(page):
     page.goto("/laps-signin.html?app=1&setup=1")
     expect(page.locator("#si-app-setup")).to_be_visible()
     expect(page.locator("#si-app-return-wrap")).to_be_hidden()
+
+
+def test_a_passkey_sign_in_from_the_app_starts_signed_out_so_the_passkey_is_asked_for(page):
+    page.add_init_script(BRIDGE)
+    page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
+    page.goto("/laps-signin.html?app=1&fresh=1")
+    page.wait_for_timeout(300)
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") is None
+    expect(page.locator("#si-passkey-btn")).to_be_visible()

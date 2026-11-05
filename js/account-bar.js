@@ -500,12 +500,87 @@
     }).catch(function () {});
   }
 
-  // Once per session, ask Google Play for a newer version. If there is one, Play shows its own update screen.
-  if (plugins.AppUpdate && plugins.AppUpdate.checkForUpdate) {
+  // Once per session, ask Google Play whether a newer version is there. If so, show what's new with Later and Update.
+  var UPDATE_STYLE = '.mt3uk-upd-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2147483000;}' +
+    '.mt3uk-upd-card{position:absolute;left:12px;right:12px;bottom:16px;background:#f2f0ea;color:#0d3b33;border-radius:14px;padding:20px 18px 18px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-family:"IBM Plex Sans",system-ui,sans-serif;}' +
+    '.mt3uk-upd-card h2{font-size:19px;margin:0 0 4px;}' +
+    '.mt3uk-upd-card .ver{font-size:14px;color:#5b6475;margin:0 0 14px;}' +
+    '.mt3uk-upd-card h3{font-size:15px;margin:0 0 8px;}' +
+    '.mt3uk-upd-card ul{margin:0 0 16px;padding-left:20px;font-size:15px;line-height:1.5;}' +
+    '.mt3uk-upd-card li{margin-bottom:4px;}' +
+    '.mt3uk-upd-row{display:flex;gap:10px;}' +
+    '.mt3uk-upd-row button{flex:1;min-height:48px;border-radius:24px;font:700 15px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer;}' +
+    '.mt3uk-upd-later{border:1px solid #0d3b33;background:transparent;color:#0d3b33;}' +
+    '.mt3uk-upd-go{border:0;background:#e4b64f;color:#0d3b33;flex:1.3 !important;}';
+  function showUpdateCard(versionCode, AppUpdate) {
+    // Later hides the card for a day, for this version.
+    try { if (Number(localStorage.getItem('mt3ukUpdateLater-' + versionCode) || 0) > Date.now()) return; } catch (e) { /* storage blocked */ }
+    fetch('https://laps.mt3uk.com/data/app-update.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (info) {
+        var notes = info && Number(info.versionCode) === Number(versionCode) && info.notes && info.notes.length ? info.notes : null;
+        var style = document.createElement('style');
+        style.textContent = UPDATE_STYLE;
+        document.head.appendChild(style);
+        var wrap = document.createElement('div');
+        wrap.className = 'mt3uk-upd-wrap';
+        var card = document.createElement('div');
+        card.className = 'mt3uk-upd-card';
+        card.setAttribute('role', 'dialog');
+        card.setAttribute('aria-label', 'A new version of Laps is ready');
+        var h2 = document.createElement('h2');
+        h2.textContent = 'A new version of Laps is ready';
+        var ver = document.createElement('p');
+        ver.className = 'ver';
+        ver.textContent = 'Version ' + ((info && info.versionName) || versionCode);
+        card.appendChild(h2);
+        card.appendChild(ver);
+        var h3 = document.createElement('h3');
+        h3.textContent = "What's new";
+        card.appendChild(h3);
+        if (notes) {
+          var ul = document.createElement('ul');
+          notes.forEach(function (n) { var li = document.createElement('li'); li.textContent = String(n); ul.appendChild(li); });
+          card.appendChild(ul);
+        } else {
+          var p = document.createElement('p');
+          p.textContent = 'Improvements and fixes.';
+          card.appendChild(p);
+        }
+        var row = document.createElement('div');
+        row.className = 'mt3uk-upd-row';
+        var later = document.createElement('button');
+        later.type = 'button';
+        later.className = 'mt3uk-upd-later';
+        later.textContent = 'Later';
+        var go = document.createElement('button');
+        go.type = 'button';
+        go.className = 'mt3uk-upd-go';
+        go.textContent = 'Update';
+        row.appendChild(later);
+        row.appendChild(go);
+        card.appendChild(row);
+        wrap.appendChild(card);
+        document.body.appendChild(wrap);
+        later.addEventListener('click', function () {
+          try { localStorage.setItem('mt3ukUpdateLater-' + versionCode, String(Date.now() + 24 * 60 * 60 * 1000)); } catch (e) { /* storage blocked */ }
+          wrap.remove();
+        });
+        go.addEventListener('click', function () {
+          go.disabled = true;
+          go.textContent = 'Updating…';
+          Promise.resolve(AppUpdate.update()).then(function () { wrap.remove(); }, function () { wrap.remove(); });
+        });
+      });
+  }
+  if (plugins.AppUpdate && plugins.AppUpdate.check) {
     try {
       if (!sessionStorage.getItem('mt3ukUpdateChecked')) {
         sessionStorage.setItem('mt3ukUpdateChecked', '1');
-        Promise.resolve(plugins.AppUpdate.checkForUpdate()).catch(function () {});
+        Promise.resolve(plugins.AppUpdate.check()).then(function (r) {
+          if (r && r.available) showUpdateCard(r.versionCode, plugins.AppUpdate);
+        }).catch(function () {});
       }
     } catch (e) { /* storage blocked: skip the check */ }
   }

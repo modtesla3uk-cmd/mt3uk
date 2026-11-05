@@ -1,0 +1,9 @@
+{
+  "versionCode": 11,
+  "versionName": "11.0",
+  "notes": [
+    "Quicker sign-in from the email link",
+    "Passkeys work better in the app",
+    "Your sessions load faster on a slow signal"
+  ]
+}

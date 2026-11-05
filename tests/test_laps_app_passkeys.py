@@ -1,3 +1,4 @@
+import json
 """Inside the Laps Android app (Capacitor): passkey sign-in opens the sign-in page in a Chrome Custom Tab, where passkeys
 work, and verified Laps links are loaded in the app. A simulated Capacitor bridge stands in for the app here."""
 from playwright.sync_api import expect
@@ -178,14 +179,21 @@ def test_once_the_icon_is_on_the_home_screen_the_card_is_not_offered_again(page)
 
 UPDATE_BRIDGE = """
 window.__updateChecked = 0;
+window.__updateCalled = 0;
+window.__updateAvailable = false;
 window.Capacitor = {
   isNativePlatform: function () { return true; },
   Plugins: {
     App: { addListener: function () {} },
-    AppUpdate: { checkForUpdate: function () { window.__updateChecked++; return Promise.resolve({ available: false }); } }
+    AppUpdate: {
+      check: function () { window.__updateChecked++; return Promise.resolve({ available: window.__updateAvailable, versionCode: 11 }); },
+      update: function () { window.__updateCalled++; return Promise.resolve({ started: true }); }
+    }
   }
 };
 """
+
+NOTES = {"versionCode": 11, "versionName": "11.0", "notes": ["Quicker sign-in from the email link", "Passkeys work better in the app"]}
 
 
 def test_the_app_asks_google_play_for_an_update_once_a_session(page):
@@ -197,3 +205,26 @@ def test_the_app_asks_google_play_for_an_update_once_a_session(page):
     page.reload()
     page.wait_for_timeout(400)
     assert page.evaluate("window.__updateChecked") == 0
+
+
+def test_a_newer_version_shows_what_is_new_and_Later_hides_it_for_a_day(page):
+    page.add_init_script(UPDATE_BRIDGE)
+    page.add_init_script("window.__updateAvailable = true;")
+    page.route("**/data/app-update.json", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(NOTES), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/laps-signin.html")
+    expect(page.locator(".mt3uk-upd-card")).to_contain_text("A new version of Laps is ready")
+    expect(page.locator(".mt3uk-upd-card")).to_contain_text("Quicker sign-in from the email link")
+    page.locator(".mt3uk-upd-later").click()
+    expect(page.locator(".mt3uk-upd-wrap")).to_have_count(0)
+    assert page.evaluate("localStorage.getItem('mt3ukUpdateLater-11') !== null")
+
+
+def test_Update_starts_Google_Plays_update(page):
+    page.add_init_script(UPDATE_BRIDGE)
+    page.add_init_script("window.__updateAvailable = true;")
+    page.route("**/data/app-update.json", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(NOTES), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/laps-signin.html")
+    expect(page.locator(".mt3uk-upd-card")).to_be_visible()
+    page.locator(".mt3uk-upd-go").click()
+    page.wait_for_timeout(300)
+    assert page.evaluate("window.__updateCalled") == 1

@@ -157,6 +157,7 @@ def test_inside_the_app_the_intro_page_offers_a_home_screen_icon(page):
     page.locator("#lh-home-btn").click()
     expect(page.locator("#lh-home-status")).to_contain_text("Confirm on your phone")
     assert page.evaluate("window.__pinned") == 1
+    expect(page.locator("#lh-home-btn")).to_be_hidden()
 
 
 def test_in_a_browser_the_intro_page_has_no_home_screen_card(page):

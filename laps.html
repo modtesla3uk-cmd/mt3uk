@@ -424,6 +424,7 @@
   .lh-home b { display: block; font-size: 16px; margin-bottom: 4px; }
   .lh-home span { display: block; font-size: 14px; color: #b9cfc9; margin-bottom: 10px; line-height: 1.4; }
   .lh-home .btn { width: 100%; }
+  .lh-home [hidden] { display: none !important; }
   .lh-home-status { margin: 10px 0 0; font-size: 14px; color: #b9e7c8; }
   /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
   @media (max-width: 780px) {
@@ -588,8 +589,9 @@
             homeStatus.textContent = 'Asking your phone\u2026';
             var ask = window.mt3ukAppBridge && window.mt3ukAppBridge.addToHomeScreen ? window.mt3ukAppBridge.addToHomeScreen() : Promise.resolve(false);
             ask.then(function (result) {
-              if (result === 'already') { homeStatus.textContent = 'Laps is already on your home screen.'; homeCard.hidden = true; return; }
+              if (result === 'already') { homeStatus.textContent = 'Laps is already on your home screen.'; homeBtn.hidden = true; return; }
               homeStatus.textContent = result === 'asked' ? 'Confirm on your phone, then look for Laps on your home screen.' : 'Your phone did not offer this. Add Laps from the apps list instead, by holding its icon.';
+              if (result === 'asked') homeBtn.hidden = true;
             });
           });
         }

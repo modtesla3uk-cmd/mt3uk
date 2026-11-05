@@ -1,0 +1,48 @@
+{
+  "packageId": "com.mt3uk.lapsapp2026",
+  "host": "laps.mt3uk.com",
+  "name": "Laps by MT3UK",
+  "launcherName": "Laps",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#16233d",
+  "themeColorDark": "#16233d",
+  "navigationColor": "#16233d",
+  "navigationColorDark": "#16233d",
+  "navigationDividerColor": "#16233d",
+  "navigationDividerColorDark": "#16233d",
+  "backgroundColor": "#f3f1ea",
+  "enableNotifications": true,
+  "startUrl": "/track.html",
+  "iconUrl": "https://laps.mt3uk.com/images/laps/loop/icon-512.png",
+  "maskableIconUrl": "https://laps.mt3uk.com/images/laps/loop/icon-maskable-512.png",
+  "monochromeIconUrl": "",
+  "splashScreenFadeOutDuration": 300,
+  "webManifestUrl": "https://laps.mt3uk.com/laps-manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "shortcuts": [
+    {
+      "name": "Add a session",
+      "short_name": "Add a session",
+      "url": "/track.html?add=1",
+      "icon": "https://laps.mt3uk.com/images/laps/loop/icon-192.png"
+    },
+    {
+      "name": "Leaderboards",
+      "short_name": "Leaderboards",
+      "url": "/leaderboards.html",
+      "icon": "https://laps.mt3uk.com/images/laps/loop/icon-192.png"
+    }
+  ],
+  "generatorApp": "hand-written, to be checked with Bubblewrap init",
+  "minSdkVersion": 24,
+  "appVersionCode": 1,
+  "appVersion": "1.0.0",
+  "signingKeyInfo": { "path": "" },
+  "signingKey": { "path": "", "alias": "" }
+}

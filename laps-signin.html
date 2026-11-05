@@ -195,6 +195,13 @@
   @media (max-width: 780px) { .si-grid { grid-template-columns: 1fr; } }
   .si-card { border: 1px solid var(--ink); padding: 28px 24px; background: var(--paper); }
   .si-card-join { border-top: 4px solid var(--orange, #e8542a); }
+  /* The join card folds: closed, so existing members see Sign in first; tap the heading to join. */
+  .si-join-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; }
+  .si-join-summary::-webkit-details-marker { display: none; }
+  .si-join-summary h2 { margin: 0; }
+  .si-join-chev { width: 22px; height: 22px; flex: none; transition: transform .2s; }
+  .si-join-fold[open] .si-join-chev { transform: rotate(180deg); }
+  .si-join-fold[open] > .si-join-summary { margin-bottom: 10px; }
   .si-card h2, .si-garage h2, .si-signed-in h2 { font-size: 1.15rem; margin-bottom: 8px; }
   .si-card p, .si-garage p, .si-signed-in p { color: var(--steel); font-size: 0.92rem; margin-bottom: 18px; }
   .si-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
@@ -447,8 +454,8 @@
     </div>
 
     <div class="si-grid" id="si-forms">
-      <div class="si-card si-card-join" id="si-join">
-        <h2>New to Laps? Join free</h2>
+      <details class="si-card si-card-join si-join-fold" id="si-join">
+        <summary class="si-join-summary"><h2>New to Laps? Join free</h2><svg class="icon si-join-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
         <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining, then you can add your car and your first session.</p>
         <form id="si-join-form">
           <input type="checkbox" name="botcheck" class="si-hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -469,7 +476,7 @@
           <p class="si-status" id="si-join-status" role="status"></p>
         </form>
         <p class="si-switch">Already a member? <a href="#si-signin" id="si-to-signin">Sign in</a></p>
-      </div>
+      </details>
 
       <div class="si-card" id="si-signin">
         <h2>Already have an account? Sign in</h2>
@@ -668,7 +675,7 @@
 
 <script src="js/passkeys.js?v=20261202"></script>
 <script src="js/car-pick.js?v=5"></script>
-<script src="js/signin-page.js?v=20271108"></script>
+<script src="js/signin-page.js?v=20271109"></script>
 
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>

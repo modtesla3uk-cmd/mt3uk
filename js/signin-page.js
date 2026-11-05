@@ -254,7 +254,7 @@
     // The Laps join card while Laps is an early preview.
     if (SITE === 'laps' && PREVIEW && $('si-join')) {
       $('si-join').querySelector('h2').textContent = 'New to Laps? Join the early preview';
-      $('si-join').querySelector('h2 + p').textContent = 'Laps is in early preview. Join with your name and email, and we’ll put you on the early access list straight away and email you as soon as you’re in.';
+      $('si-join').querySelector(':scope > p').textContent = 'Laps is in early preview. Join with your name and email, and we’ll put you on the early access list straight away and email you as soon as you’re in.';
       $('si-join-btn').textContent = 'Join the early preview';
     }
     var JOIN_LABEL = $('si-join-btn').textContent;

@@ -70,6 +70,7 @@ def test_the_laps_sign_in_page_says_laps_and_tells_the_worker(page):
     page.click("#si-signin-btn")
     expect(page.locator("#si-code-form")).to_be_visible()
     assert state["posts"][-1] == {"path": "/my-builds/request-link", "body": {"email": "member@example.com", "site": "laps", "next": "/track.html?add=1"}}
+    page.locator("#si-join summary").click()
     page.fill("#si-join-first", "Nia")
     page.fill("#si-join-last", "Jones")
     page.fill("#si-join-email", "new@example.com")
@@ -136,7 +137,7 @@ def test_joining_laps_in_early_preview_says_so_and_welcomes_onto_the_list(page):
     page.goto(LAPS + "/laps-signin.html")
     join = page.locator("#si-join")
     expect(join.locator("h2")).to_have_text("New to Laps? Join the early preview")
-    expect(join.locator("h2 + p")).to_contain_text("put you on the early access list straight away")
+    expect(join.locator(":scope > p").first).to_contain_text("put you on the early access list straight away")
     expect(page.locator("#si-join-btn")).to_have_text("Join the early preview")
     # The emailed link of a new Laps member: welcome onto the list, and no nickname prompt (the worker made one).
     state["session"] = {"success": True, "session": "sess-2", "email": "new@example.com", "joined": "mt3uk", "access": "pending"}

@@ -454,3 +454,25 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
 })();
+
+// ---------- The Laps app (Capacitor): links into the app, and passkeys in a Chrome Custom Tab ----------
+// Inside the app's own WebView passkeys can't run, so signing in with one opens the sign-in page in a Chrome
+// Custom Tab (?app=1), which can. When the member comes back to a Laps link, the app loads it in its own page.
+(function () {
+  var C = window.Capacitor;
+  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+  var plugins = C.Plugins || {};
+  if (plugins.App && plugins.App.addListener) {
+    plugins.App.addListener('appUrlOpen', function (ev) {
+      var u = ev && ev.url;
+      if (u && /^https:\/\/(laps\.)?mt3uk\.com\//.test(u) && u !== location.href) location.href = u;
+    });
+  }
+  window.mt3ukAppBridge = {
+    openPasskey: function () {
+      var url = 'https://laps.mt3uk.com/laps-signin.html?app=1';
+      if (plugins.Browser && plugins.Browser.open) plugins.Browser.open({ url: url });
+      else window.open(url, '_blank');
+    }
+  };
+})();

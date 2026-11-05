@@ -42,6 +42,10 @@
 
     var params = new URL(location.href).searchParams;
     var next = params.get('next');
+    // In the Laps app, passkeys run in a Chrome Custom Tab opened from the app's sign-in page. That page has ?app=1, and
+    // after signing in it hands the session back to the app with a one-time code.
+    var fromApp = params.get('app') === '1';
+    var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     if (next && /^\/(?!\/)/.test(next)) write(NEXT_KEY, JSON.stringify({ url: next, at: Date.now() }));
     // The page to come back to, sent with a Laps request so the emailed link brings the member back to it.
     function pendingNext() {
@@ -60,9 +64,31 @@
       return false;
     }
 
+    // Signed in inside the app's Custom Tab: a one-time code takes the session back into the app (account-bar.js redeems it).
+    function showAppReturn(session) {
+      $('si-forms').hidden = true;
+      $('si-code-form').hidden = true;
+      $('si-signed-in').hidden = true;
+      var box = document.createElement('div');
+      box.className = 'si-card';
+      box.innerHTML = '<h2>You\u2019re signed in</h2><p>Tap the button to go back to the Laps app.</p>' +
+        '<p><a class="si-btn si-btn-primary" id="si-app-return" href="' + location.origin + '/laps.html">Open the Laps app</a></p>' +
+        '<p class="si-status" id="si-app-status"></p>';
+      $('si-signed-in').parentNode.insertBefore(box, $('si-signed-in'));
+      var link = $('si-app-return');
+      fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/session/handover', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session },
+        body: JSON.stringify({ firstName: read(FIRST_NAME_KEY) })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.success && d.code) link.setAttribute('href', location.origin + '/laps.html#mt3uk-handover=' + d.code);
+        else setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err');
+      }).catch(function () { setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err'); });
+    }
+
     function signedIn(session, email, joined) {
       write(SESSION_KEY, session);
       write(EMAIL_KEY, email);
+      if (fromApp) { showAppReturn(session); return; }
       var joinName = read(JOIN_NAME_KEY);
       // New members are not asked for a nickname: the worker gives them one from their name (first initial and last
       // name), which they can change in their Profile.
@@ -102,6 +128,11 @@
       $('si-passkey').hidden = false;
       if (!PK.hasOnThisDevice()) explainPasskey();
     }
+    // Inside the app's own WebView passkeys can't run, so the button opens this page in a Custom Tab where they can.
+    if (inApp) {
+      $('si-passkey').hidden = false;
+      $('si-passkey-note').textContent = 'Opens a secure window to sign in with your passkey, then brings you back to the app.';
+    }
     // New here? comes first; Already a member? Sign in at the foot of it jumps to the sign-in card.
     $('si-to-signin').addEventListener('click', function (e) {
       e.preventDefault();
@@ -114,6 +145,7 @@
       PK.autofill(function (data) { signedIn(data.session, data.email); });
     }
     $('si-passkey-btn').addEventListener('click', function () {
+      if (inApp) { if (window.mt3ukAppBridge) window.mt3ukAppBridge.openPasskey(); return; }
       var btn = this;
       btn.disabled = true;
       setStatus($('si-passkey-status'), 'Waiting for your passkey…', '');

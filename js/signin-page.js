@@ -70,17 +70,6 @@
       try { var p = JSON.parse(read(NEXT_KEY) || 'null'); return p && Date.now() - p.at < 3600000 ? p.url : ''; } catch (e) { return ''; }
     }
     function from() { return SITE === 'laps' ? { site: 'laps', next: pendingNext() } : {}; }
-    function goToPendingNext() {
-      try {
-        var pending = JSON.parse(read(NEXT_KEY) || 'null');
-        localStorage.removeItem(NEXT_KEY);
-        if (pending && Date.now() - pending.at < 3600000 && /^\/(?!\/)/.test(pending.url)) {
-          location.replace(pending.url);
-          return true;
-        }
-      } catch (e) {}
-      return false;
-    }
 
     // Signed in inside the app's Custom Tab: a one-time code takes the session back into the app (account-bar.js redeems it).
     function showAppReturn(session) {
@@ -141,27 +130,16 @@
       }).catch(function () { setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err'); });
     }
 
-    // stay: a passkey sign-in on this page shows the signed-in card here, rather than going on to a page to return to.
-    function signedIn(session, email, joined, stay) {
+    // Every sign-in (passkey, email code or emailed link) stays on this page and shows "You're signed in". Inside the
+    // app's sign-in window the app return is shown instead. New members are not asked for a nickname: the worker gives
+    // them one from their name (first initial and last name), which they can change in their Profile.
+    function signedIn(session, email) {
       write(SESSION_KEY, session);
       write(EMAIL_KEY, email);
       if (fromApp) { showAppReturn(session); return; }
       var joinName = read(JOIN_NAME_KEY);
-      // New members are not asked for a nickname: the worker gives them one from their name (first initial and last
-      // name), which they can change in their Profile.
       if (joinName && !read(FIRST_NAME_KEY)) write(FIRST_NAME_KEY, joinName);
-      try { localStorage.removeItem(JOIN_NAME_KEY); } catch (e) {}
-      // A new member who joins on Laps is welcomed on the Laps intro page, not sent on to Profile.
-      if (joined && SITE === 'laps') {
-        try {
-          localStorage.removeItem(NEXT_KEY);
-          var note = ($('si-welcome') && !$('si-welcome').hidden) ? $('si-welcome').textContent : '';
-          if (note) localStorage.setItem('mt3ukLapsWelcomeNote', note);
-        } catch (e) {}
-        location.replace('laps.html?welcome=1');
-        return;
-      }
-      if (stay) { try { localStorage.removeItem(NEXT_KEY); } catch (e) {} } else if (goToPendingNext()) return;
+      try { localStorage.removeItem(JOIN_NAME_KEY); localStorage.removeItem(NEXT_KEY); } catch (e) {}
       showSignedIn();
       if (window.mt3ukAskNickname) window.mt3ukAskNickname();
       // In the app, ask about notifications now (js/account-bar.js).
@@ -208,7 +186,7 @@
     // box's suggestions), for visitors who aren't signed in.
     // Inside the app's window the passkey is asked for once, by the button, so the background request is left out (Chrome allows one at a time).
     if (PK && PK.supported() && !read(SESSION_KEY) && !(fromApp && params.get('fresh') === '1')) {
-      PK.autofill(function (data) { signedIn(data.session, data.email, false, true); });
+      PK.autofill(function (data) { signedIn(data.session, data.email); });
     }
     $('si-passkey-btn').addEventListener('click', function () {
       if (inApp) {
@@ -227,7 +205,7 @@
       PK.signIn().then(function (data) {
         btn.disabled = false;
         setStatus($('si-passkey-status'), '', '');
-        signedIn(data.session, data.email, false, true);
+        signedIn(data.session, data.email);
       }).catch(function (err) {
         btn.disabled = false;
         if (!PK.hasOnThisDevice()) {
@@ -397,7 +375,7 @@
         if (!r.data.success) { setStatus($('si-code-status'), r.data.message || 'That code did not work.', 'err'); return; }
         setStatus($('si-code-status'), '', '');
         if (r.data.joined) { $('si-welcome').hidden = false; $('si-welcome').textContent = welcomeText(r.data.access); }
-        signedIn(r.data.session, r.data.email, !!r.data.joined);
+        signedIn(r.data.session, r.data.email);
       }).catch(function () {
         btn.disabled = false;
         setStatus($('si-code-status'), 'Something went wrong, please try again.', 'err');
@@ -421,7 +399,7 @@
             // A new account says welcome; a member signing in with a link (from Laps) is just signed in.
             var joined = data.joined !== undefined ? !!data.joined : true;
             $('si-welcome').textContent = joined ? welcomeText(data.access) : 'You’re signed in.';
-            signedIn(data.session, data.email, joined);
+            signedIn(data.session, data.email);
           } else {
             $('si-welcome').textContent = (data.message || 'That link is invalid or has expired.') + ' Sign in below to get a new one.';
             $('si-welcome').classList.add('si-welcome-err');

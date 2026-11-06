@@ -80,10 +80,11 @@ def test_the_laps_sign_in_page_says_laps_and_tells_the_worker(page):
     assert state["posts"][-1]["path"] == "/my-builds/join" and body["site"] == "laps" and body["next"] == "/track.html?add=1" and body["firstName"] == "Nia"
 
 
-def test_the_emailed_link_signs_in_on_laps_and_goes_back_to_the_page(page):
+def test_the_emailed_link_signs_in_on_laps_and_shows_the_signed_in_card(page):
     mock(page)
     page.goto(LAPS + "/laps-signin.html?token=abc&next=/leaderboards.html")
-    page.wait_for_url(re.compile(r":\d+/leaderboards\.html$"), timeout=5000)
+    expect(page.locator("#si-signed-in")).to_be_visible(timeout=5000)
+    assert "laps-signin.html" in page.url, page.url
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "sess-1"
 
 
@@ -142,11 +143,10 @@ def test_joining_laps_in_early_preview_says_so_and_welcomes_onto_the_list(page):
     # The emailed link of a new Laps member: welcome onto the list, and no nickname prompt (the worker made one).
     state["session"] = {"success": True, "session": "sess-2", "email": "new@example.com", "joined": "mt3uk", "access": "pending"}
     page.goto(LAPS + "/laps-signin.html?token=abc")
-    # A new Laps member is welcomed on the Laps intro page, which keeps the early access line.
-    # laps.html takes ?welcome=1 out of the address once the welcome is up, so wait for the page itself
-    page.wait_for_url(re.compile(r"/laps\.html$"))
-    expect(page.locator("#lh-welcome")).to_be_visible()
-    expect(page.locator("#lh-welcome-note")).to_have_text("Welcome to Laps! You\u2019re on the early access list, and we\u2019ll email you as soon as you\u2019re in.")
+    # A new Laps member stays on the sign-in page, which shows the signed-in card with the early access line.
+    expect(page.locator("#si-signed-in")).to_be_visible()
+    assert "laps-signin.html" in page.url, page.url
+    expect(page.locator("#si-welcome")).to_have_text("Welcome to Laps! You\u2019re on the early access list, and we\u2019ll email you as soon as you\u2019re in.")
     assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
 
 

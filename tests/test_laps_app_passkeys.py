@@ -228,3 +228,35 @@ def test_Update_starts_Google_Plays_update(page):
     page.locator(".mt3uk-upd-go").click()
     page.wait_for_timeout(300)
     assert page.evaluate("window.__updateCalled") == 1
+
+
+SIGNOUT_BRIDGE = """
+window.Capacitor = {
+  isNativePlatform: function () { return true; },
+  Plugins: {
+    App: { addListener: function () {} },
+    Browser: { open: function (o) { if (o.url.indexOf('signout=1') >= 0) fetch('/__app_signout_opened').catch(function () {}); return Promise.resolve(); }, close: function () { return Promise.resolve(); } }
+  }
+};
+"""
+
+
+def test_signing_out_in_the_app_also_opens_the_chrome_window_to_sign_it_out(page):
+    page.add_init_script(SIGNOUT_BRIDGE)
+    opened = []
+    page.route("**/__app_signout_opened", lambda route: (opened.append(1), route.fulfill(status=200, body="")))
+    page.goto("/laps-signin.html")
+    page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 'abc'); localStorage.setItem('mt3ukMyBuildsEmail', 'a@example.com')")
+    page.evaluate("window.mt3ukSignOut()")
+    page.wait_for_timeout(800)
+    assert opened, "the Chrome window was not opened to sign out"
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") is None
+
+
+def test_the_sign_out_page_in_the_chrome_window_clears_its_sign_in(page):
+    page.goto("/laps-signin.html")
+    page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 'abc'); localStorage.setItem('mt3ukMyBuildsEmail', 'a@example.com')")
+    page.goto("/laps-signin.html?app=1&signout=1")
+    page.wait_for_timeout(300)
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") is None
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsEmail')") is None

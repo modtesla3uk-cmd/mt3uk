@@ -52,6 +52,12 @@
     if (fromApp && params.get('fresh') === '1' && !setupPasskey) {
       try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(EMAIL_KEY); } catch (e) {}
     }
+    // Signing out in the app opens this window to sign it out too, then goes straight back to the app.
+    if (fromApp && params.get('signout') === '1') {
+      try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(EMAIL_KEY); localStorage.removeItem(FIRST_NAME_KEY); } catch (e) {}
+      var backToApp = location.origin + '/laps.html?signedout=1';
+      location.href = 'intent://laps.mt3uk.com/laps.html?signedout=1#Intent;scheme=https;package=com.mt3uk.lapsapp2026;S.browser_fallback_url=' + encodeURIComponent(backToApp) + ';end';
+    }
     // The passkey window stays out of the browser's install prompts: it is only there to bring the member back to the app.
     if (fromApp) { try { sessionStorage.setItem('mt3ukFromApp', '1'); } catch (e) {} }
     var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);

@@ -43,7 +43,10 @@
       localStorage.removeItem(EMAIL_KEY);
       localStorage.removeItem(FIRST_NAME_KEY);
     } catch (e) {}
-    window.location.reload();
+    var reload = function () { window.location.reload(); };
+    // In the Laps app, the Chrome window used for passkeys is signed out too (mt3ukAppSignOut, below).
+    if (window.mt3ukAppSignOut) Promise.resolve(window.mt3ukAppSignOut()).then(reload, reload);
+    else reload();
   };
 
   var signedIn = !!read(SESSION_KEY);
@@ -591,6 +594,9 @@
     return Promise.resolve(plugins.Browser.open({ url: url })).then(function () { return true; }, function () { return false; });
   }
   var SIGN_IN_TAB = 'https://laps.mt3uk.com/laps-signin.html?app=1';
+  // Signing out in the app: the Chrome window keeps its own sign-in, so it is opened on a sign-out page, which clears
+  // it and hands the member back to the app (the same return as after a passkey sign-in).
+  window.mt3ukAppSignOut = function () { return openTab(SIGN_IN_TAB + '&signout=1'); };
   window.mt3ukAppBridge = {
     openPasskey: function () { return openTab(SIGN_IN_TAB + '&fresh=1'); },
     // Set up a passkey on this phone: the window signs the member in if needed, adds the passkey, then goes back to the app.

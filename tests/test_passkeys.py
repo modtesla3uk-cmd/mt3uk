@@ -356,3 +356,14 @@ def test_a_passkey_sign_in_on_the_laps_page_shows_signed_in_not_an_old_return_pa
     page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
     assert "laps-signin.html" in page.url, page.url
     assert page.evaluate("localStorage.getItem('mt3ukSignInNext')") is None
+
+
+@all_devices
+def test_a_passkey_sign_in_on_the_laps_page_stays_on_the_signed_in_card_even_with_a_page_to_return_to(device_page):
+    page = device_page
+    page.add_init_script(FAKE_AUTHENTICATOR + " localStorage.setItem('mt3ukPasskeyHere', '1');")
+    page.goto("/laps-signin.html?next=/track.html")
+    page.locator("#si-passkey-btn").wait_for(state="visible", timeout=5000)
+    page.locator("#si-passkey-btn").click()
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    assert "laps-signin.html" in page.url, page.url

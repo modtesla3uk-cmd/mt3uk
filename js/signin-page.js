@@ -141,7 +141,8 @@
       }).catch(function () { setStatus($('si-app-status'), 'Could not reach Laps. Try signing in again.', 'err'); });
     }
 
-    function signedIn(session, email, joined) {
+    // stay: a passkey sign-in on this page shows the signed-in card here, rather than going on to a page to return to.
+    function signedIn(session, email, joined, stay) {
       write(SESSION_KEY, session);
       write(EMAIL_KEY, email);
       if (fromApp) { showAppReturn(session); return; }
@@ -160,7 +161,7 @@
         location.replace('laps.html?welcome=1');
         return;
       }
-      if (goToPendingNext()) return;
+      if (stay) { try { localStorage.removeItem(NEXT_KEY); } catch (e) {} } else if (goToPendingNext()) return;
       showSignedIn();
       if (window.mt3ukAskNickname) window.mt3ukAskNickname();
       // In the app, ask about notifications now (js/account-bar.js).
@@ -207,7 +208,7 @@
     // box's suggestions), for visitors who aren't signed in.
     // Inside the app's window the passkey is asked for once, by the button, so the background request is left out (Chrome allows one at a time).
     if (PK && PK.supported() && !read(SESSION_KEY) && !(fromApp && params.get('fresh') === '1')) {
-      PK.autofill(function (data) { signedIn(data.session, data.email); });
+      PK.autofill(function (data) { signedIn(data.session, data.email, false, true); });
     }
     $('si-passkey-btn').addEventListener('click', function () {
       if (inApp) {
@@ -226,7 +227,7 @@
       PK.signIn().then(function (data) {
         btn.disabled = false;
         setStatus($('si-passkey-status'), '', '');
-        signedIn(data.session, data.email);
+        signedIn(data.session, data.email, false, true);
       }).catch(function (err) {
         btn.disabled = false;
         if (!PK.hasOnThisDevice()) {

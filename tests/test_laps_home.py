@@ -406,20 +406,12 @@ def test_the_laps_promo_sits_beside_the_latest_interview_in_a_row_that_swipes(pa
     expect(page.locator(".hp-cat-laps")).to_have_count(0)
 
 
-def test_the_laps_logo_opens_the_intro_until_dont_show_next_time_is_ticked(page):
-    """The logo goes to the intro page by default. Ticking Don't show this next time on the intro sends the logo to
-    Sessions, and it stays that way on the next visit until the box is unticked."""
+def test_the_intro_has_no_dont_show_tick_box_and_the_logo_still_opens_it(page):
+    """Signed-in members are not sent to the intro, so the Don't show this page next time box is gone."""
     page.route("**/*", lambda route: route.abort() if "workers.dev" in route.request.url else route.continue_())
     page.goto("/laps.html")
-    expect(page.locator("header .laps-logo")).to_have_attribute("href", "laps.html")
-    page.locator("#lh-skip").check()
-    expect(page.locator("header .laps-logo")).to_have_attribute("href", "track.html")
-    expect(page.locator("footer .laps-logo")).to_have_attribute("href", "track.html")
-    page.goto("/track.html")
-    expect(page.locator("header .laps-logo")).to_have_attribute("href", "track.html")
-    page.goto("/laps.html")
-    expect(page.locator("#lh-skip")).to_be_checked()
-    page.locator("#lh-skip").uncheck()
+    expect(page.locator("#lh-skip")).to_have_count(0)
+    expect(page.get_by_text("Don\u2019t show this page next time")).to_have_count(0)
     expect(page.locator("header .laps-logo")).to_have_attribute("href", "laps.html")
 
 

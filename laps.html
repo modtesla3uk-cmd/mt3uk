@@ -376,7 +376,7 @@
   .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
   .lh-hero h1 { color: #fff; font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 12px; }
   .lh-hero p { color: #d3d8e2; font-size: 0.95rem; max-width: 52ch; }
-  .lh-hero .tp-actions { margin: 20px 0 10px; }
+  .lh-hero .tp-actions { margin: 22px 0 30px; }
   .lh-hero .tp-actions .btn { font-size: 0.95rem; padding: 10px 16px; }
   .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
   .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
@@ -384,7 +384,7 @@
   .lh-hero .lh-share .icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
   /* Free to access: under the words in the left column, kept short so the reel can sit beside it. */
-  .lh-free { margin-top: 20px; }
+  .lh-free { margin-top: 34px; }
   .lh-free h2 { font-size: 1.05rem; margin: 0 0 4px; color: #fff; }
   .lh-free-lead { font-size: 0.88rem; color: #dfe5f1; margin: 0 0 8px; }
   .lh-free-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
@@ -399,11 +399,8 @@
   .lh-welcome-card .lh-lead { color: #3d4659; margin: 0 0 14px; }
   .lh-welcome-steps { margin: 0 0 18px; padding-left: 22px; display: grid; gap: 10px; line-height: 1.45; }
   .lh-welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-  .lh-skip-row { text-align: center; padding: 8px 16px 32px; font-size: 0.95rem; color: #3d4659; }
-  .lh-skip-row input { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
-  .lh-skip-top { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; color: #dfe9e6; font-size: 0.95rem; line-height: 1.3; }
   /* Any car, any make: in the hero, so it is seen on the first screen. */
-  .lh-hero .lh-how { margin: 4px 0 20px; max-width: 34em; }
+  .lh-hero .lh-how { margin: 6px 0 30px; max-width: 34em; }
   .lh-how h2 { font-size: 1.05rem; margin: 0 0 6px; color: #fff; }
   .lh-how ol { margin: 0; padding-left: 1.3em; color: #d3d8e2; font-size: 0.95rem; }
   .lh-how li { margin: 0 0 6px; }
@@ -519,7 +516,6 @@
         <button type="button" class="btn btn-secondary" id="lh-home-btn">Add to home screen</button>
         <p class="lh-home-status" id="lh-home-status" role="status"></p>
       </div>
-      <label class="lh-skip-top"><input type="checkbox" id="lh-skip"> Don&rsquo;t show this page next time. Laps will open on My Sessions.</label>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
@@ -658,7 +654,6 @@
 </main>
 <script>(function(){var box=document.getElementById('lh-welcome');if(!box)return;var q=new URLSearchParams(location.search);if(!q.has('welcome'))return;q.delete('welcome');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);var first='';try{first=(localStorage.getItem('mt3ukMyBuildsFirstName')||'').trim().split(/\s+/)[0]||'';}catch(e){}var nm=document.getElementById('lh-welcome-name');if(nm&&first)nm.textContent=', '+first;var note='';try{note=localStorage.getItem('mt3ukLapsWelcomeNote')||'';localStorage.removeItem('mt3ukLapsWelcomeNote');}catch(e){}var nt=document.getElementById('lh-welcome-note');if(nt&&note){nt.textContent=note;nt.hidden=false;}box.hidden=false;document.getElementById('lh-welcome-close').addEventListener('click',function(){box.hidden=true;});})();</script>
 
-<script>(function(){var box=document.getElementById('lh-skip');if(!box)return;try{box.checked=localStorage.getItem('mt3ukLapsSkipIntro')==='1';}catch(e){}box.addEventListener('change',function(){try{if(box.checked){localStorage.setItem('mt3ukLapsSkipIntro','1');}else{localStorage.removeItem('mt3ukLapsSkipIntro');}}catch(e){}document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href',box.checked?'track.html':'laps.html');});});})();</script>
 
 
 <footer>

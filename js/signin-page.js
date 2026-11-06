@@ -86,7 +86,7 @@
         : '';
       box.innerHTML = (setupPasskey ? '' : '<h2>You\u2019re signed in</h2><p>Tap the button to go back to the Laps app.</p>') + setupHtml +
         '<div id="si-app-return-wrap"' + (setupPasskey ? ' hidden' : '') + '>' +
-        '<p><a class="si-btn si-btn-primary" id="si-app-return" href="' + location.origin + '/laps.html">Open the Laps app</a></p>' +
+        '<p><a class="si-btn si-btn-primary" id="si-app-return" href="' + location.origin + '/laps-signin.html">Open the Laps app</a></p>' +
         '<p class="si-status" id="si-app-status"></p></div>';
       $('si-signed-in').parentNode.insertBefore(box, $('si-signed-in'));
       if (setupPasskey) {
@@ -120,9 +120,9 @@
         if (d && d.success && d.code) {
           // Chrome keeps a link to the same site inside the window, so go by an Android intent that names the app.
           // The code rides in the path (the intent's own # starts after it); if the app isn't installed, the window stays here.
-          var page = location.origin + '/laps.html?mt3uk-handover=' + d.code;
-          var fallback = location.origin + '/laps.html#mt3uk-handover=' + d.code;
-          var intent = 'intent://laps.mt3uk.com/laps.html?mt3uk-handover=' + d.code +
+          var page = location.origin + '/laps-signin.html?mt3uk-handover=' + d.code;
+          var fallback = location.origin + '/laps-signin.html#mt3uk-handover=' + d.code;
+          var intent = 'intent://laps.mt3uk.com/laps-signin.html?mt3uk-handover=' + d.code +
             '#Intent;scheme=https;package=com.mt3uk.lapsapp2026;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
           link.setAttribute('href', intent);
           setTimeout(function () { location.href = intent; }, 400);

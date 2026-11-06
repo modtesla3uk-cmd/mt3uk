@@ -260,3 +260,14 @@ def test_the_sign_out_page_in_the_chrome_window_clears_its_sign_in(page):
     page.wait_for_timeout(300)
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") is None
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsEmail')") is None
+
+
+def test_the_app_return_with_its_code_shows_the_signed_in_card_on_the_sign_in_page(page):
+    code = "b" * 64
+    page.route("**/session/handover/redeem", lambda route: route.fulfill(
+        status=200, content_type="application/json",
+        body=json.dumps({"success": True, "session": "s1.app", "email": "a@example.com", "firstName": "Richard"}),
+        headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/laps-signin.html#mt3uk-handover=" + code)
+    expect(page.locator("#si-signed-in")).to_be_visible(timeout=5000)
+    assert "laps-signin.html" in page.url, page.url

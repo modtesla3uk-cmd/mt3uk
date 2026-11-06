@@ -43,10 +43,11 @@
       localStorage.removeItem(EMAIL_KEY);
       localStorage.removeItem(FIRST_NAME_KEY);
     } catch (e) {}
-    var reload = function () { window.location.reload(); };
+    // Signed out, the member goes to the sign-in page (Laps or MT3UK, as the address they are on).
+    var toSignIn = function () { window.location.href = window.mt3ukSignInUrl ? window.mt3ukSignInUrl() : 'signin.html'; };
     // In the Laps app, the Chrome window used for passkeys is signed out too (mt3ukAppSignOut, below).
-    if (window.mt3ukAppSignOut) Promise.resolve(window.mt3ukAppSignOut()).then(reload, reload);
-    else reload();
+    if (window.mt3ukAppSignOut) Promise.resolve(window.mt3ukAppSignOut()).then(toSignIn, toSignIn);
+    else toSignIn();
   };
 
   var signedIn = !!read(SESSION_KEY);

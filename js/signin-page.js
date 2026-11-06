@@ -62,6 +62,9 @@
     if (fromApp) { try { sessionStorage.setItem('mt3ukFromApp', '1'); } catch (e) {} }
     var inApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || / wv\)/.test(navigator.userAgent);
     if (next && /^\/(?!\/)/.test(next)) write(NEXT_KEY, JSON.stringify({ url: next, at: Date.now() }));
+    // A sign-in opened without a page to return to must not follow a return page left by an earlier sign-in
+    // (it would skip the signed-in card and land on the front page).
+    else if (!next) { try { localStorage.removeItem(NEXT_KEY); } catch (e) {} }
     // The page to come back to, sent with a Laps request so the emailed link brings the member back to it.
     function pendingNext() {
       try { var p = JSON.parse(read(NEXT_KEY) || 'null'); return p && Date.now() - p.at < 3600000 ? p.url : ''; } catch (e) { return ''; }

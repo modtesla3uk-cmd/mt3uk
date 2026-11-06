@@ -341,3 +341,18 @@ def test_in_the_app_the_profile_passkey_button_opens_the_set_up_window(device_pa
     page.wait_for_timeout(300)
     calls = page.evaluate("window.__calls")
     assert ["browser", "https://laps.mt3uk.com/laps-signin.html?app=1&setup=1"] in calls, calls
+
+
+@all_devices
+def test_a_passkey_sign_in_on_the_laps_page_shows_signed_in_not_an_old_return_page(device_page):
+    page = device_page
+    page.add_init_script(FAKE_AUTHENTICATOR + " localStorage.setItem('mt3ukPasskeyHere', '1');")
+    page.goto("/laps-signin.html")
+    # A return page left behind by an earlier sign-in must not be followed after this one.
+    page.evaluate("localStorage.setItem('mt3ukSignInNext', JSON.stringify({ url: '/', at: Date.now() }))")
+    page.goto("/laps-signin.html")
+    page.locator("#si-passkey-btn").wait_for(state="visible", timeout=5000)
+    page.locator("#si-passkey-btn").click()
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    assert "laps-signin.html" in page.url, page.url
+    assert page.evaluate("localStorage.getItem('mt3ukSignInNext')") is None

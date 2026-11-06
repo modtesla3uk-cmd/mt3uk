@@ -371,8 +371,11 @@ def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_si
     copy = page.locator(".lh-hero .lh-copy").bounding_box()
     reel = page.locator(".lh-hero .lh-reel").bounding_box()
     free = page.locator(".lh-hero #free").bounding_box()
+    wrap = page.locator(".lh-hero .wrap").bounding_box()
     assert reel["x"] >= copy["x"] + copy["width"] - 1, (reel, copy)
-    assert free["x"] >= copy["x"] - 1 and free["x"] + free["width"] <= copy["x"] + copy["width"] + 1, (free, copy)
+    assert reel["y"] <= copy["y"] + 2, "the video sits at the top, beside the words"
+    assert abs(free["x"] - copy["x"]) <= 1 and free["x"] + free["width"] >= reel["x"] + reel["width"] - 1, f"Free to access spans from the words across to the video: {free} {copy} {reel}"
+    assert free["y"] >= copy["y"] + copy["height"] - 1, "Free to access comes under the words and the video"
     page.set_viewport_size({"width": 390, "height": 844})
     actions_y = page.locator("#lh-actions").bounding_box()["y"]
     reel_y = page.locator(".lh-hero .lh-reel").bounding_box()["y"]

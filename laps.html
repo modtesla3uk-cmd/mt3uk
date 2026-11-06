@@ -371,7 +371,7 @@
   .lh-hero { background: var(--ink); color: #fff; padding: 48px 0 44px; }
   .lh-hero .wrap { display: grid; gap: 28px; align-items: center; }
   .lh-hero .lh-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1.2fr 1fr; align-items: start; } .lh-hero .lh-reel { align-self: center; transform: translateY(-10%); } }
+  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1.2fr 1fr; align-items: start; } .lh-hero .lh-reel { grid-column: 2; grid-row: 1; align-self: start; transform: none; } .lh-hero .wrap > .lh-free { grid-column: 1 / -1; grid-row: 2; margin-top: 34px; } }
   .lh-badge { display: table; margin-bottom: 14px; }
   .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
   .lh-hero h1 { color: #fff; font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 12px; }
@@ -437,7 +437,7 @@
     .lh-copy > #lh-actions { order: 3; }
     .lh-copy > .lh-how { order: 4; }
     .lh-copy > #lh-note { order: 5; }
-    .lh-copy > .lh-free { order: 7; }
+    .lh-hero .wrap > .lh-free { order: 7; }
   }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
@@ -530,7 +530,8 @@
         </ol>
       </div>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in to ask for access.</p>
-      <div class="lh-free" id="free">
+    </div>
+    <div class="lh-free" id="free">
         <h2>Free to access</h2>
         <p class="lh-free-lead">Every member starts on Free access, whatever car you drive.</p>
         <ul class="lh-free-list">
@@ -544,7 +545,6 @@
         <p class="lh-free-note lh-trackmode-ask"><b>Have Track Mode?</b></p>
         <a class="btn btn-secondary lh-free-btn" href="#trackmode">Tesla Track Mode analytics</a>
       </div>
-    </div>
     <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button></div>
     <figure class="lh-reel">
       <div class="lh-reel-box" id="lh-reel-box">

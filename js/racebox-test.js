@@ -467,9 +467,27 @@
     });
   }
 
+  // The map buttons sit just above the readings band, whatever height the band is with its text.
+  function fitBand() {
+    var band = document.querySelector('.rbt-band');
+    if (band) document.documentElement.style.setProperty('--band-h', band.offsetHeight + 'px');
+  }
   // Full screen: the map fills the screen and the readings sit over it. The map is resized to match.
+  // The heading tile moves onto the map in full screen, and back into the readings when full screen ends.
+  var headingHome = null;
+  function moveHeading(toMap) {
+    var tile = document.querySelector('.rbt-heading-tile'), map = document.querySelector('.rbt-map-wrap');
+    if (!tile || !map) return;
+    if (toMap) {
+      if (!headingHome) { headingHome = document.createComment('heading'); tile.parentNode.insertBefore(headingHome, tile); }
+      map.appendChild(tile);
+    } else if (headingHome && headingHome.parentNode) {
+      headingHome.parentNode.insertBefore(tile, headingHome);
+    }
+  }
   function setFull(on) {
     document.documentElement.classList.toggle('rbt-full-on', on);
+    moveHeading(on);
     var b = $('rbt-full');
     if (b) { b.textContent = on ? 'Exit full screen' : 'Go full screen'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
     setMenu(false);
@@ -582,6 +600,9 @@
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);
     $('rbt-view-close').addEventListener('click', closeDrive);
+    fitBand();
+    if (window.ResizeObserver && document.querySelector('.rbt-band')) new ResizeObserver(fitBand).observe(document.querySelector('.rbt-band'));
+    window.addEventListener('resize', fitBand);
     $('rbt-rec-float').addEventListener('click', function () { $('rbt-record').click(); });
     $('rbt-record').addEventListener('click', function () {
       if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();

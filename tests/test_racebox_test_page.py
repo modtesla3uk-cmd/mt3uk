@@ -336,3 +336,16 @@ def test_the_big_record_button_on_the_full_screen_map_starts_and_stops_a_drive(p
     expect(page.locator("#rbt-rec-float")).to_have_text("Record")
     page.locator("#rbt-full").click()
     expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+
+
+def test_in_full_screen_the_heading_is_on_the_map_and_the_speed_is_not_in_the_band(page):
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    expect(page.locator(".rbt-map-wrap > .rbt-heading-tile")).to_be_visible()
+    expect(page.locator("#rbt-speed-tile-check")).to_have_count(0)
+    expect(page.locator(".rbt-speed-tile")).to_be_hidden()
+    page.locator("#rbt-full").click()
+    expect(page.locator(".rbt-band .rbt-heading-tile")).to_have_count(1)

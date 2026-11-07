@@ -516,7 +516,6 @@
         <button type="button" class="btn btn-secondary" id="lh-home-btn">Add to home screen</button>
         <p class="lh-home-status" id="lh-home-status" role="status"></p>
       </div>
-      <p class="lh-racebox-test"><a class="btn btn-secondary" id="lh-racebox-test" href="racebox-test.html" hidden>RaceBox test (in the app only)</a></p>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
@@ -604,8 +603,45 @@
     </script>
   </div>
 </section>
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var a=document.getElementById("lh-racebox-test");if(a)a.hidden=false;}}catch(e){}})();</script>
 <main data-no-share>
+<div class="lh-racebox" id="lh-racebox" hidden role="region" aria-labelledby="lh-racebox-title">
+  <div class="wrap">
+    <h2 id="lh-racebox-title">RaceBox test <span class="lh-racebox-note">(in the app only)</span></h2>
+    <p class="lh-racebox-lead">Connect to a RaceBox Mini, Mini S or Micro and see its live readings. Switch it on and keep it close by.</p>
+    <p id="rbt-status" class="rbt-status" role="status">Checking the Laps app&hellip;</p>
+    <div class="rbt-actions">
+      <button type="button" class="btn btn-primary" id="rbt-connect">Connect to RaceBox</button>
+      <button type="button" class="btn btn-secondary" id="rbt-disconnect">Disconnect</button>
+    </div>
+    <dl class="rbt-grid">
+      <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> km/h</dd></div>
+      <div><dt>Heading</dt><dd><span id="rbt-heading">&ndash;</span>&deg;</dd></div>
+      <div><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
+      <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
+      <div><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
+      <div><dt>Accuracy</dt><dd><span id="rbt-acc">&ndash;</span> m</dd></div>
+      <div><dt>g (across / along / up)</dt><dd><span id="rbt-g">&ndash;</span></dd></div>
+      <div><dt>Rotation (deg/s)</dt><dd><span id="rbt-rot">&ndash;</span></dd></div>
+      <div><dt>Battery</dt><dd><span id="rbt-batt">&ndash;</span></dd></div>
+      <div><dt>UTC time</dt><dd><span id="rbt-time">&ndash;</span></dd></div>
+    </dl>
+    <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
+  </div>
+</div>
+<style>
+  .lh-racebox { background: #fff; color: var(--ink, #16233d); padding: 28px 0 32px; border-bottom: 1px solid var(--hairline, #d8dbe2); }
+  .lh-racebox h2 { margin: 0 0 6px; }
+  .lh-racebox-note { font-size: 0.8em; font-weight: 500; color: #5b6475; }
+  .lh-racebox-lead { color: #3d4659; margin: 0 0 14px; max-width: 60ch; }
+  .rbt-status { font-weight: 600; margin: 0 0 14px; }
+  .rbt-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+  .rbt-actions .btn { min-height: 44px; }
+  .rbt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 0; }
+  .rbt-grid > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 12px 14px; background: #fff; }
+  .rbt-grid dt { font-size: 0.82rem; color: #5b6475; margin: 0 0 4px; }
+  .rbt-grid dd { margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rbt-rate { margin: 14px 0 0; color: #5b6475; font-size: 0.9rem; }
+</style>
   <section class="lh-sec" id="timers" data-panel="timers">
     <div class="wrap">
       <h2>Works with your lap timer</h2>
@@ -653,6 +689,7 @@
       </div>
     </div>
   </div>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=2","js/racebox-test.js?v=2"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}}catch(e){}})();</script>
 </main>
 <script>(function(){var box=document.getElementById('lh-welcome');if(!box)return;var q=new URLSearchParams(location.search);if(!q.has('welcome'))return;q.delete('welcome');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);var first='';try{first=(localStorage.getItem('mt3ukMyBuildsFirstName')||'').trim().split(/\s+/)[0]||'';}catch(e){}var nm=document.getElementById('lh-welcome-name');if(nm&&first)nm.textContent=', '+first;var note='';try{note=localStorage.getItem('mt3ukLapsWelcomeNote')||'';localStorage.removeItem('mt3ukLapsWelcomeNote');}catch(e){}var nt=document.getElementById('lh-welcome-note');if(nt&&note){nt.textContent=note;nt.hidden=false;}box.hidden=false;document.getElementById('lh-welcome-close').addEventListener('click',function(){box.hidden=true;});})();</script>
 

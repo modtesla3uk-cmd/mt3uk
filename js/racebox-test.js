@@ -137,6 +137,15 @@
     return saveQueue;
   }
   var saveQueue = Promise.resolve();
+  // Recording needs a GPS fix: the switch stays off until the RaceBox has one. Once recording, it stays on so it can be
+  // stopped, and a drive that loses its fix keeps recording.
+  var lastFixOk = false;
+  function setRecordAvailable(ok) {
+    var b = $('rbt-record'), note = $('rbt-rec-note');
+    if (rec.id) return;
+    if (b) b.disabled = !ok;
+    if (note) note.hidden = !!ok;
+  }
   function setRecordSwitch(on) {
     var b = $('rbt-record');
     if (b) b.setAttribute('aria-checked', on ? 'true' : 'false');
@@ -153,6 +162,7 @@
   function stopRecording() {
     setRecordSwitch(false);
     flushRecording(true);
+    setRecordAvailable(lastFixOk);
   }
   function updateRecLine() {
     var line = $('rbt-rec-line');
@@ -449,6 +459,8 @@
     lastKph = r.speedKph;
     feedAutoZero(r);
     recordReading(r);
+    lastFixOk = !!r.fixOk;
+    setRecordAvailable(lastFixOk);
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
     var arrow = $('rbt-arrow');
@@ -502,6 +514,8 @@
       if (e && (e.state === 'disconnected' || e.state === 'notfound' || e.state === 'failed')) {
         setDot(false);
         setPrompt('Not connected. Tap Connect to RaceBox to start.');
+        lastFixOk = false;
+        setRecordAvailable(false);
       } else if (e && e.state === 'connected') {
         startAutoZero();
         setPrompt('Connected. Waiting for a GPS fix.');

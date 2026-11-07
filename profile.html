@@ -697,9 +697,10 @@
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
-      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record"><span class="rbt-track"></span><span>Record a drive</span></button>
+      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span>Record a drive</span></button>
     </div>
     <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
+    <p id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</p>
     <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
     <div class="rbt-band">
@@ -803,6 +804,8 @@
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-zero { width: 100%; margin-top: 0; }
   .rbt-rec-line { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: #b3261e; }
   .rbt-rec-line[hidden] { display: none; }
+  .rbt-rec-note { margin: 8px 0 0; font-size: 0.9rem; color: #5b6475; }
+  .rbt-rec-note[hidden] { display: none; }
   .rbt-drives { margin: 18px 0 0; }
   .rbt-drives-title { font-size: 1rem; margin: 0 0 8px; }
   .rbt-drives-empty { color: #5b6475; margin: 0; font-size: 0.9rem; }
@@ -1409,7 +1412,7 @@
   })();
 </script>
 
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=30"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=31"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/account-bar.js?v=20271118" defer></script>
 <script src="js/signin-prompt.js" defer></script>

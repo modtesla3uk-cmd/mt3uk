@@ -187,6 +187,7 @@ def test_a_drive_is_saved_on_the_phone_and_still_listed_after_the_app_is_closed(
     page.add_init_script(STUB)
     page.goto("/racebox-test.html")
     page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     page.locator("#rbt-record").click()
     expect(page.locator("#rbt-rec-line")).to_be_visible()
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
@@ -223,6 +224,7 @@ def test_a_saved_drive_opens_with_its_figures_and_stops_and_closes(page):
     page.add_init_script(STUB)
     page.goto("/racebox-test.html")
     page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     page.locator("#rbt-record").click()
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
@@ -234,3 +236,27 @@ def test_a_saved_drive_opens_with_its_figures_and_stops_and_closes(page):
     expect(page.locator("#rbt-view-stops")).to_contain_text("No stops")
     page.locator("#rbt-view-close").click()
     expect(page.locator("#rbt-view")).to_be_hidden()
+
+
+def test_record_a_drive_only_turns_on_once_the_gps_has_a_fix(page):
+    import struct
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    # A packet with no GPS fix (fix status 0): Record a drive stays off, and the page says why.
+    payload = bytearray(base64.b64decode(EXAMPLE_B64)[6:86])
+    payload[20] = 0
+    body = bytes([0xFF, 0x01]) + struct.pack("<H", len(payload)) + bytes(payload)
+    a = b = 0
+    for x in body:
+        a = (a + x) & 0xFF
+        b = (b + a) & 0xFF
+    no_fix = base64.b64encode(bytes([0xB5, 0x62]) + body + bytes([a, b])).decode()
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", no_fix)
+    expect(page.locator("#rbt-record")).to_be_disabled()
+    expect(page.locator("#rbt-rec-note")).to_be_visible()
+    # With a fix, it can be turned on, and the note goes.
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("#rbt-record")).to_be_enabled()
+    expect(page.locator("#rbt-rec-note")).to_be_hidden()

@@ -1,5 +1,15 @@
 [
   {
+    "file": "photo-9.jpg",
+    "caption": "PHOTO 9",
+    "name": "Helen Little",
+    "votable": false,
+    "reel": false,
+    "color": "White",
+    "added": "2026-11-07",
+    "group": "photo-9.jpg"
+  },
+  {
     "file": "photo.jpg",
     "name": "RVasilev",
     "votable": false,
@@ -97,6 +107,7 @@
       "Aero: Spoiler, carbon"
     ],
     "votable": false,
+    "reel": false,
     "color": "White",
     "added": "2026-10-16",
     "group": "photo--by-helen-little-3.jpg"

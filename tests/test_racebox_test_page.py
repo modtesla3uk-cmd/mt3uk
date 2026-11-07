@@ -260,3 +260,26 @@ def test_record_a_drive_only_turns_on_once_the_gps_has_a_fix(page):
     page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     expect(page.locator("#rbt-record")).to_be_enabled()
     expect(page.locator("#rbt-rec-note")).to_be_hidden()
+
+
+def test_a_stop_is_named_by_its_street_and_number(page):
+    page.route("https://nominatim.openstreetmap.org/**", lambda r: r.fulfill(
+        status=200, content_type="application/json",
+        body='{"address":{"house_number":"12","road":"Church Road","town":"Towcester"}}'))
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    name = page.evaluate("() => window.MT3UKRaceBoxDrive.placeName(52.13, -0.99)")
+    assert name == "12 Church Road, Towcester"
+
+
+def test_the_speed_shows_large_on_the_map_in_full_screen(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    expect(page.locator("#rbt-speed-float")).to_be_visible()
+    expect(page.locator("#rbt-speed-big")).to_have_text("0")
+    expect(page.locator("#rbt-speed-big-unit")).to_have_text("km/h")

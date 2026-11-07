@@ -32,8 +32,12 @@
     if (lastKph === null) return;
     var mph = unit === 'mph';
     // Whole numbers only: 0 to 1 km/h shows as 0, 42.3 km/h as 42.
-    set('rbt-speed', String(Math.round(mph ? lastKph * 0.621371 : lastKph)));
+    var shown = String(Math.round(mph ? lastKph * 0.621371 : lastKph));
+    set('rbt-speed', shown);
     set('rbt-speed-unit', mph ? 'mph' : 'km/h');
+    // The large speed on the map in full screen.
+    set('rbt-speed-big', shown);
+    set('rbt-speed-big-unit', mph ? 'mph' : 'km/h');
     var b = $('rbt-unit');
     if (b) b.setAttribute('aria-checked', mph ? 'true' : 'false');
   }
@@ -49,7 +53,7 @@
   var map = null, trail = null, marker = null, leafletRequested = false;
   var pts = [];
   window.MT3UKRaceBoxTrail = pts;
-  window.MT3UKRaceBoxDrive = { analyse: analyseDrive };
+  window.MT3UKRaceBoxDrive = { analyse: analyseDrive, placeName: placeName };
 
   function metres(a, b) {
     var R = 6371000, toRad = Math.PI / 180;
@@ -249,6 +253,28 @@
     if (stop) closeStop(stop);
     return out;
   }
+  // The street name and number near a point, from OpenStreetMap (Nominatim). One request a second at most, and each
+  // point is kept on the phone's page once looked up. Returns '' when there is no name.
+  var placeCache = {}, placeQueue = Promise.resolve();
+  function placeName(lat, lon) {
+    var key = lat.toFixed(4) + ',' + lon.toFixed(4);
+    if (placeCache[key] !== undefined) return Promise.resolve(placeCache[key]);
+    var job = placeQueue.then(function () {
+      return new Promise(function (done) { setTimeout(done, 1100); });
+    }).then(function () {
+      return fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=en&lat=' + lat + '&lon=' + lon)
+        .then(function (res) { return res.ok ? res.json() : null; });
+    }).then(function (data) {
+      var a = (data && data.address) || {};
+      var road = a.road || a.pedestrian || a.footway || a.path || '';
+      var street = a.house_number && road ? a.house_number + ' ' + road : road;
+      var name = [street, a.town || a.village || a.city || a.suburb || ''].filter(Boolean).join(', ');
+      placeCache[key] = name;
+      return name;
+    }).catch(function () { return ''; });
+    placeQueue = job;
+    return job;
+  }
   function fmtTime(ms) { return new Date(ms).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
   function fmtLength(s) {
     s = Math.round(s);
@@ -291,9 +317,14 @@
       }
       a.stops.forEach(function (s, i) {
         var li = document.createElement('li');
-        li.textContent = 'Stop ' + (i + 1) + ' at ' + new Date(s.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
-          ', for ' + fmtLength(s.secs) + ' (' + s.lat.toFixed(5) + ', ' + s.lon.toFixed(5) + ')';
+        var when = 'Stop ' + (i + 1) + ' at ' + new Date(s.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ', for ' + fmtLength(s.secs);
+        var where = ' (' + s.lat.toFixed(5) + ', ' + s.lon.toFixed(5) + ')';
+        li.textContent = when + where;
         list.appendChild(li);
+        // The street name and number replace the coordinates once they are looked up.
+        placeName(s.lat, s.lon).then(function (name) {
+          if (name) li.textContent = when + ', ' + name;
+        });
       });
       loadLeaflet(function () {
         if (!window.L || !$('rbt-view-map') || view.hidden) return;

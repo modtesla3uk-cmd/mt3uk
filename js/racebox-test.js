@@ -343,7 +343,7 @@
         if (!window.L || !$('rbt-view-map') || view.hidden) return;
         if (driveMap) { driveMap.remove(); driveMap = null; }
         driveMap = L.map($('rbt-view-map'));
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(driveMap);
+        addMapTiles(driveMap);
         if (a.route.length) {
           var line = L.polyline(a.route, { color: '#e4b64f', weight: 4 }).addTo(driveMap);
           L.circleMarker(a.route[0], { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).bindTooltip('Start').addTo(driveMap);
@@ -454,7 +454,7 @@
       if (!el || !window.L) return;
       if (!map) {
         map = L.map(el).setView(here, 17);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+        addMapTiles(map);
         trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
         marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
         setDot(true);
@@ -471,6 +471,15 @@
   function fitBand() {
     var band = document.querySelector('.rbt-band');
     if (band) document.documentElement.style.setProperty('--band-h', band.offsetHeight + 'px');
+  }
+  // The map style: Esri's light grey base map with its labels on top. A muted map (no bright road colours) that is easy to
+  // read while driving, and needs no key.
+  var MAP_BASE = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+  var MAP_LABELS = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+  var MAP_ATTRIBUTION = 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ';
+  function addMapTiles(m) {
+    L.tileLayer(MAP_BASE, { maxNativeZoom: 16, maxZoom: 19, attribution: MAP_ATTRIBUTION }).addTo(m);
+    L.tileLayer(MAP_LABELS, { maxNativeZoom: 16, maxZoom: 19, pane: 'overlayPane' }).addTo(m);
   }
   // Full screen: the map fills the screen and the readings sit over it. The map is resized to match.
   // The heading tile moves onto the map in full screen, and back into the readings when full screen ends.

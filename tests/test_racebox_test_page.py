@@ -140,3 +140,21 @@ def test_the_racebox_map_goes_full_screen_with_the_readings_over_it(page):
     page.locator("#rbt-full").click()
     expect(page.locator("html")).not_to_have_class("rbt-full-on")
     expect(page.locator("#rbt-full")).to_have_text("Go full screen")
+
+
+def test_not_connected_is_said_at_start_and_when_the_racebox_drops(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    # Before the app reports a connection, the page says so and offers Connect.
+    expect(page.locator("#rbt-status")).to_have_text("Not connected. Switch the RaceBox on, then tap Connect to RaceBox.")
+    expect(page.locator("#rbt-connect")).to_have_attribute("aria-checked", "false")
+    # Connected, with a good fix, then the RaceBox drops: the status and the prompt say not connected.
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("#rbt-prompt")).to_be_hidden()
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'disconnected' })", None)
+    expect(page.locator("#rbt-status")).to_have_text("Disconnected.")
+    expect(page.locator("#rbt-prompt")).to_have_text("Not connected. Tap Connect to RaceBox to start.")
+    expect(page.locator("#rbt-prompt")).to_be_visible()
+    expect(page.locator("#rbt-connect")).to_have_attribute("aria-checked", "false")

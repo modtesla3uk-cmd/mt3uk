@@ -84,6 +84,30 @@
     p.hidden = !text;
   }
 
+  // The street name comes from OpenStreetMap's reverse lookup (Nominatim). It is asked for at most every 10 seconds,
+  // and only after the car has moved 40 m, so the free service is not overloaded. Shown under the position when there is one.
+  var street = { at: null, busy: false, asked: 0 };
+  function showStreet(name) {
+    var el = $('rbt-street');
+    if (!el) return;
+    el.textContent = name || '';
+    el.hidden = !name;
+  }
+  function lookStreet(here) {
+    if (street.busy) return;
+    if (street.at && metres(street.at, here) < 40) return;
+    if (Date.now() - street.asked < 10000) return;
+    street.busy = true;
+    street.asked = Date.now();
+    var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&accept-language=en&lat=' + here[0] + '&lon=' + here[1];
+    fetch(url).then(function (res) { return res.ok ? res.json() : null; }).then(function (data) {
+      street.busy = false;
+      street.at = here;
+      var a = (data && data.address) || {};
+      showStreet(a.road || a.pedestrian || a.footway || a.path || '');
+    }).catch(function () { street.busy = false; });
+  }
+
   function drawFix(r) {
     if (!r.fixOk) {
       setDot(false);
@@ -91,6 +115,7 @@
       return;
     }
     setPrompt('');
+    lookStreet([r.lat, r.lon]);
     var here = [r.lat, r.lon];
     // Skip tiny moves: a parked car's GPS wanders by a few metres, which would scribble on the trail.
     if (pts.length && metres(pts[pts.length - 1], here) < 3) {
@@ -98,13 +123,15 @@
       return;
     }
     pts.push(here);
+    // The map area and its buttons appear with the first good fix, so they keep their place while the map library loads.
     var fsBtn = $('rbt-full');
+    var mapEl = $('rbt-map');
+    if (mapEl) mapEl.hidden = false;
     if (fsBtn) fsBtn.hidden = false;
+    $('rbt-clear').hidden = false;
     loadLeaflet(function () {
       var el = $('rbt-map');
       if (!el || !window.L) return;
-      el.hidden = false;
-      $('rbt-clear').hidden = false;
       if (!map) {
         map = L.map(el).setView(here, 17);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
@@ -125,12 +152,26 @@
     document.documentElement.classList.toggle('rbt-full-on', on);
     var b = $('rbt-full');
     if (b) { b.textContent = on ? 'Exit full screen' : 'Go full screen'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    setMenu(false);
     if (map) setTimeout(function () { map.invalidateSize(); }, 60);
+  }
+
+  // Full screen: the status and the two switches sit in a fly-out opened by the Controls button.
+  function setMenu(open) {
+    var f = $('rbt-flyout'), b = $('rbt-menu');
+    if (f) f.classList.toggle('is-open', open);
+    if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
   function clearTrail() {
     pts.length = 0;
     if (trail) trail.setLatLngs([]);
+  }
+
+  // 16-point compass name for a heading in degrees (0 is north).
+  var POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  function compassPoint(deg) {
+    return POINTS[Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
   }
 
   function show(r) {
@@ -139,6 +180,10 @@
     lastKph = r.speedKph;
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
+    var arrow = $('rbt-arrow');
+    if (arrow) arrow.style.transform = 'rotate(' + r.heading + 'deg)';
+    // The GPS heading means little at a standstill, so the direction name shows only above walking pace.
+    set('rbt-card', r.speedKph >= 2 ? compassPoint(r.heading) : '');
     set('rbt-pos', r.lat.toFixed(6) + ', ' + r.lon.toFixed(6));
     set('rbt-fix', r.fixOk ? 'Good' : (r.fixStatus === 0 ? 'No fix' : 'Poor'));
     // Green for a good GPS fix, red for no fix or a poor one.
@@ -150,6 +195,12 @@
     set('rbt-sats', String(r.satellites));
     set('rbt-acc', r.horizontalAccuracy.toFixed(2));
     set('rbt-g', r.gForce.x.toFixed(2) + ' / ' + r.gForce.y.toFixed(2) + ' / ' + r.gForce.z.toFixed(2) + ' g');
+    // G meter: across (x) left to right, along (y) up for forward; 1 g is 40 units from the centre, clamped at the rim.
+    var mx = Math.max(-1.1, Math.min(1.1, r.gForce.x)), my = Math.max(-1.1, Math.min(1.1, r.gForce.y));
+    var dot = $('rbt-meter-dot');
+    if (dot) { dot.setAttribute('cx', (50 + mx * 40).toFixed(1)); dot.setAttribute('cy', (50 - my * 40).toFixed(1)); }
+    set('rbt-meter-x', r.gForce.x.toFixed(2));
+    set('rbt-meter-y', r.gForce.y.toFixed(2));
     set('rbt-rot', r.rotation.x.toFixed(1) + ' / ' + r.rotation.y.toFixed(1) + ' / ' + r.rotation.z.toFixed(1));
     set('rbt-batt', r.charging ? 'Charging, ' + r.batteryPercent + '%' : r.batteryPercent + '%');
     set('rbt-time', new Date(r.utc).toISOString().replace('T', ' ').slice(0, 19));
@@ -167,9 +218,6 @@
     // The switch is on while connected: turning it off disconnects. It is off, and busy while connecting.
     b.setAttribute('aria-checked', on ? 'true' : 'false');
     b.disabled = busy;
-    // The full-screen button shows as soon as the RaceBox is connected, even before the GPS has a fix.
-    var fs = $('rbt-full');
-    if (fs && on) fs.hidden = false;
   }
 
   function ready() {
@@ -205,6 +253,7 @@
     $('rbt-unit').addEventListener('click', toggleUnit);
     $('rbt-clear').addEventListener('click', clearTrail);
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
+    $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     renderSpeed();
   }
 

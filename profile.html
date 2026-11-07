@@ -692,15 +692,17 @@
   <div class="wrap rbt-panel-wrap">
     <h2 id="lh-racebox-title">RaceBox test <span class="lh-racebox-note">(in the app only)</span></h2>
     <p class="lh-racebox-lead">Connect to a RaceBox Mini, Mini S or Micro and see its live readings. Switch it on and keep it close by.</p>
+    <div class="rbt-flyout" id="rbt-flyout">
     <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
     </div>
+    </div>
     <dl class="rbt-grid">
       <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
-      <div><dt>Heading</dt><dd><span id="rbt-heading">&ndash;</span>&deg;</dd></div>
-      <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
+      <div><dt>Heading</dt><dd><span class="rbt-compass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></span><span id="rbt-heading">&ndash;</span>&deg; <span id="rbt-card" class="rbt-card"></span></dd></div>
+      <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span><span id="rbt-street" class="rbt-street" hidden></span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
       <div class="rbt-extra"><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
       <div class="rbt-extra"><dt>Accuracy</dt><dd><span id="rbt-acc">&ndash;</span> m</dd></div>
@@ -709,8 +711,19 @@
       <div class="rbt-extra"><dt>Battery</dt><dd><span id="rbt-batt">&ndash;</span></dd></div>
       <div class="rbt-wide rbt-extra"><dt>UTC time</dt><dd><span id="rbt-time">&ndash;</span></dd></div>
     </dl>
+    <div class="rbt-meter" id="rbt-meter">
+      <p class="rbt-meter-title">G meter</p>
+      <svg class="rbt-meter-svg" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="46" class="rbt-m-face"/>
+        <circle cx="50" cy="50" r="20" class="rbt-m-ring"/>
+        <circle cx="50" cy="50" r="40" class="rbt-m-ring"/>
+        <path d="M50 4 V96 M4 50 H96" class="rbt-m-cross"/>
+        <circle id="rbt-meter-dot" cx="50" cy="50" r="5" class="rbt-m-dot"/>
+      </svg>
+      <p class="rbt-meter-read"><span id="rbt-meter-x">0.00</span> across, <span id="rbt-meter-y">0.00</span> along</p>
+    </div>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
-<div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
+<div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
 <style>
@@ -742,6 +755,7 @@
   .rbt-full-on .rbt-panel-wrap .rbt-status { pointer-events: none; }
   .rbt-full-on .rbt-panel-wrap > :not(.rbt-map-wrap) { padding-left: 12px; padding-right: 12px; }
   .rbt-full-on .rbt-panel-wrap > .rbt-status { padding-top: 10px; }
+  .rbt-full-on .rbt-panel-wrap .rbt-status { background: rgba(255,255,255,.94); border-radius: 8px; padding: 6px 10px; margin: 0 0 8px; max-width: 58%; font-size: 0.95rem; }
   .rbt-full-on .rbt-panel-wrap > * { pointer-events: auto; }
   .rbt-full-on .rbt-panel-wrap > :not(.rbt-map-wrap) { position: relative; z-index: 500; }
   .rbt-full-on .rbt-fs-btn { z-index: 1001; }
@@ -753,12 +767,39 @@
   .rbt-map-wrap { position: relative; }
   .rbt-fs-btn { position: absolute; top: 10px; right: 10px; z-index: 1001; min-height: 44px; background: #fff; }
   .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
-  .rbt-prompt { position: absolute; left: 12px; right: 12px; bottom: 56px; z-index: 6; margin: 0; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
+  .rbt-prompt { margin: 0 0 10px; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
   .rbt-prompt[hidden] { display: none !important; }
-  .rbt-full-on .rbt-prompt { bottom: 210px; }
+  .rbt-full-on .rbt-prompt { position: absolute; left: 12px; right: 12px; bottom: 330px; z-index: 6; margin: 0; }
+  .rbt-menu-btn { display: none !important; }
+  .rbt-full-on .rbt-menu-btn { display: inline-flex !important; position: absolute; top: 10px; left: 10px; z-index: 1001; min-height: 44px; background: #fff; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout { display: none; position: fixed; top: 62px; left: 10px; width: min(280px, calc(100vw - 20px)); z-index: 1100; flex-direction: column; gap: 10px; margin: 0; padding: 12px; background: #fff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout.is-open { display: flex; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-status { max-width: none; margin: 0; padding: 0; background: none; border-radius: 0; font-size: 0.95rem; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-actions { flex-direction: column; margin: 0; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-switch { width: 100%; justify-content: flex-start; }
+  .rbt-street { display: block; margin-top: 2px; font-size: 0.95rem; font-weight: 600; color: #3d4659; }
+  .rbt-street[hidden] { display: none !important; }
+  .rbt-full-on .rbt-street { font-size: 0.85rem; color: #111; }
+  .rbt-full-on .leaflet-top.leaflet-left { top: 62px; }
+  .rbt-meter { display: none; width: 150px; margin: 14px auto 0; text-align: center; }
+  .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }
+  .rbt-meter-svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
+  .rbt-m-face { fill: #fff; stroke: #d8dbe2; stroke-width: 1.5; }
+  .rbt-m-ring { fill: none; stroke: #b8bec9; stroke-width: 1; stroke-dasharray: 3 3; }
+  .rbt-m-cross { fill: none; stroke: #d8dbe2; stroke-width: 1; }
+  .rbt-m-dot { fill: #1c8a4b; stroke: #16233d; stroke-width: 1.5; }
+  .rbt-meter-read { margin: 6px 0 0; font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* Full screen: a small meter at the bottom left, over the map, above the readings band. */
+  .rbt-full-on .rbt-panel-wrap > .rbt-meter { display: block; position: fixed; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 500; width: 96px; margin: 0; padding: 6px; background: #fff; border: 1px solid #d8dbe2; border-radius: 10px; }
+  .rbt-full-on .rbt-meter-title, .rbt-full-on .rbt-meter-read { display: none; }
+  .rbt-full-on .rbt-meter-svg { width: 84px; height: 84px; }
+  .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
+  .rbt-compass svg { width: 100%; height: 100%; display: block; }
+  #rbt-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s; }
+  .rbt-card { margin-left: 4px; }
   /* Full screen: just a plain list of speed, heading, position and g-forces over the map, no tiles. */
   .rbt-full-on .rbt-extra, .rbt-full-on .rbt-rate { display: none !important; }
-  .rbt-full-on .rbt-panel-wrap > .rbt-grid { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; margin: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-grid { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; margin: 0; padding: 8px 120px calc(8px + env(safe-area-inset-bottom, 0px)) 10px; background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
   .rbt-full-on .rbt-grid > div { background: transparent; border: 0; border-radius: 0; padding: 2px 6px; margin: 0; color: #111; min-width: 0; }
   .rbt-full-on .rbt-grid dt { color: #111; opacity: .8; font-size: 0.7rem; margin: 0; }
   .rbt-full-on .rbt-grid dd { color: #111; font-size: 0.95rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
@@ -1317,7 +1358,7 @@
   })();
 </script>
 
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=20"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=26"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/account-bar.js?v=20271118" defer></script>
 <script src="js/signin-prompt.js" defer></script>

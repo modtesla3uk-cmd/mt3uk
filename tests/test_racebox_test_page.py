@@ -198,3 +198,39 @@ def test_a_drive_is_saved_on_the_phone_and_still_listed_after_the_app_is_closed(
     page.reload()
     expect(page.locator("#rbt-drives-list li")).to_have_count(1)
     expect(page.locator("#rbt-drives-list li")).to_contain_text("50 readings")
+
+
+def test_a_drive_works_out_its_distance_top_speed_and_stops(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    # 10 seconds at 36 km/h, 30 seconds stopped, then 10 seconds at 36 km/h, read at 25 readings a second.
+    res = page.evaluate("""() => {
+      var rows = [], t = 0;
+      function add(kph, n) { for (var k = 0; k < n; k++) { rows.push([t, 51.0, -1.0, kph, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1]); t += 40; } }
+      add(36, 250); add(0, 750); add(36, 250);
+      return window.MT3UKRaceBoxDrive.analyse(rows);
+    }""")
+    assert len(res["stops"]) == 1
+    assert 29 <= res["stops"][0]["secs"] <= 31
+    assert abs(res["distanceM"] - 199.6) < 1
+    assert res["topKph"] == 36
+    assert 19 <= res["movingS"] <= 21
+
+
+def test_a_saved_drive_opens_with_its_figures_and_stops_and_closes(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.locator("#rbt-record").click()
+    page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
+    page.locator("#rbt-record").click()
+    expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+    page.locator(".rbt-view-open").click()
+    expect(page.locator("#rbt-view")).to_be_visible()
+    expect(page.locator("#rbt-view-stats")).to_contain_text("Distance")
+    expect(page.locator("#rbt-view-stats")).to_contain_text("Top speed")
+    expect(page.locator("#rbt-view-stops")).to_contain_text("No stops")
+    page.locator("#rbt-view-close").click()
+    expect(page.locator("#rbt-view")).to_be_hidden()

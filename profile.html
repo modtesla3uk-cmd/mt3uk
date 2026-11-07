@@ -702,6 +702,7 @@
     <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
     <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
+    <div class="rbt-band">
     <dl class="rbt-grid">
       <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div><dt>Heading</dt><dd><span class="rbt-compass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></span><span id="rbt-heading">&ndash;</span>&deg; <span id="rbt-card" class="rbt-card"></span></dd></div>
@@ -721,15 +722,23 @@
         <circle cx="50" cy="50" r="20" class="rbt-m-ring"/>
         <circle cx="50" cy="50" r="40" class="rbt-m-ring"/>
         <path d="M50 4 V96 M4 50 H96" class="rbt-m-cross"/>
-        <circle id="rbt-meter-dot" cx="50" cy="50" r="5" class="rbt-m-dot"/>
+        <circle id="rbt-meter-dot" cx="50" cy="50" r="8" class="rbt-m-dot"/>
       </svg>
       <p class="rbt-meter-read"><span id="rbt-meter-x">0.00</span> across, <span id="rbt-meter-y">0.00</span> along</p>
+    </div>
     </div>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
     <div class="rbt-drives" id="rbt-drives">
       <h3 class="rbt-drives-title">Saved drives</h3>
       <p class="rbt-drives-empty" id="rbt-drives-empty">No drives saved yet. Turn on Record a drive in Controls.</p>
       <ul class="rbt-drives-list" id="rbt-drives-list"></ul>
+      <div class="rbt-view" id="rbt-view" hidden>
+        <div class="rbt-view-head"><h4 id="rbt-view-title">Drive</h4><button type="button" class="btn btn-secondary rbt-view-close" id="rbt-view-close">Close</button></div>
+        <dl class="rbt-view-stats" id="rbt-view-stats"></dl>
+        <div class="rbt-view-map" id="rbt-view-map"></div>
+        <h4 class="rbt-view-stops-title">Stops</h4>
+        <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
+      </div>
     </div>
 <div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
@@ -803,25 +812,41 @@
   .rbt-drive-info { display: block; color: #5b6475; font-size: 0.9rem; }
   .rbt-del { min-height: 44px; flex: none; }
   .rbt-full-on .rbt-drives { display: none; }
+  .rbt-view { margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 12px; background: #fff; }
+  .rbt-view[hidden] { display: none; }
+  .rbt-view-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .rbt-view-head h4 { margin: 0; font-size: 1rem; }
+  .rbt-view-close { min-height: 44px; flex: none; }
+  .rbt-view-open { min-height: 44px; flex: none; }
+  .rbt-view-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
+  .rbt-view-stats > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 8px 10px; min-width: 0; }
+  .rbt-view-stats dt { font-size: 0.8rem; color: #5b6475; margin: 0; }
+  .rbt-view-stats dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rbt-view-map { height: 260px; margin: 12px 0; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
+  .rbt-view-stops-title { font-size: 0.95rem; margin: 12px 0 6px; }
+  .rbt-view-stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; }
+  /* Full screen: the readings and the G meter share one band at the bottom, the meter centred vertically in it. */
+  .rbt-full-on .rbt-panel-wrap > .rbt-band { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: flex; align-items: center; gap: 12px; margin: 0; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
+  .rbt-full-on .rbt-band .rbt-grid { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; }
   .rbt-meter { display: none; width: 150px; margin: 14px auto 0; text-align: center; }
   .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }
   .rbt-meter-svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
-  .rbt-m-face { fill: #fff; stroke: #d8dbe2; stroke-width: 1.5; }
-  .rbt-m-ring { fill: none; stroke: #b8bec9; stroke-width: 1; stroke-dasharray: 3 3; }
-  .rbt-m-cross { fill: none; stroke: #d8dbe2; stroke-width: 1; }
-  .rbt-m-dot { fill: #1c8a4b; stroke: #16233d; stroke-width: 1.5; }
+  .rbt-m-face { fill: #16233d; stroke: #16233d; stroke-width: 1.5; }
+  .rbt-m-ring { fill: none; stroke: rgba(255,255,255,.4); stroke-width: 1; stroke-dasharray: 3 3; }
+  .rbt-m-cross { fill: none; stroke: rgba(255,255,255,.4); stroke-width: 1; }
+  .rbt-m-dot { fill: #3ddc84; stroke: #fff; stroke-width: 1.5; }
   .rbt-meter-read { margin: 6px 0 0; font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
   /* Full screen: a small meter at the bottom left, over the map, above the readings band. */
-  .rbt-full-on .rbt-panel-wrap > .rbt-meter { display: block; position: fixed; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 500; width: 96px; margin: 0; padding: 6px; background: #fff; border: 1px solid #d8dbe2; border-radius: 10px; }
+  .rbt-full-on .rbt-band .rbt-meter { display: block; position: static; width: 136px; flex: none; margin: 0; padding: 8px; background: #16233d; border: 0; border-radius: 10px; }
   .rbt-full-on .rbt-meter-title, .rbt-full-on .rbt-meter-read { display: none; }
-  .rbt-full-on .rbt-meter-svg { width: 84px; height: 84px; }
+  .rbt-full-on .rbt-meter-svg { width: 120px; height: 120px; }
   .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
   .rbt-compass svg { width: 100%; height: 100%; display: block; }
   #rbt-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s; }
   .rbt-card { margin-left: 4px; }
   /* Full screen: just a plain list of speed, heading, position and g-forces over the map, no tiles. */
   .rbt-full-on .rbt-extra, .rbt-full-on .rbt-rate { display: none !important; }
-  .rbt-full-on .rbt-panel-wrap > .rbt-grid { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; margin: 0; padding: 8px 120px calc(8px + env(safe-area-inset-bottom, 0px)) 10px; background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-grid { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; margin: 0; padding: 8px 150px calc(8px + env(safe-area-inset-bottom, 0px)) 10px; background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
   .rbt-full-on .rbt-grid > div { background: transparent; border: 0; border-radius: 0; padding: 2px 6px; margin: 0; color: #111; min-width: 0; }
   .rbt-full-on .rbt-grid dt { color: #111; opacity: .8; font-size: 0.7rem; margin: 0; }
   .rbt-full-on .rbt-grid dd { color: #111; font-size: 0.95rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
@@ -1380,7 +1405,7 @@
   })();
 </script>
 
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=29"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=30"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/account-bar.js?v=20271118" defer></script>
 <script src="js/signin-prompt.js" defer></script>

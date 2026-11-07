@@ -49,6 +49,7 @@
   var map = null, trail = null, marker = null, leafletRequested = false;
   var pts = [];
   window.MT3UKRaceBoxTrail = pts;
+  window.MT3UKRaceBoxDrive = { analyse: analyseDrive };
 
   function metres(a, b) {
     var R = 6371000, toRad = Math.PI / 180;
@@ -189,16 +190,126 @@
         del.type = 'button';
         del.className = 'btn btn-danger btn-sm rbt-del';
         del.textContent = 'Delete';
+        var view = document.createElement('button');
+        view.type = 'button';
+        view.className = 'btn btn-secondary btn-sm rbt-view-open';
+        view.textContent = 'View';
+        view.addEventListener('click', function () { openDrive(d.id, d.started); });
         del.disabled = now;
         del.addEventListener('click', function () { deleteRecording(d.id); });
         li.appendChild(info);
+        li.appendChild(view);
         li.appendChild(del);
         ul.appendChild(li);
       });
     }).catch(function () {});
   }
+  // Viewing a saved drive: its route on a map, the figures and the stops (under 2 km/h for 10 seconds or more).
+  var driveMap = null;
+  function useMph() { return unit === 'mph'; }
+  function readDrive(id) {
+    return dbRun('readings', 'readonly', function (st) { return st.getAll(IDBKeyRange.bound([id, 0], [id, Number.MAX_SAFE_INTEGER])); })
+      .then(function (batches) {
+        var rows = [];
+        (batches || []).forEach(function (b) { rows = rows.concat(b.rows); });
+        return rows;
+      });
+  }
+  function analyseDrive(rows) {
+    var out = { distanceM: 0, durationS: 0, movingS: 0, topKph: 0, stops: [], route: [] };
+    if (!rows.length) return out;
+    out.durationS = (rows[rows.length - 1][0] - rows[0][0]) / 1000;
+    var stop = null;
+    function closeStop(s) {
+      var secs = (s.t1 - s.t0) / 1000;
+      if (secs >= 10) out.stops.push({ at: s.t0, secs: secs, lat: s.lat / s.n, lon: s.lon / s.n });
+    }
+    rows.forEach(function (r, i) {
+      var dt = i ? Math.min(1, Math.max(0, (r[0] - rows[i - 1][0]) / 1000)) : 0;
+      var kph = r[3];
+      out.topKph = Math.max(out.topKph, kph);
+      out.distanceM += kph / 3.6 * dt;
+      if (kph >= 2) out.movingS += dt;
+      if (r[11]) out.route.push([r[1], r[2]]);
+      if (kph < 2) {
+        if (!stop) stop = { t0: r[0], t1: r[0], lat: 0, lon: 0, n: 0 };
+        stop.t1 = r[0]; stop.lat += r[1]; stop.lon += r[2]; stop.n++;
+      } else if (stop) { closeStop(stop); stop = null; }
+    });
+    if (stop) closeStop(stop);
+    return out;
+  }
+  function fmtTime(ms) { return new Date(ms).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function fmtLength(s) {
+    s = Math.round(s);
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return h ? h + ' h ' + m + ' min' : (m ? m + ' min ' + x + ' s' : x + ' s');
+  }
+  function fmtSpeed(kph) { return useMph() ? Math.round(kph * 0.621371) + ' mph' : Math.round(kph) + ' km/h'; }
+  function fmtDist(m) { return useMph() ? (m / 1609.344).toFixed(2) + ' mi' : (m / 1000).toFixed(2) + ' km'; }
+  function closeDrive() {
+    var view = $('rbt-view');
+    if (view) { view.hidden = true; view.removeAttribute('data-drive'); }
+    if (driveMap) { driveMap.remove(); driveMap = null; }
+  }
+  function openDrive(id, started) {
+    readDrive(id).then(function (rows) {
+      var a = analyseDrive(rows);
+      var view = $('rbt-view');
+      if (!view) return;
+      view.hidden = false;
+      view.setAttribute('data-drive', id);
+      set('rbt-view-title', 'Drive from ' + fmtTime(started));
+      var stats = $('rbt-view-stats');
+      stats.textContent = '';
+      [['Distance', fmtDist(a.distanceM)], ['Driving time', fmtLength(a.movingS)], ['Length of drive', fmtLength(a.durationS)],
+        ['Top speed', fmtSpeed(a.topKph)], ['Average while moving', a.movingS ? fmtSpeed(a.distanceM / a.movingS * 3.6) : '–'],
+        ['Stops', String(a.stops.length)]].forEach(function (pair) {
+        var div = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd');
+        dt.textContent = pair[0];
+        dd.textContent = pair[1];
+        div.appendChild(dt);
+        div.appendChild(dd);
+        stats.appendChild(div);
+      });
+      var list = $('rbt-view-stops');
+      list.textContent = '';
+      if (!a.stops.length) {
+        var none = document.createElement('li');
+        none.textContent = 'No stops of 10 seconds or more.';
+        list.appendChild(none);
+      }
+      a.stops.forEach(function (s, i) {
+        var li = document.createElement('li');
+        li.textContent = 'Stop ' + (i + 1) + ' at ' + new Date(s.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+          ', for ' + fmtLength(s.secs) + ' (' + s.lat.toFixed(5) + ', ' + s.lon.toFixed(5) + ')';
+        list.appendChild(li);
+      });
+      loadLeaflet(function () {
+        if (!window.L || !$('rbt-view-map') || view.hidden) return;
+        if (driveMap) { driveMap.remove(); driveMap = null; }
+        driveMap = L.map($('rbt-view-map'));
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(driveMap);
+        if (a.route.length) {
+          var line = L.polyline(a.route, { color: '#e4b64f', weight: 4 }).addTo(driveMap);
+          L.circleMarker(a.route[0], { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).bindTooltip('Start').addTo(driveMap);
+          L.circleMarker(a.route[a.route.length - 1], { radius: 7, color: '#16233d', fillColor: '#c0392b', fillOpacity: 1 }).bindTooltip('End').addTo(driveMap);
+          driveMap.fitBounds(line.getBounds(), { padding: [20, 20] });
+        } else {
+          driveMap.setView([51.5, -0.1], 5);
+        }
+        a.stops.forEach(function (s, i) {
+          L.circleMarker([s.lat, s.lon], { radius: 6, color: '#16233d', fillColor: '#e67e22', fillOpacity: 1 }).bindTooltip('Stop ' + (i + 1)).addTo(driveMap);
+        });
+        setTimeout(function () { if (driveMap) driveMap.invalidateSize(); }, 60);
+      });
+      view.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }).catch(function () {});
+  }
+
   function deleteRecording(id) {
     if (!window.confirm('Delete this drive from the phone? It cannot be undone.')) return;
+    if ($('rbt-view') && $('rbt-view').getAttribute('data-drive') === id) closeDrive();
     dbRun('readings', 'readwrite', function (st) { return st.delete(IDBKeyRange.bound([id, 0], [id, Number.MAX_SAFE_INTEGER])); })
       .then(function () { return dbRun('recordings', 'readwrite', function (st) { return st.delete(id); }); })
       .then(drawRecordings);
@@ -412,6 +523,7 @@
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);
+    $('rbt-view-close').addEventListener('click', closeDrive);
     $('rbt-record').addEventListener('click', function () {
       if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();
     });

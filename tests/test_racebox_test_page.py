@@ -310,3 +310,11 @@ def test_the_racebox_test_link_shows_in_the_laps_app_only_for_approved_members(p
         status=200, content_type="application/json", body='{"success":true,"access":false,"open":false}'))
     page.goto("/laps.html")
     expect(page.locator("a[data-racebox-link]").first).to_have_attribute("hidden", "")
+
+
+def test_the_racebox_page_stays_in_the_laps_address_when_opened_from_the_laps_menu():
+    # The sign-in handover sends any Laps address that is not on its Laps list to MT3UK, so the RaceBox page must be on it.
+    from pathlib import Path
+    script = (Path(__file__).resolve().parent.parent / "js" / "account-bar.js").read_text(encoding="utf-8")
+    line = next(l for l in script.splitlines() if "var LAPS_PAGES" in l)
+    assert "'/racebox.html'" in line

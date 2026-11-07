@@ -158,3 +158,25 @@ def test_not_connected_is_said_at_start_and_when_the_racebox_drops(page):
     expect(page.locator("#rbt-prompt")).to_have_text("Not connected. Tap Connect to RaceBox to start.")
     expect(page.locator("#rbt-prompt")).to_be_visible()
     expect(page.locator("#rbt-connect")).to_have_attribute("aria-checked", "false")
+
+
+def test_the_g_meter_zeroes_itself_while_the_car_is_parked(page):
+    import struct
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    # A parked RaceBox sitting 0.26 g across because it is mounted at a slight angle.
+    payload = bytearray(base64.b64decode(EXAMPLE_B64)[6:86])
+    struct.pack_into("<i", payload, 48, 0)
+    struct.pack_into("<h", payload, 68, 260)
+    struct.pack_into("<h", payload, 70, 0)
+    body = bytes([0xFF, 0x01]) + struct.pack("<H", len(payload)) + bytes(payload)
+    a = b = 0
+    for x in body:
+        a = (a + x) & 0xFF
+        b = (b + a) & 0xFF
+    parked = base64.b64encode(bytes([0xB5, 0x62]) + body + bytes([a, b])).decode()
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => { for (var i = 0; i < 30; i++) window.__rbEmit('data', { base64: b }); }", parked)
+    expect(page.locator("#rbt-meter-dot")).to_have_attribute("cx", "50.0")
+    expect(page.locator("#rbt-meter-x")).to_have_text("0.00")

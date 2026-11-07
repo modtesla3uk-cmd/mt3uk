@@ -101,6 +101,23 @@
     try { localStorage.setItem('mt3ukRaceBoxGZero', JSON.stringify(gZero)); } catch (e) {}
     drawMeter();
   }
+  // Auto-zero: after each connection, the first second of readings taken while the car is still (under 2 km/h)
+  // becomes the middle. Moving restarts the count, so a car that is rolling when it connects waits for a stop.
+  var autoZero = { on: true, n: 0, sx: 0, sy: 0 };
+  function startAutoZero() { autoZero = { on: true, n: 0, sx: 0, sy: 0 }; }
+  function feedAutoZero(r) {
+    if (!autoZero.on) return;
+    if (r.speedKph >= 2) { autoZero.n = 0; autoZero.sx = 0; autoZero.sy = 0; return; }
+    autoZero.n++;
+    autoZero.sx += r.gForce.x;
+    autoZero.sy += r.gForce.y;
+    if (autoZero.n >= 25) {
+      gZero = { x: autoZero.sx / autoZero.n, y: autoZero.sy / autoZero.n };
+      try { localStorage.setItem('mt3ukRaceBoxGZero', JSON.stringify(gZero)); } catch (e) {}
+      autoZero.on = false;
+      drawMeter();
+    }
+  }
 
   // The street name comes from OpenStreetMap's reverse lookup (Nominatim). It is asked for at most every 10 seconds,
   // and only after the car has moved 40 m, so the free service is not overloaded. Shown under the position when there is one.
@@ -199,6 +216,7 @@
     count++;
     drawFix(r);
     lastKph = r.speedKph;
+    feedAutoZero(r);
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
     var arrow = $('rbt-arrow');
@@ -253,6 +271,7 @@
         setDot(false);
         setPrompt('Not connected. Tap Connect to RaceBox to start.');
       } else if (e && e.state === 'connected') {
+        startAutoZero();
         setPrompt('Connected. Waiting for a GPS fix.');
       }
     });

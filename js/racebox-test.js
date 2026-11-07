@@ -84,6 +84,24 @@
     p.hidden = !text;
   }
 
+  // G meter: across (x) left to right, along (y) up for forward; 1 g is 40 units from the centre, clamped at the rim.
+  // Zero takes the reading at the moment it is pressed (parked) as the middle, so a mounting tilt does not push the dot off centre.
+  var lastG = { x: 0, y: 0 }, gZero = { x: 0, y: 0 };
+  try { var savedZero = JSON.parse(localStorage.getItem('mt3ukRaceBoxGZero') || 'null'); if (savedZero) gZero = savedZero; } catch (e) {}
+  function drawMeter() {
+    var ax = lastG.x - gZero.x, ay = lastG.y - gZero.y;
+    var mx = Math.max(-1.1, Math.min(1.1, ax)), my = Math.max(-1.1, Math.min(1.1, ay));
+    var dot = $('rbt-meter-dot');
+    if (dot) { dot.setAttribute('cx', (50 + mx * 40).toFixed(1)); dot.setAttribute('cy', (50 - my * 40).toFixed(1)); }
+    set('rbt-meter-x', ax.toFixed(2));
+    set('rbt-meter-y', ay.toFixed(2));
+  }
+  function zeroG() {
+    gZero = { x: lastG.x, y: lastG.y };
+    try { localStorage.setItem('mt3ukRaceBoxGZero', JSON.stringify(gZero)); } catch (e) {}
+    drawMeter();
+  }
+
   // The street name comes from OpenStreetMap's reverse lookup (Nominatim). It is asked for at most every 10 seconds,
   // and only after the car has moved 40 m, so the free service is not overloaded. Shown under the position when there is one.
   var street = { at: null, busy: false, asked: 0 };
@@ -153,7 +171,10 @@
     var b = $('rbt-full');
     if (b) { b.textContent = on ? 'Exit full screen' : 'Go full screen'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
     setMenu(false);
-    if (map) setTimeout(function () { map.invalidateSize(); }, 60);
+    // The phone's browser settles its height a moment after the switch, and Leaflet only loads tiles for the new size
+    // when the map is moved, so refresh it a few times (setView at the same centre and zoom does that).
+    function refreshMap() { if (map) { map.invalidateSize(); map.setView(map.getCenter(), map.getZoom(), { animate: false }); } }
+    if (map) [60, 300, 800].forEach(function (ms) { setTimeout(refreshMap, ms); });
   }
 
   // Full screen: the status and the two switches sit in a fly-out opened by the Controls button.
@@ -195,12 +216,8 @@
     set('rbt-sats', String(r.satellites));
     set('rbt-acc', r.horizontalAccuracy.toFixed(2));
     set('rbt-g', r.gForce.x.toFixed(2) + ' / ' + r.gForce.y.toFixed(2) + ' / ' + r.gForce.z.toFixed(2) + ' g');
-    // G meter: across (x) left to right, along (y) up for forward; 1 g is 40 units from the centre, clamped at the rim.
-    var mx = Math.max(-1.1, Math.min(1.1, r.gForce.x)), my = Math.max(-1.1, Math.min(1.1, r.gForce.y));
-    var dot = $('rbt-meter-dot');
-    if (dot) { dot.setAttribute('cx', (50 + mx * 40).toFixed(1)); dot.setAttribute('cy', (50 - my * 40).toFixed(1)); }
-    set('rbt-meter-x', r.gForce.x.toFixed(2));
-    set('rbt-meter-y', r.gForce.y.toFixed(2));
+    lastG = { x: r.gForce.x, y: r.gForce.y };
+    drawMeter();
     set('rbt-rot', r.rotation.x.toFixed(1) + ' / ' + r.rotation.y.toFixed(1) + ' / ' + r.rotation.z.toFixed(1));
     set('rbt-batt', r.charging ? 'Charging, ' + r.batteryPercent + '%' : r.batteryPercent + '%');
     set('rbt-time', new Date(r.utc).toISOString().replace('T', ' ').slice(0, 19));
@@ -254,6 +271,7 @@
     $('rbt-clear').addEventListener('click', clearTrail);
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
+    $('rbt-zero').addEventListener('click', zeroG);
     renderSpeed();
   }
 

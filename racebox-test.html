@@ -417,6 +417,7 @@
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
     </div>
+    <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
     </div>
     <dl class="rbt-grid">
       <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
@@ -500,6 +501,8 @@
   .rbt-street[hidden] { display: none !important; }
   .rbt-full-on .rbt-street { font-size: 0.85rem; color: #111; }
   .rbt-full-on .leaflet-top.leaflet-left { top: 62px; }
+  .rbt-zero { margin-top: 10px; min-height: 44px; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-zero { width: 100%; margin-top: 0; }
   .rbt-meter { display: none; width: 150px; margin: 14px auto 0; text-align: center; }
   .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }
   .rbt-meter-svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
@@ -544,6 +547,6 @@
 <script src="js/layout-edit.js?v=11"></script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-test.js?v=26"></script>
+<script src="js/racebox-test.js?v=27"></script>
 </body>
 </html>

@@ -349,3 +349,45 @@ def test_in_full_screen_the_heading_is_on_the_map_and_the_speed_is_not_in_the_ba
     expect(page.locator(".rbt-speed-tile")).to_be_hidden()
     page.locator("#rbt-full").click()
     expect(page.locator(".rbt-band .rbt-heading-tile")).to_have_count(1)
+
+
+def test_in_full_screen_the_heading_and_the_record_button_do_not_move_when_the_heading_changes(page):
+    import struct
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    page.wait_for_timeout(300)
+    before = page.evaluate("""() => { var h = document.querySelector('.rbt-heading-tile').getBoundingClientRect(), r = document.getElementById('rbt-rec-float').getBoundingClientRect();
+      return { hw: h.width, rt: r.top, band: document.querySelector('.rbt-band').getBoundingClientRect().height }; }""")
+    # The same packet with a heading of 309.4 degrees, and a longer compass point.
+    payload = bytearray(base64.b64decode(EXAMPLE_B64)[6:86])
+    struct.pack_into("<i", payload, 52, 30940000)
+    body = bytes([0xFF, 0x01]) + struct.pack("<H", len(payload)) + bytes(payload)
+    a = b = 0
+    for x in body:
+        a = (a + x) & 0xFF
+        b = (b + a) & 0xFF
+    heading = base64.b64encode(bytes([0xB5, 0x62]) + body + bytes([a, b])).decode()
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", heading)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", heading)
+    page.wait_for_timeout(300)
+    after = page.evaluate("""() => { var h = document.querySelector('.rbt-heading-tile').getBoundingClientRect(), r = document.getElementById('rbt-rec-float').getBoundingClientRect();
+      return { hw: h.width, rt: r.top, band: document.querySelector('.rbt-band').getBoundingClientRect().height }; }""")
+    assert abs(before["hw"] - after["hw"]) < 0.5
+    assert abs(before["rt"] - after["rt"]) < 0.5
+    assert abs(after["band"] - 240) < 1
+
+
+def test_in_full_screen_the_heading_shows_only_the_direction_at_the_speeds_width(page):
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    expect(page.locator("#rbt-heading")).to_be_hidden()
+    expect(page.locator(".rbt-deg")).to_be_hidden()
+    width = page.evaluate("""() => [document.querySelector('.rbt-heading-tile').getBoundingClientRect().width,
+                                   document.querySelector('.rbt-speed-float').getBoundingClientRect().width]""")
+    assert abs(width[0] - width[1]) < 1, width

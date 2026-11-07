@@ -430,7 +430,7 @@
     <div class="rbt-band">
     <dl class="rbt-grid">
       <div class="rbt-speed-tile"><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
-      <div class="rbt-heading-tile"><dt>Heading</dt><dd><span class="rbt-compass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></span><span id="rbt-heading">&ndash;</span>&deg; <span id="rbt-card" class="rbt-card"></span></dd></div>
+      <div class="rbt-heading-tile"><dt>Heading</dt><dd><span class="rbt-compass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></span><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
       <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-street" class="rbt-street" hidden></span><span id="rbt-pos" class="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
       <div class="rbt-extra"><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
@@ -510,7 +510,7 @@
   .rbt-full-on .rbt-fs-btn { z-index: 1001; }
   .rbt-full-on .rbt-panel-wrap > .rbt-map-wrap { pointer-events: auto; }
   .rbt-full-on .rbt-panel-wrap h2, .rbt-full-on .rbt-panel-wrap .lh-racebox-lead, .rbt-full-on .rbt-panel-wrap .rbt-rate { display: none; }
-  .rbt-full-on .rbt-clear { position: fixed; bottom: calc(var(--band-h, 210px) + 8px); right: 16px; left: auto; z-index: 920; margin: 0; background: #fff; }
+  .rbt-full-on .rbt-clear { position: fixed; bottom: calc(var(--band-h, 240px) + 8px); right: 16px; left: auto; z-index: 920; margin: 0; background: #fff; }
   .rbt-map { height: 320px; margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
   .rbt-clear { margin-top: 10px; min-height: 44px; }
   .rbt-map-wrap { position: relative; }
@@ -518,7 +518,7 @@
   .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
   .rbt-prompt { margin: 0 0 10px; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
   .rbt-prompt[hidden] { display: none !important; }
-  .rbt-full-on .rbt-prompt { position: absolute; left: 12px; right: 12px; bottom: calc(var(--band-h, 210px) + 120px); z-index: 6; margin: 0; }
+  .rbt-full-on .rbt-prompt { position: absolute; left: 12px; right: 12px; bottom: calc(var(--band-h, 240px) + 120px); z-index: 6; margin: 0; }
   .rbt-menu-btn { display: none !important; }
   .rbt-full-on .rbt-menu-btn { display: inline-flex !important; position: absolute; top: 10px; left: 10px; z-index: 1001; min-height: 44px; background: #fff; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout { display: none; position: fixed; top: 62px; left: 10px; width: min(280px, calc(100vw - 20px)); z-index: 1100; flex-direction: column; gap: 10px; margin: 0; padding: 12px; background: #fff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
@@ -561,22 +561,26 @@
   .rbt-view-stops-title { font-size: 0.95rem; margin: 12px 0 6px; }
   .rbt-view-stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; }
   .rbt-rec-float { display: none; }
-  .rbt-full-on .rbt-rec-float { display: inline-flex; align-items: center; justify-content: center; position: absolute; left: 12px; bottom: calc(var(--band-h, 210px) + 12px); z-index: 1001; min-height: 56px; min-width: 132px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--c-navy, #145a4d); color: #fff; font: 700 1.05rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  .rbt-full-on .rbt-rec-float { display: inline-flex; align-items: center; justify-content: center; position: absolute; left: 12px; bottom: calc(var(--band-h, 240px) + 12px); z-index: 1001; min-height: 56px; min-width: 132px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--c-navy, #145a4d); color: #fff; font: 700 1.05rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 10px rgba(0,0,0,.25); }
   .rbt-full-on .rbt-rec-float:disabled { background: #8a94a6; }
   .rbt-full-on .rbt-rec-float.is-recording { background: #b3261e; }
   .rbt-full-on .rbt-rec-float.is-recording::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #fff; margin-right: 10px; }
   .rbt-speed-float { display: none; }
   /* Full screen: the speed is on the map (top right) and the heading is under it, so the band keeps the position and the g. */
   .rbt-full-on .rbt-speed-tile { display: none; }
-  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { display: block; position: absolute; right: 12px; top: 132px; z-index: 1000; padding: 8px 12px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.2); min-width: 0; }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { display: block; position: absolute; right: 12px; top: 132px; z-index: 1000; box-sizing: border-box; width: 172px; padding: 4px 6px; background: none; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 6px #fff; }
   .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dt { font-size: 0.85rem; color: #5b6475; margin: 0; }
-  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dd { font-size: 1.4rem; font-weight: 700; margin: 0; color: var(--ink, #111); }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dd { font-size: 1.8rem; font-weight: 700; margin: 0; color: var(--ink, #111); line-height: 1.1; }
+  .rbt-full-on .rbt-deg-val, .rbt-full-on .rbt-deg, .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dt { display: none; }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { width: 170px; }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile .rbt-compass { width: 28px; height: 28px; }
+  .rbt-full-on .rbt-speed-float { width: 170px; box-sizing: border-box; justify-content: flex-end; }
   .rbt-full-on .rbt-map-wrap > .rbt-heading-tile .rbt-compass { width: 24px; height: 24px; }
   .rbt-full-on .rbt-speed-float { display: flex; position: absolute; top: 62px; right: 12px; z-index: 1000; align-items: baseline; gap: 6px; padding: 6px 12px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #111); font-variant-numeric: tabular-nums; }
   .rbt-full-on .rbt-speed-float #rbt-speed-big { font-size: 2.6rem; font-weight: 700; line-height: 1; }
   .rbt-full-on .rbt-speed-float #rbt-speed-big-unit { font-size: 1rem; font-weight: 600; color: #5b6475; }
   /* Full screen: the readings and the G meter share one band at the bottom, the meter centred vertically in it. */
-  .rbt-full-on .rbt-panel-wrap > .rbt-band { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; display: flex; align-items: center; gap: 12px; margin: 0; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-band { position: fixed; left: 0; right: 0; bottom: 0; z-index: 500; box-sizing: border-box; height: 240px; overflow: hidden; display: flex; align-items: center; gap: 12px; margin: 0; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.92); border-top: 3px solid #1c8a4b; }
   .rbt-full-on .rbt-band .rbt-grid { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; }
   .rbt-meter { display: none; width: 150px; margin: 14px auto 0; text-align: center; }
   .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }

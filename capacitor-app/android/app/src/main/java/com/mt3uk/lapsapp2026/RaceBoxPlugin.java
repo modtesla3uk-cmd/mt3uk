@@ -49,7 +49,10 @@ public class RaceBoxPlugin extends Plugin {
     private static final UUID UART_SERVICE = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
     private static final UUID UART_TX = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
     private static final UUID CLIENT_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-    private static final long SCAN_TIMEOUT_MS = 60000;
+    // Scanning runs in rounds. A RaceBox can take close to a minute to wake and start advertising, so the scan
+    // restarts after each round, up to MAX_SCAN_ROUNDS, before reporting that nothing was found.
+    private static final long SCAN_ROUND_MS = 60000;
+    private static final int MAX_SCAN_ROUNDS = 3;
     // Android often fails the first connection with a generic error, and the RaceBox app retries; so do we.
     private static final int MAX_ATTEMPTS = 3;
     private static final long RETRY_DELAY_MS = 800;
@@ -65,12 +68,19 @@ public class RaceBoxPlugin extends Plugin {
     private String deviceName = "";
     private BluetoothDevice pendingDevice;
     private int attempts = 0;
+    private int scanRound = 0;
 
     private final Runnable scanTimeout = new Runnable() {
         @Override
         public void run() {
             stopScan();
-            if (!connecting) emitStatus("notfound", "");
+            if (connecting || connected) return;
+            if (scanRound < MAX_SCAN_ROUNDS) {
+                scanRound++;
+                runScanRound();
+            } else {
+                emitStatus("notfound", "");
+            }
         }
     };
 
@@ -123,6 +133,7 @@ public class RaceBoxPlugin extends Plugin {
         }
         stopScan();
         connecting = false;
+        connected = false;
         scanCallback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -135,13 +146,20 @@ public class RaceBoxPlugin extends Plugin {
                 emitStatus("failed", "scan " + errorCode);
             }
         };
+        scanRound = 1;
+        runScanRound();
+        call.resolve(new JSObject().put("scanning", true));
+    }
+
+    @SuppressLint("MissingPermission")
+    private void runScanRound() {
+        if (scanner == null || scanCallback == null) return;
         scanning = true;
-        emitStatus("scanning", "");
+        emitStatus("scanning", String.valueOf(scanRound));
         // Low latency finds a sleeping or distant device far sooner than the default (low power) mode.
         ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
         scanner.startScan(null, settings, scanCallback);
-        main.postDelayed(scanTimeout, SCAN_TIMEOUT_MS);
-        call.resolve(new JSObject().put("scanning", true));
+        main.postDelayed(scanTimeout, SCAN_ROUND_MS);
     }
 
     @SuppressLint("MissingPermission")

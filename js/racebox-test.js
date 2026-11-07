@@ -498,14 +498,42 @@
     var band = document.querySelector('.rbt-band');
     if (band) document.documentElement.style.setProperty('--band-h', band.offsetHeight + 'px');
   }
-  // The map style: Esri's light grey base map with its labels on top. A muted map (no bright road colours) that is easy to
-  // read while driving, and needs no key.
-  var MAP_BASE = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
-  var MAP_LABELS = 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
-  var MAP_ATTRIBUTION = 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ';
+  // The map style: OpenStreetMap's standard tiles, shown in greyscale (the colours are taken off in the page's CSS, class
+  // rbt-mono). Sharp at every zoom and easy to read while driving, and needs no key.
+  var MAP_BASE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var MAP_ATTRIBUTION = '&copy; OpenStreetMap contributors';
   function addMapTiles(m) {
-    L.tileLayer(MAP_BASE, { maxNativeZoom: 16, maxZoom: 19, attribution: MAP_ATTRIBUTION }).addTo(m);
-    L.tileLayer(MAP_LABELS, { maxNativeZoom: 16, maxZoom: 19, pane: 'overlayPane' }).addTo(m);
+    L.tileLayer(MAP_BASE, { maxZoom: 19, attribution: MAP_ATTRIBUTION }).addTo(m);
+    m.getContainer().classList.add('rbt-mono');
+  }
+  // Heading up: the map turns so the way the car is going points up the screen. Leaflet's panes sit in a wrapper that turns
+  // about the centre (where the car is), and the controls stay upright. The map does not drag while it is turned.
+  var rotWrap = null, headingUp = true, lastHeading = null;
+  function wrapPanes(m) {
+    var pane = m.getPanes().mapPane;
+    rotWrap = document.createElement('div');
+    rotWrap.className = 'rbt-rot';
+    rotWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+    pane.parentNode.insertBefore(rotWrap, pane);
+    rotWrap.appendChild(pane);
+    m.getContainer().style.background = '#ececec';
+    applyMapRotation();
+  }
+  function applyMapRotation() {
+    var on = headingUp && lastHeading !== null;
+    if (map) { if (on) map.dragging.disable(); else map.dragging.enable(); }
+    if (!rotWrap) return;
+    if (!on) { rotWrap.style.transform = ''; return; }
+    // Scale up just enough that the turned map still covers the whole of the map area.
+    var el = map.getContainer(), w = el.clientWidth, h = el.clientHeight;
+    var a = Math.abs(lastHeading * Math.PI / 180), c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
+    var s = Math.max(1, ((w / 2) * c + (h / 2) * sn) / (w / 2), ((w / 2) * sn + (h / 2) * c) / (h / 2));
+    rotWrap.style.transform = 'rotate(' + (-lastHeading) + 'deg) scale(' + s.toFixed(3) + ')';
+  }
+  // The map buttons sit just above the readings band, whatever height the band is with its text.
+  function fitBand() {
+    var band = document.querySelector('.rbt-band');
+    if (band) document.documentElement.style.setProperty('--band-h', band.offsetHeight + 'px');
   }
   // Full screen: the map fills the screen and the readings sit over it. The map is resized to match.
   // The heading tile moves onto the map in full screen, and back into the readings when full screen ends.

@@ -38,13 +38,7 @@
     set('rbt-time', new Date(r.utc).toISOString().replace('T', ' ').slice(0, 19));
   }
 
-  function init() {
-    if (!app || !app.available) {
-      set('rbt-status', 'Open this page in the Laps app on your phone to connect to a RaceBox.');
-      var b = $('rbt-connect');
-      if (b) b.disabled = true;
-      return;
-    }
+  function ready() {
     app.onStatus(function (e) { set('rbt-status', statusText(e)); });
     app.onReading(show);
     setInterval(function () {
@@ -59,6 +53,28 @@
     $('rbt-disconnect').addEventListener('click', function () {
       app.disconnect();
     });
+  }
+
+  function notReady() {
+    var b = $('rbt-connect');
+    if (b) b.disabled = true;
+    if (!app.pluginNames || app.pluginNames() === 'not running in the app') {
+      set('rbt-status', 'Open this page in the Laps app on your phone to connect to a RaceBox.');
+    } else {
+      set('rbt-status', 'RaceBox is not available on this page. Plugins here: ' + app.pluginNames() + '. Open the RaceBox test from the Laps front page.');
+    }
+  }
+
+  function init() {
+    if (!app) return notReady();
+    // The app's bridge can arrive a moment after the page's scripts run, so check for a few seconds before giving up.
+    var tries = 0;
+    (function check() {
+      if (app.available) return ready();
+      tries++;
+      if (tries < 10) return setTimeout(check, 500);
+      notReady();
+    })();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

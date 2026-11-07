@@ -600,6 +600,20 @@
   .rbt-full-on .rbt-meter-read { display: block; margin: 4px 0 0; font-size: 1.15rem; font-weight: 700; color: var(--ink, #111); text-align: center; }
   .rbt-full-on .rbt-meter-cap { display: block; margin: 0; font-size: 0.9rem; color: #5b6475; text-align: center; }
   .rbt-full-on .rbt-meter-svg { width: 134px; height: 134px; }
+  /* Landscape on a phone: the readings and the G meter run down the right-hand side, and the map has the rest of the screen. */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .rbt-full-on .rbt-panel-wrap > .rbt-band { top: 0; left: auto; right: 0; bottom: 0; width: 290px; height: auto; flex-direction: column; align-items: stretch; overflow: hidden; padding: 10px 12px; border-top: 0; border-left: 3px solid #1c8a4b; }
+    .rbt-full-on .rbt-band .rbt-grid { grid-template-columns: 1fr; }
+    .rbt-full-on .rbt-band .rbt-meter { width: 124px; align-self: center; padding: 6px; }
+    .rbt-full-on .rbt-meter-svg { width: 104px; height: 104px; }
+    .rbt-full-on .rbt-meter-read { font-size: 1rem; }
+    .rbt-full-on .rbt-fs-btn { right: 306px; }
+    .rbt-full-on .rbt-speed-float { right: 306px; }
+    .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { right: 306px; }
+    .rbt-full-on .rbt-clear { right: 306px; bottom: 12px; }
+    .rbt-full-on .rbt-rec-float { bottom: 12px; }
+    .rbt-full-on .rbt-prompt { right: 306px; bottom: 80px; }
+  }
   .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
   .rbt-compass svg { width: 100%; height: 100%; display: block; }
   #rbt-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s; }

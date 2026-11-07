@@ -415,3 +415,25 @@ def test_the_map_turns_so_the_car_goes_up_the_screen_unless_north_up_is_chosen(p
     page.locator("#rbt-north").click()
     assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is False
     assert page.locator("#rbt-north").get_attribute("aria-checked") == "true"
+
+
+def test_the_g_meter_dot_follows_the_trend_not_every_bump(page):
+    import struct
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    def packet(across_mg):
+        payload = bytearray(base64.b64decode(EXAMPLE_B64)[6:86])
+        struct.pack_into("<i", payload, 48, 8000)  # moving, so the auto-zero stays out of it
+        struct.pack_into("<h", payload, 68, across_mg)
+        body = bytes([0xFF, 0x01]) + struct.pack("<H", len(payload)) + bytes(payload)
+        a = b = 0
+        for x in body:
+            a = (a + x) & 0xFF
+            b = (b + a) & 0xFF
+        return base64.b64encode(bytes([0xB5, 0x62]) + body + bytes([a, b])).decode()
+    low, high = packet(0), packet(500)
+    # Readings that jump between 0 and 0.5 g: the dot settles between them, not at either end.
+    page.evaluate("([lo, hi]) => { for (var i = 0; i < 40; i++) window.__rbEmit('data', { base64: i % 2 ? hi : lo }); }", [low, high])
+    value = float(page.locator("#rbt-meter-x").inner_text())
+    assert 0.1 < value < 0.4, value

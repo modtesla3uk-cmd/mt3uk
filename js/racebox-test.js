@@ -373,6 +373,14 @@
   // G meter: across (x) left to right, along (y) up for forward; 1 g is 40 units from the centre, clamped at the rim.
   // Zero takes the reading at the moment it is pressed (parked) as the middle, so a mounting tilt does not push the dot off centre.
   var lastG = { x: 0, y: 0 }, gZero = { x: 0, y: 0 };
+  // The dot follows the trend, not every bump: each reading moves it 15% of the way to the new value.
+  var gSmooth = null;
+  function smoothMeter(x, y) {
+    if (!gSmooth) gSmooth = { x: x, y: y };
+    gSmooth.x += (x - gSmooth.x) * 0.15;
+    gSmooth.y += (y - gSmooth.y) * 0.15;
+    return { x: gSmooth.x, y: gSmooth.y };
+  }
   try { var savedZero = JSON.parse(localStorage.getItem('mt3ukRaceBoxGZero') || 'null'); if (savedZero) gZero = savedZero; } catch (e) {}
   function drawMeter() {
     var ax = lastG.x - gZero.x, ay = lastG.y - gZero.y;
@@ -605,7 +613,7 @@
     set('rbt-sats', String(r.satellites));
     set('rbt-acc', r.horizontalAccuracy.toFixed(2));
     set('rbt-g', r.gForce.x.toFixed(2) + ' / ' + r.gForce.y.toFixed(2) + ' / ' + r.gForce.z.toFixed(2) + ' g');
-    lastG = { x: r.gForce.x, y: r.gForce.y };
+    lastG = smoothMeter(r.gForce.x, r.gForce.y);
     drawMeter();
     set('rbt-rot', r.rotation.x.toFixed(1) + ' / ' + r.rotation.y.toFixed(1) + ' / ' + r.rotation.z.toFixed(1));
     set('rbt-batt', r.charging ? 'Charging, ' + r.batteryPercent + '%' : r.batteryPercent + '%');

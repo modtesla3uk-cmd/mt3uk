@@ -448,7 +448,7 @@
         <circle cx="50" cy="50" r="20" class="rbt-m-ring"/>
         <circle cx="50" cy="50" r="40" class="rbt-m-ring"/>
         <path d="M50 4 V96 M4 50 H96" class="rbt-m-cross"/>
-        <circle id="rbt-meter-dot" cx="50" cy="50" r="8" class="rbt-m-dot"/>
+        <circle id="rbt-meter-dot" cx="50" cy="50" r="10" class="rbt-m-dot"/>
       </svg>
       <p class="rbt-meter-read"><span id="rbt-meter-x">0.00</span> / <span id="rbt-meter-y">0.00</span> g</p>
       <p class="rbt-meter-cap">across / along</p>
@@ -589,17 +589,17 @@
   .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }
   .rbt-meter-svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
   .rbt-m-face { fill: #fff; stroke: var(--hairline, #d8dbe2); stroke-width: 1.5; }
-  .rbt-m-ring { fill: none; stroke: var(--c-navy, #145a4d); stroke-opacity: .55; stroke-width: 1; stroke-dasharray: 3 3; }
+  .rbt-m-ring { fill: none; stroke: var(--c-navy, #145a4d); stroke-opacity: .8; stroke-width: 1; stroke-dasharray: 3 3; }
   .rbt-m-cross { fill: none; stroke: var(--c-navy, #145a4d); stroke-opacity: .6; stroke-width: 1; }
   .rbt-m-dot { fill: var(--c-navy, #145a4d); stroke: #fff; stroke-width: 1.5; }
   .rbt-meter-read { margin: 6px 0 0; font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
   .rbt-meter-cap { display: none; }
   /* Full screen: a small meter at the bottom left, over the map, above the readings band. */
-  .rbt-full-on .rbt-band .rbt-meter { display: block; position: static; width: 120px; flex: none; margin: 0; padding: 8px; background: #fff; border: 1px solid var(--hairline, #d8dbe2); border-radius: 10px; }
+  .rbt-full-on .rbt-band .rbt-meter { display: block; position: static; width: 150px; flex: none; margin: 0; padding: 8px; background: #fff; border: 1px solid var(--hairline, #d8dbe2); border-radius: 10px; }
   .rbt-full-on .rbt-meter-title { display: none; }
-  .rbt-full-on .rbt-meter-read { display: block; margin: 4px 0 0; font-size: 1rem; color: var(--ink, #111); text-align: center; }
-  .rbt-full-on .rbt-meter-cap { display: block; margin: 0; font-size: 0.8rem; color: #5b6475; text-align: center; }
-  .rbt-full-on .rbt-meter-svg { width: 104px; height: 104px; }
+  .rbt-full-on .rbt-meter-read { display: block; margin: 4px 0 0; font-size: 1.15rem; font-weight: 700; color: var(--ink, #111); text-align: center; }
+  .rbt-full-on .rbt-meter-cap { display: block; margin: 0; font-size: 0.9rem; color: #5b6475; text-align: center; }
+  .rbt-full-on .rbt-meter-svg { width: 134px; height: 134px; }
   .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
   .rbt-compass svg { width: 100%; height: 100%; display: block; }
   #rbt-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s; }
@@ -633,6 +633,6 @@
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-test.js?v=39"></script>
+<script src="js/racebox-test.js?v=40"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>RaceBox test - Laps by MT3UK</title>
 <meta name="description" content="A test page for the RaceBox connection in the Laps app.">
-<link rel="canonical" href="https://laps.mt3uk.com/racebox-test.html">
+<link rel="canonical" href="https://laps.mt3uk.com/racebox.html">
 <link rel="icon" type="image/svg+xml" href="images/laps/favicon.svg">
 <link rel="icon" type="image/x-icon" href="images/laps/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/laps/favicon-32.png">
@@ -22,7 +22,7 @@
 <meta property="og:description" content="A test page for the RaceBox connection in the Laps app.">
 <meta property="og:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <meta property="og:site_name" content="Laps by MT3UK">
-<meta property="og:url" content="https://laps.mt3uk.com/racebox-test.html">
+<meta property="og:url" content="https://laps.mt3uk.com/racebox.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="RaceBox test, Laps by MT3UK">
 <meta name="twitter:description" content="A test page for the RaceBox connection in the Laps app.">
@@ -366,7 +366,7 @@
       <a href="leaderboards.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
       <a href="favourites.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>Favourites</a>
       <a href="my-analysis.html" data-laps class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg>My Analysis</a>
-      <a href="profile.html#lh-racebox" class="nav-link" data-racebox-link hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0"/><circle cx="12" cy="12" r="2.5"/><path d="M12 14.5 16 9"/></svg>RaceBox test</a>
+      <a href="racebox.html" class="nav-link active" data-racebox-link hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0"/><circle cx="12" cy="12" r="2.5"/><path d="M12 14.5 16 9"/></svg>RaceBox test</a>
       <a href="#" class="nav-link nav-bell-drawer" onclick="event.stopPropagation();document.getElementById('nav-bell-btn').click();return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Notifications</a>
       <a href="track.html?add=1" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add a session</a>
       <a href="my-builds.html" class="nav-link nav-link-mybuilds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M4 17v-4l2-5h12l2 5v4"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>My Garage</a>
@@ -412,8 +412,10 @@
     <p class="rbt-lead">Connect to a RaceBox Mini, Mini S or Micro and see its live readings. The RaceBox must be switched on and close by.</p>
   </div>
 </section>
-<section class="rbt-body">
+<div class="rbt-gate" id="rbt-gate"><div class="wrap"><p>The RaceBox test is for approved members, in the Laps app.</p></div></div>
+<div class="rbt-body" id="rbt-body" hidden>
   <div class="wrap rbt-panel-wrap">
+    <p class="rbt-phone-note" id="rbt-phone-note" hidden>To connect a RaceBox and get its GPS, open this page on your phone in the Laps app. On a computer you can look around the page, but nothing comes from a RaceBox.</p>
     <div class="rbt-flyout" id="rbt-flyout">
     <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
     <div class="rbt-actions">
@@ -467,12 +469,17 @@
 <div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div class="rbt-speed-float" id="rbt-speed-float" aria-hidden="true"><span id="rbt-speed-big">&ndash;</span> <span id="rbt-speed-big-unit">km/h</span></div>
 <div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
-</section>
+</div>
 <style>
   .rbt-hero { background: var(--ink, #16233d); color: #fff; padding: 22px 0 18px; }
   .rbt-hero .lh-title { color: #fff; margin: 12px 0 6px; font-size: clamp(1.5rem, 3vw, 2rem); }
   .rbt-lead { color: #d3d8e2; max-width: 52ch; margin: 0; }
+  .rbt-hero .rbt-lead { color: #d3d8e2; }
   .rbt-body { padding: 24px 0 40px; }
+  .rbt-gate { padding: 40px 0; text-align: center; color: var(--ink, #16233d); }
+  .rbt-gate[hidden], .rbt-body[hidden] { display: none; }
+  .rbt-phone-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
+  .rbt-phone-note[hidden] { display: none; }
   .rbt-status { font-weight: 600; margin: 0 0 14px; }
   .rbt-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
   .rbt-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 600 0.95rem/1 var(--font-body, sans-serif); cursor: pointer; }
@@ -604,6 +611,7 @@
 <script src="js/search.js" defer></script>
 
 <script src="js/layout-edit.js?v=11"></script>
+<script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-test.js?v=32"></script>

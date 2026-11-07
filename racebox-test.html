@@ -420,14 +420,14 @@
     <dl class="rbt-grid">
       <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div><dt>Heading</dt><dd><span id="rbt-heading">&ndash;</span>&deg;</dd></div>
-      <div><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
+      <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
       <div><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
       <div><dt>Accuracy</dt><dd><span id="rbt-acc">&ndash;</span> m</dd></div>
-      <div><dt>g (across / along / up)</dt><dd><span id="rbt-g">&ndash;</span></dd></div>
-      <div><dt>Rotation (deg/s)</dt><dd><span id="rbt-rot">&ndash;</span></dd></div>
+      <div class="rbt-wide"><dt>g (across / along / up)</dt><dd><span id="rbt-g">&ndash;</span></dd></div>
+      <div class="rbt-wide"><dt>Rotation (deg/s)</dt><dd><span id="rbt-rot">&ndash;</span></dd></div>
       <div><dt>Battery</dt><dd><span id="rbt-batt">&ndash;</span></dd></div>
-      <div><dt>UTC time</dt><dd><span id="rbt-time">&ndash;</span></dd></div>
+      <div class="rbt-wide"><dt>UTC time</dt><dd><span id="rbt-time">&ndash;</span></dd></div>
     </dl>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
   </div>
@@ -440,10 +440,12 @@
   .rbt-status { font-weight: 600; margin: 0 0 14px; }
   .rbt-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
   .rbt-actions .btn { min-height: 44px; }
-  .rbt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0; }
-  .rbt-grid > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 12px 14px; background: #fff; }
+  .rbt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+  @media (min-width: 700px) { .rbt-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .rbt-grid .rbt-wide { grid-column: 1 / -1; }
+  .rbt-grid > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 10px 12px; background: #fff; min-width: 0; }
   .rbt-grid dt { font-size: 0.82rem; color: #5b6475; margin: 0 0 4px; }
-  .rbt-grid dd { margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rbt-grid dd { margin: 0; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .rbt-rate { margin: 14px 0 0; color: #5b6475; font-size: 0.9rem; }
   .rbt-grid .rbt-fix-good dd { color: #1c8a4b; }
   .rbt-grid .rbt-fix-bad dd { color: #c0392b; }
@@ -465,6 +467,6 @@
 <script src="js/layout-edit.js?v=11"></script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=2"></script>
-<script src="js/racebox-test.js?v=6"></script>
+<script src="js/racebox-test.js?v=7"></script>
 </body>
 </html>

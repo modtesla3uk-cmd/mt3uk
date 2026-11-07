@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.Build;
@@ -48,7 +49,10 @@ public class RaceBoxPlugin extends Plugin {
     private static final UUID UART_SERVICE = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
     private static final UUID UART_TX = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
     private static final UUID CLIENT_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-    private static final long SCAN_TIMEOUT_MS = 20000;
+    private static final long SCAN_TIMEOUT_MS = 60000;
+    // Android often fails the first connection with a generic error, and the RaceBox app retries; so do we.
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long RETRY_DELAY_MS = 800;
     private static final int WANTED_MTU = 247;
 
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -59,6 +63,8 @@ public class RaceBoxPlugin extends Plugin {
     private boolean connecting = false;
     private boolean connected = false;
     private String deviceName = "";
+    private BluetoothDevice pendingDevice;
+    private int attempts = 0;
 
     private final Runnable scanTimeout = new Runnable() {
         @Override
@@ -131,7 +137,9 @@ public class RaceBoxPlugin extends Plugin {
         };
         scanning = true;
         emitStatus("scanning", "");
-        scanner.startScan(scanCallback);
+        // Low latency finds a sleeping or distant device far sooner than the default (low power) mode.
+        ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+        scanner.startScan(null, settings, scanCallback);
         main.postDelayed(scanTimeout, SCAN_TIMEOUT_MS);
         call.resolve(new JSObject().put("scanning", true));
     }
@@ -143,9 +151,18 @@ public class RaceBoxPlugin extends Plugin {
         if (!name.startsWith("RaceBox Mini") && !name.startsWith("RaceBox Micro")) return;
         connecting = true;
         deviceName = name;
+        pendingDevice = device;
+        attempts = 1;
         stopScan();
         emitStatus("connecting", name);
         gatt = device.connectGatt(getContext(), false, gattCallback, BluetoothDevice.TRANSPORT_LE);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void reconnect() {
+        if (pendingDevice == null) return;
+        connecting = true;
+        gatt = pendingDevice.connectGatt(getContext(), false, gattCallback, BluetoothDevice.TRANSPORT_LE);
     }
 
     @SuppressLint("MissingPermission")
@@ -179,6 +196,8 @@ public class RaceBoxPlugin extends Plugin {
     @PluginMethod
     public void disconnect(PluginCall call) {
         stopScan();
+        pendingDevice = null;
+        attempts = 0;
         closeGatt();
         emitStatus("disconnected", "");
         call.resolve();
@@ -198,8 +217,17 @@ public class RaceBoxPlugin extends Plugin {
                 // A larger packet size means fewer notifications. If the phone refuses, discover at the default size.
                 if (!g.requestMtu(WANTED_MTU)) g.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                // A failed first connection is tried again; a link that drops after connecting is reported.
+                boolean retry = !connected && pendingDevice != null && attempts < MAX_ATTEMPTS;
                 closeGatt();
-                emitStatus("disconnected", "");
+                if (retry) {
+                    attempts++;
+                    emitStatus("retrying", String.valueOf(attempts));
+                    main.postDelayed(() -> reconnect(), RETRY_DELAY_MS);
+                } else {
+                    pendingDevice = null;
+                    emitStatus("disconnected", "");
+                }
             }
         }
 
@@ -236,6 +264,7 @@ public class RaceBoxPlugin extends Plugin {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 connecting = false;
                 connected = true;
+                attempts = 0;
                 emitStatus("connected", deviceName);
             } else {
                 emitStatus("failed", "notifications " + status);

@@ -146,6 +146,9 @@
     b.textContent = on ? 'Connected' : (busy ? 'Connecting\u2026' : 'Connect to RaceBox');
     b.disabled = on || busy;
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    // The full-screen button shows as soon as the RaceBox is connected, even before the GPS has a fix.
+    var fs = $('rbt-full');
+    if (fs && on) fs.hidden = false;
   }
 
   function ready() {

@@ -283,3 +283,19 @@ def test_the_speed_shows_large_on_the_map_in_full_screen(page):
     expect(page.locator("#rbt-speed-float")).to_be_visible()
     expect(page.locator("#rbt-speed-big")).to_have_text("0")
     expect(page.locator("#rbt-speed-big-unit")).to_have_text("km/h")
+
+
+def test_the_racebox_test_link_shows_in_the_laps_app_only_for_approved_members(page):
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.add_init_script(STUB)
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(
+        status=200, content_type="application/json", body='{"success":true,"access":true,"open":false}'))
+    page.goto("/laps.html")
+    expect(page.locator("a[data-racebox-link]").first).not_to_have_attribute("hidden", "")
+    expect(page.locator("a[data-racebox-link]").first).to_have_attribute("href", "profile.html#lh-racebox")
+    # Not approved: the link stays hidden.
+    page.unroute("**/laps/racebox/access")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(
+        status=200, content_type="application/json", body='{"success":true,"access":false,"open":false}'))
+    page.goto("/laps.html")
+    expect(page.locator("a[data-racebox-link]").first).to_have_attribute("hidden", "")

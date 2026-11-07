@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(LapsShortcutPlugin.class);
         registerPlugin(AppUpdatePlugin.class);
+        registerPlugin(RaceBoxPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

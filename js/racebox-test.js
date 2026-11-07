@@ -35,7 +35,7 @@
     set('rbt-speed', String(Math.round(mph ? lastKph * 0.621371 : lastKph)));
     set('rbt-speed-unit', mph ? 'mph' : 'km/h');
     var b = $('rbt-unit');
-    if (b) { b.textContent = mph ? 'Show in km/h' : 'Show in mph'; b.setAttribute('aria-pressed', mph ? 'true' : 'false'); }
+    if (b) b.setAttribute('aria-checked', mph ? 'true' : 'false');
   }
 
   function toggleUnit() {
@@ -72,12 +72,29 @@
     document.head.appendChild(js);
   }
 
+  // The dot is green with a good GPS fix and red without one, and the prompt on the map says what to do.
+  function setDot(good) {
+    if (marker) marker.setStyle({ fillColor: good ? '#1c8a4b' : '#c0392b' });
+  }
+
+  function setPrompt(text) {
+    var p = $('rbt-prompt');
+    if (!p) return;
+    p.textContent = text || '';
+    p.hidden = !text;
+  }
+
   function drawFix(r) {
-    if (!r.fixOk) return;
+    if (!r.fixOk) {
+      setDot(false);
+      setPrompt('No GPS fix yet. Keep the RaceBox with a clear view of the sky.');
+      return;
+    }
+    setPrompt('');
     var here = [r.lat, r.lon];
     // Skip tiny moves: a parked car's GPS wanders by a few metres, which would scribble on the trail.
     if (pts.length && metres(pts[pts.length - 1], here) < 3) {
-      if (marker) marker.setLatLng(here);
+      if (marker) { marker.setLatLng(here); setDot(true); }
       return;
     }
     pts.push(here);
@@ -93,9 +110,11 @@
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
         trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
         marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
+        setDot(true);
       } else {
         trail.setLatLngs(pts);
         marker.setLatLng(here);
+        setDot(true);
         map.panTo(here);
       }
     });
@@ -143,9 +162,11 @@
     if (!b) return;
     var busy = state === 'scanning' || state === 'connecting' || state === 'discovering' || state === 'retrying';
     var on = state === 'connected';
-    b.textContent = on ? 'Connected' : (busy ? 'Connecting\u2026' : 'Connect to RaceBox');
-    b.disabled = on || busy;
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var label = $('rbt-connect-label');
+    if (label) label.textContent = on ? 'Connected' : (busy ? 'Connecting…' : 'Connect to RaceBox');
+    // The switch is on while connected: turning it off disconnects. It is off, and busy while connecting.
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
+    b.disabled = busy;
     // The full-screen button shows as soon as the RaceBox is connected, even before the GPS has a fix.
     var fs = $('rbt-full');
     if (fs && on) fs.hidden = false;
@@ -160,7 +181,16 @@
         setConnectButton('connected');
       }
     }).catch(function () { /* the app did not answer: stay on Not connected */ });
-    app.onStatus(function (e) { set('rbt-status', statusText(e)); setConnectButton(e && e.state); });
+    app.onStatus(function (e) {
+      set('rbt-status', statusText(e));
+      setConnectButton(e && e.state);
+      if (e && (e.state === 'disconnected' || e.state === 'notfound' || e.state === 'failed')) {
+        setDot(false);
+        setPrompt('Not connected. Tap Connect to RaceBox to start.');
+      } else if (e && e.state === 'connected') {
+        setPrompt('Connected. Waiting for a GPS fix.');
+      }
+    });
     app.onReading(show);
     setInterval(function () {
       rate = count;
@@ -168,6 +198,7 @@
       set('rbt-rate', String(rate));
     }, 1000);
     $('rbt-connect').addEventListener('click', function () {
+      if ($('rbt-connect').getAttribute('aria-checked') === 'true') { app.disconnect(); return; }
       set('rbt-status', 'Looking for a RaceBox…');
       app.connect().catch(function (err) { set('rbt-status', String(err && err.message ? err.message : err)); setConnectButton('failed'); });
     });
@@ -175,9 +206,6 @@
     $('rbt-clear').addEventListener('click', clearTrail);
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     renderSpeed();
-    $('rbt-disconnect').addEventListener('click', function () {
-      app.disconnect();
-    });
   }
 
   function notReady() {

@@ -43,7 +43,7 @@ def test_the_racebox_page_shows_the_live_readings_from_the_app(page):
     expect(page.locator("#rbt-speed-unit")).to_have_text("km/h")
     page.locator("#rbt-unit").click()
     expect(page.locator("#rbt-speed-unit")).to_have_text("mph")
-    expect(page.locator("#rbt-unit")).to_have_text("Show in km/h")
+    expect(page.locator("#rbt-unit")).to_have_attribute("aria-checked", "true")
     page.locator("#rbt-unit").click()
     expect(page.locator("#rbt-speed-unit")).to_have_text("km/h")
     expect(page.locator("#rbt-heading")).to_have_text("0.0")
@@ -96,7 +96,7 @@ def test_a_connection_from_before_the_page_was_opened_is_shown_as_connected(page
     page.goto("/racebox-test.html")
     expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
     expect(page.locator("#rbt-connect")).to_have_text("Connected")
-    expect(page.locator("#rbt-connect")).to_be_disabled()
+    expect(page.locator("#rbt-connect")).to_have_attribute("aria-checked", "true")
 
 
 def test_the_racebox_panel_is_on_profile_inside_the_app_for_approved_members(page):

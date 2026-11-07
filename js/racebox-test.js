@@ -6,6 +6,10 @@
   'use strict';
   var app = window.MT3UKRaceBoxApp;
   var rate = 0, count = 0;
+  var lastKph = null;
+  // The speed can be shown in km/h or mph. The choice is kept on the phone.
+  var unit = 'kmh';
+  try { if (localStorage.getItem('mt3ukRaceBoxUnit') === 'mph') unit = 'mph'; } catch (e) { /* storage blocked: km/h */ }
 
   function $(id) { return document.getElementById(id); }
   function set(id, text) { var el = $(id); if (el) el.textContent = text; }
@@ -24,12 +28,35 @@
     return 'Status: ' + (s || 'unknown');
   }
 
+  function renderSpeed() {
+    if (lastKph === null) return;
+    var mph = unit === 'mph';
+    // Whole numbers only: 0 to 1 km/h shows as 0, 42.3 km/h as 42.
+    set('rbt-speed', String(Math.round(mph ? lastKph * 0.621371 : lastKph)));
+    set('rbt-speed-unit', mph ? 'mph' : 'km/h');
+    var b = $('rbt-unit');
+    if (b) { b.textContent = mph ? 'Show in km/h' : 'Show in mph'; b.setAttribute('aria-pressed', mph ? 'true' : 'false'); }
+  }
+
+  function toggleUnit() {
+    unit = unit === 'mph' ? 'kmh' : 'mph';
+    try { localStorage.setItem('mt3ukRaceBoxUnit', unit); } catch (e) { /* storage blocked: the choice lasts this visit */ }
+    renderSpeed();
+  }
+
   function show(r) {
     count++;
-    set('rbt-speed', r.speedKph.toFixed(1));
+    lastKph = r.speedKph;
+    renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
     set('rbt-pos', r.lat.toFixed(6) + ', ' + r.lon.toFixed(6));
     set('rbt-fix', r.fixOk ? 'Good' : (r.fixStatus === 0 ? 'No fix' : 'Poor'));
+    // Green for a good GPS fix, red for no fix or a poor one.
+    var fixCard = $('rbt-fix') && $('rbt-fix').parentNode && $('rbt-fix').parentNode.parentNode;
+    if (fixCard) {
+      fixCard.classList.toggle('rbt-fix-good', !!r.fixOk);
+      fixCard.classList.toggle('rbt-fix-bad', !r.fixOk);
+    }
     set('rbt-sats', String(r.satellites));
     set('rbt-acc', r.horizontalAccuracy.toFixed(2));
     set('rbt-g', r.gForce.x.toFixed(2) + ' / ' + r.gForce.y.toFixed(2) + ' / ' + r.gForce.z.toFixed(2) + ' g');
@@ -63,6 +90,8 @@
       set('rbt-status', 'Looking for a RaceBox…');
       app.connect().catch(function (err) { set('rbt-status', String(err && err.message ? err.message : err)); setConnectButton('failed'); });
     });
+    $('rbt-unit').addEventListener('click', toggleUnit);
+    renderSpeed();
     $('rbt-disconnect').addEventListener('click', function () {
       app.disconnect();
     });

@@ -612,9 +612,10 @@
     <div class="rbt-actions">
       <button type="button" class="btn btn-primary" id="rbt-connect">Connect to RaceBox</button>
       <button type="button" class="btn btn-secondary" id="rbt-disconnect">Disconnect</button>
+      <button type="button" class="btn btn-secondary" id="rbt-unit" aria-pressed="false">Show in mph</button>
     </div>
     <dl class="rbt-grid">
-      <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> km/h</dd></div>
+      <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div><dt>Heading</dt><dd><span id="rbt-heading">&ndash;</span>&deg;</dd></div>
       <div><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
@@ -641,6 +642,8 @@
   .rbt-grid dt { font-size: 0.82rem; color: #5b6475; margin: 0 0 4px; }
   .rbt-grid dd { margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
   .rbt-rate { margin: 14px 0 0; color: #5b6475; font-size: 0.9rem; }
+  .rbt-grid .rbt-fix-good dd { color: #1c8a4b; }
+  .rbt-grid .rbt-fix-bad dd { color: #c0392b; }
 </style>
   <section class="lh-sec" id="timers" data-panel="timers">
     <div class="wrap">
@@ -689,7 +692,7 @@
       </div>
     </div>
   </div>
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=2","js/racebox-test.js?v=4"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=2","js/racebox-test.js?v=6"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}}catch(e){}})();</script>
 </main>
 <script>(function(){var box=document.getElementById('lh-welcome');if(!box)return;var q=new URLSearchParams(location.search);if(!q.has('welcome'))return;q.delete('welcome');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);var first='';try{first=(localStorage.getItem('mt3ukMyBuildsFirstName')||'').trim().split(/\s+/)[0]||'';}catch(e){}var nm=document.getElementById('lh-welcome-name');if(nm&&first)nm.textContent=', '+first;var note='';try{note=localStorage.getItem('mt3ukLapsWelcomeNote')||'';localStorage.removeItem('mt3ukLapsWelcomeNote');}catch(e){}var nt=document.getElementById('lh-welcome-note');if(nt&&note){nt.textContent=note;nt.hidden=false;}box.hidden=false;document.getElementById('lh-welcome-close').addEventListener('click',function(){box.hidden=true;});})();</script>
 

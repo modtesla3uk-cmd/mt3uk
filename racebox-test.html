@@ -415,9 +415,10 @@
     <div class="rbt-actions">
       <button type="button" class="btn btn-primary" id="rbt-connect">Connect to RaceBox</button>
       <button type="button" class="btn btn-secondary" id="rbt-disconnect">Disconnect</button>
+      <button type="button" class="btn btn-secondary" id="rbt-unit" aria-pressed="false">Show in mph</button>
     </div>
     <dl class="rbt-grid">
-      <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> km/h</dd></div>
+      <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div><dt>Heading</dt><dd><span id="rbt-heading">&ndash;</span>&deg;</dd></div>
       <div><dt>Position</dt><dd><span id="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
@@ -444,6 +445,8 @@
   .rbt-grid dt { font-size: 0.82rem; color: #5b6475; margin: 0 0 4px; }
   .rbt-grid dd { margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
   .rbt-rate { margin: 14px 0 0; color: #5b6475; font-size: 0.9rem; }
+  .rbt-grid .rbt-fix-good dd { color: #1c8a4b; }
+  .rbt-grid .rbt-fix-bad dd { color: #c0392b; }
 </style>
 </main>
 <footer>
@@ -462,6 +465,6 @@
 <script src="js/layout-edit.js?v=11"></script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=2"></script>
-<script src="js/racebox-test.js?v=4"></script>
+<script src="js/racebox-test.js?v=6"></script>
 </body>
 </html>

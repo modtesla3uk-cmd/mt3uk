@@ -54,6 +54,7 @@
   var pts = [];
   window.MT3UKRaceBoxTrail = pts;
   window.MT3UKRaceBoxDrive = { analyse: analyseDrive, placeName: placeName };
+  window.MT3UKRaceBoxView = function () { return { headingUp: headingUp, lastHeading: lastHeading }; };
 
   function metres(a, b) {
     var R = 6371000, toRad = Math.PI / 180;
@@ -455,6 +456,7 @@
       if (!map) {
         map = L.map(el).setView(here, 17);
         addMapTiles(map);
+        wrapPanes(map);
         trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
         marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
         setDot(true);
@@ -467,6 +469,30 @@
     });
   }
 
+  // Heading up: the map turns so the way the car is going points up the screen. Leaflet's panes sit in a wrapper that turns
+  // about the centre (where the car is), and the controls stay upright. The map does not drag while it is turned.
+  var rotWrap = null, headingUp = true, lastHeading = null;
+  function wrapPanes(m) {
+    var pane = m.getPanes().mapPane;
+    rotWrap = document.createElement('div');
+    rotWrap.className = 'rbt-rot';
+    rotWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+    pane.parentNode.insertBefore(rotWrap, pane);
+    rotWrap.appendChild(pane);
+    m.getContainer().style.background = '#ececec';
+    applyMapRotation();
+  }
+  function applyMapRotation() {
+    var on = headingUp && lastHeading !== null;
+    if (map) { if (on) map.dragging.disable(); else map.dragging.enable(); }
+    if (!rotWrap) return;
+    if (!on) { rotWrap.style.transform = ''; return; }
+    // Scale up just enough that the turned map still covers the whole of the map area.
+    var el = map.getContainer(), w = el.clientWidth, h = el.clientHeight;
+    var a = Math.abs(lastHeading * Math.PI / 180), c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a));
+    var s = Math.max(1, ((w / 2) * c + (h / 2) * sn) / (w / 2), ((w / 2) * sn + (h / 2) * c) / (h / 2));
+    rotWrap.style.transform = 'rotate(' + (-lastHeading) + 'deg) scale(' + s.toFixed(3) + ')';
+  }
   // The map buttons sit just above the readings band, whatever height the band is with its text.
   function fitBand() {
     var band = document.querySelector('.rbt-band');
@@ -532,6 +558,8 @@
     recordReading(r);
     lastFixOk = !!r.fixOk;
     setRecordAvailable(lastFixOk);
+    if (r.speedKph >= 2) lastHeading = r.heading;
+    applyMapRotation();
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
     var arrow = $('rbt-arrow');
@@ -613,6 +641,17 @@
     if (window.ResizeObserver && document.querySelector('.rbt-band')) new ResizeObserver(fitBand).observe(document.querySelector('.rbt-band'));
     window.addEventListener('resize', fitBand);
     $('rbt-rec-float').addEventListener('click', function () { $('rbt-record').click(); });
+    var northUp = false;
+    try { northUp = localStorage.getItem('mt3ukRaceBoxNorthUp') === '1'; } catch (e) { /* storage blocked: heading up */ }
+    headingUp = !northUp;
+    $('rbt-north').setAttribute('aria-checked', northUp ? 'true' : 'false');
+    $('rbt-north').addEventListener('click', function () {
+      var on = $('rbt-north').getAttribute('aria-checked') !== 'true';
+      $('rbt-north').setAttribute('aria-checked', on ? 'true' : 'false');
+      headingUp = !on;
+      try { localStorage.setItem('mt3ukRaceBoxNorthUp', on ? '1' : '0'); } catch (e) { /* storage blocked */ }
+      applyMapRotation();
+    });
     $('rbt-record').addEventListener('click', function () {
       if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();
     });

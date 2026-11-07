@@ -391,3 +391,27 @@ def test_in_full_screen_the_heading_shows_only_the_direction_at_the_speeds_width
     width = page.evaluate("""() => [document.querySelector('.rbt-heading-tile').getBoundingClientRect().width,
                                    document.querySelector('.rbt-speed-float').getBoundingClientRect().width]""")
     assert abs(width[0] - width[1]) < 1, width
+
+
+def test_the_map_turns_so_the_car_goes_up_the_screen_unless_north_up_is_chosen(page):
+    import struct
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    # Moving at 29 km/h, heading 45 degrees (north-east).
+    payload = bytearray(base64.b64decode(EXAMPLE_B64)[6:86])
+    struct.pack_into("<i", payload, 48, 8000)
+    struct.pack_into("<i", payload, 52, 4500000)
+    body = bytes([0xFF, 0x01]) + struct.pack("<H", len(payload)) + bytes(payload)
+    a = b = 0
+    for x in body:
+        a = (a + x) & 0xFF
+        b = (b + a) & 0xFF
+    moving = base64.b64encode(bytes([0xB5, 0x62]) + body + bytes([a, b])).decode()
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", moving)
+    page.wait_for_timeout(200)
+    view = page.evaluate("window.MT3UKRaceBoxView()")
+    assert view["headingUp"] is True and abs(view["lastHeading"] - 45) < 0.01, view
+    page.locator("#rbt-north").click()
+    assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is False
+    assert page.locator("#rbt-north").get_attribute("aria-checked") == "true"

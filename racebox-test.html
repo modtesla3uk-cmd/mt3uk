@@ -410,7 +410,7 @@
   </div>
 </section>
 <section class="rbt-body">
-  <div class="wrap">
+  <div class="wrap rbt-panel-wrap">
     <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
     <div class="rbt-actions">
       <button type="button" class="btn btn-primary" id="rbt-connect">Connect to RaceBox</button>
@@ -430,6 +430,7 @@
       <div class="rbt-wide"><dt>UTC time</dt><dd><span id="rbt-time">&ndash;</span></dd></div>
     </dl>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
+<div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </section>
 <style>
@@ -447,6 +448,21 @@
   .rbt-grid dt { font-size: 0.82rem; color: #5b6475; margin: 0 0 4px; }
   .rbt-grid dd { margin: 0; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .rbt-rate { margin: 14px 0 0; color: #5b6475; font-size: 0.9rem; }
+  /* Full screen: the map fills the screen and the readings and buttons sit over it. */
+  .rbt-full-on { overflow: hidden; }
+  .rbt-full-on .rbt-map-wrap { position: fixed; inset: 0; margin: 0; z-index: 900; pointer-events: auto; }
+  .rbt-full-on .rbt-map { height: 100vh; height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+  .rbt-full-on .rbt-panel-wrap { position: fixed; top: 0; left: 0; right: 0; z-index: 910; max-height: 60vh; overflow-y: auto; padding: 10px; pointer-events: none; background: none; max-width: none; margin: 0; }
+  .rbt-full-on .rbt-panel-wrap > * { pointer-events: auto; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-map-wrap { pointer-events: auto; }
+  .rbt-full-on .rbt-panel-wrap h2, .rbt-full-on .rbt-panel-wrap .lh-racebox-lead, .rbt-full-on .rbt-panel-wrap .rbt-rate { display: none; }
+  .rbt-full-on .rbt-panel-wrap .rbt-grid > div { background: rgba(255,255,255,.88); }
+  .rbt-full-on .rbt-clear { position: fixed; bottom: 16px; left: 16px; z-index: 920; margin: 0; background: #fff; }
+  .rbt-map { height: 320px; margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
+  .rbt-clear { margin-top: 10px; min-height: 44px; }
+  .rbt-map-wrap { position: relative; }
+  .rbt-fs-btn { position: absolute; top: 10px; right: 10px; z-index: 5; min-height: 44px; background: #fff; }
+  .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
   .rbt-grid .rbt-fix-good dd { color: #1c8a4b; }
   .rbt-grid .rbt-fix-bad dd { color: #c0392b; }
 </style>
@@ -467,6 +483,6 @@
 <script src="js/layout-edit.js?v=11"></script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-test.js?v=10"></script>
+<script src="js/racebox-test.js?v=13"></script>
 </body>
 </html>

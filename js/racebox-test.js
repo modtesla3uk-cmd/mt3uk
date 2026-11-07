@@ -44,8 +44,79 @@
     renderSpeed();
   }
 
+  // The map: the car's position and the trail of good fixes. Leaflet and OpenStreetMap load only once there is a good fix.
+  var LEAFLET = { css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' };
+  var map = null, trail = null, marker = null, leafletRequested = false;
+  var pts = [];
+  window.MT3UKRaceBoxTrail = pts;
+
+  function metres(a, b) {
+    var R = 6371000, toRad = Math.PI / 180;
+    var dLat = (b[0] - a[0]) * toRad, dLon = (b[1] - a[1]) * toRad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * toRad) * Math.cos(b[0] * toRad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function loadLeaflet(done) {
+    if (window.L) return done();
+    if (leafletRequested) return setTimeout(function () { loadLeaflet(done); }, 300);
+    leafletRequested = true;
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = LEAFLET.css;
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src = LEAFLET.js;
+    js.onload = done;
+    js.onerror = function () { leafletRequested = false; };
+    document.head.appendChild(js);
+  }
+
+  function drawFix(r) {
+    if (!r.fixOk) return;
+    var here = [r.lat, r.lon];
+    // Skip tiny moves: a parked car's GPS wanders by a few metres, which would scribble on the trail.
+    if (pts.length && metres(pts[pts.length - 1], here) < 3) {
+      if (marker) marker.setLatLng(here);
+      return;
+    }
+    pts.push(here);
+    var fsBtn = $('rbt-full');
+    if (fsBtn) fsBtn.hidden = false;
+    loadLeaflet(function () {
+      var el = $('rbt-map');
+      if (!el || !window.L) return;
+      el.hidden = false;
+      $('rbt-clear').hidden = false;
+      if (!map) {
+        map = L.map(el).setView(here, 17);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+        trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
+        marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
+      } else {
+        trail.setLatLngs(pts);
+        marker.setLatLng(here);
+        map.panTo(here);
+      }
+    });
+  }
+
+  // Full screen: the map fills the screen and the readings sit over it. The map is resized to match.
+  function setFull(on) {
+    document.documentElement.classList.toggle('rbt-full-on', on);
+    var b = $('rbt-full');
+    if (b) { b.textContent = on ? 'Exit full screen' : 'Go full screen'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    if (map) setTimeout(function () { map.invalidateSize(); }, 60);
+  }
+
+  function clearTrail() {
+    pts.length = 0;
+    if (trail) trail.setLatLngs([]);
+  }
+
   function show(r) {
     count++;
+    drawFix(r);
     lastKph = r.speedKph;
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
@@ -98,6 +169,8 @@
       app.connect().catch(function (err) { set('rbt-status', String(err && err.message ? err.message : err)); setConnectButton('failed'); });
     });
     $('rbt-unit').addEventListener('click', toggleUnit);
+    $('rbt-clear').addEventListener('click', clearTrail);
+    $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     renderSpeed();
     $('rbt-disconnect').addEventListener('click', function () {
       app.disconnect();

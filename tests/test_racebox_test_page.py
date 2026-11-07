@@ -65,40 +65,6 @@ def _switch(page, on):
     page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":%s}' % ("true" if on else "false"), headers={"Access-Control-Allow-Origin": "*"}))
 
 
-def test_the_racebox_panel_is_on_the_laps_front_page_inside_the_app_only(page):
-    page.add_init_script(STUB)
-    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
-    _switch(page, True)
-    page.goto("/laps.html")
-    expect(page.locator("#lh-racebox")).to_be_visible()
-    expect(page.locator("#rbt-connect")).to_be_enabled()
-    page.evaluate("() => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })")
-    expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
-    expect(page.locator("#rbt-connect")).to_have_text("Connected")
-    expect(page.locator("#rbt-connect")).to_be_disabled()
-    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
-    expect(page.locator("#rbt-speed")).to_have_text("0")
-    expect(page.locator("#rbt-pos")).to_have_text("42.671903, 23.288724")
-    expect(page.locator("#rbt-fix").locator("xpath=../..")).to_have_class("rbt-fix-good")
-    page.evaluate("() => window.__rbEmit('status', { state: 'disconnected', detail: '' })")
-    expect(page.locator("#rbt-connect")).to_have_text("Connect to RaceBox")
-    expect(page.locator("#rbt-connect")).to_be_enabled()
-
-
-def test_the_racebox_panel_stays_hidden_on_the_website(page):
-    page.goto("/laps.html")
-    expect(page.locator("#lh-racebox")).to_be_hidden()
-    assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
-
-
-def test_members_in_the_app_do_not_see_the_racebox_panel_while_the_switch_is_off(page):
-    page.add_init_script(STUB)
-    _switch(page, False)
-    page.goto("/laps.html")
-    expect(page.locator("#lh-racebox")).to_be_hidden()
-    assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
-
-
 def test_the_laps_admin_page_opens_the_racebox_panel_to_all_and_approves_members(page):
     state = {"open": False, "allowed": [], "posts": []}
 
@@ -131,3 +97,46 @@ def test_a_connection_from_before_the_page_was_opened_is_shown_as_connected(page
     expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
     expect(page.locator("#rbt-connect")).to_have_text("Connected")
     expect(page.locator("#rbt-connect")).to_be_disabled()
+
+
+def test_the_racebox_panel_is_on_profile_inside_the_app_for_approved_members(page):
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.route("**/late-darkness-ebc8.modtesla3uk.workers.dev/**", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/profile.html")
+    expect(page.locator("#lh-racebox")).to_be_visible(timeout=10000)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("#rbt-speed")).to_have_text("0")
+
+
+def test_the_racebox_panel_stays_hidden_on_profile_without_access(page):
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.route("**/late-darkness-ebc8.modtesla3uk.workers.dev/**", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":false}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/profile.html")
+    page.wait_for_timeout(800)
+    expect(page.locator("#lh-racebox")).to_be_hidden()
+
+
+def test_the_racebox_panel_stays_hidden_on_the_website(page):
+    page.goto("/profile.html")
+    page.wait_for_timeout(800)
+    expect(page.locator("#lh-racebox")).to_be_hidden()
+    assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
+
+
+def test_the_racebox_map_goes_full_screen_with_the_readings_over_it(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("html")).not_to_have_class("rbt-full-on")
+    expect(page.locator("#rbt-full")).to_have_text("Go full screen")
+    page.locator("#rbt-full").click()
+    expect(page.locator("html")).to_have_class("rbt-full-on")
+    expect(page.locator("#rbt-full")).to_have_text("Exit full screen")
+    page.locator("#rbt-full").click()
+    expect(page.locator("html")).not_to_have_class("rbt-full-on")
+    expect(page.locator("#rbt-full")).to_have_text("Go full screen")

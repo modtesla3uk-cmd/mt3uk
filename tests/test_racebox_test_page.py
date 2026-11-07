@@ -58,9 +58,14 @@ def test_the_racebox_panel_is_on_the_laps_front_page_inside_the_app_only(page):
     expect(page.locator("#rbt-connect")).to_be_enabled()
     page.evaluate("() => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })")
     expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
+    expect(page.locator("#rbt-connect")).to_have_text("Connected")
+    expect(page.locator("#rbt-connect")).to_be_disabled()
     page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     expect(page.locator("#rbt-speed")).to_have_text("0.1")
     expect(page.locator("#rbt-pos")).to_have_text("42.671903, 23.288724")
+    page.evaluate("() => window.__rbEmit('status', { state: 'disconnected', detail: '' })")
+    expect(page.locator("#rbt-connect")).to_have_text("Connect to RaceBox")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
 
 
 def test_the_racebox_panel_stays_hidden_on_the_website(page):

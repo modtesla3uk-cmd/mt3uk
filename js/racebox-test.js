@@ -38,8 +38,20 @@
     set('rbt-time', new Date(r.utc).toISOString().replace('T', ' ').slice(0, 19));
   }
 
+  // The Connect button shows where the connection is: Connecting while it is set up, Connected while it is live,
+  // and back to Connect once it is off, as the RaceBox app does.
+  function setConnectButton(state) {
+    var b = $('rbt-connect');
+    if (!b) return;
+    var busy = state === 'scanning' || state === 'connecting' || state === 'discovering' || state === 'retrying';
+    var on = state === 'connected';
+    b.textContent = on ? 'Connected' : (busy ? 'Connecting\u2026' : 'Connect to RaceBox');
+    b.disabled = on || busy;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
   function ready() {
-    app.onStatus(function (e) { set('rbt-status', statusText(e)); });
+    app.onStatus(function (e) { set('rbt-status', statusText(e)); setConnectButton(e && e.state); });
     app.onReading(show);
     setInterval(function () {
       rate = count;
@@ -48,7 +60,7 @@
     }, 1000);
     $('rbt-connect').addEventListener('click', function () {
       set('rbt-status', 'Looking for a RaceBox…');
-      app.connect().catch(function (err) { set('rbt-status', String(err && err.message ? err.message : err)); });
+      app.connect().catch(function (err) { set('rbt-status', String(err && err.message ? err.message : err)); setConnectButton('failed'); });
     });
     $('rbt-disconnect').addEventListener('click', function () {
       app.disconnect();

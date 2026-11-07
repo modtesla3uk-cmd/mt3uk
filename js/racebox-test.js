@@ -51,6 +51,7 @@
   }
 
   function ready() {
+    set('rbt-status', 'Not connected. Switch the RaceBox on, then tap Connect to RaceBox.');
     app.onStatus(function (e) { set('rbt-status', statusText(e)); setConnectButton(e && e.state); });
     app.onReading(show);
     setInterval(function () {

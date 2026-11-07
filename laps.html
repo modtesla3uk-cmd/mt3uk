@@ -608,7 +608,7 @@
   <div class="wrap">
     <h2 id="lh-racebox-title">RaceBox test <span class="lh-racebox-note">(in the app only)</span></h2>
     <p class="lh-racebox-lead">Connect to a RaceBox Mini, Mini S or Micro and see its live readings. Switch it on and keep it close by.</p>
-    <p id="rbt-status" class="rbt-status" role="status">Checking the Laps app&hellip;</p>
+    <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
     <div class="rbt-actions">
       <button type="button" class="btn btn-primary" id="rbt-connect">Connect to RaceBox</button>
       <button type="button" class="btn btn-secondary" id="rbt-disconnect">Disconnect</button>
@@ -689,7 +689,7 @@
       </div>
     </div>
   </div>
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=2","js/racebox-test.js?v=3"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=2","js/racebox-test.js?v=4"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}}catch(e){}})();</script>
 </main>
 <script>(function(){var box=document.getElementById('lh-welcome');if(!box)return;var q=new URLSearchParams(location.search);if(!q.has('welcome'))return;q.delete('welcome');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash);var first='';try{first=(localStorage.getItem('mt3ukMyBuildsFirstName')||'').trim().split(/\s+/)[0]||'';}catch(e){}var nm=document.getElementById('lh-welcome-name');if(nm&&first)nm.textContent=', '+first;var note='';try{note=localStorage.getItem('mt3ukLapsWelcomeNote')||'';localStorage.removeItem('mt3ukLapsWelcomeNote');}catch(e){}var nt=document.getElementById('lh-welcome-note');if(nt&&note){nt.textContent=note;nt.hidden=false;}box.hidden=false;document.getElementById('lh-welcome-close').addEventListener('click',function(){box.hidden=true;});})();</script>
 

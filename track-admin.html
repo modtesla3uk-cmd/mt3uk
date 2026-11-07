@@ -90,6 +90,12 @@
       <div class="iv-toolbar"><button type="button" class="secondary" id="of-me" hidden>Add me</button></div>
       <div id="of-members-host"></div>
     </details>
+    <details class="collapsible" id="racebox-wrap">
+      <summary><h3 class="panel-title">RaceBox test in the Laps app <span class="summary-count" id="racebox-count"></span></h3></summary>
+      <p class="iv-note">The RaceBox test panel on the Laps front page connects to a RaceBox Mini, Mini S or Micro from the Laps app and shows its live readings. It is still being worked on, so it stays hidden until you switch it on here. Members do not see it while it is off.</p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="racebox-on" aria-checked="false"><span class="tk-track"></span>Show the RaceBox test in the Laps app</button></div>
+      <p class="iv-note" id="racebox-note" role="status"></p>
+    </details>
     <details class="collapsible" id="tree-wrap">
       <summary><h3 class="panel-title">Sessions split by kind <span class="summary-count" id="tree-count"></span></h3></summary>
       <p class="iv-note">Shows the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives. Only the members you invite here see it, and it can be changed on its own: Offline mode has its own list above.</p>
@@ -478,6 +484,7 @@
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/member-finder.js?v=1" defer></script>
 <script src="js/laps-offline-admin.js?v=3" defer></script>
+<script src="js/racebox-admin.js?v=1" defer></script>
 <script src="js/sessions-tree-admin.js?v=2" defer></script>
 <script src="js/tiers-admin.js?v=19" defer></script>
 <script src="js/paypal-admin.js?v=2" defer></script>

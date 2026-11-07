@@ -56,13 +56,17 @@ def test_the_racebox_page_shows_the_live_readings_from_the_app(page):
 
 def test_outside_the_app_the_racebox_page_says_so_and_cannot_connect(page):
     page.goto("/racebox-test.html")
-    expect(page.locator("#rbt-status")).to_contain_text("for admins for now")
+    expect(page.locator("#rbt-status")).to_contain_text("Open this page in the Laps app")
     expect(page.locator("#rbt-connect")).to_be_disabled()
 
 
+def _switch(page, on):
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"on":%s}' % ("true" if on else "false"), headers={"Access-Control-Allow-Origin": "*"}))
+
+
 def test_the_racebox_panel_is_on_the_laps_front_page_inside_the_app_only(page):
-    page.add_init_script(ADMIN)
     page.add_init_script(STUB)
+    _switch(page, True)
     page.goto("/laps.html")
     expect(page.locator("#lh-racebox")).to_be_visible()
     expect(page.locator("#rbt-connect")).to_be_enabled()
@@ -85,8 +89,29 @@ def test_the_racebox_panel_stays_hidden_on_the_website(page):
     assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
 
 
-def test_members_in_the_app_do_not_see_the_racebox_panel_without_the_admin_token(page):
+def test_members_in_the_app_do_not_see_the_racebox_panel_while_the_switch_is_off(page):
     page.add_init_script(STUB)
+    _switch(page, False)
     page.goto("/laps.html")
     expect(page.locator("#lh-racebox")).to_be_hidden()
     assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
+
+
+def test_the_laps_admin_page_switches_the_racebox_panel_on(page):
+    state = {"on": False, "posts": 0}
+
+    def admin(route):
+        if route.request.method == "POST":
+            state["posts"] += 1
+            state["on"] = '"on":true' in (route.request.post_data or "")
+        route.fulfill(status=200, content_type="application/json", body='{"success":true,"on":%s}' % ("true" if state["on"] else "false"), headers={"Access-Control-Allow-Origin": "*"})
+
+    page.route("**/laps/racebox/admin*", admin)
+    page.goto("/track-admin.html")
+    page.locator("#racebox-wrap summary").click()
+    switch = page.locator("#racebox-on")
+    expect(switch).to_have_attribute("aria-checked", "false")
+    switch.click()
+    expect(switch).to_have_attribute("aria-checked", "true")
+    assert state["posts"] == 1
+    expect(page.locator("#racebox-note")).to_contain_text("On: the RaceBox test shows")

@@ -8188,6 +8188,25 @@ async function lapsOfflineMembers(env, a) {
   list.sort(function (x, y) { return (x.name || x.email).toLowerCase() < (y.name || y.email).toLowerCase() ? -1 : 1; });
   return list.slice(0, 3000);
 }
+// RaceBox test in the Laps app: one switch on the Laps admin page. One KV key (laps-racebox), read with getJsonKey.
+var LAPS_RACEBOX_KEY = 'laps-racebox';
+async function getLapsRacebox(env) {
+  var r = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
+  return { on: !!r.on };
+}
+async function handleLapsRaceboxAccess(request, env) {
+  return json({ success: true, on: (await getLapsRacebox(env)).on });
+}
+async function handleLapsRaceboxAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, on: (await getLapsRacebox(env)).on });
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var on = !!body.on;
+  await env.VOTES.put(LAPS_RACEBOX_KEY, JSON.stringify({ on: on }));
+  return json({ success: true, on: on });
+}
+
 async function handleLapsOfflineAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var a = await getLapsOfflineAccess(env);
@@ -13543,6 +13562,12 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/laps/racebox/access' && request.method === 'GET') {
+      return handleLapsRaceboxAccess(request, env);
+    }
+    if (url.pathname === '/laps/racebox/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsRaceboxAdmin(request, env);
     }
     if (url.pathname === '/laps/offline/access' && request.method === 'GET') {
       return handleLapsOfflineAccess(request, env);

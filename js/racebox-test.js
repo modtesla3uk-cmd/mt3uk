@@ -107,21 +107,7 @@
     }
   }
 
-  // For now the RaceBox test is for admins only: it needs the admin viewer token left in this browser by the admin pages.
-  function adminHere() {
-    try {
-      var v = JSON.parse(localStorage.getItem('mt3ukAdminViewer') || 'null');
-      return !!(v && v.token && v.expires > Date.now());
-    } catch (e) { return false; }
-  }
-
   function init() {
-    if (!adminHere()) {
-      var off = $('rbt-connect');
-      if (off) off.disabled = true;
-      set('rbt-status', 'The RaceBox test is for admins for now.');
-      return;
-    }
     if (!app) return notReady();
     // The app's bridge can arrive a moment after the page's scripts run, so check for a few seconds before giving up.
     var tries = 0;

@@ -356,6 +356,17 @@
     ]
   },
   {
+    "title": "RaceBox test",
+    "url": "racebox-test.html",
+    "category": "Page",
+    "description": "Test page for the RaceBox connection in the Laps app",
+    "keywords": [
+      "racebox",
+      "bluetooth",
+      "test"
+    ]
+  },
+  {
     "title": "Laps by MT3UK",
     "url": "laps.html",
     "category": "Page",

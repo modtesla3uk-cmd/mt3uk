@@ -1,0 +1,51 @@
+"""racebox-test.html: shows the live readings a RaceBox sends to the Laps app. The Capacitor plugin is stood in for
+here, and it sends the example packet from the RaceBox BLE protocol documentation (rev 9)."""
+import base64
+from playwright.sync_api import expect
+
+# The 88-byte example packet from the documentation: header, 80-byte data message, checksum.
+EXAMPLE_HEX = (
+    "B5 62 FF 01 50 00 A0 E7 0C 07 E6 07 01 0A 08 33 08 37 19 00 00 00 2A AD 4D 0E 03 01 EA 0B C6 93 "
+    "E1 0D 3B 37 6F 19 61 8C 09 00 0F 01 09 00 9C 03 00 00 2C 07 00 00 23 00 00 00 00 00 00 00 D0 00 "
+    "00 00 88 A9 DD 00 2C 01 00 59 FD FF 71 00 CE 03 2F FF 56 00 FC FF 06 DB"
+)
+EXAMPLE_B64 = base64.b64encode(bytes(int(h, 16) for h in EXAMPLE_HEX.split())).decode()
+
+STUB = """
+window.__rb = { listeners: {} };
+window.Capacitor = {
+  isNativePlatform: function () { return true; },
+  Plugins: {
+    RaceBox: {
+      addListener: function (name, fn) { (window.__rb.listeners[name] = window.__rb.listeners[name] || []).push(fn); },
+      connect: function () { return Promise.resolve({ scanning: true }); },
+      disconnect: function () { return Promise.resolve(); }
+    },
+    App: { addListener: function () {} }
+  }
+};
+window.__rbEmit = function (name, data) { (window.__rb.listeners[name] || []).forEach(function (fn) { fn(data); }); };
+"""
+
+
+def test_the_racebox_page_shows_the_live_readings_from_the_app(page):
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("#rbt-speed")).to_have_text("0.1")
+    expect(page.locator("#rbt-heading")).to_have_text("0.0")
+    expect(page.locator("#rbt-pos")).to_have_text("42.671903, 23.288724")
+    expect(page.locator("#rbt-fix")).to_have_text("Good")
+    expect(page.locator("#rbt-sats")).to_have_text("11")
+    expect(page.locator("#rbt-g")).to_contain_text("0.11 / 0.97 g")
+    expect(page.locator("#rbt-batt")).to_have_text("89%")
+    expect(page.locator("#rbt-time")).to_have_text("2022-01-10 08:51:08")
+
+
+def test_outside_the_app_the_racebox_page_says_so_and_cannot_connect(page):
+    page.goto("/racebox-test.html")
+    expect(page.locator("#rbt-status")).to_contain_text("Open this page in the Laps app")
+    expect(page.locator("#rbt-connect")).to_be_disabled()

@@ -472,18 +472,20 @@
         trail.setLatLngs(pts);
         marker.setLatLng(here);
         setDot(true);
-        map.panTo(here);
+        // Pan to the car about twice a second, not on every reading: panning on each one makes the map judder at low speed.
+        if (Date.now() - lastPanAt > 450) { lastPanAt = Date.now(); map.panTo(here, { animate: false }); }
       }
     });
   }
 
   // Heading up: the map turns so the way the car is going points up the screen. Leaflet's panes sit in a wrapper that turns
   // about the centre (where the car is), and the controls stay upright. The map does not drag while it is turned.
-  var rotWrap = null, headingUp = true, lastHeading = null;
+  var rotWrap = null, headingUp = true, lastHeading = null, appliedDeg = null, lastRotAt = 0, lastPanAt = 0;
   function wrapPanes(m) {
     var pane = m.getPanes().mapPane;
     rotWrap = document.createElement('div');
     rotWrap.className = 'rbt-rot';
+    rotWrap.style.transition = 'transform .5s linear';
     rotWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
     pane.parentNode.insertBefore(rotWrap, pane);
     rotWrap.appendChild(pane);
@@ -496,6 +498,10 @@
     if (!rotWrap) return;
     if (!on) { rotWrap.style.transform = ''; return; }
     // Leaflet keeps tiles beyond the screen edge, so the turned map covers the corners without scaling up.
+    // Turn only when the heading has moved by at least 2 degrees, or every second at most, so GPS jitter does not shake the map.
+    var now = Date.now();
+    if (appliedDeg !== null && Math.abs(lastHeading - appliedDeg) < 2 && now - lastRotAt < 1000) return;
+    appliedDeg = lastHeading; lastRotAt = now;
     rotWrap.style.transform = 'rotate(' + (-lastHeading) + 'deg)';
   }
   // The map buttons sit just above the readings band, whatever height the band is with its text.

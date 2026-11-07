@@ -1,38 +1,77 @@
 /*
-  track-admin.html, RaceBox test panel: one switch that shows the RaceBox test panel in the Laps app. One KV key
-  (laps-racebox) kept by the worker (/laps/racebox/admin). Off hides the panel from everyone.
+  track-admin.html, RaceBox test panel: who sees the RaceBox test in the Laps app. Like Offline mode: an approved list
+  and Open to all members, kept by the worker (/laps/racebox/admin, one KV key, laps-racebox).
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  var sw = document.getElementById('racebox-on');
-  if (!sw) return;
+  var wrap = document.getElementById('racebox-wrap');
+  if (!wrap) return;
+  var openBtn = document.getElementById('racebox-open');
+  var allowedEl = document.getElementById('racebox-allowed');
   var noteEl = document.getElementById('racebox-note');
   var countEl = document.getElementById('racebox-count');
+  var findEl = document.getElementById('racebox-find');
+  var findGo = document.getElementById('racebox-find-go');
+  var hostEl = document.getElementById('racebox-members-host');
+  var state = { open: false, allowed: [] };
 
   function key() {
     var input = document.getElementById('admin-key');
     return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
   }
-  function show(on) {
-    sw.setAttribute('aria-checked', on ? 'true' : 'false');
-    if (countEl) countEl.textContent = on ? 'On' : 'Off';
-    if (noteEl) noteEl.textContent = on ? 'On: the RaceBox test shows in the Laps app.' : 'Off: the RaceBox test is hidden.';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function note(t) { if (noteEl) noteEl.textContent = t || ''; }
+  function call(method, body, extra) {
+    var opts = { method: method, headers: { 'Content-Type': 'application/json' }, cache: 'no-store' };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    return fetch(API + '/laps/racebox/admin?key=' + encodeURIComponent(key()) + (extra || ''), opts)
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function fail(msg) { if (noteEl) noteEl.textContent = msg || 'Could not change it.'; }
-  function load() {
-    fetch(API + '/laps/racebox/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (d) { if (d && d.success) show(d.on); else fail(d && d.message ? d.message : 'Enter the admin key first.'); })
-      .catch(function () { fail('Could not reach the server.'); });
+  function draw() {
+    openBtn.setAttribute('aria-checked', state.open ? 'true' : 'false');
+    if (countEl) countEl.textContent = state.open ? 'Open to all' : (state.allowed.length ? state.allowed.length + ' approved' : 'Off');
+    allowedEl.innerHTML = state.allowed.length ? state.allowed.map(function (x) {
+      return '<div class="iv-row"><span>' + esc(x.name || x.email) + (x.name ? ' <span class="iv-note">' + esc(x.email) + '</span>' : '') + '</span>' +
+        '<button type="button" class="secondary" data-take="' + esc(x.email) + '">Take away</button></div>';
+    }).join('') : '<p class="iv-note">No members approved yet.</p>';
   }
-  sw.addEventListener('click', function () {
-    var on = sw.getAttribute('aria-checked') !== 'true';
-    fetch(API + '/laps/racebox/admin?key=' + encodeURIComponent(key()), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ on: on })
-    })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (d) { if (d && d.success) show(d.on); else fail(d && d.message); })
-      .catch(function () { fail('Could not reach the server.'); });
+  function apply(d) {
+    if (!d || !d.ok) { note(d && d.message ? d.message : 'Enter the admin key first.'); return; }
+    state.open = !!d.open;
+    state.allowed = d.allowed || [];
+    draw();
+  }
+  function load() { call('GET').then(apply).catch(function () { note('Could not reach the server.'); }); }
+
+  openBtn.addEventListener('click', function () {
+    call('POST', { action: 'open', open: !state.open }).then(function (d) { apply(d); if (d && d.ok) note(state.open ? 'Open to all members.' : 'Open to all members is off.'); });
+  });
+  allowedEl.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-take]');
+    if (!b) return;
+    call('POST', { action: 'revoke', email: b.getAttribute('data-take') }).then(function (d) { apply(d); if (d && d.ok) note('Access taken away.'); });
+  });
+  findGo.addEventListener('click', function () {
+    var q = (findEl.value || '').trim().toLowerCase();
+    call('GET', undefined, '&members=1').then(function (d) {
+      if (!d || !d.ok) { note(d && d.message ? d.message : 'Could not find members.'); return; }
+      state.open = !!d.open; state.allowed = d.allowed || []; draw();
+      var rows = (d.members || []).filter(function (m) {
+        return !q || (m.email || '').indexOf(q) !== -1 || (m.name || '').toLowerCase().indexOf(q) !== -1;
+      });
+      hostEl.innerHTML = rows.length ? rows.map(function (m) {
+        return '<div class="iv-row"><span>' + esc(m.name || m.email) + (m.name ? ' <span class="iv-note">' + esc(m.email) + '</span>' : '') + '</span>' +
+          (m.access ? '<button type="button" class="secondary" data-take="' + esc(m.email) + '">Take away</button>'
+                    : '<button type="button" class="secondary" data-give="' + esc(m.email) + '">Give access</button>') + '</div>';
+      }).join('') : '<p class="iv-note">No Laps members match.</p>';
+    }).catch(function () { note('Could not reach the server.'); });
+  });
+  hostEl.addEventListener('click', function (e) {
+    var g = e.target.closest && e.target.closest('[data-give]');
+    var t = e.target.closest && e.target.closest('[data-take]');
+    var em = g ? g.getAttribute('data-give') : (t ? t.getAttribute('data-take') : '');
+    if (!em) return;
+    call('POST', { action: g ? 'add' : 'revoke', email: em }).then(function (d) { apply(d); findGo.click(); if (d && d.ok) note(g ? 'Access given.' : 'Access taken away.'); });
   });
   load();
 })();

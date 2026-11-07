@@ -61,11 +61,12 @@ def test_outside_the_app_the_racebox_page_says_so_and_cannot_connect(page):
 
 
 def _switch(page, on):
-    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"on":%s}' % ("true" if on else "false"), headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":%s}' % ("true" if on else "false"), headers={"Access-Control-Allow-Origin": "*"}))
 
 
 def test_the_racebox_panel_is_on_the_laps_front_page_inside_the_app_only(page):
     page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
     _switch(page, True)
     page.goto("/laps.html")
     expect(page.locator("#lh-racebox")).to_be_visible()
@@ -97,21 +98,24 @@ def test_members_in_the_app_do_not_see_the_racebox_panel_while_the_switch_is_off
     assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
 
 
-def test_the_laps_admin_page_switches_the_racebox_panel_on(page):
-    state = {"on": False, "posts": 0}
+def test_the_laps_admin_page_opens_the_racebox_panel_to_all_and_approves_members(page):
+    state = {"open": False, "allowed": [], "posts": []}
 
     def admin(route):
         if route.request.method == "POST":
-            state["posts"] += 1
-            state["on"] = '"on":true' in (route.request.post_data or "")
-        route.fulfill(status=200, content_type="application/json", body='{"success":true,"on":%s}' % ("true" if state["on"] else "false"), headers={"Access-Control-Allow-Origin": "*"})
+            body = route.request.post_data or ""
+            state["posts"].append(body)
+            if '"action":"open"' in body:
+                state["open"] = '"open":true' in body
+        body = '{"success":true,"open":%s,"allowed":%s}' % ("true" if state["open"] else "false", "[]")
+        route.fulfill(status=200, content_type="application/json", body=body, headers={"Access-Control-Allow-Origin": "*"})
 
     page.route("**/laps/racebox/admin*", admin)
     page.goto("/track-admin.html")
     page.locator("#racebox-wrap summary").click()
-    switch = page.locator("#racebox-on")
+    switch = page.locator("#racebox-open")
     expect(switch).to_have_attribute("aria-checked", "false")
     switch.click()
     expect(switch).to_have_attribute("aria-checked", "true")
-    assert state["posts"] == 1
-    expect(page.locator("#racebox-note")).to_contain_text("On: the RaceBox test shows")
+    assert any('"action":"open"' in p for p in state["posts"]), state["posts"]
+    expect(page.locator("#racebox-note")).to_contain_text("Open to all members")

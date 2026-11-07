@@ -8188,23 +8188,46 @@ async function lapsOfflineMembers(env, a) {
   list.sort(function (x, y) { return (x.name || x.email).toLowerCase() < (y.name || y.email).toLowerCase() ? -1 : 1; });
   return list.slice(0, 3000);
 }
-// RaceBox test in the Laps app: one switch on the Laps admin page. One KV key (laps-racebox), read with getJsonKey.
+// RaceBox test in the Laps app: who sees the panel on the Laps front page. Like Offline mode: an approved list of
+// members (by email) and Open to all members. One KV key (laps-racebox), read with getJsonKey. Managed on the RaceBox
+// test panel of track-admin.html (js/racebox-admin.js, /laps/racebox/admin).
 var LAPS_RACEBOX_KEY = 'laps-racebox';
-async function getLapsRacebox(env) {
-  var r = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
-  return { on: !!r.on };
+async function getLapsRaceboxAccess(env) {
+  var a = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
+  return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
 }
 async function handleLapsRaceboxAccess(request, env) {
-  return json({ success: true, on: (await getLapsRacebox(env)).on });
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
 }
 async function handleLapsRaceboxAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  if (request.method === 'GET') return json({ success: true, on: (await getLapsRacebox(env)).on });
+  var a = await getLapsRaceboxAccess(env);
+  if (request.method === 'GET') {
+    var reply = { success: true, open: a.open, allowed: a.allowed };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, a);
+    return json(reply);
+  }
   var body;
   try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
-  var on = !!body.on;
-  await env.VOTES.put(LAPS_RACEBOX_KEY, JSON.stringify({ on: on }));
-  return json({ success: true, on: on });
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'add' || action === 'revoke') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        a.allowed.push({ email: e, name: nm, at: new Date().toISOString() });
+        a.allowed = a.allowed.slice(-500);
+      }
+    } else a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(LAPS_RACEBOX_KEY, JSON.stringify(a));
+  return json({ success: true, open: a.open, allowed: a.allowed });
 }
 
 async function handleLapsOfflineAdmin(request, env) {

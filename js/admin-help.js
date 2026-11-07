@@ -193,8 +193,10 @@
       ['Off, Testers only, Everyone', 'Off hides them from everyone. Testers only shows them to the people on the testers list. Everyone opens them to all members.'],
       ['Add tester', 'Type a member\'s email, or find them by name, to let them use sprints and hill climbs. No email is sent.'],
     ] },
-    'racebox-wrap': { t: 'RaceBox test in the Laps app', p: 'The RaceBox test panel on the Laps front page. It connects to a RaceBox Mini, Mini S or Micro from the Laps app and shows its live readings. It is still being worked on, so it stays hidden until this is switched on.', i: [
-      ['Show the RaceBox test in the Laps app', 'On shows the panel to everyone using the Laps app. Off hides it again. Members do not see it while it is off.'],
+    'racebox-wrap': { t: 'RaceBox test in the Laps app', p: 'The RaceBox test panel on the Laps front page. It is still being worked on, so only the members you approve see it in the Laps app, and you.', i: [
+      ['Open to all members', 'Shows the panel to everyone using the Laps app. Off leaves it to the approved members.'],
+      ['Approved members', 'Members who see the panel in the Laps app. Take away hides it from them again.'],
+      ['Find a Laps member', 'Looks up anyone who can sign in to Laps, by nickname, name or email, so you can give access.'],
     ] },
     'tree-wrap': { t: 'Sessions split by kind', p: 'Which members see the Sessions list split by kind under each place: Track day, Sprint, Hill climb, Drag strip and Drives.', i: [
       ['Open to all members', 'On: every member sees the split. Off: only the people on the invited list do.'],

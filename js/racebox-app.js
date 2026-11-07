@@ -71,6 +71,13 @@
       attach(plugin);
       return plugin.connect();
     },
+    // Whether the app is connected to a RaceBox already, so a page opened again can show it: { connected, name }.
+    status: function () {
+      var plugin = getPlugin();
+      if (!plugin) return Promise.resolve({ connected: false, name: '' });
+      attach(plugin);
+      return plugin.status();
+    },
     disconnect: function () {
       var plugin = getPlugin();
       return plugin ? plugin.disconnect() : Promise.resolve();

@@ -21,6 +21,7 @@ window.Capacitor = {
     RaceBox: {
       addListener: function (name, fn) { (window.__rb.listeners[name] = window.__rb.listeners[name] || []).push(fn); },
       connect: function () { return Promise.resolve({ scanning: true }); },
+      status: function () { return Promise.resolve({ connected: false, name: '', permitted: true }); },
       disconnect: function () { return Promise.resolve(); }
     },
     App: { addListener: function () {} }
@@ -119,3 +120,14 @@ def test_the_laps_admin_page_opens_the_racebox_panel_to_all_and_approves_members
     expect(switch).to_have_attribute("aria-checked", "true")
     assert any('"action":"open"' in p for p in state["posts"]), state["posts"]
     expect(page.locator("#racebox-note")).to_contain_text("Open to all members")
+
+
+def test_a_connection_from_before_the_page_was_opened_is_shown_as_connected(page):
+    stub = STUB.replace("status: function () { return Promise.resolve({ connected: false, name: '', permitted: true }); },",
+                        "status: function () { return Promise.resolve({ connected: true, name: 'RaceBox Mini S 2242505877', permitted: true }); },")
+    page.add_init_script(ADMIN)
+    page.add_init_script(stub)
+    page.goto("/racebox-test.html")
+    expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
+    expect(page.locator("#rbt-connect")).to_have_text("Connected")
+    expect(page.locator("#rbt-connect")).to_be_disabled()

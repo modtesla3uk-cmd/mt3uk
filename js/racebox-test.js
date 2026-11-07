@@ -79,6 +79,13 @@
 
   function ready() {
     set('rbt-status', 'Not connected. Switch the RaceBox on, then tap Connect to RaceBox.');
+    // The app can still be connected from before this page was opened, so show that rather than Not connected.
+    Promise.resolve().then(function () { return app.status(); }).then(function (r) {
+      if (r && r.connected) {
+        set('rbt-status', statusText({ state: 'connected', detail: r.name || '' }));
+        setConnectButton('connected');
+      }
+    }).catch(function () { /* the app did not answer: stay on Not connected */ });
     app.onStatus(function (e) { set('rbt-status', statusText(e)); setConnectButton(e && e.state); });
     app.onReading(show);
     setInterval(function () {

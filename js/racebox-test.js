@@ -149,6 +149,17 @@
     if (rec.id) return;
     if (b) b.disabled = !ok;
     if (note) note.hidden = !!ok;
+    syncRecFloat();
+  }
+  // The large Record button on the full-screen map: Record, or a red Stop while recording. It follows the switch.
+  function syncRecFloat() {
+    var f = $('rbt-rec-float'), b = $('rbt-record');
+    if (!f) return;
+    var on = !!rec.id;
+    f.textContent = on ? 'Stop' : 'Record';
+    f.classList.toggle('is-recording', on);
+    f.setAttribute('aria-pressed', on ? 'true' : 'false');
+    f.disabled = b ? b.disabled : true;
   }
   function setRecordSwitch(on) {
     var b = $('rbt-record');
@@ -160,6 +171,7 @@
     if (rec.id) return;
     rec = { id: 'd' + Date.now(), started: Date.now(), seq: 0, buf: [], count: 0 };
     setRecordSwitch(true);
+    syncRecFloat();
     saveQueue = saveQueue.then(function () { return saveBatch(rec.id, 0, [], 0, 0, rec.started); }).then(drawRecordings);
     updateRecLine();
   }
@@ -167,6 +179,7 @@
     setRecordSwitch(false);
     flushRecording(true);
     setRecordAvailable(lastFixOk);
+    syncRecFloat();
   }
   function updateRecLine() {
     var line = $('rbt-rec-line');
@@ -569,6 +582,7 @@
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);
     $('rbt-view-close').addEventListener('click', closeDrive);
+    $('rbt-rec-float').addEventListener('click', function () { $('rbt-record').click(); });
     $('rbt-record').addEventListener('click', function () {
       if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();
     });

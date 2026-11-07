@@ -466,7 +466,7 @@
         <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
       </div>
     </div>
-<div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div class="rbt-speed-float" id="rbt-speed-float" aria-hidden="true"><span id="rbt-speed-big">&ndash;</span> <span id="rbt-speed-big-unit">km/h</span></div>
+<div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><button type="button" class="rbt-rec-float" id="rbt-rec-float" aria-pressed="false" disabled>Record</button><div class="rbt-speed-float" id="rbt-speed-float" aria-hidden="true"><span id="rbt-speed-big">&ndash;</span> <span id="rbt-speed-big-unit">km/h</span></div>
 <div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
@@ -559,6 +559,11 @@
   .rbt-view-map { height: 260px; margin: 12px 0; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
   .rbt-view-stops-title { font-size: 0.95rem; margin: 12px 0 6px; }
   .rbt-view-stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; }
+  .rbt-rec-float { display: none; }
+  .rbt-full-on .rbt-rec-float { display: inline-flex; align-items: center; justify-content: center; position: absolute; left: 12px; bottom: 232px; z-index: 1001; min-height: 56px; min-width: 132px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--c-navy, #145a4d); color: #fff; font: 700 1.05rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  .rbt-full-on .rbt-rec-float:disabled { background: #8a94a6; }
+  .rbt-full-on .rbt-rec-float.is-recording { background: #b3261e; }
+  .rbt-full-on .rbt-rec-float.is-recording::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #fff; margin-right: 10px; }
   .rbt-speed-float { display: none; }
   .rbt-full-on .rbt-speed-float { display: flex; position: absolute; top: 62px; right: 12px; z-index: 1000; align-items: baseline; gap: 6px; padding: 6px 12px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #111); font-variant-numeric: tabular-nums; }
   .rbt-full-on .rbt-speed-float #rbt-speed-big { font-size: 2.6rem; font-weight: 700; line-height: 1; }
@@ -614,6 +619,6 @@
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-test.js?v=32"></script>
+<script src="js/racebox-test.js?v=33"></script>
 </body>
 </html>

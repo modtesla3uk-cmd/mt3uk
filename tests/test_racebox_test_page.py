@@ -318,3 +318,21 @@ def test_the_racebox_page_stays_in_the_laps_address_when_opened_from_the_laps_me
     script = (Path(__file__).resolve().parent.parent / "js" / "account-bar.js").read_text(encoding="utf-8")
     line = next(l for l in script.splitlines() if "var LAPS_PAGES" in l)
     assert "'/racebox.html'" in line
+
+
+def test_the_big_record_button_on_the_full_screen_map_starts_and_stops_a_drive(page):
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    expect(page.locator("#rbt-rec-float")).to_be_visible()
+    expect(page.locator("#rbt-rec-float")).to_be_enabled()
+    page.locator("#rbt-rec-float").click()
+    expect(page.locator("#rbt-rec-float")).to_have_text("Stop")
+    expect(page.locator("#rbt-rec-float")).to_have_attribute("aria-pressed", "true")
+    page.evaluate("(b) => { for (var i = 0; i < 30; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
+    page.locator("#rbt-rec-float").click()
+    expect(page.locator("#rbt-rec-float")).to_have_text("Record")
+    page.locator("#rbt-full").click()
+    expect(page.locator("#rbt-drives-list li")).to_have_count(1)

@@ -180,3 +180,21 @@ def test_the_g_meter_zeroes_itself_while_the_car_is_parked(page):
     page.evaluate("(b) => { for (var i = 0; i < 30; i++) window.__rbEmit('data', { base64: b }); }", parked)
     expect(page.locator("#rbt-meter-dot")).to_have_attribute("cx", "50.0")
     expect(page.locator("#rbt-meter-x")).to_have_text("0.00")
+
+
+def test_a_drive_is_saved_on_the_phone_and_still_listed_after_the_app_is_closed(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox-test.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.locator("#rbt-record").click()
+    expect(page.locator("#rbt-rec-line")).to_be_visible()
+    page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
+    page.locator("#rbt-record").click()
+    expect(page.locator("#rbt-rec-line")).to_be_hidden()
+    expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+    expect(page.locator("#rbt-drives-list li")).to_contain_text("50 readings")
+    # Closing and opening the app again: the drive is still there.
+    page.reload()
+    expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+    expect(page.locator("#rbt-drives-list li")).to_contain_text("50 readings")

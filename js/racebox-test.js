@@ -84,6 +84,126 @@
     p.hidden = !text;
   }
 
+  // Recording: while Record a drive is on, readings are saved on the phone (IndexedDB) in batches of a second, so closing
+  // the app loses at most about a second. Saved drives are listed under the readings and can be deleted.
+  var DB_NAME = 'mt3uk-racebox', DB_VERSION = 1;
+  var dbPromise = null;
+  var rec = { id: null, started: 0, seq: 0, buf: [], count: 0 };
+  function openDb() {
+    if (!dbPromise) dbPromise = new Promise(function (resolve, reject) {
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains('recordings')) db.createObjectStore('recordings', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('readings')) db.createObjectStore('readings', { keyPath: ['rec', 'seq'] });
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+    return dbPromise;
+  }
+  function dbRun(store, mode, fn) {
+    return openDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(store, mode);
+        var req = fn(tx.objectStore(store));
+        tx.oncomplete = function () { resolve(req ? req.result : undefined); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+  function saveBatch(id, seq, rows, count, ended, started) {
+    var work = Promise.resolve();
+    if (rows.length) work = dbRun('readings', 'readwrite', function (st) { return st.put({ rec: id, seq: seq, rows: rows }); });
+    return work.then(function () {
+      return dbRun('recordings', 'readwrite', function (st) { return st.put({ id: id, started: started, ended: ended, count: count }); });
+    });
+  }
+  // Writes the readings waiting in the buffer. When ending, the recording is closed as well.
+  function flushRecording(ending) {
+    if (!rec.id) return Promise.resolve();
+    var rows = rec.buf, id = rec.id, seq = rec.seq, count = rec.count, started = rec.started;
+    if (!rows.length && !ending) return Promise.resolve();
+    rec.buf = [];
+    rec.seq++;
+    if (ending) rec.id = null;
+    // Saves run one after another, so a later save (such as the one that closes the drive) is never overwritten by an earlier one.
+    saveQueue = saveQueue.then(function () {
+      return saveBatch(id, seq, rows, count, ending ? Date.now() : 0, started);
+    }).then(function () {
+      if (ending) drawRecordings();
+    });
+    return saveQueue;
+  }
+  var saveQueue = Promise.resolve();
+  function setRecordSwitch(on) {
+    var b = $('rbt-record');
+    if (b) b.setAttribute('aria-checked', on ? 'true' : 'false');
+    var line = $('rbt-rec-line');
+    if (line) { line.hidden = !on; }
+  }
+  function startRecording() {
+    if (rec.id) return;
+    rec = { id: 'd' + Date.now(), started: Date.now(), seq: 0, buf: [], count: 0 };
+    setRecordSwitch(true);
+    saveQueue = saveQueue.then(function () { return saveBatch(rec.id, 0, [], 0, 0, rec.started); }).then(drawRecordings);
+    updateRecLine();
+  }
+  function stopRecording() {
+    setRecordSwitch(false);
+    flushRecording(true);
+  }
+  function updateRecLine() {
+    var line = $('rbt-rec-line');
+    if (line && rec.id) line.textContent = 'Recording: ' + rec.count + ' readings';
+  }
+  function recordReading(r) {
+    if (!rec.id) return;
+    rec.buf.push([r.utc, r.lat, r.lon, r.speedKph, r.heading, r.gForce.x, r.gForce.y, r.gForce.z, r.rotation.x, r.rotation.y, r.rotation.z, r.fixOk ? 1 : 0, r.satellites, r.horizontalAccuracy]);
+    rec.count++;
+    if (rec.buf.length >= 25) flushRecording(false);
+    updateRecLine();
+  }
+  function drawRecordings() {
+    return dbRun('recordings', 'readonly', function (st) { return st.getAll(); }).then(function (list) {
+      var ul = $('rbt-drives-list'), empty = $('rbt-drives-empty');
+      if (!ul) return;
+      list.sort(function (a, b) { return b.started - a.started; });
+      ul.textContent = '';
+      if (empty) empty.hidden = list.length > 0;
+      list.forEach(function (d) {
+        var li = document.createElement('li');
+        var info = document.createElement('div');
+        var when = document.createElement('span');
+        when.className = 'rbt-drive-when';
+        when.textContent = new Date(d.started).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        var how = document.createElement('span');
+        how.className = 'rbt-drive-info';
+        var secs = d.ended ? Math.round((d.ended - d.started) / 1000) : 0;
+        var now = rec.id === d.id;
+        how.textContent = d.count + ' readings' + (secs ? ', ' + Math.floor(secs / 60) + ' min ' + (secs % 60) + ' s' : '') +
+          (now ? ', recording now' : (!d.ended ? ', unfinished (the app closed while recording)' : ''));
+        info.appendChild(when);
+        info.appendChild(how);
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'btn btn-danger btn-sm rbt-del';
+        del.textContent = 'Delete';
+        del.disabled = now;
+        del.addEventListener('click', function () { deleteRecording(d.id); });
+        li.appendChild(info);
+        li.appendChild(del);
+        ul.appendChild(li);
+      });
+    }).catch(function () {});
+  }
+  function deleteRecording(id) {
+    if (!window.confirm('Delete this drive from the phone? It cannot be undone.')) return;
+    dbRun('readings', 'readwrite', function (st) { return st.delete(IDBKeyRange.bound([id, 0], [id, Number.MAX_SAFE_INTEGER])); })
+      .then(function () { return dbRun('recordings', 'readwrite', function (st) { return st.delete(id); }); })
+      .then(drawRecordings);
+  }
+
   // G meter: across (x) left to right, along (y) up for forward; 1 g is 40 units from the centre, clamped at the rim.
   // Zero takes the reading at the moment it is pressed (parked) as the middle, so a mounting tilt does not push the dot off centre.
   var lastG = { x: 0, y: 0 }, gZero = { x: 0, y: 0 };
@@ -217,6 +337,7 @@
     drawFix(r);
     lastKph = r.speedKph;
     feedAutoZero(r);
+    recordReading(r);
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
     var arrow = $('rbt-arrow');
@@ -291,6 +412,10 @@
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);
+    $('rbt-record').addEventListener('click', function () {
+      if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();
+    });
+    drawRecordings();
     renderSpeed();
   }
 

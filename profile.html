@@ -697,8 +697,10 @@
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
+      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record"><span class="rbt-track"></span><span>Record a drive</span></button>
     </div>
     <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
+    <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
     <dl class="rbt-grid">
       <div><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
@@ -724,6 +726,11 @@
       <p class="rbt-meter-read"><span id="rbt-meter-x">0.00</span> across, <span id="rbt-meter-y">0.00</span> along</p>
     </div>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
+    <div class="rbt-drives" id="rbt-drives">
+      <h3 class="rbt-drives-title">Saved drives</h3>
+      <p class="rbt-drives-empty" id="rbt-drives-empty">No drives saved yet. Turn on Record a drive in Controls.</p>
+      <ul class="rbt-drives-list" id="rbt-drives-list"></ul>
+    </div>
 <div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
@@ -784,6 +791,18 @@
   .rbt-full-on .leaflet-top.leaflet-left { top: 62px; }
   .rbt-zero { margin-top: 10px; min-height: 44px; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-zero { width: 100%; margin-top: 0; }
+  .rbt-rec-line { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: #b3261e; }
+  .rbt-rec-line[hidden] { display: none; }
+  .rbt-drives { margin: 18px 0 0; }
+  .rbt-drives-title { font-size: 1rem; margin: 0 0 8px; }
+  .rbt-drives-empty { color: #5b6475; margin: 0; font-size: 0.9rem; }
+  .rbt-drives-empty[hidden] { display: none; }
+  .rbt-drives-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .rbt-drives-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 10px 12px; background: #fff; }
+  .rbt-drive-when { display: block; font-weight: 600; }
+  .rbt-drive-info { display: block; color: #5b6475; font-size: 0.9rem; }
+  .rbt-del { min-height: 44px; flex: none; }
+  .rbt-full-on .rbt-drives { display: none; }
   .rbt-meter { display: none; width: 150px; margin: 14px auto 0; text-align: center; }
   .rbt-meter-title { margin: 0 0 6px; font-size: 0.82rem; color: #5b6475; }
   .rbt-meter-svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
@@ -1361,7 +1380,7 @@
   })();
 </script>
 
-<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=28"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
+<script>(function(){try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){var sess=localStorage.getItem("mt3ukMyBuildsSession")||"";if(!sess)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":sess}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;var box=document.getElementById("lh-racebox");if(box)box.hidden=false;["js/racebox-parse.js?v=1","js/racebox-app.js?v=3","js/racebox-test.js?v=29"].forEach(function(src){var t=document.createElement("script");t.src=src;t.async=false;document.body.appendChild(t);});}).catch(function(){});}}catch(e){}})();</script>
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/account-bar.js?v=20271118" defer></script>
 <script src="js/signin-prompt.js" defer></script>

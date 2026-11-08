@@ -454,6 +454,23 @@
     </div>
     </div>
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
+    <div class="rbt-modes" id="rbt-modes" role="group" aria-label="What you are recording">
+      <button type="button" class="chip is-on" data-mode="road" aria-pressed="true">No track</button>
+      <button type="button" class="chip" data-mode="drag" aria-pressed="false">Drag run</button>
+      <button type="button" class="chip" data-mode="track" aria-pressed="false">Circuit</button>
+    </div>
+    <p class="rbt-mode-line" id="rbt-mode-line" hidden></p>
+    <div class="rbt-picker" id="rbt-picker" hidden>
+      <p class="rbt-picker-title" id="rbt-picker-title">Choose a track</p>
+      <div class="rbt-modes rbt-show" role="group" aria-label="Show">
+        <button type="button" class="chip is-on" data-show="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-show="near" aria-pressed="false">Nearby</button>
+      </div>
+      <p class="rbt-picker-now" id="rbt-picker-now"></p>
+      <label class="rbt-picker-search"><span>Search</span>
+        <input type="search" class="field" id="rbt-picker-q" autocomplete="off" placeholder="Type part of the name"></label>
+      <ul class="rbt-picker-list" id="rbt-picker-results"></ul>
+    </div>
     <div class="rbt-drives" id="rbt-drives">
       <h3 class="rbt-drives-title">Saved drives</h3>
       <p class="rbt-stage-msg" id="rbt-stage-msg" role="status" hidden></p>
@@ -544,6 +561,20 @@
   .rbt-stage-msg { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
   .rbt-stage-msg[hidden] { display: none; }
   .rbt-send { min-height: 44px; flex: none; }
+  .rbt-modes { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .rbt-modes .chip { min-height: 44px; }
+  .rbt-mode-line { margin: 8px 0 0; font-weight: 600; }
+  .rbt-mode-line[hidden] { display: none; }
+  .rbt-picker { margin: 10px 0 0; padding: 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #fff; }
+  .rbt-picker[hidden] { display: none; }
+  .rbt-picker-title { margin: 0 0 4px; font-weight: 700; }
+  .rbt-picker-now { margin: 0 0 8px; color: #5b6475; font-size: 0.9rem; }
+  .rbt-picker-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+  .rbt-picker-list:empty { display: none; }
+  .rbt-picker-list button { width: 100%; min-height: 44px; text-align: left; padding: 8px 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #fff; color: var(--ink, #16233d); font: 600 1rem/1.2 var(--font-body, sans-serif); cursor: pointer; }
+  .rbt-picker-list small { display: block; font-weight: 400; color: #5b6475; font-size: 0.85rem; }
+  .rbt-picker-search { display: grid; gap: 6px; }
+  .rbt-picker-search span { font-weight: 600; font-size: 0.9rem; }
   .rbt-send.is-sent, .rbt-send:disabled { opacity: .8; }
   .rbt-undo { min-height: 44px; flex: none; }
   .rbt-go-add { margin-left: 6px; min-height: 44px; }
@@ -557,6 +588,8 @@
   .rbt-drives-list li > div:first-child { flex: 1 1 100%; }
   .rbt-drives-list li > .btn { flex: 0 0 auto; }
   .rbt-full-on .rbt-drives { display: none; }
+  /* Full screen: the mode buttons and the track picker are set before the drive starts, so they stay out of the map. */
+  .rbt-full-on .rbt-modes, .rbt-full-on .rbt-mode-line, .rbt-full-on .rbt-picker { display: none; }
   .rbt-view { margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 12px; background: #fff; }
   .rbt-view[hidden] { display: none; }
   .rbt-view-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -669,8 +702,8 @@
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-stage.js?v=2"></script>
-<script src="js/racebox-test.js?v=58"></script>
+<script src="js/racebox-stage.js?v=4"></script>
+<script src="js/racebox-test.js?v=63"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

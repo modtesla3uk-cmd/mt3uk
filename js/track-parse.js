@@ -80,7 +80,7 @@
 
   function readVbo(text) {
     var lines = text.split(/\r?\n/);
-    var sec = '', cols = null, rows = [], startLine = null, venue = '', dateStr = '';
+    var sec = '', cols = null, rows = [], startLine = null, venue = '', dateStr = '', mode = null;
     for (var i = 0; i < lines.length; i++) {
       var s = lines[i].trim();
       if (!s) continue;
@@ -88,6 +88,8 @@
       if (sec === '[comments]') {
         var mv = s.match(/^venue\s*:\s*(.+)$/i); if (mv) venue = mv[1].trim();
         var md = s.match(/utc date started\s*:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i); if (md) dateStr = md[3] + '-' + pad(md[2]) + '-' + pad(md[1]);
+        // Drag mode, as the Laps recorder writes it: standing starts, timed from the first movement.
+        var mmode = s.match(/^mode\s*:\s*(.+)$/i); if (mmode && /drag/i.test(mmode[1])) mode = 'drag'; else if (mmode && /track|circuit/i.test(mmode[1])) mode = 'track';
       } else if (sec === '[laptiming]') {
         var p = s.split(/\s+/);
         if (/^start/i.test(p[0]) && p.length >= 5) {
@@ -141,7 +143,7 @@
     if (pts.some(function (p) { return p.sats > 3; })) pts = pts.filter(function (p) { return !(p.sats >= 0) || p.sats > 3; });
     var t0 = pts.length ? pts[0].utc : 0;
     pts.forEach(function (p) { p.t = p.utc - t0; delete p.utc; });
-    return { format: 'VBO', points: pts, startLine: startLine, venueName: venue, startedAt: startedAt, speedUnit: 'km/h' };
+    return { format: 'VBO', points: pts, startLine: startLine, venueName: venue, startedAt: startedAt, speedUnit: 'km/h', mode: mode };
   }
   function pad(s) { s = String(s); return s.length < 2 ? '0' + s : s; }
 
@@ -1028,7 +1030,8 @@
   function analyse(rd, library, opts) {
     opts = opts || {};
     var pts = rd.points;
-    var type = opts.type || null;
+    // A file recorded in drag mode is a drag run unless the member picks another kind.
+    var type = opts.type || (rd.mode === 'drag' ? 'drag' : rd.mode === 'track' ? 'track' : null);
     var venue = findVenue(pts, library, type === 'drag' ? 'drag' : type === 'track' ? 'circuit' : type === 'sprint' ? 'sprint' : null);
     if (!type) {
       if (venue && venue.type === 'drag') type = 'drag';
@@ -1108,7 +1111,8 @@
       var dv = venue && venue.type === 'drag' ? venue : findVenue(pts, library, 'drag');
       session.atVenue = !!dv;
       if (dv) { session.venueId = dv.id; session.venue = dv.name; }
-      session.runs = dragRuns(pts, !!opts.rollout, !!rd.speedDerived);
+      // The 1 ft rollout is on for a drag-mode file unless the member has switched it off.
+      session.runs = dragRuns(pts, opts.rollout === undefined ? rd.mode === 'drag' : !!opts.rollout, !!rd.speedDerived);
       if (opts.rollout) session.rollout = true;
       // The drive's path, for the map on a street run (the worker keeps it only for those).
       session.trace = { outline: outline(pts) };

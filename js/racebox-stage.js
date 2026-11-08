@@ -59,7 +59,7 @@
 
   // The VBO file: positions in decimal minutes with longitude positive to the west, as the reader expects.
   // g is written the way other loggers have it: across = -x, along = -y (the same signs as the CSV and dashcam readers).
-  function toVbo(rows, started, name) {
+  function toVbo(rows, started, name, mode, venue) {
     var d = new Date(started);
     var date = pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear();
     var time = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
@@ -70,14 +70,18 @@
       'satellites',
       '',
       '[comments]',
-      'UTC date started : ' + date,
-      '',
-      '[column names]',
+      'UTC date started : ' + date
+    ];
+    // Drag mode, so Laps times the drive as a drag run with the 1 ft rollout.
+    if (mode === 'drag') out.push('Mode : Drag');
+    else if (mode === 'track') out.push('Mode : Track');
+    // The track chosen on the recorder, so Laps knows which circuit or strip it was.
+    if (venue) out.push('Venue : ' + venue);
+    out.push('', '[column names]',
       // The columns RaceBox records: position, speed, heading, height, the three g and three rotation figures, and the accuracy figures.
       'time sats fix lat long velocity heading height latacc longacc vertacc gyrox gyroy gyroz hacc sacc hdgacc pdop batt',
       '',
-      '[data]'
-    ];
+      '[data]');
     rows.forEach(function (r) {
       var lat = r[1], lon = r[2];
       if (!isFinite(lat) || !isFinite(lon) || (lat === 0 && lon === 0)) return;
@@ -119,11 +123,15 @@
   }
 
   function stage(recId, started, name) {
-    return rowsOf(recId).then(function (rows) {
+    return run('recordings', 'readonly', function (st) { return st.get(recId); }).then(function (meta) {
+      return rowsOf(recId).then(function (rows) { return { rows: rows, mode: meta && meta.mode, venue: meta && meta.venue }; });
+    }).then(function (got) {
+      var rows = got.rows, mode = got.mode, venue = got.venue;
       var usable = rows.filter(function (r) { return r[1] || r[2]; });
       if (!usable.length) throw new Error('There are no readings to send for this drive.');
-      var text = toVbo(usable, started, name);
-      var fileName = name.replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '_') + '.vbo';
+      var text = toVbo(usable, started, name, mode, venue);
+      // Named as RaceBox names its own files, so Laps guesses the logger as RaceBox.
+      var fileName = 'RaceBox_' + name.replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '_') + '.vbo';
       var id = 's' + recId;
       return run('stagedText', 'readwrite', function (st) { return st.put({ id: id, text: text }); })
         .then(function () {

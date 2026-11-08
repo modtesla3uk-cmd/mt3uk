@@ -2295,11 +2295,12 @@
       if (!document.getElementById('tp-staged')) return;
       if (!items.length) { box.innerHTML = ''; return; }
       box.innerHTML = '<div class="card tp-staged"><h3>Staged drives</h3>' +
-        '<p class="tp-sub">Recorded on your phone and sent here. Open one to check it on the page, then save it as you would any file. Nothing is uploaded until you do.</p>' +
+        '<p class="tp-sub">Recorded on your phone and sent here. Add one to load it ready to save, or View it again. Nothing is uploaded until you save it.</p>' +
         '<ul class="tp-staged-list">' + items.map(function (x) {
           var when = new Date(x.started).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
           return '<li><div><b>' + esc(x.name) + '</b><span class="tp-small">' + esc(when) + ' · ' + x.count.toLocaleString('en-GB') + ' readings</span></div>' +
-            '<div class="tp-staged-acts"><button type="button" class="btn btn-primary btn-sm" data-staged-open="' + esc(x.id) + '" data-staged-file="' + esc(x.fileName) + '">Open</button>' +
+            '<div class="tp-staged-acts"><button type="button" class="btn btn-primary btn-sm" data-staged-open="' + esc(x.id) + '" data-staged-file="' + esc(x.fileName) + '">Add</button>' +
+            '<a class="btn btn-secondary btn-sm" href="racebox.html#view=' + esc(x.id) + '">View</a>' +
             '<button type="button" class="btn btn-ghost btn-sm" data-staged-remove="' + esc(x.id) + '">Remove</button></div></li>';
         }).join('') + '</ul></div>';
       box.onclick = function (e) {
@@ -2317,6 +2318,8 @@
       if (!text) { status('That drive is no longer on this phone. Take it off the list.', 'error'); return; }
       add.stagedId = id;
       readFiles([new File([text], fileName || 'drive.vbo', { type: 'text/plain' })]);
+      // Ready to save: the drive is checked on this page, and the member only chooses the car and the kind of drive.
+      setTimeout(function () { var r = document.getElementById('tp-result'); if (r) r.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 900);
     }).catch(function () { status('The drive could not be opened. Try again.', 'error'); });
   }
   // What each file in the box is called when a day's files are combined:
@@ -2330,7 +2333,7 @@
     if (!rd || !rd.points) return '';
     // Minutes on track, leaving out the gaps between files.
     var mins = rd.runs ? rd.points.reduce(function (acc, p, i, arr) { return i && p.run === arr[i - 1].run ? acc + p.t - arr[i - 1].t : acc; }, 0) / 60 : rd.points[rd.points.length - 1].t / 60;
-    return (rd.runs ? rd.runs + ' ' + partWord(add.type, true) + ', ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
+    return (rd.runs ? rd.runs + ' ' + partWord(add.type, true) + ', ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + (Math.max(1, Math.round(mins)) === 1 ? ' minute' : ' minutes') + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
   }
   // The chosen files, in time order. A file that couldn't be used says so
   // and gets a warning mark instead of a tick; the tick only shows when at
@@ -2381,7 +2384,7 @@
       if (!add.loggerTouched) add.logger = loggerGuess(read) || add.lastLogger || '';
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.orgNew = false; add.orgFrom = null; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.orgNew = false; add.orgFrom = null; delete add.rollout; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
       add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false; add.courseMade = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
@@ -2501,6 +2504,11 @@
     });
   }
   // What the member chose, as the options for the timing code.
+  // The 1 ft rollout is on for a drag-mode file unless the member has set it either way.
+  function rollOn(a) {
+    if (a.rollout !== undefined && a.rollout !== null) return !!a.rollout;
+    return !!(a.rd && a.rd.mode === 'drag');
+  }
   function analysisOpts(a) {
     var opts = {};
     if (a.type) opts.type = a.type;
@@ -2510,7 +2518,8 @@
     if (a.ignoreFinish !== false) opts.ignoreFirstFinish = true;
     if (a.finishCross) opts.finishCrossing = a.finishCross;
     if (a.organizer) opts.organizer = a.organizer;
-    if (a.rollout) opts.rollout = true;
+    // The 1 ft rollout: as the member set it, else on for a drag-mode file (see rollOn).
+    if (a.rollout !== undefined) opts.rollout = !!a.rollout;
     // Which layout of a listed circuit it was: one of its own, or one we do not list yet.
     if (a.layoutPick === '__new') opts.newLayout = true; else if (a.layoutPick) opts.layoutId = a.layoutPick;
     // Editing a saved session's map: the lines on the map, not the course's own.
@@ -2844,7 +2853,7 @@
       }
     }
     if (s.type === 'drag' && (s.runs || []).length) {
-        h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the ' + VW + ' starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
+        h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + rollOn(a) + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the ' + VW + ' starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
     }
     h += lineFiguresHtml(a, s);
     var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
@@ -3000,7 +3009,7 @@
     });
     document.querySelectorAll('[data-copy-line]').forEach(function (b) { b.addEventListener('click', function () { copyText(b.getAttribute('data-copy-line'), b); }); });
     var rollSw = document.getElementById('tp-rollout');
-    if (rollSw) rollSw.addEventListener('click', function () { keep(); a.rollout = !a.rollout; analyse(); });
+    if (rollSw) rollSw.addEventListener('click', function () { keep(); a.rollout = !rollOn(a); analyse(); });
     var untimedBtn = document.getElementById('tp-save-untimed');
     if (untimedBtn) untimedBtn.addEventListener('click', function () {
       keep();

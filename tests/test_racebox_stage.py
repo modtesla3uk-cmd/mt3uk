@@ -70,3 +70,56 @@ def test_the_menu_button_opens_the_menu_on_the_racebox_page(page):
     _record_and_send(page)
     page.locator("#hamburger").click()
     expect(page.locator("#navlinks")).to_have_class(re.compile(r"\bactive\b"))
+
+
+def test_a_staged_drive_has_add_and_view_and_view_opens_that_drive(page):
+    _record_and_send(page)
+    open_page(page, FakeWorker(earlier=False), path="/track.html?add=1&car=car1")
+    expect(page.locator("[data-staged-open]").first).to_have_text("Add")
+    view = page.locator("#tp-staged a", has_text="View").first
+    href = view.get_attribute("href")
+    assert href.startswith("racebox.html#view=s"), href
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/" + href)
+    expect(page.locator("#rbt-view")).to_be_visible(timeout=15000)
+    expect(page.locator("#rbt-view-stats")).to_contain_text("Distance")
+
+
+def _start_drive(page, mode_label):
+    page.add_init_script("localStorage.clear();")
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-modes [data-mode]", has_text=mode_label).click()
+
+
+def test_a_drive_recorded_as_a_drag_run_is_staged_as_one(page):
+    _start_drive(page, "Drag run")
+    page.locator("#rbt-picker-results button", has_text="Without a strip").click()
+    page.locator("#rbt-record").click()
+    page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
+    page.locator("#rbt-record").click()
+    expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
+    page.locator(".rbt-send").first.click()
+    expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
+    text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
+    assert "Mode : Drag" in text
+
+
+def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
+    _start_drive(page, "Circuit")
+    expect(page.locator("#rbt-picker")).to_be_visible()
+    page.locator("#rbt-picker-q").fill("Thruxton")
+    page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
+    expect(page.locator("#rbt-mode-line")).to_contain_text("Thruxton")
+    page.locator("#rbt-record").click()
+    page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
+    page.locator("#rbt-record").click()
+    page.locator(".rbt-send").first.click()
+    expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
+    text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
+    assert "Mode : Track" in text and "Venue : Thruxton" in text

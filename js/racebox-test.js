@@ -95,6 +95,8 @@
   var DB_NAME = 'mt3uk-racebox', DB_VERSION = 1;
   var dbPromise = null;
   var rec = { id: null, started: 0, seq: 0, buf: [], count: 0 };
+  // What is being recorded: no track (road), a drag run or a circuit, and the track chosen for it.
+  var modeNow = 'road', venueChoice = null, TRACKS = null, lastFix = null, pickShow = 'all';
   function openDb() {
     // The staging module (js/racebox-stage.js) opens the same database, with every store, so both pages agree.
     if (window.MT3UKStage) return window.MT3UKStage.openDb();
@@ -120,24 +122,24 @@
       });
     });
   }
-  function saveBatch(id, seq, rows, count, ended, started) {
+  function saveBatch(id, seq, rows, count, ended, started, mode, venue) {
     var work = Promise.resolve();
     if (rows.length) work = dbRun('readings', 'readwrite', function (st) { return st.put({ rec: id, seq: seq, rows: rows }); });
     return work.then(function () {
-      return dbRun('recordings', 'readwrite', function (st) { return st.put({ id: id, started: started, ended: ended, count: count }); });
+      return dbRun('recordings', 'readwrite', function (st) { return st.put({ id: id, started: started, ended: ended, count: count, mode: mode || 'road', venue: venue || '' }); });
     });
   }
   // Writes the readings waiting in the buffer. When ending, the recording is closed as well.
   function flushRecording(ending) {
     if (!rec.id) return Promise.resolve();
-    var rows = rec.buf, id = rec.id, seq = rec.seq, count = rec.count, started = rec.started;
+    var rows = rec.buf, id = rec.id, seq = rec.seq, count = rec.count, started = rec.started, mode = rec.mode, venue = rec.venue;
     if (!rows.length && !ending) return Promise.resolve();
     rec.buf = [];
     rec.seq++;
     if (ending) rec.id = null;
     // Saves run one after another, so a later save (such as the one that closes the drive) is never overwritten by an earlier one.
     saveQueue = saveQueue.then(function () {
-      return saveBatch(id, seq, rows, count, ending ? Date.now() : 0, started);
+      return saveBatch(id, seq, rows, count, ending ? Date.now() : 0, started, mode, venue);
     }).then(function () {
       if (ending) drawRecordings();
     });
@@ -172,10 +174,10 @@
   }
   function startRecording() {
     if (rec.id) return;
-    rec = { id: 'd' + Date.now(), started: Date.now(), seq: 0, buf: [], count: 0 };
+    rec = { id: 'd' + Date.now(), started: Date.now(), seq: 0, buf: [], count: 0, mode: modeNow, venue: venueChoice ? venueChoice.name : '' };
     setRecordSwitch(true);
     syncRecFloat();
-    saveQueue = saveQueue.then(function () { return saveBatch(rec.id, 0, [], 0, 0, rec.started); }).then(drawRecordings);
+    saveQueue = saveQueue.then(function () { return saveBatch(rec.id, 0, [], 0, 0, rec.started, rec.mode, rec.venue); }).then(drawRecordings);
     updateRecLine();
   }
   function stopRecording() {
@@ -219,7 +221,7 @@
         var secs = d.ended ? Math.round((d.ended - d.started) / 1000) : 0;
         var now = rec.id === d.id;
         how.textContent = d.count + ' readings' + (secs ? ', ' + Math.floor(secs / 60) + ' min ' + (secs % 60) + ' s' : '') +
-          (now ? ', recording now' : (!d.ended ? ', unfinished (the app closed while recording)' : ''));
+          (now ? ', recording now' : (!d.ended ? ', unfinished (the app closed while recording)' : '')) + (d.mode === 'drag' ? ', drag run' : d.mode === 'track' ? ', circuit' + (d.venue ? ' at ' + d.venue : '') : '');
         info.appendChild(when);
         info.appendChild(how);
         var del = document.createElement('button');
@@ -282,7 +284,7 @@
     if (!window.MT3UKStage) return say('Sending to Laps is not available here. Open this page in the Laps app or on laps.mt3uk.com.');
     var when = new Date(d.started).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     say('Sending the drive to Laps...');
-    window.MT3UKStage.stage(d.id, d.started, 'Drive ' + when).then(function () {
+    window.MT3UKStage.stage(d.id, d.started, (d.mode === 'drag' ? 'Drag run ' : d.mode === 'track' ? 'Circuit ' : 'Drive ') + when).then(function () {
       say('Sent. Check it and choose to upload it in Add a session on Laps.', true);
       return drawRecordings();
     }).catch(function (err) { say((err && err.message) || 'The drive could not be sent. Try again.'); });
@@ -534,6 +536,120 @@
     });
   }
 
+  // The mode buttons (No track, Drag run, Circuit). Drag run and Circuit open the track picker: nearby tracks from the GPS
+  // fix, or All, with a search by name. The chosen track is kept with the drive and written into its file.
+  function loadTracks() {
+    if (TRACKS) return Promise.resolve(TRACKS);
+    return fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : { venues: [] }; }).then(function (d) {
+      TRACKS = (d.venues || []).map(function (v) { return { id: v.id, name: v.name, type: v.type, lat: parseFloat(v.lat), lng: parseFloat(v.lng) }; })
+        .filter(function (v) { return isFinite(v.lat) && isFinite(v.lng); });
+      return TRACKS;
+    }).catch(function () { TRACKS = []; return TRACKS; });
+  }
+  function distKm(a, b) {
+    var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+    var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
+  function setModeLine() {
+    var line = $('rbt-mode-line');
+    if (!line) return;
+    if (modeNow === 'road') { line.hidden = true; return; }
+    line.hidden = false;
+    var what = venueChoice ? ': ' + venueChoice.name : (modeNow === 'drag' ? ', no strip' : ': no track chosen yet');
+    line.textContent = (modeNow === 'drag' ? 'Drag run' : 'Circuit') + what + '.';
+  }
+  function setMode(m) {
+    modeNow = m;
+    venueChoice = null;
+    [].forEach.call(document.querySelectorAll('#rbt-modes [data-mode]'), function (b) {
+      var on = b.getAttribute('data-mode') === m;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    var picker = $('rbt-picker');
+    if (m === 'road') { if (picker) picker.hidden = true; setModeLine(); return; }
+    if (picker) picker.hidden = false;
+    $('rbt-picker-title').textContent = m === 'drag' ? 'Choose a drag strip, or leave it out' : 'Choose a circuit';
+    pickShow = lastFix ? 'near' : 'all';
+    setShowChips();
+    setModeLine();
+    loadTracks().then(renderPicker);
+  }
+  function setShowChips() {
+    [].forEach.call(document.querySelectorAll('.rbt-show [data-show]'), function (b) {
+      var on = b.getAttribute('data-show') === pickShow;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  function chooseVenue(v) {
+    venueChoice = v;
+    setModeLine();
+    var picker = $('rbt-picker');
+    if (picker) picker.hidden = true;
+  }
+  function renderPicker() {
+    var picker = $('rbt-picker'), list = $('rbt-picker-results'), now = $('rbt-picker-now');
+    if (!picker || picker.hidden || !list || !TRACKS) return;
+    var want = modeNow === 'drag' ? 'drag' : 'circuit';
+    var q = ($('rbt-picker-q').value || '').trim().toLowerCase();
+    var items = TRACKS.filter(function (v) { return v.type === want && (!q || v.name.toLowerCase().indexOf(q) !== -1); });
+    now.textContent = '';
+    // A search looks through every track; Nearby only applies when nothing is typed.
+    if (pickShow === 'near' && !q) {
+      if (!lastFix) { now.textContent = 'Waiting for a GPS fix to find tracks near you. Search, or choose All.'; items = []; }
+      else {
+        items = items.map(function (v) { return { v: v, km: distKm(lastFix, v) }; })
+          .filter(function (x) { return x.km <= 150; }).sort(function (a, b) { return a.km - b.km; }).slice(0, 8);
+        now.textContent = items.length ? 'Nearest first, within 150 km.' : 'No tracks of this kind within 150 km. Search, or choose All.';
+        items = items.map(function (x) { x.v.km = x.km; return x.v; });
+      }
+    } else {
+      items = items.slice(0, 40);
+    }
+    list.textContent = '';
+    if (modeNow === 'drag') {
+      var none = document.createElement('li');
+      var nb = document.createElement('button');
+      nb.type = 'button';
+      nb.textContent = 'Without a strip';
+      nb.addEventListener('click', function () { chooseVenue(null); });
+      none.appendChild(nb);
+      list.appendChild(none);
+    }
+    items.forEach(function (v) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = v.name;
+      if (v.km !== undefined) { var s = document.createElement('small'); s.textContent = v.km.toFixed(1) + ' km away'; b.appendChild(s); }
+      b.addEventListener('click', function () { chooseVenue({ id: v.id, name: v.name }); });
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+    // Like RaceBox's list: a drive with no track, at the foot of the list.
+    if (modeNow === 'track') {
+      var plain = document.createElement('li');
+      var pb = document.createElement('button');
+      pb.type = 'button';
+      pb.textContent = 'Drive without a track';
+      pb.addEventListener('click', function () { setMode('road'); });
+      plain.appendChild(pb);
+      list.appendChild(plain);
+    }
+  }
+  function initModes() {
+    [].forEach.call(document.querySelectorAll('#rbt-modes [data-mode]'), function (b) {
+      b.addEventListener('click', function () { setMode(b.getAttribute('data-mode')); });
+    });
+    [].forEach.call(document.querySelectorAll('.rbt-show [data-show]'), function (b) {
+      b.addEventListener('click', function () { pickShow = b.getAttribute('data-show'); setShowChips(); renderPicker(); });
+    });
+    var q = $('rbt-picker-q');
+    if (q) q.addEventListener('input', renderPicker);
+  }
+
   // The compass: the arrow shows the way the car is going, and the N shows where north is. In heading up the car goes up
   // the screen, so the arrow stays up and the N turns; in north up the N stays at the top and the arrow turns.
   function setCompass() {
@@ -638,6 +754,7 @@
     recordReading(r);
     lastFixOk = !!r.fixOk;
     setRecordAvailable(lastFixOk);
+    if (r.fixOk) { lastFix = { lat: r.lat, lng: r.lon }; if (pickShow === 'near') renderPicker(); }
     if (r.speedKph >= 2) lastHeading = r.heading;
     applyMapRotation();
     setCompass();
@@ -725,6 +842,7 @@
     try { northUp = localStorage.getItem('mt3ukRaceBoxNorthUp') === '1'; } catch (e) { /* storage blocked: heading up */ }
     headingUp = !northUp;
     // The compass is the map's switch: tap it to change between heading up and north up.
+    initModes();
     $('rbt-compass').addEventListener('click', function () {
       headingUp = !headingUp;
       try { localStorage.setItem('mt3ukRaceBoxNorthUp', headingUp ? '0' : '1'); } catch (e) { /* storage blocked */ }
@@ -737,6 +855,16 @@
     });
     drawRecordings();
     renderSpeed();
+    // A link from Add a session (racebox.html#view=...) opens that drive's view once the page is approved and shown.
+    var vm = /^#view=s?(.+)$/.exec(location.hash || '');
+    if (vm) openWhenShown(vm[1], 0);
+  }
+  function openWhenShown(id, tries) {
+    var body = $('rbt-body');
+    if (!body || body.hidden) { if (tries < 40) setTimeout(function () { openWhenShown(id, tries + 1); }, 300); return; }
+    dbRun('recordings', 'readonly', function (st) { return st.get(id); }).then(function (d) {
+      if (d) openDrive(d.id, d.started);
+    }).catch(function () {});
   }
 
   function notReady() {

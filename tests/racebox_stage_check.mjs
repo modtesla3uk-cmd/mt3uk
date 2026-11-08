@@ -45,3 +45,14 @@ const olderRow = older.split('\r\n').find((l) => /^\d{6}\.\d{2} /.test(l)) || ''
 ok(olderRow.split(' ').length === header.split(' ').length && olderRow.split(' ')[7] === '0.00', 'a drive recorded before the altitude was kept still writes, with 0 for what was not recorded');
 ok(near(pN.t, 249 * 0.04, 0.01), 'the times come back, 0.04 s apart');
 ok(r.startedAt && near(r.startedAt, started, 1000), 'the start time comes back');
+
+// Drag mode: a drive recorded in drag mode is written with its mode, and Laps reads it back as a drag run.
+const dragText = S.toVbo(rows, started, 'Drag run', 'drag');
+ok(dragText.includes('Mode : Drag'), 'a drag-mode drive is written with its mode');
+const dr = T.read(dragText, 'Drag_run.vbo');
+ok(dr.mode === 'drag', 'the track reader reads the drag mode back');
+const dsess = T.analyse(dr, { venues: [] }, {});
+ok(dsess.type === 'drag', 'a drag-mode file is analysed as a drag run');
+ok(Array.isArray(dsess.runs), 'the drag run has its runs');
+const roadText = S.toVbo(rows, started, 'Drive');
+ok(!roadText.includes('Mode : Drag') && T.read(roadText, 'Drive.vbo').mode === null, 'a road drive has no drag mode');

@@ -422,7 +422,6 @@
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span>Record a drive</span></button>
-      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-north"><span class="rbt-track"></span><span>North up on the map</span></button>
     </div>
     <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
     <p id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</p>
@@ -431,7 +430,7 @@
     <div class="rbt-band">
     <dl class="rbt-grid">
       <div class="rbt-speed-tile"><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
-      <div class="rbt-heading-tile"><dt>Heading</dt><dd><span class="rbt-compass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></span><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
+      <div class="rbt-heading-tile"><dt>Heading</dt><dd><button type="button" class="rbt-compass" id="rbt-compass" aria-pressed="true" aria-label="Map: heading up. Tap for north up."><svg viewBox="-6 -6 36 36" aria-hidden="true"><g id="rbt-ring"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="-1.2" text-anchor="middle" font-size="6.5" font-weight="700" fill="currentColor">N</text></g><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></button><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
       <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-street" class="rbt-street" hidden></span><span id="rbt-pos" class="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
       <div class="rbt-extra"><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
@@ -457,6 +456,7 @@
     <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
     <div class="rbt-drives" id="rbt-drives">
       <h3 class="rbt-drives-title">Saved drives</h3>
+      <p class="rbt-stage-msg" id="rbt-stage-msg" role="status" hidden></p>
       <p class="rbt-drives-empty" id="rbt-drives-empty">No drives saved yet. Turn on Record a drive in Controls.</p>
       <ul class="rbt-drives-list" id="rbt-drives-list"></ul>
       <div class="rbt-view" id="rbt-view" hidden>
@@ -541,12 +541,18 @@
   .rbt-drives { margin: 18px 0 0; }
   .rbt-drives-title { font-size: 1rem; margin: 0 0 8px; }
   .rbt-drives-empty { color: #5b6475; margin: 0; font-size: 0.9rem; }
+  .rbt-stage-msg { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
+  .rbt-stage-msg[hidden] { display: none; }
+  .rbt-send { min-height: 44px; flex: none; }
   .rbt-drives-empty[hidden] { display: none; }
   .rbt-drives-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
   .rbt-drives-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 10px 12px; background: #fff; }
   .rbt-drive-when { display: block; font-weight: 600; }
   .rbt-drive-info { display: block; color: #5b6475; font-size: 0.9rem; }
   .rbt-del { min-height: 44px; flex: none; }
+  .rbt-drives-list li { flex-wrap: wrap; }
+  .rbt-drives-list li > div:first-child { flex: 1 1 100%; }
+  .rbt-drives-list li > .btn { flex: 0 0 auto; }
   .rbt-full-on .rbt-drives { display: none; }
   .rbt-view { margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 12px; background: #fff; }
   .rbt-view[hidden] { display: none; }
@@ -578,9 +584,8 @@
   .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dd { font-size: 1.8rem; font-weight: 700; margin: 0; color: var(--ink, #111); line-height: 1.1; }
   .rbt-full-on .rbt-deg-val, .rbt-full-on .rbt-deg, .rbt-full-on .rbt-map-wrap > .rbt-heading-tile dt { display: none; }
   .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { width: 170px; }
-  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile .rbt-compass { width: 28px; height: 28px; }
   .rbt-full-on .rbt-speed-float { width: 170px; box-sizing: border-box; justify-content: flex-end; }
-  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile .rbt-compass { width: 24px; height: 24px; }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile .rbt-compass { width: 52px; height: 52px; margin: 0; }
   .rbt-full-on .rbt-speed-float { display: flex; position: absolute; top: 62px; right: 12px; z-index: 1000; align-items: baseline; gap: 6px; padding: 6px 12px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #111); font-variant-numeric: tabular-nums; }
   .rbt-full-on .rbt-speed-float #rbt-speed-big { font-size: 2.6rem; font-weight: 700; line-height: 1; }
   .rbt-full-on .rbt-speed-float #rbt-speed-big-unit { font-size: 1rem; font-weight: 600; color: #5b6475; }
@@ -604,8 +609,9 @@
   .rbt-full-on .rbt-meter-svg { width: 134px; height: 134px; }
   /* Landscape on a phone: the speed, heading, readings and G meter run down the far left, and the map has the rest of the screen. */
   @media (orientation: landscape) and (max-height: 600px) {
-    .rbt-full-on .rbt-panel-wrap > .rbt-band { top: 0; bottom: 0; left: 0; right: auto; width: 290px; height: auto; flex-direction: column; align-items: stretch; overflow: hidden; padding: 10px 12px; border-top: 0; border-right: 1px solid #1c8a4b; }
+    .rbt-full-on .rbt-panel-wrap > .rbt-band { top: 0; bottom: 0; left: 0; right: auto; width: 250px; height: auto; flex-direction: column; align-items: stretch; overflow: hidden; padding: 10px 12px; border-top: 0; border-right: 1px solid #1c8a4b; overflow-y: auto; }
     .rbt-full-on .rbt-band .rbt-grid { grid-template-columns: 1fr 1fr; }
+    .rbt-full-on .rbt-band .rbt-compass { width: 48px; height: 48px; margin: 0; }
     .rbt-full-on .rbt-speed-tile { display: block; }
     .rbt-full-on .rbt-band .rbt-speed-tile dd { font-size: 2.2rem; font-weight: 700; line-height: 1; }
     .rbt-full-on .rbt-speed-tile #rbt-speed-unit { font-size: 1rem; font-weight: 600; color: #5b6475; }
@@ -617,16 +623,17 @@
     .rbt-full-on .rbt-meter-svg { width: 118px; height: 118px; }
     .rbt-full-on .rbt-meter-cap { display: none; }
     .rbt-full-on .rbt-meter-read { display: none; }
-    .rbt-full-on .rbt-menu-btn { left: 306px; }
+    .rbt-full-on .rbt-menu-btn { left: 266px; }
     .rbt-full-on .leaflet-top.leaflet-left { left: auto; right: 12px; top: 70px; }
     .rbt-full-on .rbt-fs-btn { right: 12px; }
-    .rbt-full-on .rbt-map { margin-left: 290px; width: calc(100% - 290px); }
+    .rbt-full-on .rbt-map { margin-left: 250px; width: calc(100% - 250px); }
     .rbt-full-on .rbt-rec-float { left: auto; right: 12px; bottom: 66px; }
     .rbt-full-on .rbt-clear { right: 12px; bottom: 12px; }
-    .rbt-full-on .rbt-prompt { left: 306px; right: 12px; bottom: 80px; }
+    .rbt-full-on .rbt-prompt { left: 266px; right: 12px; bottom: 80px; }
     .rbt-full-on .rbt-band .rbt-meter, .rbt-full-on .rbt-band .rbt-meter svg { pointer-events: none; }
   }
-  .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
+  .rbt-compass { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+  #rbt-ring { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s linear; }
   .rbt-compass svg { width: 100%; height: 100%; display: block; }
   #rbt-arrow { transform-box: view-box; transform-origin: 12px 12px; transition: transform .2s; }
   .rbt-card { margin-left: 4px; }
@@ -659,6 +666,7 @@
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/racebox-test.js?v=49"></script>
+<script src="js/racebox-stage.js?v=2"></script>
+<script src="js/racebox-test.js?v=56"></script>
 </body>
 </html>

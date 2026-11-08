@@ -96,6 +96,8 @@
   var dbPromise = null;
   var rec = { id: null, started: 0, seq: 0, buf: [], count: 0 };
   function openDb() {
+    // The staging module (js/racebox-stage.js) opens the same database, with every store, so both pages agree.
+    if (window.MT3UKStage) return window.MT3UKStage.openDb();
     if (!dbPromise) dbPromise = new Promise(function (resolve, reject) {
       var req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = function () {
@@ -188,7 +190,9 @@
   }
   function recordReading(r) {
     if (!rec.id) return;
-    rec.buf.push([r.utc, r.lat, r.lon, r.speedKph, r.heading, r.gForce.x, r.gForce.y, r.gForce.z, r.rotation.x, r.rotation.y, r.rotation.z, r.fixOk ? 1 : 0, r.satellites, r.horizontalAccuracy]);
+    // Everything RaceBox sends in its data message, so a drive uploads with the same figures the box records.
+    rec.buf.push([r.utc, r.lat, r.lon, r.speedKph, r.heading, r.gForce.x, r.gForce.y, r.gForce.z, r.rotation.x, r.rotation.y, r.rotation.z, r.fixOk ? 1 : 0, r.satellites, r.horizontalAccuracy,
+      r.altitudeMsl, r.fixStatus, r.pdop, r.batteryPercent, r.speedAccuracyMs, r.headingAccuracy]);
     rec.count++;
     if (rec.buf.length >= 25) flushRecording(false);
     updateRecLine();
@@ -218,6 +222,11 @@
         del.type = 'button';
         del.className = 'btn btn-danger btn-sm rbt-del';
         del.textContent = 'Delete';
+        var send = document.createElement('button');
+        send.type = 'button';
+        send.className = 'btn btn-secondary btn-sm rbt-send';
+        send.textContent = 'Send to Laps';
+        send.addEventListener('click', function () { sendToLaps(d); });
         var view = document.createElement('button');
         view.type = 'button';
         view.className = 'btn btn-secondary btn-sm rbt-view-open';
@@ -226,12 +235,25 @@
         del.disabled = now;
         del.addEventListener('click', function () { deleteRecording(d.id); });
         li.appendChild(info);
+        li.appendChild(send);
         li.appendChild(view);
         li.appendChild(del);
         ul.appendChild(li);
       });
     }).catch(function () {});
   }
+  // Sends a saved drive to the Laps Add a session page, where it is staged until the member decides to upload it.
+  function sendToLaps(d) {
+    var msg = $('rbt-stage-msg');
+    function say(t) { if (msg) { msg.textContent = t; msg.hidden = false; } }
+    if (!window.MT3UKStage) return say('Sending to Laps is not available here. Open this page in the Laps app or on laps.mt3uk.com.');
+    var when = new Date(d.started).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    say('Sending the drive to Laps...');
+    window.MT3UKStage.stage(d.id, d.started, 'Drive ' + when).then(function () {
+      say('Sent. It is waiting in Add a session on Laps, where you can check it and choose to upload it.');
+    }).catch(function (err) { say((err && err.message) || 'The drive could not be sent. Try again.'); });
+  }
+
   // Viewing a saved drive: its route on a map, the figures and the stops (under 2 km/h for 10 seconds or more).
   var driveMap = null;
   function useMph() { return unit === 'mph'; }
@@ -478,6 +500,18 @@
     });
   }
 
+  // The compass: the arrow shows the way the car is going, and the N shows where north is. In heading up the car goes up
+  // the screen, so the arrow stays up and the N turns; in north up the N stays at the top and the arrow turns.
+  function setCompass() {
+    var arrow = $('rbt-arrow'), ring = $('rbt-ring'), btn = $('rbt-compass');
+    var h = lastHeading === null ? 0 : lastHeading;
+    if (arrow) arrow.style.transform = headingUp ? 'rotate(0deg)' : 'rotate(' + h + 'deg)';
+    if (ring) ring.style.transform = headingUp ? 'rotate(' + (-h) + 'deg)' : 'rotate(0deg)';
+    if (btn) {
+      btn.setAttribute('aria-pressed', headingUp ? 'true' : 'false');
+      btn.setAttribute('aria-label', headingUp ? 'Map: heading up. Tap for north up.' : 'Map: north up. Tap for heading up.');
+    }
+  }
   // Heading up: the map turns so the way the car is going points up the screen. Leaflet's panes sit in a wrapper that turns
   // about the centre (where the car is), and the controls stay upright. The map does not drag while it is turned.
   var rotWrap = null, headingUp = true, lastHeading = null, appliedDeg = null, lastRotAt = 0, lastPanAt = 0;
@@ -572,10 +606,9 @@
     setRecordAvailable(lastFixOk);
     if (r.speedKph >= 2) lastHeading = r.heading;
     applyMapRotation();
+    setCompass();
     renderSpeed();
     set('rbt-heading', r.heading.toFixed(1));
-    var arrow = $('rbt-arrow');
-    if (arrow) arrow.style.transform = 'rotate(' + r.heading + 'deg)';
     // The GPS heading means little at a standstill, so the direction name shows only above walking pace.
     set('rbt-card', r.speedKph >= 2 ? compassPoint(r.heading) : '');
     set('rbt-pos', r.lat.toFixed(6) + ', ' + r.lon.toFixed(6));
@@ -657,14 +690,14 @@
     var northUp = false;
     try { northUp = localStorage.getItem('mt3ukRaceBoxNorthUp') === '1'; } catch (e) { /* storage blocked: heading up */ }
     headingUp = !northUp;
-    $('rbt-north').setAttribute('aria-checked', northUp ? 'true' : 'false');
-    $('rbt-north').addEventListener('click', function () {
-      var on = $('rbt-north').getAttribute('aria-checked') !== 'true';
-      $('rbt-north').setAttribute('aria-checked', on ? 'true' : 'false');
-      headingUp = !on;
-      try { localStorage.setItem('mt3ukRaceBoxNorthUp', on ? '1' : '0'); } catch (e) { /* storage blocked */ }
+    // The compass is the map's switch: tap it to change between heading up and north up.
+    $('rbt-compass').addEventListener('click', function () {
+      headingUp = !headingUp;
+      try { localStorage.setItem('mt3ukRaceBoxNorthUp', headingUp ? '0' : '1'); } catch (e) { /* storage blocked */ }
       applyMapRotation();
+      setCompass();
     });
+    setCompass();
     $('rbt-record').addEventListener('click', function () {
       if ($('rbt-record').getAttribute('aria-checked') === 'true') stopRecording(); else startRecording();
     });

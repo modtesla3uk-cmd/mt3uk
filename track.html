@@ -1023,6 +1023,16 @@
   .tp-field .field[aria-invalid="true"] { border-color: var(--c-orange-deep, #b8361a); box-shadow: 0 0 0 2px rgba(184, 54, 26, 0.15); }
   .tp-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
+  /* Staged drives (js/racebox-stage.js): recorded on the RaceBox test page and waiting for the member to upload them. */
+  .tp-staged { margin: 0 0 16px; }
+  .tp-staged h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .tp-staged-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+  .tp-staged-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 10px 12px; }
+  .tp-staged-list li > div:first-child { min-width: 0; }
+  .tp-staged-list b { display: block; }
+  .tp-staged-list .tp-small { display: block; color: #5b6475; }
+  .tp-staged-acts { display: flex; gap: 8px; flex: none; }
+  .tp-staged-acts .btn { min-height: 44px; }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
   .tp-drop.is-over { border-color: var(--orange, #e8542a); background: var(--c-peach, #fdf3ef); }
   .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
@@ -1709,7 +1719,8 @@
 <script src="js/motor-sound.js?v=18"></script>
 <script src="js/quota-ring.js?v=18" defer></script>
 <script src="js/car-pick.js?v=5" defer></script>
-<script src="js/track-page.js?v=20271164" defer></script>
+<script src="js/racebox-stage.js?v=2" defer></script>
+<script src="js/track-page.js?v=20271165" defer></script>
 <script src="js/laps-panels.js?v=20271300" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

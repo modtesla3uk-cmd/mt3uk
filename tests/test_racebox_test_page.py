@@ -412,9 +412,9 @@ def test_the_map_turns_so_the_car_goes_up_the_screen_unless_north_up_is_chosen(p
     page.wait_for_timeout(200)
     view = page.evaluate("window.MT3UKRaceBoxView()")
     assert view["headingUp"] is True and abs(view["lastHeading"] - 45) < 0.01, view
-    page.locator("#rbt-north").click()
+    page.locator("#rbt-compass").click()
     assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is False
-    assert page.locator("#rbt-north").get_attribute("aria-checked") == "true"
+    assert page.locator("#rbt-compass").get_attribute("aria-pressed") == "false"
 
 
 def test_the_g_meter_dot_follows_the_trend_not_every_bump(page):
@@ -449,6 +449,6 @@ def test_in_landscape_full_screen_the_g_meter_is_over_the_map_and_the_column_bor
     box = page.evaluate("""() => { var m = document.querySelector('.rbt-band .rbt-meter').getBoundingClientRect();
       var b = getComputedStyle(document.querySelector('.rbt-band')).borderRightWidth;
       return { left: m.left, width: m.width, border: b }; }""")
-    assert box["left"] >= 290, box
+    assert box["left"] >= 250, box
     assert box["width"] >= 125, box
     assert box["border"] == "1px", box

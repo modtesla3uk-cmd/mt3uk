@@ -2236,6 +2236,7 @@
       (a.dayHint ? '<p class="tp-sub" id="tp-day-intro">Adding another session to ' + esc(niceDate(a.dayHint)) + '. Pick its files below.</p>' : '') +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). Best with a VBO or CSV from your logger. A GPX works too, but its times are less accurate, as it has no speed readings of its own. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
+      '<div id="tp-staged"></div>' +
       (a.files && a.files.length ? fileBox() : '') +
       '<details class="tp-help"' + (a.files && a.files.length ? '' : ' open') + '><summary>' + icon('info') + 'Where do I get my file?</summary>' +
       '<div style="font-size:1rem;line-height:1.5"><p style="margin:0 0 6px">Two ways to add a file:</p>' +
@@ -2261,6 +2262,7 @@
     });
     // The free-plan balance, so the member sees how many sessions this save will use before they save.
     drawQuota();
+    drawStaged();
     var input = document.getElementById('tp-file'), drop = document.getElementById('tp-drop');
     input.addEventListener('change', function () { if (input.files.length) readFiles(input.files); });
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
@@ -2283,6 +2285,39 @@
       if (a.tyrePre) { a.tyre = undefined; a.tyres = ''; a.tyrePre = false; }
     });
     if (a.session) drawResult();
+  }
+  // Drives recorded on the RaceBox test page and sent to Laps (js/racebox-stage.js). They stay here until the member opens
+  // one and saves it, or takes it off the list. Nothing is uploaded just by being staged.
+  function drawStaged() {
+    var box = document.getElementById('tp-staged');
+    if (!box || !window.MT3UKStage) return;
+    window.MT3UKStage.list().then(function (items) {
+      if (!document.getElementById('tp-staged')) return;
+      if (!items.length) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="card tp-staged"><h3>Staged drives</h3>' +
+        '<p class="tp-sub">Recorded on your phone and sent here. Open one to check it on the page, then save it as you would any file. Nothing is uploaded until you do.</p>' +
+        '<ul class="tp-staged-list">' + items.map(function (x) {
+          var when = new Date(x.started).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+          return '<li><div><b>' + esc(x.name) + '</b><span class="tp-small">' + esc(when) + ' · ' + x.count.toLocaleString('en-GB') + ' readings</span></div>' +
+            '<div class="tp-staged-acts"><button type="button" class="btn btn-primary btn-sm" data-staged-open="' + esc(x.id) + '" data-staged-file="' + esc(x.fileName) + '">Open</button>' +
+            '<button type="button" class="btn btn-ghost btn-sm" data-staged-remove="' + esc(x.id) + '">Remove</button></div></li>';
+        }).join('') + '</ul></div>';
+      box.onclick = function (e) {
+        var o = e.target.closest && e.target.closest('[data-staged-open]');
+        var r = e.target.closest && e.target.closest('[data-staged-remove]');
+        if (o) openStaged(o.getAttribute('data-staged-open'), o.getAttribute('data-staged-file'));
+        if (r && window.confirm('Take this drive off the Laps list? It stays in Saved drives on the RaceBox page.')) {
+          window.MT3UKStage.remove(r.getAttribute('data-staged-remove')).then(drawStaged);
+        }
+      };
+    }).catch(function () {});
+  }
+  function openStaged(id, fileName) {
+    window.MT3UKStage.get(id).then(function (text) {
+      if (!text) { status('That drive is no longer on this phone. Take it off the list.', 'error'); return; }
+      add.stagedId = id;
+      readFiles([new File([text], fileName || 'drive.vbo', { type: 'text/plain' })]);
+    }).catch(function () { status('The drive could not be opened. Try again.', 'error'); });
   }
   // What each file in the box is called when a day's files are combined:
   // "session" for a track day, "run" for sprints, hill climbs and drag.
@@ -3474,6 +3509,7 @@
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
+      if (a.stagedId && window.MT3UKStage) { window.MT3UKStage.remove(a.stagedId); a.stagedId = null; }
       // Kept on this device: the list says so, and shows what is waiting.
       if (d.queued) { justSaved = { batch: d.batch || 1, queued: d.queued === true ? 1 : d.queued, ids: d.ids || [], skipped: d.skipped || [] }; go('', false, true); return; }
       if (d.batch) { justSaved = { batch: d.batch, days: a.savedDays, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }

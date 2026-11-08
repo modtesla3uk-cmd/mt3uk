@@ -437,3 +437,18 @@ def test_the_g_meter_dot_follows_the_trend_not_every_bump(page):
     page.evaluate("([lo, hi]) => { for (var i = 0; i < 40; i++) window.__rbEmit('data', { base64: i % 2 ? hi : lo }); }", [low, high])
     value = float(page.locator("#rbt-meter-x").inner_text())
     assert 0.1 < value < 0.4, value
+
+
+def test_in_landscape_full_screen_the_g_meter_is_over_the_map_and_the_column_border_is_thin(page):
+    page.set_viewport_size({"width": 844, "height": 390})
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    box = page.evaluate("""() => { var m = document.querySelector('.rbt-band .rbt-meter').getBoundingClientRect();
+      var b = getComputedStyle(document.querySelector('.rbt-band')).borderRightWidth;
+      return { left: m.left, width: m.width, border: b }; }""")
+    assert box["left"] >= 290, box
+    assert box["width"] >= 125, box
+    assert box["border"] == "1px", box

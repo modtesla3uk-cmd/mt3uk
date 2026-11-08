@@ -49,3 +49,19 @@ ok(read.byHandle['master-cylinder-brace'] === 3, 'the admin panel reads them bac
 r = await worker.fetch(new Request('https://worker.test/shop/sales/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: { 'master-cylinder-brace': 3 } }) }), env, ctx);
 const cleared = await r.json();
 ok(!('untouched-sticker' in cleared.byHandle), 'a product left blank on the panel is removed, so the file applies again');
+
+// The discount per product (GET /shop/discounts), typed in on the same panel.
+r = await call('GET', '/shop/discounts');
+ok(r.status === 200 && r.body.success && Object.keys(r.body.byHandle).length === 0, 'with no discount typed in, no product has one');
+r = await worker.fetch(new Request('https://worker.test/shop/discounts/admin', { method: 'POST', body: JSON.stringify({ byHandle: { 'mt3uk-fire-red-hoodie-yellow-line': 20 } }) }), env, ctx);
+ok(r.status === 401, 'typing a discount in needs the admin key');
+r = await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: {
+  'mt3uk-fire-red-hoodie-yellow-line': 20, 'black-mt3uk-tee-red-underline-super-soft': 0, 'mt3uk-grey-hoodie-red-line': 150, 'bad-one': -3, 'sticker': 12.9
+} }) }), env, ctx);
+const dsaved = await r.json();
+ok(r.status === 200 && dsaved.byHandle['mt3uk-fire-red-hoodie-yellow-line'] === 20, 'the hoodie discount is saved');
+ok(!('black-mt3uk-tee-red-underline-super-soft' in dsaved.byHandle), 'a 0 means no discount, so it is left out');
+ok(!('mt3uk-grey-hoodie-red-line' in dsaved.byHandle) && !('bad-one' in dsaved.byHandle), 'a discount over 100 or below 1 is left out');
+ok(dsaved.byHandle['sticker'] === 12, 'a discount is a whole number');
+r = await call('GET', '/shop/discounts');
+ok(r.body.byHandle['mt3uk-fire-red-hoodie-yellow-line'] === 20, 'the shop page reads the discounts');

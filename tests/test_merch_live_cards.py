@@ -47,16 +47,74 @@ def mock_shop_endpoint(page):
     )
 
 
-def test_live_products_render_with_discount_pricing(page):
+TEE = "black-mt3uk-tee-red-underline-super-soft"
+
+
+def route_offer(page, offer):
+    page.route(
+        "**/shop/home",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps({"success": True, "offer": offer}),
+        ),
+    )
+
+
+def live_offer(percent, **extra):
+    offer = {"on": True, "heading": "Spring offer", "percent": percent, "code": "", "start": "", "end": "",
+             "items": [{"id": TEE, "name": "MT3UK Tee"}]}
+    offer.update(extra)
+    return offer
+
+
+def test_a_product_in_a_live_offer_shows_the_offers_percentage_off_its_list_price(page):
+    route_offer(page, live_offer(15))
     page.goto("/shop.html")
     cards = page.locator("#shop-live-products .shop-live-card")
-    # The cards arrive after the products load, so wait for them.
     expect(cards).to_have_count(2)
 
     tee_card = cards.first
-    assert "Save 10%" in tee_card.locator(".tee-offer-save").inner_text()
+    assert "Save 15%" in tee_card.locator(".tee-offer-save").inner_text()
     assert "22.99" in tee_card.locator(".tee-offer-was").inner_text()
-    assert "20.69" in tee_card.locator(".tee-offer-now").inner_text()
+    # 22.99 less 15% is 19.54 (rounded to the penny, as the homepage does).
+    assert "19.54" in tee_card.locator(".tee-offer-now").inner_text()
+
+
+def test_a_product_outside_the_offer_shows_its_price_with_no_discount_pill(page):
+    route_offer(page, live_offer(15, items=[{"id": "some-other-product", "name": "Other"}]))
+    page.goto("/shop.html")
+    cards = page.locator("#shop-live-products .shop-live-card")
+    expect(cards).to_have_count(2)
+
+    tee_card = cards.first
+    assert tee_card.locator(".tee-offer-save").count() == 0
+    assert "22.99" in tee_card.locator(".tee-price-now").inner_text()
+
+
+def test_the_discount_pill_follows_a_change_to_the_offer(page):
+    route_offer(page, live_offer(15))
+    page.goto("/shop.html")
+    expect(page.locator("#shop-live-products .shop-live-card").first.locator(".tee-offer-save")).to_have_text("Save 15%")
+
+    # The admin changes the offer to 25%: the next visit shows the new percentage and price.
+    route_offer(page, live_offer(25))
+    page.goto("/shop.html")
+    tee_card = page.locator("#shop-live-products .shop-live-card").first
+    expect(tee_card.locator(".tee-offer-save")).to_have_text("Save 25%")
+    assert "17.24" in tee_card.locator(".tee-offer-now").inner_text()
+
+
+def test_an_offer_outside_its_dates_gives_no_discount(page):
+    import datetime
+
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+    route_offer(page, live_offer(15, end=yesterday))
+    page.goto("/shop.html")
+    tee_card = page.locator("#shop-live-products .shop-live-card").first
+    expect(tee_card).to_be_visible()
+    assert tee_card.locator(".tee-offer-save").count() == 0
+    assert "22.99" in tee_card.locator(".tee-price-now").inner_text()
 
 
 def test_available_and_sold_out_tags_reflect_product_state(page):
@@ -114,3 +172,45 @@ def test_with_no_figures_typed_in_the_cards_use_the_sales_file(page):
     cards = page.locator("#shop-live-products .shop-live-card")
     expect(cards).to_have_count(2)
     expect(cards.first.locator(".merch-sold-line")).to_have_text("🔥 3 sold since launch")
+
+
+def route_discounts(page, byHandle):
+    page.route(
+        "**/shop/discounts",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps({"success": True, "byHandle": byHandle}),
+        ),
+    )
+
+
+def test_a_discount_set_on_the_admin_shop_panel_shows_on_the_product_card(page):
+    route_discounts(page, {TEE: 20})
+    page.goto("/shop.html")
+    tee_card = page.locator("#shop-live-products .shop-live-card").first
+    expect(tee_card.locator(".tee-offer-save")).to_have_text("Save 20%")
+    assert "22.99" in tee_card.locator(".tee-offer-was").inner_text()
+    # 22.99 less 20% is 18.39.
+    assert "18.39" in tee_card.locator(".tee-offer-now").inner_text()
+
+
+def test_a_discount_set_on_the_admin_shop_panel_follows_a_change(page):
+    route_discounts(page, {TEE: 20})
+    page.goto("/shop.html")
+    expect(page.locator("#shop-live-products .shop-live-card").first.locator(".tee-offer-save")).to_have_text("Save 20%")
+
+    route_discounts(page, {TEE: 30})
+    page.goto("/shop.html")
+    tee_card = page.locator("#shop-live-products .shop-live-card").first
+    expect(tee_card.locator(".tee-offer-save")).to_have_text("Save 30%")
+    # 22.99 less 30% is 16.09.
+    assert "16.09" in tee_card.locator(".tee-offer-now").inner_text()
+
+
+def test_a_product_discount_wins_over_the_homepage_offer_percentage(page):
+    route_discounts(page, {TEE: 20})
+    route_offer(page, live_offer(15))
+    page.goto("/shop.html")
+    tee_card = page.locator("#shop-live-products .shop-live-card").first
+    expect(tee_card.locator(".tee-offer-save")).to_have_text("Save 20%")

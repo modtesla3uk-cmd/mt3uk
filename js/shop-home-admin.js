@@ -88,6 +88,7 @@
         note('');
         draw();
         loadSold();
+        loadDiscounts();
       });
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
@@ -140,6 +141,43 @@
   }
   var soldSave = document.getElementById('shop-sold-save');
   if (soldSave) soldSave.addEventListener('click', saveSold);
+
+  // The discount per product: the percentage off each product on the Shop page (1 to 100). A blank box means no discount.
+  var discEl = document.getElementById('shop-disc-list'), discNote = document.getElementById('shop-disc-note');
+  function drawDiscounts(discounts) {
+    discEl.innerHTML = catalogue.length ? '<table class="iv-table"><tbody>' + catalogue.map(function (p) {
+      var value = discounts[p.handle] !== undefined ? discounts[p.handle] : '';
+      return '<tr><td>' + esc(p.title) + '</td><td><input type="number" min="1" max="100" step="1" class="shop-disc" data-handle="' + esc(p.handle) +
+        '" value="' + esc(value) + '" aria-label="Discount for ' + esc(p.title) + '" style="width:5em"> %</td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="empty">No products yet.</p>';
+  }
+  function loadDiscounts() {
+    fetch(API + '/shop/discounts/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      .then(function (out) { drawDiscounts((out && out.byHandle) || {}); });
+  }
+  function saveDiscounts() {
+    var byHandle = {}, bad = false;
+    document.querySelectorAll('.shop-disc').forEach(function (input) {
+      var v = input.value.trim();
+      if (v === '') return;
+      var n = parseInt(v, 10);
+      if (!(n >= 1 && n <= 100)) { bad = true; return; }
+      byHandle[input.getAttribute('data-handle')] = n;
+    });
+    if (bad) { discNote.textContent = 'Each discount is a whole number from 1 to 100.'; return; }
+    discNote.textContent = 'Saving…';
+    fetch(API + '/shop/discounts/admin?key=' + encodeURIComponent(key()), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ byHandle: byHandle })
+    })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (out) {
+        discNote.textContent = out.ok && out.d.success ? 'Saved. The shop shows these discounts from now on.' : (out.d.message || 'That did not save.');
+      })
+      .catch(function () { discNote.textContent = 'Could not reach the server.'; });
+  }
+  var discSave = document.getElementById('shop-disc-save');
+  if (discSave) discSave.addEventListener('click', saveDiscounts);
 
   function save(body, done) {
     return call('POST', body).then(function (d) {

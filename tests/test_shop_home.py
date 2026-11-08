@@ -550,3 +550,33 @@ def test_admin_shop_panel_types_in_the_units_sold_for_each_product(page):
     page.locator("#shop-sold-save").click()
     expect(page.locator("#shop-sold-note")).to_contain_text("Saved")
     assert sold_posts[-1]["byHandle"] == {"model-3-brake-master-cylinder-bracket-for-rhd-models-only": 3}, sold_posts
+
+
+def test_admin_shop_panel_sets_the_discount_for_each_product(page):
+    """Each product's discount is typed on the Shop panel and saved with the admin key; a blank box is not sent."""
+    disc_posts = []
+    products = [{"id": "mt3uk-fire-red-hoodie-yellow-line", "name": "MT3UK Fire Red Hoodie", "url": "", "line": ""}]
+    catalogue = [{"handle": "mt3uk-fire-red-hoodie-yellow-line", "title": "MT3UK Fire Red Hoodie", "minPrice": 29.99, "maxPrice": 29.99, "available": True, "images": [], "url": ""}]
+
+    def home_admin(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": products, "home": {}}), headers=CORS)
+
+    def discounts(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            disc_posts.append(body)
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": body["byHandle"]}), headers=CORS)
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": {}}), headers=CORS)
+
+    open_admin(page, "admin.html")
+    page.route("**/shop/home/admin**", home_admin)
+    page.route("**/shop/sales/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": {}}), headers=CORS))
+    page.route("**/shop/discounts/admin**", discounts)
+    page.route("**/shop-products**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": catalogue}), headers=CORS))
+    page.locator("#shop-cards-wrap summary").click()
+    expect(page.locator("#shop-disc-list")).to_contain_text("MT3UK Fire Red Hoodie")
+    page.locator(".shop-disc[data-handle='mt3uk-fire-red-hoodie-yellow-line']").fill("20")
+    page.locator("#shop-disc-save").click()
+    expect(page.locator("#shop-disc-note")).to_contain_text("Saved")
+    assert disc_posts[-1]["byHandle"] == {"mt3uk-fire-red-hoodie-yellow-line": 20}, disc_posts

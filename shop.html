@@ -512,6 +512,7 @@
     font-weight: 600;
     padding: 5px 10px;
   }
+  .tee-price-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: inherit; }
   .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
   /* The dark Parts band: its labels and tags read in the light orange (the theme's orange on dark), and the old price is light grey. */
   .shop-band .section-num, .shop-band .tag { color: var(--orange, #e8542a); }
@@ -1381,8 +1382,11 @@
       var BRACE_HANDLE = 'model-3-brake-master-cylinder-bracket-for-rhd-models-only';
       // The discount code of the live offer, by Shopify handle: shown on the item in the Shop (applied at checkout on Shopify).
       var offerCodes = {};
+      // The live offer's discount percentage, by Shopify handle: the pill and the reduced price come from this.
+      var offerPercents = {};
       var HOME_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/home');
       var SALES_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/sales');
+      var DISCOUNTS_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/discounts');
       // The Order link. With a discount code on the offer, the link goes through Shopify's discount address, which applies the
       // code and then sends the shopper to the product, so the code is already in the basket at checkout.
       function orderUrl(p, campaign) {
@@ -1412,17 +1416,19 @@
         return '&pound;' + Number(n).toFixed(2);
       }
 
-      var SAVE_PERCENT = 10;
-
-      function offerPriceHtml(p) {
+      // The price line, from the product's current list price: the plain price when the product is not in a live offer,
+      // else the list price struck through, the reduced price and the offer's percentage. Rounded to the penny as the homepage does.
+      function priceLine(p, percent) {
         if (p.minPrice == null) return '';
         var prefix = p.minPrice === p.maxPrice ? '' : 'From ';
-        var was = money(p.minPrice);
-        var now = money(p.minPrice * (100 - SAVE_PERCENT) / 100);
+        if (!percent) {
+          return '<div class="tee-price"><span class="tee-price-now">' + prefix + money(p.minPrice) + '</span></div>';
+        }
+        var now = Math.round(p.minPrice * (100 - percent)) / 100;
         return '<div class="tee-offer-price">' +
-          '<span class="tee-offer-save">Save ' + SAVE_PERCENT + '%</span>' +
-          '<span class="tee-offer-was">' + prefix + was + '</span>' +
-          '<span class="tee-offer-now">' + prefix + now + '</span>' +
+          '<span class="tee-offer-save">Save ' + percent + '%</span>' +
+          '<span class="tee-offer-was">' + prefix + money(p.minPrice) + '</span>' +
+          '<span class="tee-offer-now">' + prefix + money(now) + '</span>' +
         '</div>';
       }
 
@@ -1489,9 +1495,7 @@
               '<div class="spec-row"><span>Included</span><span>Bracket, extended mounting bolts, adjustable foot, locking grub screw, hex keys</span></div>' +
             '</div>' +
           '</div>' +
-          '<div class="tee-offer-price">' +
-            '<span class="tee-offer-now">' + money(p.minPrice) + '</span>' +
-          '</div>' +
+          priceLine(p, offerPercents[BRACE_HANDLE]) +
           '<p class="tee-offer-note">Delivered to UK addresses</p>' +
           soldHtml(sales.brace) +
           '<div class="tee-offer-actions">' +
@@ -1540,7 +1544,7 @@
               '</div>'
               : '') +
             '<h3>' + esc(p.title) + '</h3>' +
-            offerPriceHtml(p) +
+            priceLine(p, offerPercents[p.handle]) +
             soldHtml(p.handle in sales.byHandle ? sales.byHandle[p.handle] : (key ? sales[key] : 0)) +
             '<div class="tee-offer-actions">' +
               '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
@@ -1559,7 +1563,8 @@
         fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
         fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
         fetch(HOME_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
-        fetch(SALES_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; })
+        fetch(SALES_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
+        fetch(DISCOUNTS_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; })
       ]).then(function (results) {
         var data = results[0];
         var reviews = Array.isArray(results[1]) ? results[1] : [];
@@ -1573,8 +1578,16 @@
         var offer = home.offer;
         var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
         var today = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
-        if (offer && offer.code && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end)) {
-          (offer.items || []).forEach(function (it) { offerCodes[it.id] = offer.code; });
+        // The discount per product, set on the admin Shop panel: it applies to that product's card, and is shown as it is saved.
+        var discounts = results[5] && results[5].byHandle ? results[5].byHandle : {};
+        Object.keys(discounts).forEach(function (handle) { if (discounts[handle] > 0) offerPercents[handle] = discounts[handle]; });
+        // The homepage offer's code, and its percentage for an item with no discount of its own. A product outside a live offer,
+        // with no discount set, shows its price with no pill.
+        if (offer && (!offer.start || today >= offer.start) && (!offer.end || today <= offer.end)) {
+          (offer.items || []).forEach(function (it) {
+            if (offer.percent && !(it.id in offerPercents)) offerPercents[it.id] = offer.percent;
+            if (offer.code) offerCodes[it.id] = offer.code;
+          });
         }
         if (data && data.success && Array.isArray(data.products)) {
           var braceProduct = data.products.filter(function (p) { return p.handle === BRACE_HANDLE; })[0];

@@ -10369,6 +10369,32 @@ async function handleShopSalesAdmin(request, env) {
   return json({ success: true, byHandle: byHandle });
 }
 
+// ---------- Member discount per product (GET /shop/discounts), set on the Shop panel of admin.html ----------
+// One KV key holds the percentage off for each product (1 to 100). A product with none set has no discount on the Shop page.
+var SHOP_DISCOUNTS_KEY = 'shop-discounts';
+
+async function handleShopDiscounts(env) {
+  var res = json({ success: true, byHandle: await getJsonKey(env, SHOP_DISCOUNTS_KEY, {}) });
+  res.headers.set('Cache-Control', 'no-cache');
+  return res;
+}
+
+// GET or POST /shop/discounts/admin?key=...: the discount per product. A blank or 0 figure is left out, so there is no discount.
+async function handleShopDiscountsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, byHandle: await getJsonKey(env, SHOP_DISCOUNTS_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var src = body && body.byHandle && typeof body.byHandle === 'object' ? body.byHandle : {};
+  var byHandle = {};
+  Object.keys(src).slice(0, 300).forEach(function (handle) {
+    var h = String(handle).slice(0, 120), n = Math.floor(Number(src[handle]));
+    if (h && n >= 1 && n <= 100) byHandle[h] = n;
+  });
+  await env.VOTES.put(SHOP_DISCOUNTS_KEY, JSON.stringify(byHandle));
+  return json({ success: true, byHandle: byHandle });
+}
+
 async function handleShopHomePublic(env) {
   var home = await getJsonKey(env, SHOP_HOME_KEY, {});
   // The dates are checked in the browser against the viewer's own date (js/shop-home-cards.js), not the server's.
@@ -13799,6 +13825,8 @@ export default {
     }
     if (url.pathname === '/shop/sales' && request.method === 'GET') return handleShopSales(env);
     if (url.pathname === '/shop/sales/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopSalesAdmin(request, env);
+    if (url.pathname === '/shop/discounts' && request.method === 'GET') return handleShopDiscounts(env);
+    if (url.pathname === '/shop/discounts/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopDiscountsAdmin(request, env);
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);

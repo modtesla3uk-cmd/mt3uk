@@ -123,3 +123,36 @@ def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
     expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
     text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
     assert "Mode : Track" in text and "Venue : Thruxton" in text
+
+
+def test_choosing_a_drag_run_or_circuit_shows_the_map_and_a_start_stop_button(page):
+    _start_drive(page, "Drag run")
+    expect(page.locator("#rbt-map")).to_be_visible()
+    expect(page.locator("#rbt-startstop")).to_be_visible()
+    page.locator("#rbt-picker-results button", has_text="Without a strip").click()
+    expect(page.locator("#rbt-startstop")).to_be_enabled()
+    page.locator("#rbt-startstop").click()
+    expect(page.locator("#rbt-startstop")).to_have_text("Stop recording")
+    page.locator("#rbt-startstop").click()
+    expect(page.locator("#rbt-startstop")).to_have_text("Start recording")
+    expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
+
+
+def test_a_circuit_needs_a_track_before_recording_can_start(page):
+    _start_drive(page, "Circuit")
+    expect(page.locator("#rbt-startstop")).to_be_disabled()
+    page.locator("#rbt-picker-q").fill("Thruxton")
+    page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
+    expect(page.locator("#rbt-startstop")).to_be_enabled()
+
+
+def test_a_chosen_circuit_shows_its_layout_on_the_live_map(page):
+    page.route("**/overpass-api.de/**", lambda r: r.abort())
+    _start_drive(page, "Circuit")
+    page.locator("#rbt-picker-q").fill("Thruxton")
+    page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
+    page.wait_for_function("() => window.MT3UKRaceBoxLayout().source !== 'none'", timeout=15000)
+    info = page.evaluate("() => window.MT3UKRaceBoxLayout()")
+    assert info["venue"] == "Thruxton" and info["source"] == "line", info
+    page.locator("#rbt-modes [data-mode='road']").click()
+    assert page.evaluate("() => window.MT3UKRaceBoxLayout().source") == "none"

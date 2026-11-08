@@ -177,14 +177,17 @@
     rec = { id: 'd' + Date.now(), started: Date.now(), seq: 0, buf: [], count: 0, mode: modeNow, venue: venueChoice ? venueChoice.name : '' };
     setRecordSwitch(true);
     syncRecFloat();
+    syncStartStop();
     saveQueue = saveQueue.then(function () { return saveBatch(rec.id, 0, [], 0, 0, rec.started, rec.mode, rec.venue); }).then(drawRecordings);
     updateRecLine();
   }
   function stopRecording() {
     setRecordSwitch(false);
+    syncStartStop();
     flushRecording(true);
     setRecordAvailable(lastFixOk);
     syncRecFloat();
+    syncStartStop();
   }
   function updateRecLine() {
     var line = $('rbt-rec-line');
@@ -495,6 +498,89 @@
     }).catch(function () { street.busy = false; });
   }
 
+  // The layout expected on the live map: the outline of the raceway from OpenStreetMap where there is one, else the start
+  // and finish lines on our track list. Fetched once per track, then kept on the phone.
+  var layoutLayer = null, layoutToken = 0, layoutInfo = { source: 'none', venue: '' };
+  window.MT3UKRaceBoxLayout = function () { return layoutInfo; };
+  function fetchOutline(v) {
+    var key = 'mt3ukRaceBoxLayout:' + v.id;
+    try { var c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && c.points) return Promise.resolve(c.points); } catch (e) { /* storage blocked: fetch again */ }
+    var q = '[out:json][timeout:10];way(around:2000,' + v.lat + ',' + v.lng + ')["highway"="raceway"];out geom;';
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 12000);
+    return fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), ctl ? { signal: ctl.signal } : undefined)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        clearTimeout(timer);
+        var best = null, len = 0;
+        ((d && d.elements) || []).forEach(function (el) {
+          if (!el.geometry || el.geometry.length < 4) return;
+          var pts = el.geometry.map(function (g) { return [g.lat, g.lon]; });
+          var l = 0;
+          for (var i = 1; i < pts.length; i++) l += metres(pts[i - 1], pts[i]);
+          if (l > len) { len = l; best = pts; }
+        });
+        if (best) { try { localStorage.setItem(key, JSON.stringify({ points: best })); } catch (e) { /* storage blocked */ } }
+        return best;
+      })
+      .catch(function () { clearTimeout(timer); return null; });
+  }
+  function clearLayout() {
+    if (layoutLayer && map) map.removeLayer(layoutLayer);
+    layoutLayer = null;
+  }
+  function drawLayout(v) {
+    var my = ++layoutToken;
+    clearLayout();
+    layoutInfo = { source: 'none', venue: v ? v.name : '' };
+    if (!v) return;
+    fetchOutline(v).then(function (pts) {
+      if (my !== layoutToken) return;
+      var first = (v.layouts && v.layouts[0]) || {};
+      var lines = [first.startLine, first.finishLine].filter(function (l) { return l && l.length === 2; });
+      layoutInfo = { source: pts ? 'outline' : (lines.length ? 'line' : 'none'), venue: v.name };
+      loadLeaflet(function () {
+        if (my !== layoutToken || !window.L || !map) return;
+        layoutLayer = L.layerGroup().addTo(map);
+        if (pts) L.polyline(pts, { color: '#16233d', weight: 3, opacity: 0.75, dashArray: '6 6' }).addTo(layoutLayer);
+        lines.forEach(function (l) { L.polyline(l, { color: '#e8542a', weight: 5 }).bindTooltip(v.name + ' start / finish').addTo(layoutLayer); });
+        if (!lastFix && !(pts && pts.length)) map.setView([v.lat, v.lng], 15);
+      });
+    });
+  }
+  // The map is made once: at the first fix, or as soon as a drag run or circuit is chosen (centred on the last fix, or on the UK).
+  function ensureMap(here, zoom) {
+    if (map) return;
+    var el = $('rbt-map');
+    if (!el || !window.L) return;
+    map = L.map(el).setView(here, zoom);
+    addMapTiles(map);
+    wrapPanes(map);
+    trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
+    marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
+  }
+  // Shows the map area (with Go full screen and Clear the trail) before the first fix, when a drag run or circuit is chosen.
+  function showMapArea() {
+    var mapEl = $('rbt-map'), fsBtn = $('rbt-full'), clr = $('rbt-clear');
+    if (mapEl) mapEl.hidden = false;
+    if (fsBtn) fsBtn.hidden = false;
+    if (clr) clr.hidden = false;
+    loadLeaflet(function () {
+      var here = lastFix ? [lastFix.lat, lastFix.lng] : [51.5, -0.1];
+      ensureMap(here, lastFix ? 17 : 5);
+      if (map && map.invalidateSize) setTimeout(function () { map.invalidateSize(); }, 60);
+    });
+  }
+  // The Start / Stop recording button: for a drag run or circuit. A circuit needs one chosen, and a GPS fix to start.
+  function syncStartStop() {
+    var b = $('rbt-startstop');
+    if (!b) return;
+    var on = !!rec.id;
+    b.hidden = modeNow === 'road';
+    b.textContent = on ? 'Stop recording' : 'Start recording';
+    b.classList.toggle('is-recording', on);
+    b.disabled = !on && (!lastFixOk || (modeNow === 'track' && !venueChoice));
+  }
   function drawFix(r) {
     if (!r.fixOk) {
       setDot(false);
@@ -520,11 +606,7 @@
       var el = $('rbt-map');
       if (!el || !window.L) return;
       if (!map) {
-        map = L.map(el).setView(here, 17);
-        addMapTiles(map);
-        wrapPanes(map);
-        trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
-        marker = L.circleMarker(here, { radius: 7, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
+        ensureMap(here, 17);
         setDot(true);
       } else {
         trail.setLatLngs(pts);
@@ -541,7 +623,7 @@
   function loadTracks() {
     if (TRACKS) return Promise.resolve(TRACKS);
     return fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : { venues: [] }; }).then(function (d) {
-      TRACKS = (d.venues || []).map(function (v) { return { id: v.id, name: v.name, type: v.type, lat: parseFloat(v.lat), lng: parseFloat(v.lng) }; })
+      TRACKS = (d.venues || []).map(function (v) { return { id: v.id, name: v.name, type: v.type, lat: parseFloat(v.lat), lng: parseFloat(v.lng), layouts: v.layouts || [] }; })
         .filter(function (v) { return isFinite(v.lat) && isFinite(v.lng); });
       return TRACKS;
     }).catch(function () { TRACKS = []; return TRACKS; });
@@ -568,12 +650,14 @@
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     var picker = $('rbt-picker');
-    if (m === 'road') { if (picker) picker.hidden = true; setModeLine(); return; }
+    if (m === 'road') { if (picker) picker.hidden = true; setModeLine(); syncStartStop(); drawLayout(null); return; }
     if (picker) picker.hidden = false;
     $('rbt-picker-title').textContent = m === 'drag' ? 'Choose a drag strip, or leave it out' : 'Choose a circuit';
     pickShow = lastFix ? 'near' : 'all';
     setShowChips();
     setModeLine();
+    showMapArea();
+    syncStartStop();
     loadTracks().then(renderPicker);
   }
   function setShowChips() {
@@ -586,6 +670,8 @@
   function chooseVenue(v) {
     venueChoice = v;
     setModeLine();
+    syncStartStop();
+    drawLayout(v);
     var picker = $('rbt-picker');
     if (picker) picker.hidden = true;
   }
@@ -624,7 +710,7 @@
       b.type = 'button';
       b.textContent = v.name;
       if (v.km !== undefined) { var s = document.createElement('small'); s.textContent = v.km.toFixed(1) + ' km away'; b.appendChild(s); }
-      b.addEventListener('click', function () { chooseVenue({ id: v.id, name: v.name }); });
+      b.addEventListener('click', function () { chooseVenue(v); });
       li.appendChild(b);
       list.appendChild(li);
     });
@@ -648,6 +734,8 @@
     });
     var q = $('rbt-picker-q');
     if (q) q.addEventListener('input', renderPicker);
+    var ss = $('rbt-startstop');
+    if (ss) ss.addEventListener('click', function () { if (rec.id) stopRecording(); else startRecording(); });
   }
 
   // The compass: the arrow shows the way the car is going, and the N shows where north is. In heading up the car goes up
@@ -754,6 +842,7 @@
     recordReading(r);
     lastFixOk = !!r.fixOk;
     setRecordAvailable(lastFixOk);
+    syncStartStop();
     if (r.fixOk) { lastFix = { lat: r.lat, lng: r.lon }; if (pickShow === 'near') renderPicker(); }
     if (r.speedKph >= 2) lastHeading = r.heading;
     applyMapRotation();

@@ -2177,7 +2177,9 @@
   .hero.hp-hero { padding-bottom: 64px; }
   /* Share MT3UK: the top right corner of the first screen, lined up with
      the content edge. js/share.js puts the button in it. */
-  .hero.hp-hero { position: relative; }
+  /* The chevron and the "Looking for something else?" hint sit over the foot of the hero, so the hero keeps room below its
+     content: a card that grows is never covered by them. */
+  .hero.hp-hero { position: relative; padding-bottom: 72px; }
   @media (max-width: 780px) { .hp-share-corner { top: 8px; } .hp-share-corner .mt3uk-share-dot { width: 32px; height: 32px; } }
   .hp-scroll-cue {
     position: absolute; left: 50%; bottom: 10px; z-index: 3;

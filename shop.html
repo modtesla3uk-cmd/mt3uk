@@ -728,6 +728,11 @@
   .spec-row { border-bottom: 1px solid var(--hairline); }
   .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
   .btn { border-radius: var(--radius); font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+  /* The More chevron at the foot of Exclusive merch: the homepage's double chevron, in the flow under the cards. */
+  .shop-more { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 26px auto 0; padding: 6px 14px; background: transparent; border: 0; border-radius: var(--radius-pill); cursor: pointer; color: #f6a98c; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; font-weight: 600; }
+  .shop-more svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .shop-more:hover, .shop-more:focus-visible { color: #ffc4ad; }
+  .shop-more:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
   .shop-card, .offer-card { border-radius: var(--radius); }
   .shop-card .tag, .offer-card .tag, .detail-toggle { border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-width: 1px; }
   .detail-toggle::after { content: ''; width: 14px; height: 14px; background: currentColor;
@@ -879,6 +884,10 @@
       </div>
     </div>
     <div class="shop-grid shop-grid-2" id="shop-live-products"></div>
+    <button type="button" class="shop-more" id="merch-more" aria-label="More: scroll down to Parts">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 7 7-7"/><path d="M5 2l7 7 7-7" class="shop-more-back"/></svg>
+      <span>More</span>
+    </button>
   </div>
 </section>
 
@@ -1603,6 +1612,20 @@
     })();
   </script>
 
+<script>
+  (function () {
+    var more = document.getElementById('merch-more');
+    if (!more) return;
+    more.addEventListener('click', function () {
+      var target = document.getElementById('parts');
+      if (!target) return;
+      var header = document.querySelector('header');
+      var top = target.getBoundingClientRect().top + window.pageYOffset - (header ? header.offsetHeight : 0);
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
+    });
+  })();
+</script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=20271119" defer></script>
 <script src="js/signin-prompt.js" defer></script>

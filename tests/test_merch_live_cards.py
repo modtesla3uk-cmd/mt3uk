@@ -45,6 +45,11 @@ def mock_shop_endpoint(page):
         "**/shop/home",
         lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True})),
     )
+    # The discounts the admin typed in are live on the worker: the tests start with none, so they do not depend on them.
+    page.route(
+        "**/shop/discounts",
+        lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "byHandle": {}})),
+    )
 
 
 TEE = "black-mt3uk-tee-red-underline-super-soft"

@@ -14,6 +14,7 @@ The sync workflow (.github/workflows/card-previews.yml) runs it every day and co
   MT3UK_SITE=http://127.0.0.1:8765 python scripts/build_card_shares.py   # a local copy
 """
 import base64
+import hashlib
 import html
 import os
 from pathlib import Path
@@ -87,11 +88,21 @@ def framed_jpeg(browser, png):
     return out
 
 
+def picture_address(image):
+    # Facebook keeps its own copy of a picture by its address, so a changed picture gets a new address from its contents
+    # (?v=...). Without it Facebook shows the old card for as long as its cache lasts.
+    path = ROOT / image
+    address = "%s/%s" % (PUBLIC, image)
+    if path.exists():
+        address += "?v=%s" % hashlib.sha1(path.read_bytes()).hexdigest()[:10]
+    return address
+
+
 def share_page(card, title, desc, image, size):
     cid = card["id"]
     url = "%s/share/card/%s.html" % (PUBLIC, cid)
     t, d = html.escape(title, quote=True), html.escape(desc, quote=True)
-    img = "%s/%s" % (PUBLIC, image)
+    img = picture_address(image)
     return """<!doctype html>
 <html lang="en-GB">
 <head>

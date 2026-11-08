@@ -198,7 +198,11 @@
     updateRecLine();
   }
   function drawRecordings() {
-    return dbRun('recordings', 'readonly', function (st) { return st.getAll(); }).then(function (list) {
+    // Which drives are already staged for Laps, so their button shows Sent and Undo.
+    var staged = window.MT3UKStage ? window.MT3UKStage.list().catch(function () { return []; }) : Promise.resolve([]);
+    return Promise.all([dbRun('recordings', 'readonly', function (st) { return st.getAll(); }), staged]).then(function (both) {
+      var list = both[0], stagedIds = {};
+      both[1].forEach(function (x) { stagedIds[x.id] = true; });
       var ul = $('rbt-drives-list'), empty = $('rbt-drives-empty');
       if (!ul) return;
       list.sort(function (a, b) { return b.started - a.started; });
@@ -225,8 +229,15 @@
         var send = document.createElement('button');
         send.type = 'button';
         send.className = 'btn btn-secondary btn-sm rbt-send';
-        send.textContent = 'Send to Laps';
-        send.addEventListener('click', function () { sendToLaps(d); });
+        var isSent = !!stagedIds['s' + d.id];
+        send.textContent = isSent ? 'Sent' : 'Send to Laps';
+        send.disabled = isSent;
+        if (!isSent) send.addEventListener('click', function () { sendToLaps(d); });
+        var undo = document.createElement('button');
+        undo.type = 'button';
+        undo.className = 'btn btn-secondary btn-sm rbt-undo';
+        undo.textContent = 'Undo';
+        undo.addEventListener('click', function () { unsendToLaps(d); });
         var view = document.createElement('button');
         view.type = 'button';
         view.className = 'btn btn-secondary btn-sm rbt-view-open';
@@ -236,6 +247,7 @@
         del.addEventListener('click', function () { deleteRecording(d.id); });
         li.appendChild(info);
         li.appendChild(send);
+        if (isSent) li.appendChild(undo);
         li.appendChild(view);
         li.appendChild(del);
         ul.appendChild(li);
@@ -243,14 +255,36 @@
     }).catch(function () {});
   }
   // Sends a saved drive to the Laps Add a session page, where it is staged until the member decides to upload it.
+  // Takes a drive off the Laps list again. It stays in Saved drives on this page.
+  function unsendToLaps(d) {
+    var msg = $('rbt-stage-msg');
+    window.MT3UKStage.remove('s' + d.id).then(function () {
+      if (msg) { msg.textContent = 'Taken off the Laps list. It is still in Saved drives here.'; msg.hidden = false; }
+      return drawRecordings();
+    }).catch(function () { if (msg) { msg.textContent = 'That could not be undone. Try again.'; msg.hidden = false; } });
+  }
+
   function sendToLaps(d) {
     var msg = $('rbt-stage-msg');
-    function say(t) { if (msg) { msg.textContent = t; msg.hidden = false; } }
+    function say(t, withLink) {
+      if (!msg) return;
+      msg.textContent = t;
+      msg.hidden = false;
+      if (withLink) {
+        var a = document.createElement('a');
+        a.className = 'btn btn-accent btn-sm rbt-go-add';
+        a.href = 'track.html?add=1';
+        a.textContent = 'Go to Add a session';
+        msg.appendChild(document.createTextNode(' '));
+        msg.appendChild(a);
+      }
+    }
     if (!window.MT3UKStage) return say('Sending to Laps is not available here. Open this page in the Laps app or on laps.mt3uk.com.');
     var when = new Date(d.started).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     say('Sending the drive to Laps...');
     window.MT3UKStage.stage(d.id, d.started, 'Drive ' + when).then(function () {
-      say('Sent. It is waiting in Add a session on Laps, where you can check it and choose to upload it.');
+      say('Sent. Check it and choose to upload it in Add a session on Laps.', true);
+      return drawRecordings();
     }).catch(function (err) { say((err && err.message) || 'The drive could not be sent. Try again.'); });
   }
 

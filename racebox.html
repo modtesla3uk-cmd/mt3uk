@@ -544,6 +544,9 @@
   .rbt-stage-msg { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
   .rbt-stage-msg[hidden] { display: none; }
   .rbt-send { min-height: 44px; flex: none; }
+  .rbt-send.is-sent, .rbt-send:disabled { opacity: .8; }
+  .rbt-undo { min-height: 44px; flex: none; }
+  .rbt-go-add { margin-left: 6px; min-height: 44px; }
   .rbt-drives-empty[hidden] { display: none; }
   .rbt-drives-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
   .rbt-drives-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 10px 12px; background: #fff; }
@@ -667,6 +670,42 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=2"></script>
-<script src="js/racebox-test.js?v=56"></script>
+<script src="js/racebox-test.js?v=58"></script>
+<script>
+  (function () {
+      var hamburger = document.getElementById('hamburger');
+      var navMenu = document.getElementById('navlinks');
+      if (!hamburger || !navMenu) return;
+
+      function closeMenu() {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+            link.addEventListener('click', closeMenu);
+      });
+
+      navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var item = toggle.closest('.nav-item');
+                  var open = item.classList.toggle('open');
+                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+      });
+
+      document.addEventListener('click', function (e) {
+            if (!e.target.closest('header nav')) closeMenu();
+      });
+  })();
+</script>
 </body>
 </html>

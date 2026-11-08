@@ -12,6 +12,7 @@ def test_a_drive_written_for_laps_reads_back_with_the_same_positions_speed_and_t
 
 
 import base64
+import re
 import pytest
 from playwright.sync_api import expect
 import sys
@@ -51,3 +52,21 @@ def test_a_staged_drive_is_on_the_add_page_and_opens_for_review_without_uploadin
     # Opened for review: the file is read as if it had been chosen, and nothing has been saved yet.
     expect(page.locator(".tp-file, #tp-result").first).to_be_visible(timeout=10000)
     assert page.evaluate("() => window.MT3UKStage.list().then(function (l) { return l.length; })") == 1
+
+
+def test_a_sent_drive_shows_sent_with_undo_and_a_way_to_add_a_session(page):
+    _record_and_send(page)
+    expect(page.locator(".rbt-send").first).to_have_text("Sent")
+    expect(page.locator(".rbt-send").first).to_be_disabled()
+    expect(page.locator(".rbt-undo").first).to_be_visible()
+    expect(page.locator(".rbt-go-add")).to_have_attribute("href", "track.html?add=1")
+    page.locator(".rbt-undo").first.click()
+    expect(page.locator(".rbt-send").first).to_have_text("Send to Laps")
+    expect(page.locator(".rbt-send").first).to_be_enabled()
+    assert page.evaluate("() => window.MT3UKStage.list().then(function (l) { return l.length; })") == 0
+
+
+def test_the_menu_button_opens_the_menu_on_the_racebox_page(page):
+    _record_and_send(page)
+    page.locator("#hamburger").click()
+    expect(page.locator("#navlinks")).to_have_class(re.compile(r"\bactive\b"))

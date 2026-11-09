@@ -1,11 +1,20 @@
 """navigate.html: the phone's own location on a map, for approved members. The RaceBox is not needed."""
+import json
 import re
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 from playwright.sync_api import expect
 from test_racebox_test_page import ADMIN
 from test_racebox_stage import GEO_OK, GEO_DENIED
+
+
+def _photon(*places):
+    """A Photon reply (GeoJSON, coordinates lng, lat) for the places given as (name, city, lat, lng)."""
+    return json.dumps({"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {"name": n, "city": c, "country": "United Kingdom", "countrycode": "GB"},
+         "geometry": {"type": "Point", "coordinates": [lng, lat]}} for n, c, lat, lng in places]})
 
 
 def _approve(page, access):
@@ -173,7 +182,7 @@ def test_a_typed_position_gets_a_route_drawn_with_its_distance_and_steps(page):
 def test_a_place_name_with_several_matches_lets_the_member_pick(page):
     _approve(page, True)
     page.add_init_script(GEO_OK)
-    page.route("**/nominatim.openstreetmap.org/**", lambda r: r.fulfill(status=200, content_type="application/json", body='[{"display_name":"Church Road, Towcester, UK","lat":"52.13","lon":"-0.98"},{"display_name":"Church Road, Wallington, UK","lat":"51.35","lon":"-0.14"}]', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Church Road", "Towcester", 52.13, -0.98), ("Church Road", "Wallington", 51.35, -0.14)), headers={"Access-Control-Allow-Origin": "*"}))
     page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
@@ -199,15 +208,15 @@ def test_place_search_is_biased_to_where_the_phone_is_and_nearest_comes_first(pa
     seen = []
     def reply(route):
         seen.append(route.request.url)
-        route.fulfill(status=200, content_type="application/json", body='[{"display_name":"Church Road, Wallington, UK","lat":"51.35","lon":"-0.14"},{"display_name":"Church Road, Towcester, UK","lat":"52.13","lon":"-0.98"}]', headers={"Access-Control-Allow-Origin": "*"})
-    page.route("**/nominatim.openstreetmap.org/**", reply)
+        route.fulfill(status=200, content_type="application/json", body=_photon(("Church Road", "Wallington", 51.35, -0.14), ("Church Road", "Towcester", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/photon.komoot.io/**", reply)
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     page.locator("#nav-to-q").fill("Church Road")
     page.locator("#nav-go").click()
     expect(page.locator("#nav-results button")).to_have_count(2)
-    assert "viewbox=" in seen[0] and "bounded=0" in seen[0], seen[0]
-    assert "countrycodes=gb" in seen[0], seen[0]
+    assert "lat=52.1" in seen[0] and "lon=-0.9" in seen[0] and "location_bias_scale=" in seen[0], seen[0]
+    assert all("countrycode=gb" in u for u in seen), seen
     expect(page.locator("#nav-results button").first).to_contain_text("Towcester")
 
 
@@ -256,8 +265,8 @@ def test_suggestions_appear_in_light_grey_while_typing_and_one_can_be_chosen(pag
     calls = []
     def reply(route):
         calls.append(route.request.url)
-        route.fulfill(status=200, content_type="application/json", body='[{"display_name":"Towcester, Northamptonshire, England, UK","lat":"52.13","lon":"-0.98"}]', headers={"Access-Control-Allow-Origin": "*"})
-    page.route("**/nominatim.openstreetmap.org/**", reply)
+        route.fulfill(status=200, content_type="application/json", body=_photon(("Towcester", "Northamptonshire", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/photon.komoot.io/**", reply)
     page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
@@ -269,3 +278,22 @@ def test_suggestions_appear_in_light_grey_while_typing_and_one_can_be_chosen(pag
     expect(page.locator("#nav-results.is-suggest button")).to_contain_text("Towcester")
     page.locator("#nav-results.is-suggest button").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+
+
+def test_a_part_typed_last_word_still_suggests_the_place(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    asked = []
+    def reply(route):
+        q = parse_qs(urlparse(route.request.url).query).get("q", [""])[0]
+        asked.append(q)
+        # Photon finds Leicester for the last word on its own, and nothing for "Tesla Leic" as a whole.
+        places = [("Leicester", "City of Leicester", 52.6369, -1.1398)] if q.lower() == "leic" else []
+        route.fulfill(status=200, content_type="application/json", body=_photon(*places), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/photon.komoot.io/**", reply)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("Tesla Leic")
+    expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
+    expect(page.locator("#nav-results.is-suggest button")).to_contain_text("Leicester")
+    assert "Tesla Leic" in asked and "Leic" in asked, asked

@@ -165,23 +165,47 @@
     el.hidden = !t;
     el.classList.toggle('is-bad', !!bad);
   }
-  // Places are biased to the area around the phone (about 50 km, not restricted to it), and the nearest come first.
-  function findPlace(q) {
-    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&accept-language=en&q=' + encodeURIComponent(q);
+  // Places come from Photon (komoot.io), which matches a part-typed last word, so "Leic" finds Leicester. Biased to the
+  // area around the phone (not restricted to it); in the UK only UK places are suggested; the nearest come first.
+  function photonPlaces(q) {
+    var url = 'https://photon.komoot.io/api/?lang=en&limit=8&q=' + encodeURIComponent(q);
     if (lastFix) {
-      var la = lastFix.lat, lo = lastFix.lng, dl = 0.5, dg = 0.8;
-      url += '&viewbox=' + (lo - dg) + ',' + (la + dl) + ',' + (lo + dg) + ',' + (la - dl) + '&bounded=0';
-      // In the UK, only UK places are suggested: a brand name would otherwise bring up matches in other countries.
-      if (la >= 49.8 && la <= 60.9 && lo >= -8.7 && lo <= 1.9) url += '&countrycodes=gb';
+      var la = lastFix.lat, lo = lastFix.lng;
+      url += '&lat=' + la + '&lon=' + lo + '&location_bias_scale=0.5';
+      if (la >= 49.8 && la <= 60.9 && lo >= -8.7 && lo <= 1.9) url += '&countrycode=gb';
     }
     return fetch(url)
-      .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (list) {
-        var out = (list || []).map(function (p) { return { name: String(p.display_name || '').slice(0, 120), at: [+p.lat, +p.lon] }; });
-        if (lastFix) out.forEach(function (p) { p.km = metresBetween([lastFix.lat, lastFix.lng], p.at) / 1000; });
-        if (lastFix) out.sort(function (a, b) { return a.km - b.km; });
-        return out.slice(0, 5);
+      .then(function (r) { return r.ok ? r.json() : { features: [] }; })
+      .then(function (d) {
+        return ((d && d.features) || []).map(function (f) {
+          var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+          if (!c) return null;
+          var seen = {}, names = [];
+          [p.name, p.street, p.district || p.locality, p.city, p.county, p.country].forEach(function (x) {
+            if (x && !seen[x]) { seen[x] = true; names.push(String(x)); }
+          });
+          return { name: names.join(', ').slice(0, 120), at: [+c[1], +c[0]] };
+        }).filter(Boolean);
       });
+  }
+  // A query of several words is also sent with its last word on its own, because the other words (Tesla, say) can
+  // crowd out the place the member means: "Tesla Leic" then still brings up Leicester.
+  function findPlace(q) {
+    var words = q.split(/\s+/), last = words[words.length - 1];
+    var asks = [photonPlaces(q)];
+    if (words.length > 1 && last.length >= 3) asks.push(photonPlaces(last));
+    return Promise.all(asks).then(function (lists) {
+      var seen = {}, out = [];
+      lists.forEach(function (list) {
+        list.forEach(function (p) {
+          var k = p.name.toLowerCase();
+          if (!seen[k]) { seen[k] = true; out.push(p); }
+        });
+      });
+      if (lastFix) out.forEach(function (p) { p.km = metresBetween([lastFix.lat, lastFix.lng], p.at) / 1000; });
+      if (lastFix) out.sort(function (a, b) { return a.km - b.km; });
+      return out.slice(0, 5);
+    });
   }
   // Suggestions while typing, in light grey under the box. They wait for three letters and a short pause, so the place
   // service is not asked on every key press, and an answer that comes late is dropped.

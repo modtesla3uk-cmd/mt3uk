@@ -48,7 +48,7 @@ def test_a_refused_permission_says_how_to_allow_it(page):
 
 GEO_STILL = """
 navigator.geolocation.watchPosition = function (ok) {
-  setTimeout(function () { ok({ coords: { latitude: 52.12, longitude: -0.99, accuracy: 6, speed: 0.4 } }); }, 50);
+  setTimeout(function () { ok({ coords: { latitude: 52.12, longitude: -0.99, accuracy: 6, speed: 0.2 } }); }, 50);
   return 7;
 };
 navigator.geolocation.clearWatch = function () {};
@@ -114,3 +114,20 @@ def test_a_moving_phone_still_draws_its_route(page):
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     page.wait_for_timeout(1000)
     assert page.evaluate("window.MT3UKNavigate.trailPoints()") >= 4
+
+
+GEO_WALK = """
+navigator.geolocation.watchPosition = function (ok) {
+  setTimeout(function () { ok({ coords: { latitude: 52.12, longitude: -0.99, accuracy: 4, speed: 1.4 } }); }, 50);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_walking_pace_shows_on_navigate(page):
+    _approve(page, True)
+    page.add_init_script(GEO_WALK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-speed")).to_have_text("5")

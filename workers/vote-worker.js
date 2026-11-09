@@ -8192,6 +8192,42 @@ async function lapsOfflineMembers(env, a) {
 // members (by email) and Open to all members. One KV key (laps-racebox), read with getJsonKey. Managed on the RaceBox
 // test panel of track-admin.html (js/racebox-admin.js, /laps/racebox/admin).
 var LAPS_RACEBOX_KEY = 'laps-racebox';
+// Navigate: a driving route from OpenRouteService, for approved members only. The key is a worker secret (ORS_API_KEY),
+// never sent to the page. The reply is trimmed to what the page draws: the line, the distance and time, and the steps.
+async function handleNavigateRoute(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
+  if (!(a.open || a.allowed.some(function (x) { return x.email === e; }))) return json({ success: false, message: 'Navigate is not open to this account yet' }, 403);
+  if (!env.ORS_API_KEY) return json({ success: false, message: 'Routing is not set up yet' }, 503);
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  function point(p) {
+    return Array.isArray(p) && p.length === 2 && isFinite(p[0]) && isFinite(p[1]) && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 ? p : null;
+  }
+  var from = point(body.from), to = point(body.to);
+  if (!from || !to) return json({ success: false, message: 'Give a start and a destination' }, 400);
+  var r;
+  try {
+    r = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+      method: 'POST',
+      headers: { 'Authorization': env.ORS_API_KEY, 'Content-Type': 'application/json', 'Accept': 'application/geo+json, application/json' },
+      body: JSON.stringify({ coordinates: [[from[1], from[0]], [to[1], to[0]]], instructions: true, units: 'm' })
+    });
+  } catch (er) { return json({ success: false, message: 'The route could not be worked out. Try again.' }, 502); }
+  if (!r.ok) return json({ success: false, message: 'The route could not be worked out. Try again.' }, 502);
+  var d = await r.json().catch(function () { return null; });
+  var f = d && d.features && d.features[0];
+  if (!f || !f.geometry || !f.geometry.coordinates) return json({ success: false, message: 'No driving route was found there.' }, 404);
+  var seg = (f.properties && f.properties.segments && f.properties.segments[0]) || {};
+  return json({
+    success: true,
+    distanceM: Math.round(seg.distance || 0),
+    durationS: Math.round(seg.duration || 0),
+    line: f.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }),
+    steps: (seg.steps || []).map(function (s) { return { text: String(s.instruction || ''), distanceM: Math.round(s.distance || 0) }; })
+  });
+}
 async function getLapsRaceboxAccess(env) {
   var a = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
   return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
@@ -13611,6 +13647,9 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/navigate/route' && request.method === 'POST') {
+      return handleNavigateRoute(request, env);
     }
     if (url.pathname === '/laps/racebox/access' && request.method === 'GET') {
       return handleLapsRaceboxAccess(request, env);

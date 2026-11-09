@@ -372,8 +372,24 @@
   .nav-grid dd { margin: 0; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .nav-speed-tile dd { font-size: 2.4rem; line-height: 1; white-space: nowrap; }
   .nav-speed-tile #nav-speed-unit { font-size: 1rem; font-weight: 600; color: #5b6475; }
-  .nav-actions { margin-top: 14px; }
-  .nav-actions .btn { min-height: 44px; }
+  .nav-dest { margin: 0 0 14px; }
+  .nav-dest-label { display: block; font-weight: 700; margin: 0 0 6px; }
+  .nav-dest-row { display: flex; gap: 8px; }
+  .nav-dest-row .field { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+  .nav-dest-row .btn { min-height: 44px; flex: none; }
+  .nav-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+  .nav-results:empty { display: none; }
+  .nav-results button { width: 100%; min-height: 44px; text-align: left; padding: 8px 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #fff; color: var(--ink, #16233d); font: 600 0.95rem/1.3 var(--font-body, sans-serif); cursor: pointer; }
+  .nav-route-msg { margin: 8px 0 0; font-weight: 600; }
+  .nav-route-msg.is-bad { color: #b3261e; }
+  .nav-route-msg[hidden] { display: none; }
+  .nav-route { margin: 14px 0 0; }
+  .nav-route[hidden] { display: none; }
+  .nav-route-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 10px; }
+  .nav-route-stats > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 8px 10px; background: #fff; min-width: 0; }
+  .nav-route-stats dt { font-size: 0.8rem; color: #5b6475; margin: 0; }
+  .nav-route-stats dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .nav-steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; font-size: 0.95rem; }
   @media (min-width: 700px) { .nav-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .nav-grid .nav-wide { grid-column: span 2; } }
 </style>
 </head>
@@ -440,6 +456,15 @@
 <div class="nav-body" id="nav-body" hidden>
   <div class="wrap nav-wrap">
     <p class="nav-status" id="nav-status" role="status">Asking your phone for its location...</p>
+    <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
+      <label class="nav-dest-label" for="nav-to-q">Where to?</label>
+      <div class="nav-dest-row">
+        <input type="search" class="field" id="nav-to-q" autocomplete="off" placeholder="A place, a postcode, or lat, lng">
+        <button type="button" class="btn btn-accent" id="nav-go">Route</button>
+      </div>
+      <ul class="nav-results" id="nav-results"></ul>
+      <p class="nav-route-msg" id="nav-route-msg" role="status" hidden></p>
+    </form>
     <div class="nav-map-wrap">
       <div id="nav-map" class="nav-map" hidden></div>
       <button type="button" class="nav-unit-pill" id="nav-unit" aria-pressed="false">Show in mph</button>
@@ -451,6 +476,14 @@
       <div><dt>Accuracy</dt><dd><span id="nav-acc">&ndash;</span></dd></div>
       <div><dt>Last fix</dt><dd><span id="nav-time">&ndash;</span></dd></div>
     </dl>
+    <div class="nav-route" id="nav-route" hidden>
+      <dl class="nav-route-stats">
+        <div><dt>Destination</dt><dd id="nav-route-to">&ndash;</dd></div>
+        <div><dt>Route</dt><dd id="nav-route-len">&ndash;</dd></div>
+        <div><dt>Straight-line to go</dt><dd id="nav-togo">&ndash;</dd></div>
+      </dl>
+      <ol class="nav-steps" id="nav-steps"></ol>
+    </div>
   </div>
 </div>
 </main>
@@ -504,6 +537,6 @@
       });
   })();
 </script>
-<script src="js/navigate.js?v=7" defer></script>
+<script src="js/navigate.js?v=8" defer></script>
 </body>
 </html>

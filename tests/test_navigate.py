@@ -1,5 +1,8 @@
 """navigate.html: the phone's own location on a map, for approved members. The RaceBox is not needed."""
 import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 from playwright.sync_api import expect
 from test_racebox_test_page import ADMIN
 from test_racebox_stage import GEO_OK, GEO_DENIED
@@ -131,3 +134,51 @@ def test_walking_pace_shows_on_navigate(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-speed")).to_have_text("5")
+
+
+def test_the_navigate_route_on_the_worker_refuses_people_who_are_not_signed_in(tmp_path):
+    import subprocess
+    module = tmp_path / "worker.mjs"
+    source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
+    module.write_text(source, encoding="utf-8")
+    result = subprocess.run(
+        ["node", str(ROOT / "tests" / "navigate_route_check.mjs")],
+        env={"WORKER_MODULE": module.as_uri(), "PATH": "/usr/bin:/usr/local/bin:/bin", "TZ": "UTC"},
+        capture_output=True, text=True, timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "FAIL" not in result.stdout, result.stdout
+
+
+ROUTE_REPLY = ('{"success":true,"distanceM":1240,"durationS":240,'
+               '"line":[[52.124,-0.9955],[52.126,-0.9950],[52.13,-0.98]],'
+               '"steps":[{"text":"Head north on Maple Close","distanceM":180},{"text":"Turn left onto Church Road","distanceM":1060}]}')
+
+
+def test_a_typed_position_gets_a_route_drawn_with_its_distance_and_steps(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-route-len")).to_contain_text("1.2 km")
+    expect(page.locator("#nav-steps li")).to_have_count(2)
+    expect(page.locator("#nav-steps")).to_contain_text("Turn left onto Church Road")
+
+
+def test_a_place_name_with_several_matches_lets_the_member_pick(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.route("**/nominatim.openstreetmap.org/**", lambda r: r.fulfill(status=200, content_type="application/json", body='[{"display_name":"Church Road, Towcester, UK","lat":"52.13","lon":"-0.98"},{"display_name":"Church Road, Wallington, UK","lat":"51.35","lon":"-0.14"}]', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-results button")).to_have_count(2)
+    page.locator("#nav-results button", has_text="Towcester").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)

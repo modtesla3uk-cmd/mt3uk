@@ -63,6 +63,7 @@
   function onPosition(p) {
     var c = p.coords;
     lastFix = { lat: c.latitude, lng: c.longitude, t: p.timestamp };
+    updateToGo();
     status('Your phone has a fix.');
     // Anything under 1 km/h (about 0.6 mph) shows as stopped, so walking pace shows. Parked GPS speed can still wander above this.
     if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6 < 1 ? 0 : c.speed * 3.6; showSpeed(); }
@@ -121,6 +122,9 @@
       try { localStorage.setItem('mt3ukRaceBoxUnit', mph ? 'mph' : 'kmh'); } catch (e) { /* storage blocked */ }
       showSpeed();
     });
+    var go = $('nav-go'), q = $('nav-to-q');
+    if (go) go.addEventListener('click', askRoute);
+    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); askRoute(); } });
     approved().then(function (ok) {
       if (!ok) return;
       $('nav-gate').hidden = true;
@@ -129,6 +133,98 @@
     });
   }
 
+  // Destination and route. A place name is looked up on OpenStreetMap (one search per press, not per letter); a position typed
+  // as lat, lng is used as it is. The route itself comes from the worker, which keeps the OpenRouteService key.
+  var WORKER = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var dest = null, routeLayer = null, destMarker = null;
+  function session() { try { return localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) { return ''; } }
+  function parseCoords(q) {
+    var m = q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) return null;
+    var a = +m[1], b = +m[2];
+    return (Math.abs(a) <= 90 && Math.abs(b) <= 180) ? [a, b] : null;
+  }
+  function setRouteMsg(t, bad) {
+    var el = $('nav-route-msg');
+    if (!el) return;
+    el.textContent = t;
+    el.hidden = !t;
+    el.classList.toggle('is-bad', !!bad);
+  }
+  function findPlace(q) {
+    return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=en&q=' + encodeURIComponent(q))
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (list) { return (list || []).map(function (p) { return { name: String(p.display_name || '').slice(0, 120), at: [+p.lat, +p.lon] }; }); });
+  }
+  function choose(p) {
+    dest = p;
+    $('nav-results').textContent = '';
+    $('nav-to-q').value = p.name;
+    routeTo();
+  }
+  function showResults(list) {
+    var ul = $('nav-results');
+    ul.textContent = '';
+    list.forEach(function (p) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = p.name;
+      b.addEventListener('click', function () { choose(p); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+  }
+  function askRoute() {
+    var q = ($('nav-to-q').value || '').trim();
+    if (!q) return setRouteMsg('Type a place, or a position as lat, lng.', true);
+    var at = parseCoords(q);
+    if (at) { dest = { name: at[0].toFixed(5) + ', ' + at[1].toFixed(5), at: at }; return routeTo(); }
+    setRouteMsg('Looking for that place...');
+    findPlace(q).then(function (list) {
+      if (!list.length) return setRouteMsg('No place found for that. Try a postcode, or lat, lng.', true);
+      if (list.length === 1) return choose(list[0]);
+      setRouteMsg('Pick the right place:');
+      showResults(list);
+    }).catch(function () { setRouteMsg('The place search did not answer. Try again.', true); });
+  }
+  function routeTo() {
+    if (!dest) return;
+    if (!lastFix) return setRouteMsg('Waiting for your phone\u2019s position before a route can start.', true);
+    setRouteMsg('Working out the route...');
+    fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && !!d.success, d: d }; }); })
+      .then(function (res) { if (!res.ok) return setRouteMsg(res.d.message || 'The route could not be worked out.', true); drawRoute(res.d); })
+      .catch(function () { setRouteMsg('The route could not be worked out. Check the connection and try again.', true); });
+  }
+  function drawRoute(d) {
+    setRouteMsg('');
+    loadLeaflet(function () {
+      if (!map || !window.L) return;
+      if (routeLayer) map.removeLayer(routeLayer);
+      if (destMarker) map.removeLayer(destMarker);
+      routeLayer = L.polyline(d.line, { color: '#1c6fd6', weight: 6, opacity: 0.85 }).addTo(map);
+      destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
+      map.fitBounds(routeLayer.getBounds(), { padding: [30, 30], maxZoom: 17 });
+    });
+    $('nav-route').hidden = false;
+    set('nav-route-to', dest.name);
+    set('nav-route-len', (d.distanceM >= 1000 ? (d.distanceM / 1000).toFixed(1) + ' km' : d.distanceM + ' m') + ', about ' + Math.max(1, Math.round(d.durationS / 60)) + ' min');
+    var ul = $('nav-steps');
+    ul.textContent = '';
+    (d.steps || []).slice(0, 15).forEach(function (s) {
+      var li = document.createElement('li');
+      li.textContent = s.text + ' (' + (s.distanceM >= 1000 ? (s.distanceM / 1000).toFixed(1) + ' km' : s.distanceM + ' m') + ')';
+      ul.appendChild(li);
+    });
+    updateToGo();
+  }
+  // The straight-line distance to the destination, as the phone's position moves. Off-route rerouting is not in this version.
+  function updateToGo() {
+    if (!dest || !lastFix) return;
+    var m = metresBetween([lastFix.lat, lastFix.lng], dest.at);
+    set('nav-togo', m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m');
+  }
   window.MT3UKNavigate = { fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

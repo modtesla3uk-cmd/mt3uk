@@ -88,3 +88,29 @@ def test_a_still_phone_does_not_draw_a_wandering_trail(page):
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     page.wait_for_timeout(1500)
     assert page.evaluate("window.MT3UKNavigate.trailPoints()") <= 2
+
+
+GEO_MOVING = """
+(function () {
+  var i = 0;
+  navigator.geolocation.watchPosition = function (ok) {
+    var t = setInterval(function () {
+      // driving at about 30 km/h, a fix every 20 ms in the test, 0.0005 degrees (about 50 m) apart
+      ok({ coords: { latitude: 52.12 + i * 0.0005, longitude: -0.99, accuracy: 3, speed: 8.3 }, timestamp: Date.now() });
+      i++;
+      if (i >= 6) clearInterval(t);
+    }, 20);
+    return 7;
+  };
+  navigator.geolocation.clearWatch = function () {};
+})();
+"""
+
+
+def test_a_moving_phone_still_draws_its_route(page):
+    _approve(page, True)
+    page.add_init_script(GEO_MOVING)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.wait_for_timeout(1000)
+    assert page.evaluate("window.MT3UKNavigate.trailPoints()") >= 4

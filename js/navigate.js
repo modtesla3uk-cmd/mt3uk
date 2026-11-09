@@ -79,11 +79,11 @@
       ensureMap(c.latitude, c.longitude);
       if (!map) return;
       var here = [c.latitude, c.longitude];
-      // A parked phone's fix wanders by several metres. While stopped the dot only moves for a clear 15 m; moving, it moves
-      // when a fix is more than its own accuracy (and at least 6 m) from the last one shown.
-      var stopped = lastKph === 0;
-      var need = stopped ? 15 : Math.max(6, c.accuracy || 0);
-      if (shown && metresBetween(shown, here) <= need) return;
+      // The phone's own speed says when it is still. A still phone's fixes wander by 10 to 30 m, more than the reported
+      // accuracy, so while stopped the dot and trail stay where they are. Moving, a fix moves them when it is more than its
+      // accuracy (and at least 6 m) from the last one shown.
+      if (lastKph === 0 && shown) return;
+      if (shown && metresBetween(shown, here) <= Math.max(6, c.accuracy || 0)) return;
       shown = here;
       marker.setLatLng(here);
       trail.addLatLng(here);

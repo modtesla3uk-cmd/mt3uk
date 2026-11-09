@@ -242,11 +242,16 @@ def test_the_route_panel_flies_up_over_the_map_and_its_handle_collapses_it(page)
     page.locator("#nav-to-q").fill("52.13, -0.98")
     page.locator("#nav-go").click()
     expect(page.locator(".nav-map-wrap > #nav-route")).to_be_visible(timeout=10000)
+    # A new route opens folded, showing only the handle and the Drive heading.
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
+    expect(page.locator("#nav-steps")).to_be_hidden()
+    expect(page.locator(".nav-route-head")).to_be_visible()
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-route")).not_to_have_class(re.compile(r"is-collapsed"))
+    expect(page.locator("#nav-steps")).to_be_visible()
     page.locator("#nav-route-handle").click()
     expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
     expect(page.locator("#nav-steps")).to_be_hidden()
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
 
 
 def test_navigate_starts_in_mph_and_can_be_switched_to_km_h(page):
@@ -319,3 +324,21 @@ def test_distances_follow_the_speed_unit_miles_with_mph_and_km_with_km_h(page):
     page.locator("#nav-unit").click()
     expect(page.locator("#nav-route-len")).to_contain_text("1.2 km")
     expect(page.locator("#nav-steps")).to_contain_text("km)")
+
+
+def test_the_distance_to_go_follows_the_road_not_the_straight_line(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    # The road goes north first and comes back, so the road is far longer than the straight line (0.8 mi).
+    detour = ('{"success":true,"distanceM":7600,"durationS":900,'
+              '"line":[[52.124,-0.9955],[52.16,-0.9955],[52.13,-0.98]],'
+              '"steps":[{"text":"Head north","distanceM":4400},{"text":"Turn right","distanceM":3200}]}')
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=detour, headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Church Road", "Towcester", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-togo")).to_have_text("4.7 mi")
+    expect(page.locator("#nav-route")).to_contain_text("To go on the route")

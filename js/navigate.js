@@ -322,12 +322,13 @@
       destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
       map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     });
+    // A new route opens folded: the handle and Drive heading show, and the member taps the handle for the directions.
     $('nav-route').hidden = false;
-    $('nav-route').classList.remove('is-collapsed');
+    $('nav-route').classList.add('is-collapsed');
     var wrap = document.querySelector('.nav-map-wrap');
-    if (wrap) { wrap.classList.add('has-route'); wrap.classList.remove('route-collapsed'); }
+    if (wrap) { wrap.classList.add('has-route'); wrap.classList.add('route-collapsed'); }
     var hd = $('nav-route-handle');
-    if (hd) hd.setAttribute('aria-expanded', 'true');
+    if (hd) hd.setAttribute('aria-expanded', 'false');
     // The search gives the whole address; the card shows the first two parts (the place and its town).
     set('nav-route-to', dest.name.split(', ').slice(0, 2).join(', '));
     routeD = d;
@@ -348,10 +349,32 @@
       ul.appendChild(li);
     });
   }
-  // The straight-line distance to the destination, as the phone's position moves. Off-route rerouting is not in this version.
+  // The distance still to drive along the route line: from the point on it nearest the phone to its end. Returns null
+  // when there is no route line yet.
+  function leftOnRoute() {
+    var line = routeD && routeD.line;
+    if (!line || line.length < 2 || !lastFix) return null;
+    var k = Math.cos(lastFix.lat * Math.PI / 180), best = null;
+    for (var i = 0; i < line.length - 1; i++) {
+      var a = line[i], b = line[i + 1];
+      // Flat picture over one short piece of road, with longitude scaled by the latitude.
+      var ax = a[1] * k, ay = a[0], dx = b[1] * k - ax, dy = b[0] - ay;
+      var len2 = dx * dx + dy * dy;
+      var t = len2 ? Math.max(0, Math.min(1, ((lastFix.lng * k - ax) * dx + (lastFix.lat - ay) * dy) / len2)) : 0;
+      var q = [ay + t * dy, (ax + t * dx) / k];
+      var d = metresBetween([lastFix.lat, lastFix.lng], q);
+      if (!best || d < best.d) best = { d: d, q: q, i: i };
+    }
+    var left = metresBetween(best.q, line[best.i + 1]);
+    for (var j = best.i + 1; j < line.length - 1; j++) left += metresBetween(line[j], line[j + 1]);
+    return left;
+  }
+  // The distance to go as the phone's position moves: along the route when there is one, else straight-line.
+  // Off-route rerouting is not in this version.
   function updateToGo() {
     if (!dest || !lastFix) return;
-    var m = metresBetween([lastFix.lat, lastFix.lng], dest.at);
+    var left = leftOnRoute();
+    var m = left !== null ? left : metresBetween([lastFix.lat, lastFix.lng], dest.at);
     set('nav-togo', distText(m));
   }
   window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };

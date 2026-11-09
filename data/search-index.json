@@ -877,5 +877,19 @@
       "privacy",
       "close account"
     ]
+  },
+  {
+    "title": "Navigate",
+    "url": "navigate.html",
+    "category": "Page",
+    "description": "Navigate with your phone's own location in the Laps app",
+    "keywords": [
+      "navigate",
+      "navigation",
+      "gps",
+      "location",
+      "map",
+      "route"
+    ]
   }
 ]

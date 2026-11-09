@@ -337,7 +337,9 @@
   // The route's length and turns, in the unit now shown.
   function renderRouteText() {
     if (!routeD) return;
-    set('nav-route-len', distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min');
+    var len = distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min';
+    set('nav-route-len', len);
+    set('nav-route-short', len);
     var ul = $('nav-steps');
     ul.textContent = '';
     (routeD.steps || []).slice(0, 15).forEach(function (s) {

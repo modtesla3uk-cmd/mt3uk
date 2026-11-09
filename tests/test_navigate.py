@@ -174,7 +174,7 @@ def test_a_typed_position_gets_a_route_drawn_with_its_distance_and_steps(page):
     page.locator("#nav-to-q").fill("52.13, -0.98")
     page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-route-len")).to_contain_text("1.2 km")
+    expect(page.locator("#nav-route-len")).to_contain_text("0.8 mi")
     expect(page.locator("#nav-steps li")).to_have_count(2)
     expect(page.locator("#nav-steps")).to_contain_text("Turn left onto Church Road")
 
@@ -297,3 +297,25 @@ def test_a_part_typed_last_word_still_suggests_the_place(page):
     expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
     expect(page.locator("#nav-results.is-suggest button")).to_contain_text("Leicester")
     assert "Tesla Leic" in asked and "Leic" in asked, asked
+
+
+def test_distances_follow_the_speed_unit_miles_with_mph_and_km_with_km_h(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Church Road", "Towcester", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("Church Road")
+    expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
+    # Starts in mph, so the search result and the route are in miles.
+    expect(page.locator("#nav-results small")).to_contain_text("mi away")
+    expect(page.locator("#nav-results small")).not_to_contain_text("km")
+    page.locator("#nav-results.is-suggest button").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-route-len")).to_contain_text("mi")
+    expect(page.locator("#nav-steps")).to_contain_text("mi)")
+    # Switching to km/h changes them all at once, without a new search.
+    page.locator("#nav-unit").click()
+    expect(page.locator("#nav-route-len")).to_contain_text("1.2 km")
+    expect(page.locator("#nav-steps")).to_contain_text("km)")

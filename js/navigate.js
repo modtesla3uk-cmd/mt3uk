@@ -116,6 +116,32 @@
       .catch(function () { return false; });
   }
 
+  // Distances follow the speed unit: miles (yards under a tenth of a mile) with mph, metres and km with km/h.
+  var routeD = null;
+  function distText(m) {
+    if (mph) {
+      var mi = m / 1609.344;
+      return mi >= 0.1 ? mi.toFixed(1) + ' mi' : Math.round(m * 1.09361) + ' yd';
+    }
+    return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+  }
+  // The distance small print on a place in the results, in the unit now shown.
+  function distanceSmall(p) {
+    if (p.km === undefined) return null;
+    var s = document.createElement('small');
+    s.dataset.m = String(Math.round(p.km * 1000));
+    s.textContent = distText(p.km * 1000) + ' away';
+    return s;
+  }
+  // Redraws every distance on screen after the unit is switched.
+  function showDistances() {
+    document.querySelectorAll('#nav-results small[data-m]').forEach(function (s) {
+      s.textContent = distText(+s.dataset.m) + ' away';
+    });
+    renderRouteText();
+    updateToGo();
+  }
+
   function init() {
     var btn = $('nav-unit');
     // Navigate starts in mph. Its own saved choice (not the RaceBox page's) is kept, so changing one does not change the other.
@@ -124,6 +150,7 @@
       mph = !mph;
       try { localStorage.setItem('mt3ukNavigateUnit', mph ? 'mph' : 'kmh'); } catch (e) { /* storage blocked */ }
       showSpeed();
+      showDistances();
     });
     var handle = $('nav-route-handle');
     if (handle) handle.addEventListener('click', function () {
@@ -219,7 +246,8 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = p.name;
-      if (p.km !== undefined) { var s = document.createElement('small'); s.textContent = (p.km >= 10 ? Math.round(p.km) : p.km.toFixed(1)) + ' km away'; b.appendChild(s); }
+      var s = distanceSmall(p);
+      if (s) b.appendChild(s);
       b.addEventListener('click', function () { choose(p); });
       li.appendChild(b);
       ul.appendChild(li);
@@ -255,7 +283,8 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = p.name;
-      if (p.km !== undefined) { var s = document.createElement('small'); s.textContent = (p.km >= 10 ? Math.round(p.km) : p.km.toFixed(1)) + ' km away'; b.appendChild(s); }
+      var s = distanceSmall(p);
+      if (s) b.appendChild(s);
       b.addEventListener('click', function () { choose(p); });
       li.appendChild(b);
       ul.appendChild(li);
@@ -301,21 +330,27 @@
     if (hd) hd.setAttribute('aria-expanded', 'true');
     // The search gives the whole address; the card shows the first two parts (the place and its town).
     set('nav-route-to', dest.name.split(', ').slice(0, 2).join(', '));
-    set('nav-route-len', (d.distanceM >= 1000 ? (d.distanceM / 1000).toFixed(1) + ' km' : d.distanceM + ' m') + ', about ' + Math.max(1, Math.round(d.durationS / 60)) + ' min');
+    routeD = d;
+    renderRouteText();
+    updateToGo();
+  }
+  // The route's length and turns, in the unit now shown.
+  function renderRouteText() {
+    if (!routeD) return;
+    set('nav-route-len', distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min');
     var ul = $('nav-steps');
     ul.textContent = '';
-    (d.steps || []).slice(0, 15).forEach(function (s) {
+    (routeD.steps || []).slice(0, 15).forEach(function (s) {
       var li = document.createElement('li');
-      li.textContent = s.text + ' (' + (s.distanceM >= 1000 ? (s.distanceM / 1000).toFixed(1) + ' km' : s.distanceM + ' m') + ')';
+      li.textContent = s.text + ' (' + distText(s.distanceM) + ')';
       ul.appendChild(li);
     });
-    updateToGo();
   }
   // The straight-line distance to the destination, as the phone's position moves. Off-route rerouting is not in this version.
   function updateToGo() {
     if (!dest || !lastFix) return;
     var m = metresBetween([lastFix.lat, lastFix.lng], dest.at);
-    set('nav-togo', m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m');
+    set('nav-togo', distText(m));
   }
   window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

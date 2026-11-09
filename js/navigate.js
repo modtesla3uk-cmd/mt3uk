@@ -137,7 +137,8 @@
     if (rc) rc.addEventListener('click', function () { if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true }); });
     var go = $('nav-go'), q = $('nav-to-q');
     if (go) go.addEventListener('click', askRoute);
-    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); askRoute(); } });
+    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearSuggestions(); askRoute(); } });
+    if (q) q.addEventListener('input', suggestWhileTyping);
     approved().then(function (ok) {
       if (!ok) return;
       $('nav-gate').hidden = true;
@@ -180,9 +181,43 @@
         return out.slice(0, 5);
       });
   }
+  // Suggestions while typing, in light grey under the box. They wait for three letters and a short pause, so the place
+  // service is not asked on every key press, and an answer that comes late is dropped.
+  var suggestTimer = null, suggestSeq = 0;
+  function showSuggestions(list) {
+    var ul = $('nav-results');
+    ul.textContent = '';
+    ul.classList.add('is-suggest');
+    list.forEach(function (p) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = p.name;
+      if (p.km !== undefined) { var s = document.createElement('small'); s.textContent = (p.km >= 10 ? Math.round(p.km) : p.km.toFixed(1)) + ' km away'; b.appendChild(s); }
+      b.addEventListener('click', function () { choose(p); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+  }
+  function clearSuggestions() {
+    var ul = $('nav-results');
+    if (ul) { ul.textContent = ''; ul.classList.remove('is-suggest'); }
+  }
+  function suggestWhileTyping() {
+    clearTimeout(suggestTimer);
+    var q = ($('nav-to-q').value || '').trim();
+    if (q.length < 3 || parseCoords(q)) { suggestSeq++; clearSuggestions(); return; }
+    suggestTimer = setTimeout(function () {
+      var my = ++suggestSeq;
+      findPlace(q).then(function (list) {
+        if (my !== suggestSeq) return;
+        if (list.length) showSuggestions(list); else clearSuggestions();
+      }).catch(function () { if (my === suggestSeq) clearSuggestions(); });
+    }, 450);
+  }
   function choose(p) {
     dest = p;
-    $('nav-results').textContent = '';
+    clearSuggestions();
     $('nav-to-q').value = p.name;
     routeTo();
   }

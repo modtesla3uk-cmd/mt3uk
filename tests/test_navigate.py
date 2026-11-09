@@ -247,3 +247,24 @@ def test_navigate_starts_in_mph_and_can_be_switched_to_km_h(page):
     expect(page.locator("#nav-speed-unit")).to_have_text("mph")
     page.locator("#nav-unit").click()
     expect(page.locator("#nav-speed-unit")).to_have_text("km/h")
+
+
+def test_suggestions_appear_in_light_grey_while_typing_and_one_can_be_chosen(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    calls = []
+    def reply(route):
+        calls.append(route.request.url)
+        route.fulfill(status=200, content_type="application/json", body='[{"display_name":"Towcester, Northamptonshire, England, UK","lat":"52.13","lon":"-0.98"}]', headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/nominatim.openstreetmap.org/**", reply)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("To")
+    page.wait_for_timeout(800)
+    assert not calls, "two letters should not ask the place service"
+    page.locator("#nav-to-q").fill("Towc")
+    expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
+    expect(page.locator("#nav-results.is-suggest button")).to_contain_text("Towcester")
+    page.locator("#nav-results.is-suggest button").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)

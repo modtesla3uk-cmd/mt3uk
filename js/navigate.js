@@ -58,7 +58,8 @@
     var c = p.coords;
     lastFix = { lat: c.latitude, lng: c.longitude, t: p.timestamp };
     status('Your phone has a fix.');
-    if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6; showSpeed(); }
+    // GPS speed wanders by about 1 mph when the car is still, so anything under 2 km/h shows as stopped (as the RaceBox test does).
+    if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6 < 2 ? 0 : c.speed * 3.6; showSpeed(); }
     else { set('nav-speed', '–'); }
     if (c.heading != null && !isNaN(c.heading)) {
       set('nav-card', compass(c.heading));

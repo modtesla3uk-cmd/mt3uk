@@ -44,3 +44,20 @@ def test_a_refused_permission_says_how_to_allow_it(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-status")).to_contain_text("Location is not allowed for Laps")
     expect(page.locator("#nav-status")).to_have_class(re.compile(r"is-bad"))
+
+
+GEO_STILL = """
+navigator.geolocation.watchPosition = function (ok) {
+  setTimeout(function () { ok({ coords: { latitude: 52.12, longitude: -0.99, accuracy: 6, speed: 0.4 } }); }, 50);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_a_stationary_phone_reads_zero_not_a_wandering_speed(page):
+    _approve(page, True)
+    page.add_init_script(GEO_STILL)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-speed")).to_have_text("0")

@@ -201,3 +201,15 @@ def test_the_phone_location_test_says_why_when_it_is_refused(page):
     page.locator("#rbt-menu").click()
     page.locator("#rbt-loc-test").click()
     expect(page.locator("#rbt-loc-result")).to_contain_text("permission was refused")
+
+
+def test_the_racebox_map_has_a_recentre_button(page):
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(page.locator("#rbt-recentre")).to_be_visible(timeout=10000)
+    page.locator("#rbt-recentre").click()

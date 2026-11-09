@@ -489,7 +489,7 @@
         <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
       </div>
     </div>
-<div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
+<div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="recentre" id="rbt-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
 <style>
@@ -532,6 +532,7 @@
   .rbt-full-on .rbt-fs-btn { z-index: 1001; }
   .rbt-full-on .rbt-panel-wrap > .rbt-map-wrap { pointer-events: auto; }
   .rbt-full-on .rbt-panel-wrap h2, .rbt-full-on .rbt-panel-wrap .lh-racebox-lead, .rbt-full-on .rbt-panel-wrap .rbt-rate { display: none; }
+  .rbt-full-on .recentre { position: fixed; right: 16px; bottom: calc(var(--band-h, 240px) + 60px); z-index: 920; }
   .rbt-full-on .rbt-clear { position: fixed; bottom: calc(var(--band-h, 240px) + 8px); right: 16px; left: auto; z-index: 920; margin: 0; background: #fff; }
   .rbt-map { height: 320px; margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
   .rbt-clear { margin-top: 10px; min-height: 44px; }
@@ -676,6 +677,7 @@
     .rbt-full-on .rbt-map { margin-left: 250px; width: calc(100% - 250px); }
     .rbt-full-on .rbt-rec-float { left: auto; right: 12px; bottom: 66px; }
     .rbt-full-on .rbt-clear { right: 12px; bottom: 12px; }
+    .rbt-full-on .recentre { right: 12px; bottom: 64px; }
     .rbt-full-on .rbt-prompt { left: 266px; right: 12px; bottom: 80px; }
     .rbt-full-on .rbt-band .rbt-meter, .rbt-full-on .rbt-band .rbt-meter svg { pointer-events: none; }
   }
@@ -714,7 +716,7 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-test.js?v=68"></script>
+<script src="js/racebox-test.js?v=69"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

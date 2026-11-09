@@ -79,6 +79,8 @@
     loadLeaflet(function () {
       ensureMap(c.latitude, c.longitude);
       if (!map) return;
+      var rcb = $('nav-recentre');
+      if (rcb) rcb.hidden = false;
       var here = [c.latitude, c.longitude];
       // The phone's own speed says when it is still. A still phone's fixes wander by 10 to 30 m, more than the reported
       // accuracy, so while stopped the dot and trail stay where they are. Moving, a fix moves them when it is more than its
@@ -116,12 +118,23 @@
 
   function init() {
     var btn = $('nav-unit');
-    try { mph = localStorage.getItem('mt3ukRaceBoxUnit') === 'mph'; } catch (e) { mph = false; }
+    // Navigate starts in mph. Its own saved choice (not the RaceBox page's) is kept, so changing one does not change the other.
+    try { mph = localStorage.getItem('mt3ukNavigateUnit') !== 'kmh'; } catch (e) { mph = true; }
     if (btn) btn.addEventListener('click', function () {
       mph = !mph;
-      try { localStorage.setItem('mt3ukRaceBoxUnit', mph ? 'mph' : 'kmh'); } catch (e) { /* storage blocked */ }
+      try { localStorage.setItem('mt3ukNavigateUnit', mph ? 'mph' : 'kmh'); } catch (e) { /* storage blocked */ }
       showSpeed();
     });
+    var handle = $('nav-route-handle');
+    if (handle) handle.addEventListener('click', function () {
+      var panel = $('nav-route'), wrap2 = document.querySelector('.nav-map-wrap');
+      var collapsed = !panel.classList.contains('is-collapsed');
+      panel.classList.toggle('is-collapsed', collapsed);
+      if (wrap2) wrap2.classList.toggle('route-collapsed', collapsed);
+      handle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+    var rc = $('nav-recentre');
+    if (rc) rc.addEventListener('click', function () { if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true }); });
     var go = $('nav-go'), q = $('nav-to-q');
     if (go) go.addEventListener('click', askRoute);
     if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); askRoute(); } });
@@ -151,10 +164,21 @@
     el.hidden = !t;
     el.classList.toggle('is-bad', !!bad);
   }
+  // Places are biased to the area around the phone (about 50 km, not restricted to it), and the nearest come first.
   function findPlace(q) {
-    return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=en&q=' + encodeURIComponent(q))
+    var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&accept-language=en&q=' + encodeURIComponent(q);
+    if (lastFix) {
+      var la = lastFix.lat, lo = lastFix.lng, dl = 0.5, dg = 0.8;
+      url += '&viewbox=' + (lo - dg) + ',' + (la + dl) + ',' + (lo + dg) + ',' + (la - dl) + '&bounded=0';
+    }
+    return fetch(url)
       .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (list) { return (list || []).map(function (p) { return { name: String(p.display_name || '').slice(0, 120), at: [+p.lat, +p.lon] }; }); });
+      .then(function (list) {
+        var out = (list || []).map(function (p) { return { name: String(p.display_name || '').slice(0, 120), at: [+p.lat, +p.lon] }; });
+        if (lastFix) out.forEach(function (p) { p.km = metresBetween([lastFix.lat, lastFix.lng], p.at) / 1000; });
+        if (lastFix) out.sort(function (a, b) { return a.km - b.km; });
+        return out.slice(0, 5);
+      });
   }
   function choose(p) {
     dest = p;
@@ -170,6 +194,7 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = p.name;
+      if (p.km !== undefined) { var s = document.createElement('small'); s.textContent = (p.km >= 10 ? Math.round(p.km) : p.km.toFixed(1)) + ' km away'; b.appendChild(s); }
       b.addEventListener('click', function () { choose(p); });
       li.appendChild(b);
       ul.appendChild(li);
@@ -205,10 +230,16 @@
       if (destMarker) map.removeLayer(destMarker);
       routeLayer = L.polyline(d.line, { color: '#1c6fd6', weight: 6, opacity: 0.85 }).addTo(map);
       destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
-      map.fitBounds(routeLayer.getBounds(), { padding: [30, 30], maxZoom: 17 });
+      map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     });
     $('nav-route').hidden = false;
-    set('nav-route-to', dest.name);
+    $('nav-route').classList.remove('is-collapsed');
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (wrap) { wrap.classList.add('has-route'); wrap.classList.remove('route-collapsed'); }
+    var hd = $('nav-route-handle');
+    if (hd) hd.setAttribute('aria-expanded', 'true');
+    // The search gives the whole address; the card shows the first two parts (the place and its town).
+    set('nav-route-to', dest.name.split(', ').slice(0, 2).join(', '));
     set('nav-route-len', (d.distanceM >= 1000 ? (d.distanceM / 1000).toFixed(1) + ' km' : d.distanceM + ' m') + ', about ' + Math.max(1, Math.round(d.durationS / 60)) + ' min');
     var ul = $('nav-steps');
     ul.textContent = '';
@@ -225,6 +256,6 @@
     var m = metresBetween([lastFix.lat, lastFix.lng], dest.at);
     set('nav-togo', m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m');
   }
-  window.MT3UKNavigate = { fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
+  window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

@@ -575,6 +575,8 @@
     var el = $('rbt-map');
     if (!el || !window.L) return;
     map = L.map(el).setView(here, zoom);
+    var rc = $('rbt-recentre');
+    if (rc) rc.hidden = false;
     addMapTiles(map);
     wrapPanes(map);
     trail = L.polyline(pts, { color: '#e4b64f', weight: 4 }).addTo(map);
@@ -939,6 +941,8 @@
     });
     $('rbt-unit').addEventListener('click', toggleUnit);
     $('rbt-clear').addEventListener('click', clearTrail);
+    var rcb = $('rbt-recentre');
+    if (rcb) rcb.addEventListener('click', function () { if (map && pts.length) map.setView(pts[pts.length - 1], map.getZoom(), { animate: true }); });
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);

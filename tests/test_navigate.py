@@ -22,7 +22,7 @@ def test_an_approved_member_sees_the_phones_position_and_speed(page):
     expect(page.locator("#nav-pos")).to_have_text("51.208500, -1.605500")
     expect(page.locator("#nav-acc")).to_have_text("within 4 m")
     expect(page.locator("#nav-status")).to_have_text("Your phone has a fix.")
-    expect(page.locator("#nav-speed")).to_have_text("50")
+    expect(page.locator("#nav-speed")).to_have_text("31")
 
 
 def test_the_navigate_page_does_not_need_the_racebox(page):
@@ -133,7 +133,7 @@ def test_walking_pace_shows_on_navigate(page):
     page.add_init_script(GEO_WALK)
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-speed")).to_have_text("5")
+    expect(page.locator("#nav-speed")).to_have_text("3")
 
 
 def test_the_navigate_route_on_the_worker_refuses_people_who_are_not_signed_in(tmp_path):
@@ -182,3 +182,68 @@ def test_a_place_name_with_several_matches_lets_the_member_pick(page):
     expect(page.locator("#nav-results button")).to_have_count(2)
     page.locator("#nav-results button", has_text="Towcester").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+
+
+GEO_TOWCESTER = """
+navigator.geolocation.watchPosition = function (ok) {
+  setTimeout(function () { ok({ coords: { latitude: 52.124, longitude: -0.9955, accuracy: 3, speed: 0 }, timestamp: Date.now() }); }, 50);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_place_search_is_biased_to_where_the_phone_is_and_nearest_comes_first(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    seen = []
+    def reply(route):
+        seen.append(route.request.url)
+        route.fulfill(status=200, content_type="application/json", body='[{"display_name":"Church Road, Wallington, UK","lat":"51.35","lon":"-0.14"},{"display_name":"Church Road, Towcester, UK","lat":"52.13","lon":"-0.98"}]', headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/nominatim.openstreetmap.org/**", reply)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-results button")).to_have_count(2)
+    assert "viewbox=" in seen[0] and "bounded=0" in seen[0], seen[0]
+    expect(page.locator("#nav-results button").first).to_contain_text("Towcester")
+
+
+def test_the_recentre_button_brings_the_map_back_to_the_phone(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-recentre")).to_be_visible(timeout=10000)
+    page.evaluate("() => window.MT3UKNavigate.map().panTo([52.5, -0.5], { animate: false })")
+    page.locator("#nav-recentre").click()
+    page.wait_for_timeout(900)
+    centre = page.evaluate("() => { var c = window.MT3UKNavigate.map().getCenter(); return [c.lat, c.lng]; }")
+    assert abs(centre[0] - 51.2085) < 0.01 and abs(centre[1] + 1.6055) < 0.01, centre
+
+
+def test_the_route_panel_flies_up_over_the_map_and_its_handle_collapses_it(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator(".nav-map-wrap > #nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
+    expect(page.locator("#nav-steps")).to_be_hidden()
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+
+
+def test_navigate_starts_in_mph_and_can_be_switched_to_km_h(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-speed-unit")).to_have_text("mph")
+    page.locator("#nav-unit").click()
+    expect(page.locator("#nav-speed-unit")).to_have_text("km/h")

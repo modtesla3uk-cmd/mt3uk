@@ -207,6 +207,7 @@ def test_place_search_is_biased_to_where_the_phone_is_and_nearest_comes_first(pa
     page.locator("#nav-go").click()
     expect(page.locator("#nav-results button")).to_have_count(2)
     assert "viewbox=" in seen[0] and "bounded=0" in seen[0], seen[0]
+    assert "countrycodes=gb" in seen[0], seen[0]
     expect(page.locator("#nav-results button").first).to_contain_text("Towcester")
 
 

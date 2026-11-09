@@ -171,6 +171,8 @@
     if (lastFix) {
       var la = lastFix.lat, lo = lastFix.lng, dl = 0.5, dg = 0.8;
       url += '&viewbox=' + (lo - dg) + ',' + (la + dl) + ',' + (lo + dg) + ',' + (la - dl) + '&bounded=0';
+      // In the UK, only UK places are suggested: a brand name would otherwise bring up matches in other countries.
+      if (la >= 49.8 && la <= 60.9 && lo >= -8.7 && lo <= 1.9) url += '&countrycodes=gb';
     }
     return fetch(url)
       .then(function (r) { return r.ok ? r.json() : []; })

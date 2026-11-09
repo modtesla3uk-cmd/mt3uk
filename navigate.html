@@ -361,7 +361,8 @@
   .nav-body { padding: 20px 0 40px; }
   .nav-status { font-weight: 600; margin: 0 0 12px; }
   .nav-status.is-bad { color: #b3261e; }
-  .nav-map-wrap { margin: 0 0 14px; }
+  .nav-map-wrap { position: relative; margin: 0 0 14px; }
+  .nav-unit-pill { position: absolute; top: 10px; right: 10px; z-index: 1000; min-height: 44px; padding: 0 16px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 700 0.95rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 10px rgba(0,0,0,.18); cursor: pointer; }
   .nav-map { height: 360px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #ececec; }
   .nav-map.rbt-mono .leaflet-tile-pane { filter: grayscale(1) contrast(1.05) brightness(1.04); }
   .nav-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
@@ -441,6 +442,7 @@
     <p class="nav-status" id="nav-status" role="status">Asking your phone for its location...</p>
     <div class="nav-map-wrap">
       <div id="nav-map" class="nav-map" hidden></div>
+      <button type="button" class="nav-unit-pill" id="nav-unit" aria-pressed="false">Show in mph</button>
     </div>
     <dl class="nav-grid">
       <div class="nav-speed-tile"><dt>Speed</dt><dd><span id="nav-speed">&ndash;</span> <span id="nav-speed-unit">km/h</span></dd></div>
@@ -449,9 +451,6 @@
       <div><dt>Accuracy</dt><dd><span id="nav-acc">&ndash;</span></dd></div>
       <div><dt>Last fix</dt><dd><span id="nav-time">&ndash;</span></dd></div>
     </dl>
-    <div class="nav-actions">
-      <button type="button" class="btn btn-secondary" id="nav-unit">Show in mph</button>
-    </div>
   </div>
 </div>
 </main>
@@ -505,6 +504,6 @@
       });
   })();
 </script>
-<script src="js/navigate.js?v=4" defer></script>
+<script src="js/navigate.js?v=5" defer></script>
 </body>
 </html>

@@ -1,1 +1,4 @@
 / /index.html 200
+/shop /shop.html 301
+/profile /profile.html 301
+/track-days/ /track-day-venues.html 301

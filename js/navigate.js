@@ -153,13 +153,44 @@
       showDistances();
     });
     var handle = $('nav-route-handle');
-    if (handle) handle.addEventListener('click', function () {
+    // Tapping the handle folds or opens the route panel. Pressing and dragging on the handle, the Drive heading or the
+    // summary does the same: a swipe up (40 px or more) opens it, a swipe down folds it.
+    var swipeFrom = null, swipedAt = 0;
+    function toggleRoute() {
+      var panel = $('nav-route');
+      setRouteFolded(!panel.classList.contains('is-collapsed'));
+    }
+    function setRouteFolded(folded) {
       var panel = $('nav-route'), wrap2 = document.querySelector('.nav-map-wrap');
-      var collapsed = !panel.classList.contains('is-collapsed');
-      panel.classList.toggle('is-collapsed', collapsed);
-      if (wrap2) wrap2.classList.toggle('route-collapsed', collapsed);
-      handle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    });
+      panel.classList.toggle('is-collapsed', folded);
+      if (wrap2) wrap2.classList.toggle('route-collapsed', folded);
+      if (handle) handle.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    }
+    function swipeStart(e) {
+      if (e.button) return;
+      swipeFrom = { y: e.clientY, id: e.pointerId };
+      if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    function swipeEnd(e) {
+      if (!swipeFrom || e.pointerId !== swipeFrom.id) return;
+      var dy = e.clientY - swipeFrom.y;
+      swipeFrom = null;
+      if (dy <= -40) { setRouteFolded(false); swipedAt = Date.now(); }
+      else if (dy >= 40) { setRouteFolded(true); swipedAt = Date.now(); }
+    }
+    if (handle) {
+      handle.addEventListener('click', function () {
+        // A swipe also ends in a click on some browsers; the swipe has already done the work.
+        if (Date.now() - swipedAt < 400) return;
+        toggleRoute();
+      });
+      [handle, document.querySelector('#nav-route .nav-route-head'), document.querySelector('#nav-route .nav-route-summary')].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener('pointerdown', swipeStart);
+        el.addEventListener('pointerup', swipeEnd);
+        el.addEventListener('pointercancel', function () { swipeFrom = null; });
+      });
+    }
     var rc = $('nav-recentre');
     if (rc) rc.addEventListener('click', function () { if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true }); });
     var go = $('nav-go'), q = $('nav-to-q');

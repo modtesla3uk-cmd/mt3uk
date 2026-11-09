@@ -342,3 +342,33 @@ def test_the_distance_to_go_follows_the_road_not_the_straight_line(page):
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-togo")).to_have_text("4.7 mi")
     expect(page.locator("#nav-route")).to_contain_text("To go on the route")
+
+
+def test_the_route_panel_opens_and_folds_with_a_swipe_on_its_handle(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"), timeout=10000)
+    page.wait_for_timeout(600)  # let the panel finish flying up before pressing it
+    # Press on the handle and drag up: the directions open.
+    box = page.locator("#nav-route-handle").bounding_box()
+    x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x, y - 90, steps=10)
+    page.mouse.up()
+    expect(page.locator("#nav-route")).not_to_have_class(re.compile(r"is-collapsed"))
+    expect(page.locator("#nav-steps")).to_be_visible()
+    # Press on the handle again and drag down: the panel folds.
+    box = page.locator("#nav-route-handle").bounding_box()
+    x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x, y + 90, steps=10)
+    page.mouse.up()
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
+    expect(page.locator("#nav-steps")).to_be_hidden()

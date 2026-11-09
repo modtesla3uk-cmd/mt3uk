@@ -424,6 +424,8 @@
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span>Record a drive</span></button>
     </div>
     <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
+    <button type="button" class="btn btn-secondary rbt-zero" id="rbt-loc-test">Test phone location</button>
+    <p class="rbt-loc-result" id="rbt-loc-result" role="status" hidden></p>
     <p id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</p>
     <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
@@ -553,6 +555,8 @@
   .rbt-full-on #rbt-pos { display: block; font-size: 0.9rem; font-weight: 600; }
   .rbt-full-on .leaflet-top.leaflet-left { top: 62px; }
   .rbt-zero { margin-top: 10px; min-height: 44px; }
+  .rbt-loc-result { margin: 8px 0 0; font-size: 0.95rem; font-weight: 600; }
+  .rbt-loc-result[hidden] { display: none; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-zero { width: 100%; margin-top: 0; }
   .rbt-rec-line { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: #b3261e; }
   .rbt-rec-line[hidden] { display: none; }
@@ -709,7 +713,7 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-test.js?v=67"></script>
+<script src="js/racebox-test.js?v=68"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

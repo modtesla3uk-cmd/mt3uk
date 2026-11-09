@@ -451,6 +451,27 @@
     set('rbt-meter-x', ax.toFixed(2));
     set('rbt-meter-y', ay.toFixed(2));
   }
+  // Phone location test: asks the phone's own GPS, through the app's web view, for a few readings. It shows what comes back,
+  // or why nothing did, so we can tell whether the phone's location can be used for navigation.
+  function testPhoneLocation() {
+    var out = $('rbt-loc-result');
+    function say(t) { if (out) { out.textContent = t; out.hidden = false; } }
+    if (!navigator.geolocation) { say('This browser gives no location.'); return; }
+    say('Asking the phone for its location...');
+    var got = 0, watch = null;
+    function stop() { if (watch !== null) navigator.geolocation.clearWatch(watch); watch = null; }
+    watch = navigator.geolocation.watchPosition(function (p) {
+      got++;
+      var c = p.coords;
+      var kmh = c.speed == null || isNaN(c.speed) ? 'not given' : Math.round(c.speed * 3.6) + ' km/h';
+      say('Phone location: ' + c.latitude.toFixed(6) + ', ' + c.longitude.toFixed(6) + ', accurate to ' + Math.round(c.accuracy) + ' m, speed ' + kmh + '. ' + got + (got === 1 ? ' reading' : ' readings') + '.');
+      if (got >= 5) stop();
+    }, function (err) {
+      var why = err.code === 1 ? 'permission was refused' : err.code === 2 ? 'the phone could not get a position' : 'it timed out';
+      say('No phone location: ' + why + '. (' + (err.message || 'no detail') + ')');
+      stop();
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+  }
   function zeroG() {
     gZero = { x: lastG.x, y: lastG.y };
     try { localStorage.setItem('mt3ukRaceBoxGZero', JSON.stringify(gZero)); } catch (e) {}
@@ -921,6 +942,7 @@
     $('rbt-full').addEventListener('click', function () { setFull(!document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-menu').addEventListener('click', function () { var f = $('rbt-flyout'); setMenu(!(f && f.classList.contains('is-open'))); });
     $('rbt-zero').addEventListener('click', zeroG);
+    $('rbt-loc-test').addEventListener('click', testPhoneLocation);
     $('rbt-view-close').addEventListener('click', closeDrive);
     fitBand();
     if (window.ResizeObserver && document.querySelector('.rbt-band')) new ResizeObserver(fitBand).observe(document.querySelector('.rbt-band'));

@@ -156,3 +156,48 @@ def test_a_chosen_circuit_shows_its_layout_on_the_live_map(page):
     assert info["venue"] == "Thruxton" and info["source"] == "line", info
     page.locator("#rbt-modes [data-mode='road']").click()
     assert page.evaluate("() => window.MT3UKRaceBoxLayout().source") == "none"
+
+
+GEO_OK = """
+navigator.geolocation.watchPosition = function (ok) {
+  setTimeout(function () { ok({ coords: { latitude: 51.2085, longitude: -1.6055, accuracy: 4.2, speed: 13.9 } }); }, 50);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+GEO_DENIED = """
+navigator.geolocation.watchPosition = function (ok, fail) {
+  setTimeout(function () { fail({ code: 1, message: 'User denied Geolocation' }); }, 50);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_the_phone_location_test_shows_a_reading(page):
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.add_init_script(ADMIN)
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script(GEO_OK)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    page.locator("#rbt-menu").click()
+    page.locator("#rbt-loc-test").click()
+    expect(page.locator("#rbt-loc-result")).to_contain_text("Phone location: 51.208500, -1.605500")
+    expect(page.locator("#rbt-loc-result")).to_contain_text("accurate to 4 m")
+
+
+def test_the_phone_location_test_says_why_when_it_is_refused(page):
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.add_init_script(ADMIN)
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script(GEO_DENIED)
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    page.locator("#rbt-menu").click()
+    page.locator("#rbt-loc-test").click()
+    expect(page.locator("#rbt-loc-result")).to_contain_text("permission was refused")

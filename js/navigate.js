@@ -7,7 +7,13 @@
   var LEAFLET = { css: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', js: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' };
   var MAP_BASE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   var POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-  var map = null, marker = null, trail = null, leafletRequested = false, pts = [], lastKph = null, mph = false, lastFix = null, watch = null;
+  var map = null, marker = null, trail = null, leafletRequested = false, pts = [], lastKph = null, mph = false, lastFix = null, watch = null, shown = null;
+
+  function metresBetween(a, b) {
+    var R = 6371000, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
+    var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
 
   function $(id) { return document.getElementById(id); }
   function set(id, t) { var el = $(id); if (el) el.textContent = t; }
@@ -73,6 +79,10 @@
       ensureMap(c.latitude, c.longitude);
       if (!map) return;
       var here = [c.latitude, c.longitude];
+      // A parked phone's fix wanders by a few metres. Only move the dot and extend the trail when the fix is clearly away from
+      // the last one shown: more than the fix's own accuracy, and at least 6 m.
+      if (shown && metresBetween(shown, here) <= Math.max(6, c.accuracy || 0)) return;
+      shown = here;
       marker.setLatLng(here);
       trail.addLatLng(here);
       map.panTo(here, { animate: false });
@@ -117,6 +127,6 @@
     });
   }
 
-  window.MT3UKNavigate = { fix: function () { return lastFix; } };
+  window.MT3UKNavigate = { fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

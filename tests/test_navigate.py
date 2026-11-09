@@ -61,3 +61,30 @@ def test_a_stationary_phone_reads_zero_not_a_wandering_speed(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-speed")).to_have_text("0")
+
+
+GEO_WANDER = """
+(function () {
+  var i = 0;
+  navigator.geolocation.watchPosition = function (ok) {
+    var t = setInterval(function () {
+      // a still phone: fixes wander by a metre or two either way
+      var jitter = (i % 2 ? 0.000012 : -0.000010);
+      i++;
+      ok({ coords: { latitude: 52.12 + jitter, longitude: -0.99 - jitter, accuracy: 3, speed: 0.4 }, timestamp: Date.now() });
+      if (i >= 30) clearInterval(t);
+    }, 20);
+    return 7;
+  };
+  navigator.geolocation.clearWatch = function () {};
+})();
+"""
+
+
+def test_a_still_phone_does_not_draw_a_wandering_trail(page):
+    _approve(page, True)
+    page.add_init_script(GEO_WANDER)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.wait_for_timeout(1500)
+    assert page.evaluate("window.MT3UKNavigate.trailPoints()") <= 2

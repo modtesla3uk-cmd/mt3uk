@@ -489,7 +489,11 @@
     if (pinBtn) pinBtn.addEventListener('click', startPin);
     if (pinUse) pinUse.addEventListener('click', usePin);
     if (pinCancel) pinCancel.addEventListener('click', endPin);
-    if (stopsEl) stopsEl.addEventListener('focusin', function (e) { if (e.target.dataset && e.target.dataset.i !== undefined) activeStop = Number(e.target.dataset.i); });
+    if (stopsEl) stopsEl.addEventListener('focusin', function (e) {
+      if (!e.target.dataset || e.target.dataset.i === undefined) return;
+      activeStop = Number(e.target.dataset.i);
+      if (!e.target.value.trim()) showRecent();
+    });
     renderStops();
     approved().then(function (ok) {
       if (!ok) return;
@@ -666,6 +670,7 @@
     // same text after a suggestion is picked, and that must not send the place back to a search.
     if (v !== stops[i].text) stops[i].place = null;
     stops[i].text = v;
+    if (v.trim()) stops[i].typed = v;
     suggestWhileTyping(v, i);
   }
   function onStopKey(e) {
@@ -768,7 +773,57 @@
   }
   function clearSuggestions() {
     var ul = $('nav-results');
-    if (ul) { ul.textContent = ''; ul.classList.remove('is-suggest'); }
+    if (ul) { ul.textContent = ''; ul.classList.remove('is-suggest', 'is-recent'); }
+  }
+  // Recent searches: the words and numbers typed for a destination or stop, kept on this device (up to five).
+  var RECENT_KEY = 'mt3ukNavigateRecent', RECENT_MAX = 5;
+  function recentSearches() {
+    try {
+      var a = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+      return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string' && x; }) : [];
+    } catch (e) { return []; }
+  }
+  function saveRecent(text) {
+    var t = String(text || '').trim().slice(0, 120);
+    if (t.length < 2) return;
+    var list = recentSearches().filter(function (x) { return x.toLowerCase() !== t.toLowerCase(); });
+    list.unshift(t);
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX))); } catch (e) { /* storage blocked */ }
+  }
+  function showRecent() {
+    var list = recentSearches(), ul = $('nav-results');
+    if (!ul || !list.length) return;
+    ul.textContent = '';
+    ul.classList.add('is-recent');
+    list.forEach(function (t) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = t;
+      b.addEventListener('click', function () { useRecent(t); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+    var li2 = document.createElement('li'), clr = document.createElement('button');
+    clr.type = 'button';
+    clr.className = 'nav-recent-clear';
+    clr.textContent = 'Clear recent searches';
+    clr.addEventListener('click', function () {
+      try { localStorage.removeItem(RECENT_KEY); } catch (e) { /* storage blocked */ }
+      clearSuggestions();
+    });
+    li2.appendChild(clr);
+    ul.appendChild(li2);
+  }
+  // A recent search put back in the stop it was typed into, with its suggestions.
+  function useRecent(t) {
+    var i = activeStop !== null && activeStop < stops.length ? activeStop : stops.length - 1;
+    stops[i].text = t;
+    stops[i].place = null;
+    stops[i].typed = t;
+    renderStops();
+    var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');
+    if (input) { input.focus(); input.setSelectionRange(t.length, t.length); }
+    suggestWhileTyping(t, i);
   }
   function suggestWhileTyping(text, i) {
     clearTimeout(suggestTimer);
@@ -785,6 +840,7 @@
   }
   // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
   function choose(p, i) {
+    saveRecent(stops[i].typed || stops[i].text);
     stops[i].place = p;
     stops[i].text = p.name;
     if (i === stops.length - 1) wantRoute = true;
@@ -809,6 +865,7 @@
   }
   function askRoute() {
     wantRoute = true;
+    stops.forEach(function (st) { saveRecent(st.typed); });
     clearTimeout(suggestTimer);
     suggestSeq++; // a suggestion still on its way must not appear after the route is asked for
     clearSuggestions();
@@ -871,7 +928,7 @@
       if (destMarker) map.removeLayer(destMarker);
       routeLayer = L.polyline(d.line, { color: '#1c6fd6', weight: 6, opacity: 0.85 }).addTo(map);
       destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
-      if (!silent) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
+      if (!silent && !driving) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     });
     // A new route opens folded: the handle and Drive heading show, and the member taps the handle for the directions.
     $('nav-route').hidden = false;

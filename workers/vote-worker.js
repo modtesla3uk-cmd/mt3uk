@@ -8296,9 +8296,17 @@ async function handleNavigateSearch(request, env) {
   if (q.length < 3) return json({ success: true, places: [] });
   var lat = parseFloat(u.searchParams.get('lat')), lng = parseFloat(u.searchParams.get('lng'));
   var near = isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-  var cacheKey = 'nav-geo:' + q.toLowerCase() + (near ? ':' + lat.toFixed(2) + ',' + lng.toFixed(2) : '');
-  var cached = await env.VOTES.get(cacheKey);
-  if (cached) return json({ success: true, places: JSON.parse(cached) });
+  // The same address is the same search, whatever the capitals, punctuation or spacing. Results are kept in the
+  // Cloudflare cache (not KV, whose free writes are limited) for 30 days, and near the phone to about 10 km.
+  var norm = q.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  var cacheUrl = 'https://navigate-cache.mt3uk.internal/geo/' + encodeURIComponent(norm + (near ? '|' + lat.toFixed(1) + ',' + lng.toFixed(1) : ''));
+  var store = typeof caches !== 'undefined' && caches.default ? caches.default : null;
+  if (store) {
+    try {
+      var hit = await store.match(cacheUrl);
+      if (hit) return json({ success: true, places: await hit.json() });
+    } catch (er) { /* no cache here: ask Geoapify */ }
+  }
   var url = 'https://api.geoapify.com/v1/geocode/autocomplete?text=' + encodeURIComponent(q) + '&filter=countrycode:gb&limit=8&lang=en&apiKey=' + encodeURIComponent(env.GEOAPIFY_KEY);
   if (near) url += '&bias=proximity:' + lng + ',' + lat;
   var r;
@@ -8310,7 +8318,11 @@ async function handleNavigateSearch(request, env) {
     if (!c || !p.formatted) return null;
     return { name: String(p.formatted), at: [+c[1], +c[0]], house: p.housenumber ? String(p.housenumber) : '', street: String(p.street || ''), town: String(p.city || p.county || ''), postcode: String(p.postcode || '') };
   }).filter(Boolean);
-  await env.VOTES.put(cacheKey, JSON.stringify(places), { expirationTtl: 86400 });
+  if (store) {
+    try {
+      await store.put(cacheUrl, new Response(JSON.stringify(places), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=2592000' } }));
+    } catch (er) { /* the next search asks Geoapify again */ }
+  }
   return json({ success: true, places: places });
 }
 async function getLapsRaceboxAccess(env) {

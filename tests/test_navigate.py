@@ -637,6 +637,32 @@ def test_in_the_laps_app_the_turns_are_spoken_by_the_apps_speech_plugin(page):
     page.locator("#nav-exit").click()
 
 
+def test_while_driving_a_handle_on_the_bottom_bar_brings_the_directions_up(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # The bottom bar has a handle the directions come up from.
+    expect(page.locator("#nav-drive-handle")).to_be_visible()
+    page.locator("#nav-drive-handle").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"dirs-open"))
+    expect(page.locator("#nav-route")).to_be_visible()
+    # Folding the directions again brings the bottom bar back.
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-drive-handle")).to_be_visible()
+    page.locator("#nav-exit").click()
+
+
 def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fly_up(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)

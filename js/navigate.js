@@ -607,6 +607,21 @@
         el.addEventListener('pointercancel', dragCancel);
       });
     }
+    // The handle on the bottom bar while driving: a tap, or a swipe up, brings the directions up over the map.
+    var dh = $('nav-drive-handle');
+    if (dh) {
+      var dStart = null, dSwiped = false;
+      dh.addEventListener('pointerdown', function (e) { dStart = e.clientY; dSwiped = false; });
+      dh.addEventListener('pointermove', function (e) {
+        if (dStart !== null && dStart - e.clientY > 30) { dSwiped = true; dStart = null; setRouteFolded(false); }
+      });
+      dh.addEventListener('pointerup', function () { dStart = null; });
+      dh.addEventListener('pointercancel', function () { dStart = null; });
+      dh.addEventListener('click', function () {
+        if (dSwiped) { dSwiped = false; return; }
+        setRouteFolded(false);
+      });
+    }
     var vb = makeVoiceButton();
     if (vb) setVoiceButton();
     var mapEl = $('nav-map');

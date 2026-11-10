@@ -579,10 +579,24 @@
       };
     });
   }
+  // Geoapify's address search (through the worker). Empty when it is not set up or does not answer, so Photon still works.
+  function geoPlaces(q) {
+    var url = WORKER + '/navigate/search?q=' + encodeURIComponent(q);
+    if (lastFix) url += '&lat=' + lastFix.lat + '&lng=' + lastFix.lng;
+    return fetch(url, { headers: { 'X-Session-Token': session() } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) {
+        if (!d || !d.success || !Array.isArray(d.places)) return [];
+        return d.places.map(function (p) {
+          return { name: p.name, at: p.at, hay: [p.name, p.street, p.town, p.postcode].filter(Boolean).join(' ').toLowerCase(), house: p.house || '' };
+        });
+      })
+      .catch(function () { return []; });
+  }
   function findPlace(q) {
     loadLocalPlaces();
     var words = q.split(/\s+/), last = words[words.length - 1];
-    var asks = [photonPlaces(q)];
+    var asks = [geoPlaces(q), photonPlaces(q)];
     if (words.length > 1 && last.length >= 3) asks.push(photonPlaces(last));
     return Promise.all(asks).then(function (lists) {
       lists.push(localMatches());

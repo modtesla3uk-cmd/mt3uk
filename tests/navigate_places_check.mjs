@@ -37,3 +37,6 @@ ok(unknown.status === 400, 'an unknown action is refused (400)');
 
 const removed = await (await admin('POST', { action: 'remove', id })).json();
 ok(removed.success === true && removed.places.length === 0, 'the address is removed');
+// The address search is for members who can use Navigate: without a session it is refused.
+const search = await worker.fetch(new Request('https://w.test/navigate/search?q=17%20ryder%20way%20flitwick', { headers: { 'CF-Connecting-IP': '10.2.0.2' } }), env, { waitUntil() {} });
+ok(search.status === 401, 'the address search is refused without a signed-in member (401)');

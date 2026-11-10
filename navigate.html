@@ -383,6 +383,8 @@
   .nav-dest-row { display: flex; gap: 8px; }
   .nav-dest-row .field { flex: 1 1 auto; min-width: 0; min-height: 44px; }
   .nav-dest-row .btn { min-height: 44px; flex: none; }
+  .nav-attrib { margin: 6px 0 0; font-size: 0.8rem; color: #5b6475; }
+  .nav-attrib a { color: inherit; }
   .nav-stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
   .nav-stop { display: flex; align-items: center; gap: 4px; position: relative; background: #fff; border-radius: var(--radius, 10px); }
   .nav-stop.is-moving { z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
@@ -545,6 +547,7 @@
     <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
       <label class="nav-dest-label" for="nav-to-q">Where to?</label>
       <ol class="nav-stops" id="nav-stops" aria-label="Stops"></ol>
+      <p class="nav-attrib">Address search: <a href="https://www.geoapify.com/" rel="noopener">Powered by Geoapify</a>. Map data &copy; OpenStreetMap contributors.</p>
       <div class="nav-stop-actions">
         <button type="button" class="btn btn-secondary" id="nav-add-stop">Add a stop</button>
         <button type="button" class="btn btn-secondary" id="nav-pin">Pin on map</button>

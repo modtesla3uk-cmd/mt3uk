@@ -769,3 +769,17 @@ def test_the_navigate_address_list_on_the_worker_adds_and_removes_with_the_admin
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "FAIL" not in result.stdout, result.stdout
+
+
+def test_the_address_search_through_geoapify_shows_the_house_first_and_credits_it(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    page.route("**/navigate/places", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"places":[]}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/navigate/search**", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"places":[{"name":"17 Ryder Way, Flitwick, MK45 1GN, United Kingdom","at":[52.0109,-0.509],"house":"17","street":"Ryder Way","town":"Flitwick","postcode":"MK45 1GN"}]}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Ryder Way", "Flitwick", 52.0114, -0.5081)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator(".nav-attrib a")).to_have_text("Powered by Geoapify")
+    page.locator("#nav-to-q").fill("17 ryder way flitwick")
+    expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("17 Ryder Way", timeout=5000)

@@ -8283,6 +8283,36 @@ async function handleNavigatePlacesAdmin(request, env) {
   }
   return json({ success: true, places: list });
 }
+// Address search for Navigate, through Geoapify (the free plan; its key is the GEOAPIFY_KEY secret). A search is kept for a
+// day, so a repeated search does not use the daily credits again. Only members who can use Navigate may search.
+async function handleNavigateSearch(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
+  if (!(a.open || a.allowed.some(function (x) { return x.email === e; }))) return json({ success: false, message: 'Navigate is not open to this account yet' }, 403);
+  if (!env.GEOAPIFY_KEY) return json({ success: false, message: 'Address search is not set up yet' }, 503);
+  var u = new URL(request.url);
+  var q = String(u.searchParams.get('q') || '').trim().slice(0, 120);
+  if (q.length < 3) return json({ success: true, places: [] });
+  var lat = parseFloat(u.searchParams.get('lat')), lng = parseFloat(u.searchParams.get('lng'));
+  var near = isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  var cacheKey = 'nav-geo:' + q.toLowerCase() + (near ? ':' + lat.toFixed(2) + ',' + lng.toFixed(2) : '');
+  var cached = await env.VOTES.get(cacheKey);
+  if (cached) return json({ success: true, places: JSON.parse(cached) });
+  var url = 'https://api.geoapify.com/v1/geocode/autocomplete?text=' + encodeURIComponent(q) + '&filter=countrycode:gb&limit=8&lang=en&apiKey=' + encodeURIComponent(env.GEOAPIFY_KEY);
+  if (near) url += '&bias=proximity:' + lng + ',' + lat;
+  var r;
+  try { r = await fetch(url, { headers: { 'Accept': 'application/json' } }); } catch (er) { return json({ success: false, message: 'The address search did not answer.' }, 502); }
+  if (!r.ok) return json({ success: false, message: 'The address search did not answer.' }, 502);
+  var d = await r.json().catch(function () { return null; });
+  var places = ((d && d.features) || []).map(function (f) {
+    var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+    if (!c || !p.formatted) return null;
+    return { name: String(p.formatted), at: [+c[1], +c[0]], house: p.housenumber ? String(p.housenumber) : '', street: String(p.street || ''), town: String(p.city || p.county || ''), postcode: String(p.postcode || '') };
+  }).filter(Boolean);
+  await env.VOTES.put(cacheKey, JSON.stringify(places), { expirationTtl: 86400 });
+  return json({ success: true, places: places });
+}
 async function getLapsRaceboxAccess(env) {
   var a = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
   return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
@@ -13705,6 +13735,9 @@ export default {
     }
     if (url.pathname === '/navigate/route' && request.method === 'POST') {
       return handleNavigateRoute(request, env);
+    }
+    if (url.pathname === '/navigate/search' && request.method === 'GET') {
+      return handleNavigateSearch(request, env);
     }
     if (url.pathname === '/navigate/places' && request.method === 'GET') {
       return handleNavigatePlaces(request, env);

@@ -168,6 +168,8 @@
   function startDrive() {
     if (!routeD || !map) return;
     driving = true;
+    var vbtn = $('nav-voice');
+    if (vbtn) vbtn.style.display = voiceAvailable() ? 'flex' : 'none';
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
@@ -186,6 +188,8 @@
   function stopDrive() {
     driving = false;
     browsing = false;
+    var vbtn = $('nav-voice');
+    if (vbtn) vbtn.style.display = 'none';
     if (map) { map.dragging.enable(); map.touchZoom.enable(); }
     var w0 = drivingWrap();
     if (w0) w0.classList.remove('is-browsing', 'dirs-open');
@@ -201,10 +205,31 @@
 
   var VOICE_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var VOICE_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  // The speaker floats over the map while driving, under Recentre. It is made here, with its style inline, so it shows
+  // whatever copy of the page the phone has.
+  function makeVoiceButton() {
+    var old = $('nav-voice');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (!wrap) return null;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.id = 'nav-voice';
+    b.style.cssText = 'position:absolute;right:12px;top:auto;bottom:228px;z-index:1006;width:44px;height:44px;border-radius:50%;border:1px solid #d8dbe2;background:#fff;color:#16233d;display:none;align-items:center;justify-content:center;padding:0;cursor:pointer;';
+    b.addEventListener('click', function () {
+      voiceOn = !voiceOn;
+      try { localStorage.setItem('mt3ukNavigateVoice', voiceOn ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+      if (!voiceOn && voiceAvailable()) window.speechSynthesis.cancel();
+      setVoiceButton();
+    });
+    wrap.appendChild(b);
+    return b;
+  }
   function setVoiceButton() {
     var b = $('nav-voice');
     if (!b) return;
     b.innerHTML = voiceOn ? VOICE_ON : VOICE_OFF;
+    b.style.color = voiceOn ? '#16233d' : '#8a94a6';
     b.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
     b.setAttribute('aria-label', voiceOn ? 'Turn voice directions off' : 'Turn voice directions on');
   }
@@ -450,17 +475,8 @@
         el.addEventListener('pointercancel', dragCancel);
       });
     }
-    var vb = $('nav-voice');
-    if (vb) {
-      if (!voiceAvailable()) vb.hidden = true;
-      setVoiceButton();
-      vb.addEventListener('click', function () {
-        voiceOn = !voiceOn;
-        try { localStorage.setItem('mt3ukNavigateVoice', voiceOn ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
-        if (!voiceOn && voiceAvailable()) window.speechSynthesis.cancel();
-        setVoiceButton();
-      });
-    }
+    var vb = makeVoiceButton();
+    if (vb) setVoiceButton();
     var mapEl = $('nav-map');
     if (mapEl) {
       mapEl.addEventListener('pointerdown', gestureDown);

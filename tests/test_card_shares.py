@@ -12,7 +12,8 @@ CARDS = ["latest", "laps", "next", "join", "offers", "shop"]
 def test_a_card_share_page_previews_the_card_and_sends_people_to_it(card):
     page = (ROOT / "share" / "card" / ("%s.html" % card)).read_text(encoding="utf-8")
     assert '<meta property="og:url" content="https://mt3uk.com/share/card/%s.html">' % card in page
-    assert 'content="https://mt3uk.com/share/card/%s.jpg"' % card in page or "images/MT3UK_RED_BLK_BG.png" in page
+    # The image address carries a version tag after the name (?v=...), so the card's picture is updated when it changes.
+    assert 'content="https://mt3uk.com/share/card/%s.jpg?v=' % card in page or 'content="https://mt3uk.com/share/card/%s.jpg"' % card in page or "images/MT3UK_RED_BLK_BG.png" in page
     assert 'property="og:image:width" content="1200"' in page and 'property="og:image:height" content="630"' in page
     assert "index.html#card-%s" % card in page
     assert 'name="twitter:card" content="summary_large_image"' in page

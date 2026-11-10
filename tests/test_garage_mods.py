@@ -635,7 +635,8 @@ def test_a_car_can_be_added_without_a_caption(device_page):
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
     submits = page.mock_state.get("submits", [])
     if submits and submits[-1]:
-        assert 'name="caption"' in submits[-1] and "No Caption Y" in submits[-1]
+        # The Add a car form has no caption box now: the car is sent with its make and no caption field.
+        assert 'name="make"' in submits[-1] and 'name="caption"' not in submits[-1]
     assert page.errors == [], diagnostics(page)
 
 @all_devices

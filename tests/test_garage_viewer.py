@@ -29,7 +29,14 @@ def test_mods_list_sits_under_build_of_the_week(device_page):
 def test_photo_viewer_has_reel_gallery_votes_and_delete(device_page):
     page = device_page
     open_car(page)
-    page.locator('.mb-photo-thumb-wrap[data-file="test-build.jpg"] .mb-photo-thumb img').click(timeout=5000)
+    # The photos sit in a Photos fold that starts shut, so open it first.
+    fold = page.locator("details.mb-car-fold", has=page.locator("#mb-photo-strip"))
+    if not fold.evaluate("el => el.open"):
+        fold.locator("summary").click(timeout=5000)
+    thumb = page.locator('.mb-photo-thumb-wrap[data-file="test-build.jpg"] .mb-photo-thumb img')
+    # The photos load lazily, so the picture only has a size once it has been scrolled into view.
+    thumb.scroll_into_view_if_needed(timeout=5000)
+    thumb.click(timeout=5000)
     reel = page.locator("#mb-lightbox-reel")
     reel.wait_for(state="visible", timeout=5000)
     assert reel.get_attribute("href") == "index.html?photo=test-build.jpg#build-feed"

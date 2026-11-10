@@ -363,6 +363,7 @@ def test_the_route_panel_opens_and_folds_with_a_swipe_on_its_handle(page):
     page.mouse.up()
     expect(page.locator("#nav-route")).not_to_have_class(re.compile(r"is-collapsed"))
     expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)  # let the panel settle open before pressing it again
     # Press on the handle again and drag down: the panel folds.
     box = page.locator("#nav-route-handle").bounding_box()
     x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
@@ -372,3 +373,28 @@ def test_the_route_panel_opens_and_folds_with_a_swipe_on_its_handle(page):
     page.mouse.up()
     expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
     expect(page.locator("#nav-steps")).to_be_hidden()
+
+
+def test_the_route_panel_follows_the_finger_and_springs_back_on_a_short_drag(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"), timeout=10000)
+    page.wait_for_timeout(600)
+    top = page.locator("#nav-route").bounding_box()["y"]
+    box = page.locator("#nav-route-handle").bounding_box()
+    x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x, y - 25, steps=5)
+    # Still held down: the card has moved up with the finger.
+    moved = page.locator("#nav-route").bounding_box()["y"]
+    assert top - moved > 15, (top, moved)
+    page.mouse.up()
+    # A short drag springs back to folded.
+    page.wait_for_timeout(400)
+    expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))

@@ -390,11 +390,11 @@
   .nav-results button small { display: block; margin-top: 2px; }
   .nav-results button { width: 100%; min-height: 44px; text-align: left; padding: 8px 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #fff; color: var(--ink, #16233d); font: 600 0.95rem/1.3 var(--font-body, sans-serif); cursor: pointer; }
   /* The route as a panel that flies up over the bottom of the map, as Google Maps' drive panel does. */
-  .nav-route { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002; max-height: 62%; display: flex; flex-direction: column; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 18px rgba(0,0,0,.2); animation: navFlyUp .35s ease-out; }
-  @keyframes navFlyUp { from { transform: translateY(100%); } to { transform: none; } }
+  .nav-route { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002; max-height: 62%; display: flex; flex-direction: column; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 18px rgba(0,0,0,.2); transform: translateY(var(--nav-y, 0px)); transition: transform .25s ease-out; animation: navFlyUp .35s ease-out; }
+  @keyframes navFlyUp { from { transform: translateY(100%); } to { transform: translateY(var(--nav-y, 0px)); } }
+  .nav-route.is-dragging { transition: none; animation: none; }
   @media (prefers-reduced-motion: reduce) { .nav-route { animation: none; } }
   .nav-route[hidden] { display: none; }
-  .nav-route.is-collapsed { max-height: none; }
   .nav-route-handle, .nav-route-head, .nav-route-summary { touch-action: none; }
   .nav-route-handle { width: 100%; min-height: 26px; padding: 0; border: 0; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
   .nav-route-handle span { display: block; width: 44px; height: 5px; border-radius: 3px; background: #c5ccd6; }
@@ -406,7 +406,8 @@
   .nav-route-summary b { font-size: 1.25rem; }
   .nav-route-summary span { color: #5b6475; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-route-body { padding: 0 16px 16px; overflow-y: auto; min-height: 0; }
-  .nav-route.is-collapsed .nav-route-body, .nav-route.is-collapsed .nav-route-summary { display: none; }
+  .nav-route.is-collapsed .nav-route-body, .nav-route.is-collapsed .nav-route-summary { visibility: hidden; }
+  .nav-route.is-dragging .nav-route-body, .nav-route.is-dragging .nav-route-summary { visibility: visible; }
   .nav-route-stats { margin: 0 0 10px; }
   .nav-route-stats dt { font-size: 0.8rem; color: #5b6475; margin: 0; }
   .nav-route-stats dd { margin: 0; font-weight: 700; }

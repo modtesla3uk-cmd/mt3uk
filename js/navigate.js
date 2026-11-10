@@ -142,6 +142,34 @@
     updateToGo();
   }
 
+  // The route panel is a card at the bottom of the screen. It is folded (only its handle and Drive heading show) or open.
+  // --nav-y is how far the panel is pushed down, so a drag moves it with the finger and it snaps to a state on release.
+  function shownHeight() {
+    var panel = $('nav-route'), hd = $('nav-route-handle'), head = panel && panel.querySelector('.nav-route-head');
+    if (!panel || !hd || !head) return 0;
+    var was = head.style.display;
+    head.style.display = 'flex';
+    var h = hd.offsetHeight + head.offsetHeight;
+    head.style.display = was;
+    return h;
+  }
+  function foldOffset() {
+    var panel = $('nav-route');
+    return panel ? Math.max(0, panel.offsetHeight - shownHeight()) : 0;
+  }
+  function setPanelY(px) {
+    var panel = $('nav-route');
+    if (panel) panel.style.setProperty('--nav-y', Math.round(px) + 'px');
+  }
+  function setRouteFolded(folded) {
+    var panel = $('nav-route'), wrap = document.querySelector('.nav-map-wrap'), hd = $('nav-route-handle');
+    if (!panel) return;
+    panel.classList.toggle('is-collapsed', folded);
+    setPanelY(folded ? foldOffset() : 0);
+    if (wrap) wrap.classList.toggle('route-collapsed', folded);
+    if (hd) hd.setAttribute('aria-expanded', folded ? 'false' : 'true');
+  }
+
   function init() {
     var btn = $('nav-unit');
     // Navigate starts in mph. Its own saved choice (not the RaceBox page's) is kept, so changing one does not change the other.
@@ -154,29 +182,47 @@
     });
     var handle = $('nav-route-handle');
     // Tapping the handle folds or opens the route panel. Pressing and dragging on the handle, the Drive heading or the
-    // summary does the same: a swipe up (40 px or more) opens it, a swipe down folds it.
-    var swipeFrom = null, swipedAt = 0;
+    // summary moves the panel with the finger. On release a swipe of 40 px or more opens or folds it, and a shorter
+    // drag settles to the nearer state.
+    var swipe = null, swipedAt = 0;
     function toggleRoute() {
       var panel = $('nav-route');
-      setRouteFolded(!panel.classList.contains('is-collapsed'));
+      if (panel) setRouteFolded(!panel.classList.contains('is-collapsed'));
     }
-    function setRouteFolded(folded) {
-      var panel = $('nav-route'), wrap2 = document.querySelector('.nav-map-wrap');
-      panel.classList.toggle('is-collapsed', folded);
-      if (wrap2) wrap2.classList.toggle('route-collapsed', folded);
-      if (handle) handle.setAttribute('aria-expanded', folded ? 'false' : 'true');
-    }
-    function swipeStart(e) {
+    function dragStart(e) {
       if (e.button) return;
-      swipeFrom = { y: e.clientY, id: e.pointerId };
+      var panel = $('nav-route');
+      if (!panel) return;
+      var folded = panel.classList.contains('is-collapsed');
+      swipe = { y: e.clientY, id: e.pointerId, base: folded ? foldOffset() : 0, fold: foldOffset(), moved: false };
+      panel.classList.add('is-dragging');
       if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
     }
-    function swipeEnd(e) {
-      if (!swipeFrom || e.pointerId !== swipeFrom.id) return;
-      var dy = e.clientY - swipeFrom.y;
-      swipeFrom = null;
-      if (dy <= -40) { setRouteFolded(false); swipedAt = Date.now(); }
-      else if (dy >= 40) { setRouteFolded(true); swipedAt = Date.now(); }
+    function dragMove(e) {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      var dy = e.clientY - swipe.y;
+      if (Math.abs(dy) > 4) swipe.moved = true;
+      setPanelY(Math.min(swipe.fold, Math.max(0, swipe.base + dy)));
+    }
+    function dragEnd(e) {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      var s = swipe;
+      swipe = null;
+      var dy = e.clientY - s.y;
+      var y = Math.min(s.fold, Math.max(0, s.base + dy));
+      $('nav-route').classList.remove('is-dragging');
+      var folded;
+      if (dy <= -40) folded = false;
+      else if (dy >= 40) folded = true;
+      else folded = y > s.fold / 2;
+      setRouteFolded(folded);
+      if (s.moved) swipedAt = Date.now();
+    }
+    function dragCancel() {
+      if (!swipe) return;
+      swipe = null;
+      var panel = $('nav-route');
+      if (panel) { panel.classList.remove('is-dragging'); setRouteFolded(panel.classList.contains('is-collapsed')); }
     }
     if (handle) {
       handle.addEventListener('click', function () {
@@ -186,9 +232,10 @@
       });
       [handle, document.querySelector('#nav-route .nav-route-head'), document.querySelector('#nav-route .nav-route-summary')].forEach(function (el) {
         if (!el) return;
-        el.addEventListener('pointerdown', swipeStart);
-        el.addEventListener('pointerup', swipeEnd);
-        el.addEventListener('pointercancel', function () { swipeFrom = null; });
+        el.addEventListener('pointerdown', dragStart);
+        el.addEventListener('pointermove', dragMove);
+        el.addEventListener('pointerup', dragEnd);
+        el.addEventListener('pointercancel', dragCancel);
       });
     }
     var rc = $('nav-recentre');
@@ -355,16 +402,15 @@
     });
     // A new route opens folded: the handle and Drive heading show, and the member taps the handle for the directions.
     $('nav-route').hidden = false;
-    $('nav-route').classList.add('is-collapsed');
     var wrap = document.querySelector('.nav-map-wrap');
-    if (wrap) { wrap.classList.add('has-route'); wrap.classList.add('route-collapsed'); }
-    var hd = $('nav-route-handle');
-    if (hd) hd.setAttribute('aria-expanded', 'false');
+    if (wrap) wrap.classList.add('has-route');
     // The search gives the whole address; the card shows the first two parts (the place and its town).
     set('nav-route-to', dest.name.split(', ').slice(0, 2).join(', '));
     routeD = d;
     renderRouteText();
     updateToGo();
+    // Folded once the directions are in, so the folded height is measured with the full panel.
+    setRouteFolded(true);
   }
   // The route's length and turns, in the unit now shown.
   function renderRouteText() {

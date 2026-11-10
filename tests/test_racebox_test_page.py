@@ -302,14 +302,15 @@ def test_the_racebox_test_link_shows_in_the_laps_app_only_for_approved_members(p
     page.route("**/laps/racebox/access", lambda r: r.fulfill(
         status=200, content_type="application/json", body='{"success":true,"access":true,"open":false}'))
     page.goto("/laps.html")
-    expect(page.locator("a[data-racebox-link]").first).not_to_have_attribute("hidden", "")
-    expect(page.locator("a[data-racebox-link]").first).to_have_attribute("href", "racebox.html")
+    # The Navigate link carries the same flag, so name the RaceBox link itself.
+    racebox_link = page.locator('a[data-racebox-link][href="racebox.html"]').first
+    expect(racebox_link).not_to_have_attribute("hidden", "")
     # Not approved: the link stays hidden.
     page.unroute("**/laps/racebox/access")
     page.route("**/laps/racebox/access", lambda r: r.fulfill(
         status=200, content_type="application/json", body='{"success":true,"access":false,"open":false}'))
     page.goto("/laps.html")
-    expect(page.locator("a[data-racebox-link]").first).to_have_attribute("hidden", "")
+    expect(page.locator('a[data-racebox-link][href="racebox.html"]').first).to_have_attribute("hidden", "")
 
 
 def test_the_racebox_page_stays_in_the_laps_address_when_opened_from_the_laps_menu():

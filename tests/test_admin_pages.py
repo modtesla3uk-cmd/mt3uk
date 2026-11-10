@@ -1235,6 +1235,8 @@ def test_admin_sound_panel_shapes_a_motor_sound_and_saves_it(page):
     open_admin(page, "track-admin.html")
     page.route("**/sound/ev/admin**", sound_admin)
     page.locator("#sound-wrap summary").click()
+    # Wait for the load to finish, so a slow reply cannot put the sliders back after they are moved.
+    expect(page.locator("#snd-note")).to_contain_text("move the sliders")
     rows = page.locator("#snd-controls .snd-row")
     expect(rows).to_have_count(15)
     expect(rows.first.locator("output")).to_have_text("95")

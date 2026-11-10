@@ -1,3 +1,4 @@
+import re
 import json
 """Inside the Laps Android app (Capacitor): passkey sign-in opens the sign-in page in a Chrome Custom Tab, where passkeys
 work, and verified Laps links are loaded in the app. A simulated Capacitor bridge stands in for the app here."""
@@ -75,9 +76,11 @@ def test_a_return_with_its_code_in_the_path_is_put_in_the_page_hash_and_closes_t
     closed = []
     page.route("**/__passkey_window_closed", lambda route: (closed.append(1), route.fulfill(status=200, body="")))
     code = "a" * 64
+    # The page moves to the Laps address: answer it here, so the test never depends on the live site.
+    page.route("https://laps.mt3uk.com/**", lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html><title>Laps</title>"))
     page.goto("/laps-signin.html")
     page.evaluate("window.__appUrl({ url: 'https://laps.mt3uk.com/laps.html?mt3uk-handover=" + code + "' })")
-    page.wait_for_timeout(800)
+    page.wait_for_url(re.compile(r"#mt3uk-handover=" + code), timeout=10000)
     assert closed, "the passkey window was not closed"
     assert ("#mt3uk-handover=" + code) in page.url, page.url
 

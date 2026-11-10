@@ -5395,6 +5395,9 @@ def test_approved_members_get_the_tool_and_adding_a_session_is_gated_too(page):
 
 
 def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
+    # Laps is still an early preview: fix that answer here, so the live worker cannot take the badges off mid-test.
+    page.route(re.compile(r".*/laps/signin.*"), lambda r: r.fulfill(
+        status=200, content_type="application/json", body='{"success":true,"preview":true}', headers={"Access-Control-Allow-Origin": "*"}))
     page.goto("/track.html")
     expect(page.locator("nav .nav-link-track .early-badge").first).to_have_text("Early preview")
     # On the Laps pages it is small writing above the Laps logo, not a badge in the heading.
@@ -7199,6 +7202,9 @@ def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    # The charts are laid out a moment after full screen opens, so wait for them before measuring.
+    page.wait_for_function("() => { const m = document.getElementById('tp-map2'), g = document.getElementById('tp-gforce');"
+                           " return !!m && !!g && m.getBoundingClientRect().height > 450 && g.getBoundingClientRect().height > 150; }", timeout=10000)
     mb, gb = page.locator("#tp-map2").bounding_box(), page.locator("#tp-gforce").bounding_box()
     assert mb["height"] > 450, mb
     assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
@@ -7684,11 +7690,14 @@ def test_the_upload_tip_box_has_a_close_x_at_the_top_right(page):
 
 
 def test_the_what_panel_stays_shut_once_its_x_is_pressed(page):
-    """A member with no car sees What are Sessions? open. Shutting it with its X keeps it shut after a refresh."""
+    """A member with no car sees Add your car first: What are Sessions? starts shut. Its ? button opens it, and shutting it
+    with its X keeps it shut after a refresh."""
     fake = FakeWorker()
     fake.no_cars = True
     open_page(page, fake, "/track.html", signed_in=True)
     panel = page.locator(".page-hero details.tp-what")
+    expect(panel).to_have_js_property("open", False)
+    page.locator(".page-hero .tp-what-q").click()
     expect(panel).to_have_js_property("open", True)
     page.locator(".page-hero .tp-what-x").click()
     expect(panel).to_have_js_property("open", False)

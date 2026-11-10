@@ -8,6 +8,8 @@
   var MAP_BASE = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   var POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
   var map = null, marker = null, trail = null, leafletRequested = false, pts = [], lastKph = null, mph = false, lastFix = null, watch = null, shown = null;
+  // While driving, the dot, the map and the turn glide towards each new fix over a few frames, so the picture moves smoothly.
+  var shownPos = null, targetPos = null, drawHeading = null, frame = null;
 
   function metresBetween(a, b) {
     var R = 6371000, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
@@ -61,7 +63,8 @@
     if (!driving) { el.style.transform = ''; return; }
     // 3D only while following the phone. Once the member pans, turns or zooms, the map is flat (2D) until Recentre.
     var tilt = browsing ? 0 : DRIVE_TILT;
-    var turn = browsing ? viewTurn : (heading !== null ? -heading : 0);
+    var h = drawHeading !== null ? drawHeading : heading;
+    var turn = browsing ? viewTurn : (h !== null ? -h : 0);
     // The car sits lower on the screen in 3D, as in Google's view, so more of the road ahead shows.
     var lift = Math.round(window.innerHeight * 0.2 * (tilt / DRIVE_TILT));
     el.style.transform = 'translateY(' + lift + 'px) perspective(2600px) rotateX(' + tilt + 'deg) rotate(' + turn + 'deg)';
@@ -119,6 +122,36 @@
   function voiceAvailable() {
     return !!nativeSpeech() || ('speechSynthesis' in window && typeof window.SpeechSynthesisUtterance !== 'undefined');
   }
+  // The app's voice (its index in the plugin's list): a British one, the network voice when the phone has it, which
+  // sounds more natural than the default. Looked up once.
+  var nativeVoice = null, voicePicked = false;
+  function pickNativeVoice() {
+    if (voicePicked) return;
+    var n = nativeSpeech();
+    if (!n || !n.getSupportedVoices) return;
+    voicePicked = true;
+    Promise.resolve(n.getSupportedVoices()).then(function (r) {
+      var list = (r && r.voices) || [], best = -1, bestScore = -1;
+      list.forEach(function (v, i) {
+        if (!/^en[-_]gb/i.test(String(v.lang || ''))) return;
+        var score = /network/i.test(String(v.name || '')) ? 2 : 1;
+        if (score > bestScore) { best = i; bestScore = score; }
+      });
+      nativeVoice = best >= 0 ? best : null;
+    }).catch(function () { nativeVoice = null; });
+  }
+  // The browser's British voice, the better (online or Google) one when there is one.
+  var browserVoiceCache;
+  function browserVoice() {
+    if (browserVoiceCache !== undefined) return browserVoiceCache;
+    try {
+      var list = (window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
+      if (!list.length) return null; // not loaded yet: try again next time
+      var uk = list.filter(function (v) { return /^en[-_]gb/i.test(v.lang || ''); });
+      browserVoiceCache = uk.filter(function (v) { return /google|online|natural/i.test(v.name); })[0] || uk[0] || null;
+    } catch (e) { browserVoiceCache = null; }
+    return browserVoiceCache;
+  }
   function stopSpeech() {
     try {
       var n = nativeSpeech();
@@ -132,14 +165,18 @@
       var n = nativeSpeech();
       if (n) {
         // Flush starts the new turn at once; Add waits for the one being said.
-        n.speak({ text: text, lang: 'en-GB', rate: 1, volume: 1, queueStrategy: cancelFirst ? 0 : 1 }).catch(function () { /* the app could not speak */ });
+        var opts = { text: text, lang: 'en-GB', rate: 0.95, pitch: 1, volume: 1, queueStrategy: cancelFirst ? 0 : 1 };
+        if (nativeVoice !== null) opts.voice = nativeVoice;
+        n.speak(opts).catch(function () { /* the app could not speak */ });
         return;
       }
       if (cancelFirst) window.speechSynthesis.cancel();
       var u = new window.SpeechSynthesisUtterance(text);
       u.lang = 'en-GB';
-      u.rate = 1;
+      u.rate = 0.95;
       u.volume = 1;
+      var bv = browserVoice();
+      if (bv) u.voice = bv;
       window.speechSynthesis.speak(u);
     } catch (e) { /* speech blocked on this device */ }
   }
@@ -185,12 +222,39 @@
     set('nav-drive-speed', ($('nav-speed') || {}).textContent || '\u2013');
     set('nav-drive-unit', mph ? 'mph' : 'km/h');
   }
+  // The dot sits on the road it is driving on when the phone is within 25 m of the route. Further off, it is where the phone says.
+  function snapToRoute(p) {
+    var near = nearestOnRoute();
+    return near && near.d <= 25 ? near.q : p;
+  }
+  function stepFrame() {
+    frame = null;
+    if (!driving || !map || !targetPos) return;
+    if (!shownPos) shownPos = targetPos.slice();
+    var gap = metresBetween(shownPos, targetPos);
+    // A long jump (after a gap in the signal) is taken at once; short moves glide.
+    var k = gap > 60 ? 1 : 0.3;
+    shownPos = [shownPos[0] + (targetPos[0] - shownPos[0]) * k, shownPos[1] + (targetPos[1] - shownPos[1]) * k];
+    if (heading !== null) {
+      if (drawHeading === null) drawHeading = heading;
+      drawHeading += (((heading - drawHeading + 540) % 360) - 180) * 0.2;
+    }
+    marker.setLatLng(shownPos);
+    if (!browsing) quietly(function () { map.setView(shownPos, map.getZoom(), { animate: false }); });
+    applyRotation();
+    var turning = heading !== null && drawHeading !== null && Math.abs(((heading - drawHeading + 540) % 360) - 180) > 0.5;
+    if (gap > 0.2 || turning) frame = requestAnimationFrame(stepFrame);
+  }
+  function startFrames() { if (!frame && driving) frame = requestAnimationFrame(stepFrame); }
+
   function startDrive() {
     if (!routeD || !map) return;
     driving = true;
     // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'flex';
+    pickNativeVoice();
+    shownPos = null; targetPos = null; drawHeading = heading;
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
@@ -208,6 +272,8 @@
   }
   function stopDrive() {
     driving = false;
+    if (frame) cancelAnimationFrame(frame);
+    frame = null; shownPos = null; targetPos = null; drawHeading = null;
     browsing = false;
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'none';
@@ -358,11 +424,17 @@
         if (trail.getLatLngs().length > 1) trail.setLatLngs([shown]);
         return;
       }
-      if (shown && metresBetween(shown, here) <= Math.max(6, c.accuracy || 0)) return;
+      if (!driving && shown && metresBetween(shown, here) <= Math.max(6, c.accuracy || 0)) return;
       shown = here;
-      marker.setLatLng(here);
       trail.addLatLng(here);
-      if (!(driving && browsing)) quietly(function () { map.panTo(here, { animate: false }); });
+      if (driving) {
+        targetPos = snapToRoute(here);
+        if (!shownPos) { shownPos = targetPos.slice(); marker.setLatLng(shownPos); }
+        startFrames();
+      } else {
+        marker.setLatLng(here);
+        quietly(function () { map.panTo(here, { animate: false }); });
+      }
     });
     if (driving) { applyRotation(); updateDrive(); }
   }

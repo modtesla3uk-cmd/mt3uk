@@ -420,7 +420,7 @@
   /* Driving: the map fills the screen and turns to the direction of travel, with the turn card and a bottom bar over it. */
   .nav-map-wrap.is-driving { position: fixed; inset: 0; margin: 0; z-index: 3000; background: #ececec; overflow: hidden; }
   /* A square larger than the screen, centred on the phone, so it still covers the screen when turned and tilted. */
-  .nav-map-wrap.is-driving .nav-map { position: absolute; left: 50%; top: 50%; width: 300vmax; height: 300vmax; margin: -150vmax 0 0 -150vmax; border: 0; border-radius: 0; transition: transform .4s linear; touch-action: none; }
+  .nav-map-wrap.is-driving .nav-map { position: absolute; left: 50%; top: 50%; width: 300vmax; height: 300vmax; margin: -150vmax 0 0 -150vmax; border: 0; border-radius: 0; transition: none; touch-action: none; }
   .nav-map-wrap.is-driving .leaflet-control-container { display: none; }
   .nav-map-wrap.is-driving .nav-unit-pill, .nav-map-wrap.is-driving .nav-route, .nav-map-wrap.is-driving .nav-start { display: none; }
   /* The directions fly up in place of the bottom bar, and the bar comes back when they are folded. */
@@ -658,6 +658,6 @@
       });
   })();
 </script>
-<script src="js/navigate.js?v=22" defer></script>
+<script src="js/navigate.js?v=23" defer></script>
 </body>
 </html>

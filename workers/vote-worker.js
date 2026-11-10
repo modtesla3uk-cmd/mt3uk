@@ -8207,25 +8207,36 @@ async function handleNavigateRoute(request, env) {
   }
   var from = point(body.from), to = point(body.to);
   if (!from || !to) return json({ success: false, message: 'Give a start and a destination' }, 400);
+  // Stops in between (up to five), in the order they are to be visited.
+  var via = Array.isArray(body.via) ? body.via.slice(0, 5).map(point) : [];
+  if (via.some(function (p) { return !p; })) return json({ success: false, message: 'One of the stops is not a place' }, 400);
+  var points = [from].concat(via, [to]);
   var r;
   try {
     r = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
       method: 'POST',
       headers: { 'Authorization': env.ORS_API_KEY, 'Content-Type': 'application/json', 'Accept': 'application/geo+json, application/json' },
-      body: JSON.stringify({ coordinates: [[from[1], from[0]], [to[1], to[0]]], instructions: true, units: 'm' })
+      body: JSON.stringify({ coordinates: points.map(function (p) { return [p[1], p[0]]; }), instructions: true, units: 'm' })
     });
   } catch (er) { return json({ success: false, message: 'The route could not be worked out. Try again.' }, 502); }
   if (!r.ok) return json({ success: false, message: 'The route could not be worked out. Try again.' }, 502);
   var d = await r.json().catch(function () { return null; });
   var f = d && d.features && d.features[0];
   if (!f || !f.geometry || !f.geometry.coordinates) return json({ success: false, message: 'No driving route was found there.' }, 404);
-  var seg = (f.properties && f.properties.segments && f.properties.segments[0]) || {};
+  // One leg per pair of points: the distance and time are the whole trip, and the turns run through every leg.
+  var segs = (f.properties && f.properties.segments) || [];
+  var dist = 0, dur = 0, steps = [];
+  segs.forEach(function (seg) {
+    dist += seg.distance || 0;
+    dur += seg.duration || 0;
+    (seg.steps || []).forEach(function (s) { steps.push({ text: String(s.instruction || ''), distanceM: Math.round(s.distance || 0) }); });
+  });
   return json({
     success: true,
-    distanceM: Math.round(seg.distance || 0),
-    durationS: Math.round(seg.duration || 0),
+    distanceM: Math.round(dist),
+    durationS: Math.round(dur),
     line: f.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }),
-    steps: (seg.steps || []).map(function (s) { return { text: String(s.instruction || ''), distanceM: Math.round(s.distance || 0) }; })
+    steps: steps
   });
 }
 async function getLapsRaceboxAccess(env) {

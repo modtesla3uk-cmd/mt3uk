@@ -556,3 +556,131 @@ def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fl
     page.locator("#nav-recentre").click()
     expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
     page.locator("#nav-exit").click()
+
+
+PLACES_BY_NAME = {
+    "leic": ("Leicester", "City of Leicester", 52.6369, -1.1398),
+    "towc": ("Towcester", "Northamptonshire", 52.13, -0.98),
+    "church": ("Church Road", "Towcester", 52.131, -0.975),
+}
+
+
+def _photon_by_name(route):
+    q = parse_qs(urlparse(route.request.url).query).get("q", [""])[0].lower()
+    hit = [v for k, v in PLACES_BY_NAME.items() if q.startswith(k)]
+    route.fulfill(status=200, content_type="application/json", body=_photon(*hit), headers={"Access-Control-Allow-Origin": "*"})
+
+
+def test_a_stop_can_be_added_and_the_route_goes_through_it(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    asked = []
+    def reply(route):
+        asked.append(route.request.post_data)
+        route.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", reply)
+    page.route("**/photon.komoot.io/**", _photon_by_name)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-add-stop").click()
+    expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(2)
+    page.locator("#nav-stops .nav-stop-input").nth(0).fill("Towcester")
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    post = json.loads(asked[-1])
+    assert len(post["via"]) == 1, post
+    assert abs(post["via"][0][0] - 52.13) < 0.01, post
+
+
+def test_a_stop_can_be_dragged_to_a_new_place_and_the_route_follows(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    asked = []
+    def reply(route):
+        asked.append(route.request.post_data)
+        route.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", reply)
+    page.route("**/photon.komoot.io/**", _photon_by_name)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-add-stop").click()
+    page.locator("#nav-stops .nav-stop-input").nth(0).fill("Leicester")
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    # Drag the first stop down past the destination: Leicester becomes the destination, so the route ends there.
+    box = page.locator("#nav-stops .nav-grip").nth(0).bounding_box()
+    x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x, y + 90, steps=8)
+    page.mouse.up()
+    expect(page.locator("#nav-stops .nav-stop-input").nth(1)).to_have_value(re.compile(r"Leicester"))
+    post = json.loads(asked[-1])
+    assert abs(post["to"][0] - 52.6369) < 0.01, post
+    assert len(post["via"]) == 1 and abs(post["via"][0][0] - 52.131) < 0.01, post
+
+
+def test_two_fingers_turn_the_map_while_it_stays_in_3d_and_panning_keeps_the_tilt(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # One finger pans: the map keeps its tilt.
+    page.mouse.move(195, 520)
+    page.mouse.down()
+    page.mouse.move(195, 420, steps=6)
+    page.mouse.up()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
+    assert page.evaluate("() => document.getElementById('nav-map').style.transform").startswith("perspective("), "lost the 3D view"
+    assert "rotateX(" in page.evaluate("() => document.getElementById('nav-map').style.transform")
+    # Two fingers turn the map by 45 degrees (the heading is due east, so the map starts turned by -90 degrees).
+    page.evaluate("""() => {
+      var m = document.getElementById('nav-map');
+      function ev(type, id, x, y) { m.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 })); }
+      ev('pointerdown', 1, 150, 500); ev('pointerdown', 2, 240, 500);
+      ev('pointermove', 2, 240, 590);
+      ev('pointerup', 2, 240, 590); ev('pointerup', 1, 150, 500);
+    }""")
+    page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-4[4-6](\\.\\d+)?deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
+    page.locator("#nav-recentre").click()
+    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
+    expect(page.locator("#nav-exit")).to_have_text("End navigation")
+    page.locator("#nav-exit").click()
+
+
+def test_an_input_event_after_a_suggestion_is_chosen_does_not_search_again(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    asked = []
+    def reply(route):
+        asked.append(route.request.post_data)
+        route.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", reply)
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Planet Ice", "Milton Keynes", 52.0, -0.8), ("Kingdom Hall", "Northampton", 52.2, -0.9)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("Planet")
+    expect(page.locator("#nav-results.is-suggest button")).to_have_count(2, timeout=5000)
+    page.locator("#nav-results.is-suggest button").nth(0).click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    # A keyboard sends an input event with the same text: the chosen place is kept, so Route does not search again.
+    page.locator("#nav-to-q").dispatch_event("input")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible()
+    expect(page.locator("#nav-results button")).to_have_count(0)
+    assert len(asked) >= 2, asked

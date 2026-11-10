@@ -58,8 +58,8 @@
   function applyRotation() {
     var el = $('nav-map');
     if (!el) return;
-    if (!driving || browsing) { el.style.transform = ''; return; }
-    var turn = heading !== null ? -heading : 0;
+    if (!driving) { el.style.transform = ''; return; }
+    var turn = browsing ? viewTurn : (heading !== null ? -heading : 0);
     el.style.transform = 'perspective(2600px) rotateX(' + DRIVE_TILT + 'deg) rotate(' + turn + 'deg)';
   }
   // Arrows for the turn card: straight on unless the step says left or right.
@@ -75,16 +75,23 @@
   }
   // Driving zoom: closer than the map's usual view, so the next turns are easy to read.
   var DRIVE_ZOOM = 18;
-  function userMoved() {
-    if (!driving || programmatic || browsing) return;
+  // Browsing: the map stays tilted, and the member turns and moves it. It starts from the turn it has now.
+  function enterBrowse() {
+    if (!driving || browsing) return;
     browsing = true;
+    viewTurn = heading !== null ? -heading : 0;
     var wrap = drivingWrap();
     if (wrap) wrap.classList.add('is-browsing');
+  }
+  function userMoved() {
+    if (!driving || programmatic) return;
+    enterBrowse();
     applyRotation();
   }
   // Recentre: back on the phone, turned and tilted again.
   function recentreDrive() {
     browsing = false;
+    viewTurn = heading !== null ? -heading : 0;
     var wrap = drivingWrap();
     if (wrap) wrap.classList.remove('is-browsing');
     followPhone(map ? map.getZoom() : DRIVE_ZOOM);
@@ -163,6 +170,8 @@
     setRouteFolded(true); // the directions start folded, and the directions button opens them
     browsing = false;
     if (wrap) wrap.classList.remove('is-browsing', 'dirs-open');
+    map.dragging.disable();
+    map.touchZoom.disable();
     map.invalidateSize();
     followPhone(DRIVE_ZOOM);
     applyRotation();
@@ -173,6 +182,7 @@
   function stopDrive() {
     driving = false;
     browsing = false;
+    if (map) { map.dragging.enable(); map.touchZoom.enable(); }
     var w0 = drivingWrap();
     if (w0) w0.classList.remove('is-browsing', 'dirs-open');
     if (voiceAvailable()) window.speechSynthesis.cancel();
@@ -195,6 +205,48 @@
     b.setAttribute('aria-label', voiceOn ? 'Turn voice directions off' : 'Turn voice directions on');
   }
 
+  // While driving, the map is moved by hand. One finger pans, and two fingers turn and zoom it. The screen movement is
+  // taken back onto the map's own plane first (undoing the tilt, then the turn), so the map follows the finger.
+  function dist2(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function angle2(a, b) { return Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI; }
+  function turnedDelta(dx, dy) {
+    var dyP = dy / Math.cos(DRIVE_TILT * Math.PI / 180);
+    var t = -viewTurn * Math.PI / 180;
+    return [dx * Math.cos(t) - dyP * Math.sin(t), dx * Math.sin(t) + dyP * Math.cos(t)];
+  }
+  function gestureDown(e) {
+    if (!driving || !map) return;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* a synthetic pointer cannot be captured */ }
+    touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+    enterBrowse();
+    applyRotation();
+    var ids = Object.keys(touches);
+    if (ids.length === 1) gesture = { mode: 'pan', last: { x: e.clientX, y: e.clientY } };
+    else if (ids.length === 2) {
+      var pts = ids.map(function (id) { return touches[id]; });
+      gesture = { mode: 'pinch', d0: dist2(pts[0], pts[1]), a0: angle2(pts[0], pts[1]), z0: map.getZoom(), t0: viewTurn };
+    }
+  }
+  function gestureMove(e) {
+    if (!driving || !map || !touches[e.pointerId] || !gesture) return;
+    touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (gesture.mode === 'pan' && Object.keys(touches).length === 1) {
+      var dx = e.clientX - gesture.last.x, dy = e.clientY - gesture.last.y;
+      gesture.last = { x: e.clientX, y: e.clientY };
+      var d = turnedDelta(dx, dy);
+      quietly(function () { map.panBy([-d[0], -d[1]], { animate: false }); });
+    } else if (gesture.mode === 'pinch') {
+      var pts = Object.keys(touches).map(function (id) { return touches[id]; });
+      if (pts.length < 2) return;
+      quietly(function () { map.setZoom(gesture.z0 + Math.log(dist2(pts[0], pts[1]) / gesture.d0) / Math.LN2, { animate: false }); });
+      viewTurn = gesture.t0 + (angle2(pts[0], pts[1]) - gesture.a0);
+      applyRotation();
+    }
+  }
+  function gestureUp(e) {
+    delete touches[e.pointerId];
+    if (Object.keys(touches).length === 0) gesture = null;
+  }
   function showSpeed() {
     if (lastKph === null) return;
     set('nav-speed', String(Math.round(mph ? lastKph * 0.621371 : lastKph)));
@@ -267,7 +319,7 @@
   var routeD = null;
   var driving = false, heading = null, DRIVE_TILT = 65;
   // Browsing: while driving, a press-and-drag or a pinch takes the map off the phone and flat, until Recentre.
-  var browsing = false, programmatic = false;
+  var browsing = false, programmatic = false, viewTurn = 0, touches = {}, gesture = null;
   function quietly(fn) { programmatic = true; try { fn(); } finally { programmatic = false; } }
   function drivingWrap() { return document.querySelector('.nav-map-wrap'); }
   function distText(m) {
@@ -405,6 +457,13 @@
         setVoiceButton();
       });
     }
+    var mapEl = $('nav-map');
+    if (mapEl) {
+      mapEl.addEventListener('pointerdown', gestureDown);
+      mapEl.addEventListener('pointermove', gestureMove);
+      mapEl.addEventListener('pointerup', gestureUp);
+      mapEl.addEventListener('pointercancel', gestureUp);
+    }
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);
@@ -419,10 +478,10 @@
       var panel = $('nav-route');
       if (panel) setRouteFolded(!panel.classList.contains('is-collapsed'));
     });
-    var go = $('nav-go'), q = $('nav-to-q');
+    var go = $('nav-go'), add = $('nav-add-stop');
     if (go) go.addEventListener('click', askRoute);
-    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearSuggestions(); askRoute(); } });
-    if (q) q.addEventListener('input', suggestWhileTyping);
+    if (add) add.addEventListener('click', addStop);
+    renderStops();
     approved().then(function (ok) {
       if (!ok) return;
       $('nav-gate').hidden = true;
@@ -491,10 +550,116 @@
       return out.slice(0, 5);
     });
   }
-  // Suggestions while typing, in light grey under the box. They wait for three letters and a short pause, so the place
-  // service is not asked on every key press, and an answer that comes late is dropped.
+  // The route's stops, in order: the last one is the destination. Each has its own search line, with suggestions in
+  // light grey while typing (after three letters and a short pause, so the place service is not asked on every key).
+  var stops = [{ text: '', place: null }], wantRoute = false;
   var suggestTimer = null, suggestSeq = 0;
-  function showSuggestions(list) {
+  var GRIP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7" fill="currentColor"/><circle cx="15" cy="6" r="1.7" fill="currentColor"/><circle cx="9" cy="12" r="1.7" fill="currentColor"/><circle cx="15" cy="12" r="1.7" fill="currentColor"/><circle cx="9" cy="18" r="1.7" fill="currentColor"/><circle cx="15" cy="18" r="1.7" fill="currentColor"/></svg>';
+  var X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  function stopLabel(i) { return i === stops.length - 1 ? 'destination' : 'stop ' + (i + 1); }
+  function renderStops() {
+    var ul = $('nav-stops');
+    if (!ul) return;
+    ul.textContent = '';
+    stops.forEach(function (st, i) {
+      var last = i === stops.length - 1;
+      var li = document.createElement('li');
+      li.className = 'nav-stop';
+      var grip = document.createElement('button');
+      grip.type = 'button';
+      grip.className = 'nav-grip';
+      grip.innerHTML = GRIP_SVG;
+      grip.setAttribute('aria-label', 'Move the ' + stopLabel(i));
+      var input = document.createElement('input');
+      input.type = 'search';
+      input.className = 'field nav-stop-input';
+      input.autocomplete = 'off';
+      input.dataset.i = String(i);
+      input.value = st.text;
+      input.placeholder = last ? 'Where to? A place, a postcode, or lat, lng' : 'Add a stop: a place or postcode';
+      input.setAttribute('aria-label', last ? 'Destination' : 'Stop ' + (i + 1));
+      if (last) input.id = 'nav-to-q';
+      input.addEventListener('input', onStopInput);
+      input.addEventListener('keydown', onStopKey);
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'nav-stop-remove';
+      rm.innerHTML = X_SVG;
+      rm.setAttribute('aria-label', 'Remove the ' + stopLabel(i));
+      rm.hidden = stops.length < 2;
+      rm.addEventListener('click', function () { removeStop(i); });
+      grip.addEventListener('pointerdown', function (e) { startMove(e, li, i); });
+      li.appendChild(grip);
+      li.appendChild(input);
+      li.appendChild(rm);
+      ul.appendChild(li);
+    });
+  }
+  function onStopInput(e) {
+    var i = Number(e.target.dataset.i), v = e.target.value;
+    // Only text that really changed gives up the place chosen for the stop. Some keyboards send an input event with the
+    // same text after a suggestion is picked, and that must not send the place back to a search.
+    if (v !== stops[i].text) stops[i].place = null;
+    stops[i].text = v;
+    suggestWhileTyping(v, i);
+  }
+  function onStopKey(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    clearSuggestions();
+    askRoute();
+  }
+  // Moving a stop: its grip is dragged up or down, and the stop lands where the finger lets go.
+  function startMove(e, li, from) {
+    if (e.button) return;
+    var grip = e.currentTarget, ul = $('nav-stops'), startY = e.clientY, target = from, active = true;
+    grip.setPointerCapture(e.pointerId);
+    li.classList.add('is-moving');
+    function move(ev) {
+      if (!active) return;
+      li.style.transform = 'translateY(' + (ev.clientY - startY) + 'px)';
+      // The new place is the number of other stops whose middle is above the finger.
+      var n = 0;
+      [].slice.call(ul.children).forEach(function (r, j) {
+        if (j === from) return;
+        var b = r.getBoundingClientRect();
+        if (b.top + b.height / 2 < ev.clientY) n++;
+      });
+      target = n;
+    }
+    function end() {
+      if (!active) return;
+      active = false;
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      li.classList.remove('is-moving');
+      li.style.transform = '';
+      if (target !== from) moveStop(from, target);
+    }
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  }
+  function addStop() {
+    stops.splice(stops.length - 1, 0, { text: '', place: null });
+    renderStops();
+    var inputs = document.querySelectorAll('#nav-stops .nav-stop-input');
+    if (inputs.length > 1) inputs[inputs.length - 2].focus();
+  }
+  function removeStop(i) {
+    if (stops.length < 2) return;
+    stops.splice(i, 1);
+    renderStops();
+    if (wantRoute) routeNow(); else clearSuggestions();
+  }
+  function moveStop(from, to) {
+    var st = stops.splice(from, 1)[0];
+    stops.splice(to, 0, st);
+    renderStops();
+    if (wantRoute) routeNow();
+  }
+  function showSuggestions(list, i) {
     var ul = $('nav-results');
     ul.textContent = '';
     ul.classList.add('is-suggest');
@@ -505,7 +670,7 @@
       b.textContent = p.name;
       var s = distanceSmall(p);
       if (s) b.appendChild(s);
-      b.addEventListener('click', function () { choose(p); });
+      b.addEventListener('click', function () { choose(p, i); });
       li.appendChild(b);
       ul.appendChild(li);
     });
@@ -514,25 +679,28 @@
     var ul = $('nav-results');
     if (ul) { ul.textContent = ''; ul.classList.remove('is-suggest'); }
   }
-  function suggestWhileTyping() {
+  function suggestWhileTyping(text, i) {
     clearTimeout(suggestTimer);
-    var q = ($('nav-to-q').value || '').trim();
+    var q = String(text || '').trim();
     if (q.length < 3 || parseCoords(q)) { suggestSeq++; clearSuggestions(); return; }
     suggestTimer = setTimeout(function () {
       var my = ++suggestSeq;
       findPlace(q).then(function (list) {
         if (my !== suggestSeq) return;
-        if (list.length) showSuggestions(list); else clearSuggestions();
+        if (list.length) showSuggestions(list, i); else clearSuggestions();
       }).catch(function () { if (my === suggestSeq) clearSuggestions(); });
     }, 450);
   }
-  function choose(p) {
-    dest = p;
+  // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
+  function choose(p, i) {
+    stops[i].place = p;
+    stops[i].text = p.name;
+    if (i === stops.length - 1) wantRoute = true;
     clearSuggestions();
-    $('nav-to-q').value = p.name;
-    routeTo();
+    renderStops();
+    if (wantRoute) routeNow();
   }
-  function showResults(list) {
+  function showResults(list, i) {
     var ul = $('nav-results');
     ul.textContent = '';
     list.forEach(function (p) {
@@ -542,31 +710,61 @@
       b.textContent = p.name;
       var s = distanceSmall(p);
       if (s) b.appendChild(s);
-      b.addEventListener('click', function () { choose(p); });
+      b.addEventListener('click', function () { choose(p, i); });
       li.appendChild(b);
       ul.appendChild(li);
     });
   }
   function askRoute() {
-    var q = ($('nav-to-q').value || '').trim();
-    if (!q) return setRouteMsg('Type a place, or a position as lat, lng.', true);
+    wantRoute = true;
+    clearTimeout(suggestTimer);
+    suggestSeq++; // a suggestion still on its way must not appear after the route is asked for
+    clearSuggestions();
+    routeNow();
+  }
+  // Works out where a stop is: a place already chosen, a position typed as lat, lng, or the first match for the text
+  // (or the member picks one when there are several).
+  function resolveStop(i) {
+    var st = stops[i], q = String(st.text || '').trim();
+    if (st.place) return Promise.resolve(st.place);
+    if (!q) return Promise.reject(new Error('Add a place for the ' + stopLabel(i) + ', or remove it.'));
     var at = parseCoords(q);
-    if (at) { dest = { name: at[0].toFixed(5) + ', ' + at[1].toFixed(5), at: at }; return routeTo(); }
-    setRouteMsg('Looking for that place...');
-    findPlace(q).then(function (list) {
-      if (!list.length) return setRouteMsg('No place found for that. Try a postcode, or lat, lng.', true);
-      if (list.length === 1) return choose(list[0]);
-      setRouteMsg('Pick the right place:');
-      showResults(list);
-    }).catch(function () { setRouteMsg('The place search did not answer. Try again.', true); });
+    if (at) { st.place = { name: at[0].toFixed(5) + ', ' + at[1].toFixed(5), at: at }; return Promise.resolve(st.place); }
+    setRouteMsg('Looking for ' + (i === stops.length - 1 ? 'that place' : 'stop ' + (i + 1)) + '...');
+    return findPlace(q).then(function (list) {
+      if (!list.length) throw new Error('No place found for the ' + stopLabel(i) + '. Try a postcode, or lat, lng.');
+      if (list.length === 1) { st.place = list[0]; st.text = list[0].name; return st.place; }
+      setRouteMsg('Pick the right place for the ' + stopLabel(i) + ':');
+      showResults(list, i);
+      var pick = new Error('pick');
+      pick.pick = true;
+      throw pick;
+    });
+  }
+  // Every stop in order, then the route through them.
+  function routeNow() {
+    wantRoute = true;
+    var chain = Promise.resolve();
+    stops.forEach(function (_, i) { chain = chain.then(function () { return resolveStop(i); }); });
+    chain.then(function () {
+      dest = stops[stops.length - 1].place;
+      renderStops();
+      routeTo();
+    }).catch(function (e) { if (!e.pick) setRouteMsg(e.message, true); });
+  }
+  // The stops still ahead: the ones the phone is not already at.
+  function stopsAhead() {
+    return stops.slice(0, -1).map(function (st) { return st.place && st.place.at; }).filter(function (at) {
+      return at && (!lastFix || metresBetween([lastFix.lat, lastFix.lng], at) > 60);
+    });
   }
   function requestRoute() {
-    return fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at }) })
+    return fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at, via: stopsAhead() }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && !!d.success, d: d }; }); });
   }
   function routeTo() {
     if (!dest) return;
-    if (!lastFix) return setRouteMsg('Waiting for your phone\u2019s position before a route can start.', true);
+    if (!lastFix) return setRouteMsg('Waiting for your phone’s position before a route can start.', true);
     reroutes = 0; // a new trip
     setRouteMsg('Working out the route...');
     requestRoute()

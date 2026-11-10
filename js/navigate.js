@@ -59,8 +59,12 @@
     var el = $('nav-map');
     if (!el) return;
     if (!driving) { el.style.transform = ''; return; }
+    // 3D only while following the phone. Once the member pans, turns or zooms, the map is flat (2D) until Recentre.
+    var tilt = browsing ? 0 : DRIVE_TILT;
     var turn = browsing ? viewTurn : (heading !== null ? -heading : 0);
-    el.style.transform = 'perspective(2600px) rotateX(' + DRIVE_TILT + 'deg) rotate(' + turn + 'deg)';
+    // The car sits lower on the screen in 3D, as in Google's view, so more of the road ahead shows.
+    var lift = Math.round(window.innerHeight * 0.2 * (tilt / DRIVE_TILT));
+    el.style.transform = 'translateY(' + lift + 'px) perspective(2600px) rotateX(' + tilt + 'deg) rotate(' + turn + 'deg)';
   }
   // Arrows for the turn card: straight on unless the step says left or right.
   var ARROWS = {
@@ -74,7 +78,7 @@
     if (el) el.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + ARROWS[key] + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
   // Driving zoom: closer than the map's usual view, so the next turns are easy to read.
-  var DRIVE_ZOOM = 18;
+  var DRIVE_ZOOM = 19;
   // Browsing: the map stays tilted, and the member turns and moves it. It starts from the turn it has now.
   function enterBrowse() {
     if (!driving || browsing) return;
@@ -94,7 +98,7 @@
     viewTurn = heading !== null ? -heading : 0;
     var wrap = drivingWrap();
     if (wrap) wrap.classList.remove('is-browsing');
-    followPhone(map ? map.getZoom() : DRIVE_ZOOM);
+    followPhone(DRIVE_ZOOM);
     applyRotation();
   }
   function followPhone(zoom) {
@@ -317,7 +321,7 @@
 
   // Distances follow the speed unit: miles (yards under a tenth of a mile) with mph, metres and km with km/h.
   var routeD = null;
-  var driving = false, heading = null, DRIVE_TILT = 65;
+  var driving = false, heading = null, DRIVE_TILT = 60;
   // Browsing: while driving, a press-and-drag or a pinch takes the map off the phone and flat, until Recentre.
   var browsing = false, programmatic = false, viewTurn = 0, touches = {}, gesture = null;
   function quietly(fn) { programmatic = true; try { fn(); } finally { programmatic = false; } }

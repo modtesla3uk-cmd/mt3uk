@@ -474,7 +474,7 @@ def test_start_route_fills_the_screen_and_turns_the_map_to_the_direction_of_trav
     expect(page.locator("#nav-turn-text")).to_have_text("Turn left onto Church Road")
     expect(page.locator("#nav-eta")).to_contain_text("min")
     # Zoomed in closer for driving.
-    assert page.evaluate("() => window.MT3UKNavigate.map().getZoom()") == 18
+    assert page.evaluate("() => window.MT3UKNavigate.map().getZoom()") == 19
     # The map turns so that due east (90 degrees) points up.
     # Tilted like a 3D view, and turned so the heading is up.
     page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-90deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
@@ -624,7 +624,7 @@ def test_a_stop_can_be_dragged_to_a_new_place_and_the_route_follows(page):
     assert len(post["via"]) == 1 and abs(post["via"][0][0] - 52.131) < 0.01, post
 
 
-def test_two_fingers_turn_the_map_while_it_stays_in_3d_and_panning_keeps_the_tilt(page):
+def test_two_fingers_turn_the_map_flat_and_recentre_brings_back_3d(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)
     page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
@@ -645,8 +645,8 @@ def test_two_fingers_turn_the_map_while_it_stays_in_3d_and_panning_keeps_the_til
     page.mouse.move(195, 420, steps=6)
     page.mouse.up()
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
-    assert page.evaluate("() => document.getElementById('nav-map').style.transform").startswith("perspective("), "lost the 3D view"
-    assert "rotateX(" in page.evaluate("() => document.getElementById('nav-map').style.transform")
+    # Browsing is flat (2D) until Recentre.
+    assert "rotateX(0deg)" in page.evaluate("() => document.getElementById('nav-map').style.transform")
     # Two fingers turn the map by 45 degrees (the heading is due east, so the map starts turned by -90 degrees).
     page.evaluate("""() => {
       var m = document.getElementById('nav-map');
@@ -658,6 +658,8 @@ def test_two_fingers_turn_the_map_while_it_stays_in_3d_and_panning_keeps_the_til
     page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-4[4-6](\\.\\d+)?deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
     page.locator("#nav-recentre").click()
     expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
+    # Recentre brings back the 3D view, facing the direction of travel.
+    page.wait_for_function("() => /rotateX\\(60deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
     expect(page.locator("#nav-exit")).to_have_text("End navigation")
     page.locator("#nav-exit").click()
 

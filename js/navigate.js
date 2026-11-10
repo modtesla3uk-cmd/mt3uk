@@ -10,6 +10,8 @@
   var map = null, marker = null, trail = null, leafletRequested = false, pts = [], lastKph = null, mph = false, lastFix = null, watch = null, shown = null;
   // While driving, the dot, the map and the turn glide towards each new fix over a few frames, so the picture moves smoothly.
   var shownPos = null, targetPos = null, drawHeading = null, frame = null;
+  // The last fix while driving, and how fast the phone was going: between fixes the dot is carried on from it.
+  var fixPos = null, fixAt = 0, velMs = 0;
 
   function metresBetween(a, b) {
     var R = 6371000, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
@@ -223,14 +225,27 @@
     set('nav-drive-speed', ($('nav-speed') || {}).textContent || '\u2013');
     set('nav-drive-unit', mph ? 'mph' : 'km/h');
   }
-  // The dot sits on the road it is driving on when the phone is within 25 m of the route. Further off, it is where the phone says.
-  function snapToRoute(p) {
-    var near = nearestOnRoute();
-    return near && near.d <= 25 ? near.q : p;
+  // A new fix while driving: the dot is carried on from it at the phone's speed, along the way the phone is heading.
+  function setFix(here, c) {
+    var now = performance.now();
+    fixPos = here.slice();
+    fixAt = now;
+    velMs = c.speed != null && !isNaN(c.speed) ? c.speed : 0;
+    if (heading === null) velMs = 0;
   }
+  // Where the phone is now, carried on from the last fix (at most two seconds on).
+  function predictedPos(now) {
+    var t = Math.min(2, Math.max(0, (now - fixAt) / 1000));
+    var d = velMs * t, h = heading * Math.PI / 180;
+    return [fixPos[0] + d * Math.cos(h) / 111320, fixPos[1] + d * Math.sin(h) / (111320 * Math.cos(fixPos[0] * Math.PI / 180))];
+  }
+  // The dot sits on the road it is driving on when the phone is within 25 m of the route. Further off, it is where the phone says.
   function stepFrame() {
     frame = null;
-    if (!driving || !map || !targetPos) return;
+    if (!driving || !map || !fixPos) return;
+    var aim = predictedPos(performance.now());
+    var near = routeNear(aim);
+    targetPos = near && near.d <= 25 ? near.q : aim;
     if (!shownPos) shownPos = targetPos.slice();
     var gap = metresBetween(shownPos, targetPos);
     // A long jump (after a gap in the signal) is taken at once; short moves glide.
@@ -243,8 +258,8 @@
     marker.setLatLng(shownPos);
     if (!browsing) quietly(function () { map.setView(shownPos, map.getZoom(), { animate: false }); });
     applyRotation();
-    var turning = heading !== null && drawHeading !== null && Math.abs(((heading - drawHeading + 540) % 360) - 180) > 0.5;
-    if (gap > 0.2 || turning) frame = requestAnimationFrame(stepFrame);
+    // Every frame while driving, so the dot keeps moving between the fixes.
+    frame = requestAnimationFrame(stepFrame);
   }
   function startFrames() { if (!frame && driving) frame = requestAnimationFrame(stepFrame); }
 
@@ -255,7 +270,7 @@
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'flex';
     pickNativeVoice();
-    shownPos = null; targetPos = null; drawHeading = heading;
+    shownPos = null; targetPos = null; drawHeading = heading; fixPos = null; velMs = 0;
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
@@ -274,7 +289,7 @@
   function stopDrive() {
     driving = false;
     if (frame) cancelAnimationFrame(frame);
-    frame = null; shownPos = null; targetPos = null; drawHeading = null;
+    frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
     browsing = false;
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'none';
@@ -429,8 +444,7 @@
       shown = here;
       trail.addLatLng(here);
       if (driving) {
-        targetPos = snapToRoute(here);
-        if (!shownPos) { shownPos = targetPos.slice(); marker.setLatLng(shownPos); }
+        setFix(here, c);
         startFrames();
       } else {
         marker.setLatLng(here);
@@ -1094,18 +1108,20 @@
   }
   // The point on the route line nearest the phone: how far off the line it is, and where on the line that point is.
   // Null when there is no route line yet.
-  function nearestOnRoute() {
+  function nearestOnRoute() { return lastFix ? routeNear([lastFix.lat, lastFix.lng]) : null; }
+  // The nearest point of the route line to a point [lat, lng]: { d, q, i }, or null without a route.
+  function routeNear(p) {
     var line = routeD && routeD.line;
-    if (!line || line.length < 2 || !lastFix) return null;
-    var k = Math.cos(lastFix.lat * Math.PI / 180), best = null;
+    if (!line || line.length < 2) return null;
+    var k = Math.cos(p[0] * Math.PI / 180), best = null;
     for (var i = 0; i < line.length - 1; i++) {
       var a = line[i], b = line[i + 1];
       // Flat picture over one short piece of road, with longitude scaled by the latitude.
       var ax = a[1] * k, ay = a[0], dx = b[1] * k - ax, dy = b[0] - ay;
       var len2 = dx * dx + dy * dy;
-      var t = len2 ? Math.max(0, Math.min(1, ((lastFix.lng * k - ax) * dx + (lastFix.lat - ay) * dy) / len2)) : 0;
+      var t = len2 ? Math.max(0, Math.min(1, ((p[1] * k - ax) * dx + (p[0] - ay) * dy) / len2)) : 0;
       var q = [ay + t * dy, (ax + t * dx) / k];
-      var d = metresBetween([lastFix.lat, lastFix.lng], q);
+      var d = metresBetween(p, q);
       if (!best || d < best.d) best = { d: d, q: q, i: i };
     }
     return best;

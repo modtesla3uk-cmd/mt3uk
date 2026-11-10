@@ -94,6 +94,37 @@ GEO_WANDER = """
 """
 
 
+GEO_WALK_THEN_STOP = """
+(function () {
+  var i = 0;
+  navigator.geolocation.watchPosition = function (ok) {
+    var t = setInterval(function () {
+      // Forty fixes walking east (about 270 m), then the phone stands still and its fixes wander by a metre either way.
+      var moving = i < 40;
+      var lon = -0.99 + (moving ? i * 0.0001 : 39 * 0.0001 + (i % 2 ? 0.00001 : -0.00001));
+      i++;
+      ok({ coords: { latitude: 52.12, longitude: lon, accuracy: 3, speed: moving ? 5 : 0 }, timestamp: Date.now() });
+      if (i >= 70) clearInterval(t);
+    }, 60);
+    return 7;
+  };
+  navigator.geolocation.clearWatch = function () {};
+})();
+"""
+
+
+def test_the_trail_is_cleared_once_the_phone_stands_still(page):
+    _approve(page, True)
+    page.add_init_script(GEO_WALK_THEN_STOP)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    # Walking, the trail follows the path.
+    page.wait_for_function("() => window.MT3UKNavigate.trailPoints() >= 4", timeout=10000)
+    # Standing still, the trail is cleared down to where the phone stopped, so no wander is left on the map.
+    page.wait_for_function("() => window.MT3UKNavigate.trailPoints() <= 1", timeout=10000)
+    assert page.evaluate("window.MT3UKNavigate.trailPoints()") <= 1
+
+
 def test_a_still_phone_does_not_draw_a_wandering_trail(page):
     _approve(page, True)
     page.add_init_script(GEO_WANDER)

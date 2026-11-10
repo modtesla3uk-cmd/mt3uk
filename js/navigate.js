@@ -353,7 +353,11 @@
       // The phone's own speed says when it is still. A still phone's fixes wander by 10 to 30 m, more than the reported
       // accuracy, so while stopped the dot and trail stay where they are. Moving, a fix moves them when it is more than its
       // accuracy (and at least 6 m) from the last one shown.
-      if (lastKph === 0 && shown) return;
+      if (lastKph === 0 && shown) {
+        // Standing still: the trail is only the path since the phone last moved, so the wander left from before is cleared.
+        if (trail.getLatLngs().length > 1) trail.setLatLngs([shown]);
+        return;
+      }
       if (shown && metresBetween(shown, here) <= Math.max(6, c.accuracy || 0)) return;
       shown = here;
       marker.setLatLng(here);

@@ -4,6 +4,7 @@
   "private": true,
   "description": "Laps by MT3UK Android app (Capacitor shell that loads laps.mt3uk.com)",
   "dependencies": {
+    "@capacitor-community/text-to-speech": "8.0.2",
     "@capacitor/android": "^8.6.0",
     "@capacitor/app": "^8.1.2",
     "@capacitor/browser": "^8.0.5",

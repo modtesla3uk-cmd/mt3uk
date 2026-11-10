@@ -46,6 +46,8 @@
     if (!el) return;
     el.hidden = false;
     map = L.map(el).setView([lat, lng], 17);
+    map.on('dragstart', userMoved);
+    map.on('zoomstart', userMoved);
     L.tileLayer(MAP_BASE, { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
     el.classList.add('rbt-mono');
     trail = L.polyline([], { color: '#e4b64f', weight: 4 }).addTo(map);
@@ -56,9 +58,9 @@
   function applyRotation() {
     var el = $('nav-map');
     if (!el) return;
-    if (!driving) { el.style.transform = ''; return; }
+    if (!driving || browsing) { el.style.transform = ''; return; }
     var turn = heading !== null ? -heading : 0;
-    el.style.transform = 'perspective(900px) rotateX(' + DRIVE_TILT + 'deg) rotate(' + turn + 'deg)';
+    el.style.transform = 'perspective(2600px) rotateX(' + DRIVE_TILT + 'deg) rotate(' + turn + 'deg)';
   }
   // Arrows for the turn card: straight on unless the step says left or right.
   var ARROWS = {
@@ -73,10 +75,63 @@
   }
   // Driving zoom: closer than the map's usual view, so the next turns are easy to read.
   var DRIVE_ZOOM = 18;
+  function userMoved() {
+    if (!driving || programmatic || browsing) return;
+    browsing = true;
+    var wrap = drivingWrap();
+    if (wrap) wrap.classList.add('is-browsing');
+    applyRotation();
+  }
+  // Recentre: back on the phone, turned and tilted again.
+  function recentreDrive() {
+    browsing = false;
+    var wrap = drivingWrap();
+    if (wrap) wrap.classList.remove('is-browsing');
+    followPhone(map ? map.getZoom() : DRIVE_ZOOM);
+    applyRotation();
+  }
   function followPhone(zoom) {
-    if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], zoom || map.getZoom(), { animate: false });
+    if (map && lastFix) quietly(function () { map.setView([lastFix.lat, lastFix.lng], zoom || map.getZoom(), { animate: false }); });
   }
   // The turn card and the bottom bar: the step we are on and the distance to its end, the time and distance left.
+  // Voice: the next turn is spoken as the phone nears it, with the phone's own speech. Speech needs a tap first, so
+  // Start route (a tap) also says the first step. The speaker button mutes it, and the choice is kept on this device.
+  var voiceOn = true, spoken = {};
+  try { voiceOn = localStorage.getItem('mt3ukNavigateVoice') !== 'off'; } catch (e) { voiceOn = true; }
+  function voiceAvailable() {
+    return 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance !== 'undefined';
+  }
+  function say(text, cancelFirst) {
+    if (!voiceOn || !voiceAvailable() || !text) return;
+    try {
+      if (cancelFirst) window.speechSynthesis.cancel();
+      var u = new window.SpeechSynthesisUtterance(text);
+      u.lang = 'en-GB';
+      u.rate = 1;
+      u.volume = 1;
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* speech blocked on this device */ }
+  }
+  // Distances as they are said: yards or miles with mph, metres or kilometres with km/h, rounded to what a driver hears.
+  function spokenDistance(m) {
+    if (mph) {
+      var yd = m * 1.09361;
+      if (yd < 880) return (Math.max(50, Math.round(yd / 50) * 50)) + ' yards';
+      return (m / 1609.344).toFixed(1) + ' miles';
+    }
+    if (m < 1000) return (Math.max(50, Math.round(m / 50) * 50)) + ' metres';
+    return (m / 1000).toFixed(1) + ' kilometres';
+  }
+  function lowerFirst(t) { return String(t || '').charAt(0).toLowerCase() + String(t || '').slice(1); }
+  function announce(cur, upcoming, toTurn, left) {
+    var steps = routeD.steps || [], key = cur + ':';
+    if (toTurn <= 400 && !spoken[key + 'far']) { spoken[key + 'far'] = true; say('In ' + spokenDistance(toTurn) + ', ' + lowerFirst(upcoming)); }
+    if (toTurn <= 60 && !spoken[key + 'near']) { spoken[key + 'near'] = true; say('Now, ' + lowerFirst(upcoming), true); }
+    if (left < 25 && !spoken.arrive) { spoken.arrive = true; say('You have arrived.'); }
+  }
+
+  // The turn card and the voice follow the next instruction: the one at the end of the step we are on, with the
+  // distance to it.
   function updateDrive() {
     if (!driving || !routeD || !lastFix) return;
     var left = leftOnRoute();
@@ -89,8 +144,9 @@
       if (left > total - done) { cur = k; break; }
     }
     var toTurn = Math.max(0, left - (total - done));
+    var next = steps[cur + 1], upcoming = next ? next.text : 'You will arrive at your destination';
     if (left < 25) { set('nav-turn-text', 'You have arrived'); set('nav-turn-dist', ''); turnArrow('straight'); }
-    else if (steps[cur]) { set('nav-turn-text', steps[cur].text); set('nav-turn-dist', 'in ' + distText(toTurn)); turnArrow(steps[cur].text); }
+    else { set('nav-turn-text', upcoming); set('nav-turn-dist', 'in ' + distText(toTurn)); turnArrow(upcoming); announce(cur, upcoming, toTurn, left); }
     var secs = routeD.distanceM ? routeD.durationS * left / routeD.distanceM : 0;
     var arrive = new Date(Date.now() + secs * 1000);
     set('nav-eta', Math.max(1, Math.round(secs / 60)) + ' min');
@@ -104,13 +160,22 @@
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
+    setRouteFolded(true); // the directions start folded, and the directions button opens them
+    browsing = false;
+    if (wrap) wrap.classList.remove('is-browsing', 'dirs-open');
     map.invalidateSize();
     followPhone(DRIVE_ZOOM);
     applyRotation();
+    spoken = {};
+    if (routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
     updateDrive();
   }
   function stopDrive() {
     driving = false;
+    browsing = false;
+    var w0 = drivingWrap();
+    if (w0) w0.classList.remove('is-browsing', 'dirs-open');
+    if (voiceAvailable()) window.speechSynthesis.cancel();
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.remove('is-driving');
     applyRotation();
@@ -118,6 +183,16 @@
       map.invalidateSize();
       if (routeLayer) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     }
+  }
+
+  var VOICE_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var VOICE_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  function setVoiceButton() {
+    var b = $('nav-voice');
+    if (!b) return;
+    b.innerHTML = voiceOn ? VOICE_ON : VOICE_OFF;
+    b.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
+    b.setAttribute('aria-label', voiceOn ? 'Turn voice directions off' : 'Turn voice directions on');
   }
 
   function showSpeed() {
@@ -161,7 +236,7 @@
       shown = here;
       marker.setLatLng(here);
       trail.addLatLng(here);
-      map.panTo(here, { animate: false });
+      if (!(driving && browsing)) quietly(function () { map.panTo(here, { animate: false }); });
     });
     if (driving) { applyRotation(); updateDrive(); }
   }
@@ -190,7 +265,11 @@
 
   // Distances follow the speed unit: miles (yards under a tenth of a mile) with mph, metres and km with km/h.
   var routeD = null;
-  var driving = false, heading = null, DRIVE_TILT = 58;
+  var driving = false, heading = null, DRIVE_TILT = 65;
+  // Browsing: while driving, a press-and-drag or a pinch takes the map off the phone and flat, until Recentre.
+  var browsing = false, programmatic = false;
+  function quietly(fn) { programmatic = true; try { fn(); } finally { programmatic = false; } }
+  function drivingWrap() { return document.querySelector('.nav-map-wrap'); }
   function distText(m) {
     if (mph) {
       var mi = m / 1609.344;
@@ -240,6 +319,7 @@
     panel.classList.toggle('is-collapsed', folded);
     setPanelY(folded ? foldOffset() : 0);
     if (wrap) wrap.classList.toggle('route-collapsed', folded);
+    if (wrap && driving) wrap.classList.toggle('dirs-open', !folded);
     if (hd) hd.setAttribute('aria-expanded', folded ? 'false' : 'true');
   }
 
@@ -314,11 +394,31 @@
         el.addEventListener('pointercancel', dragCancel);
       });
     }
+    var vb = $('nav-voice');
+    if (vb) {
+      if (!voiceAvailable()) vb.hidden = true;
+      setVoiceButton();
+      vb.addEventListener('click', function () {
+        voiceOn = !voiceOn;
+        try { localStorage.setItem('mt3ukNavigateVoice', voiceOn ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+        if (!voiceOn && voiceAvailable()) window.speechSynthesis.cancel();
+        setVoiceButton();
+      });
+    }
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);
     var rc = $('nav-recentre');
-    if (rc) rc.addEventListener('click', function () { if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true }); });
+    if (rc) rc.addEventListener('click', function () {
+      if (driving) return recentreDrive();
+      if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true });
+    });
+    var dirs = $('nav-dirs');
+    if (dirs) dirs.addEventListener('click', function () {
+      // The directions fly up from the bottom; the bottom bar gives way to them until they are folded again.
+      var panel = $('nav-route');
+      if (panel) setRouteFolded(!panel.classList.contains('is-collapsed'));
+    });
     var go = $('nav-go'), q = $('nav-to-q');
     if (go) go.addEventListener('click', askRoute);
     if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearSuggestions(); askRoute(); } });
@@ -490,6 +590,7 @@
     // The search gives the whole address; the card shows the first two parts (the place and its town).
     set('nav-route-to', dest.name.split(', ').slice(0, 2).join(', '));
     routeD = d;
+    spoken = {};
     renderRouteText();
     updateToGo();
     // Folded once the directions are in, so the folded height is measured with the full panel. A new route on the way

@@ -471,7 +471,7 @@ def test_start_route_fills_the_screen_and_turns_the_map_to_the_direction_of_trav
     page.wait_for_timeout(400)  # let the panel finish opening before pressing Start
     page.locator("#nav-start").click()
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
-    expect(page.locator("#nav-turn-text")).to_have_text("Head north on Maple Close")
+    expect(page.locator("#nav-turn-text")).to_have_text("Turn left onto Church Road")
     expect(page.locator("#nav-eta")).to_contain_text("min")
     # Zoomed in closer for driving.
     assert page.evaluate("() => window.MT3UKNavigate.map().getZoom()") == 18
@@ -480,3 +480,79 @@ def test_start_route_fills_the_screen_and_turns_the_map_to_the_direction_of_trav
     page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-90deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
     page.locator("#nav-exit").click()
     expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-driving"))
+
+
+SPEECH_MOCK = """
+window.__said = [];
+window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak: function (u) { window.__said.push(u.text); }, cancel: function () {} } });
+"""
+
+
+def test_the_next_turn_is_spoken_as_the_phone_nears_it_and_the_voice_can_be_muted(page):
+    _approve(page, True)
+    page.add_init_script(SPEECH_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # The first step is said when the route starts, and the next turn is said as it comes within 400 m.
+    waited = 0
+    said = []
+    while waited < 5000:
+        said = page.evaluate("() => window.__said")
+        if any("turn left onto Church Road" in s.lower() for s in said):
+            break
+        page.wait_for_timeout(200)
+        waited += 200
+    assert said[0] == "Head north on Maple Close", said
+    assert "In 300 yards, turn left onto Church Road" in said, said
+    # The speaker button mutes the voice and remembers it.
+    page.locator("#nav-voice").click()
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "false")
+    assert page.evaluate("() => localStorage.getItem('mt3ukNavigateVoice')") == "off"
+    page.locator("#nav-exit").click()
+
+
+def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fly_up(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    expect(page.locator("#nav-recentre")).to_be_visible()
+    # The directions fly up in place of the bottom bar, and folding them brings the bar back.
+    page.locator("#nav-dirs").click()
+    expect(page.locator("#nav-route")).to_be_visible()
+    expect(page.locator("#nav-drive-bar")).to_be_hidden()
+    page.wait_for_timeout(400)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-route")).to_be_hidden()
+    expect(page.locator("#nav-drive-bar")).to_be_visible()
+    # A press and drag on the map takes it off the phone; Recentre brings it back.
+    page.mouse.move(195, 520)
+    page.mouse.down()
+    page.mouse.move(195, 300, steps=10)
+    page.mouse.up()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
+    page.locator("#nav-recentre").click()
+    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
+    page.locator("#nav-exit").click()

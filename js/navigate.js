@@ -773,14 +773,15 @@
   function suggestWhileTyping(text, i) {
     clearTimeout(suggestTimer);
     var q = String(text || '').trim();
-    if (q.length < 3 || parseCoords(q)) { suggestSeq++; clearSuggestions(); return; }
+    // Four letters and a longer pause before the place services are asked, so each search costs fewer of the daily credits.
+    if (q.length < 4 || parseCoords(q)) { suggestSeq++; clearSuggestions(); return; }
     suggestTimer = setTimeout(function () {
       var my = ++suggestSeq;
       findPlace(q).then(function (list) {
         if (my !== suggestSeq) return;
         if (list.length) showSuggestions(list, i); else clearSuggestions();
       }).catch(function () { if (my === suggestSeq) clearSuggestions(); });
-    }, 450);
+    }, 800);
   }
   // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
   function choose(p, i) {

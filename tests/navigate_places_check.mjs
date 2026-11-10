@@ -32,6 +32,8 @@ const badPos = await admin('POST', { action: 'add', place: { name: 'Nowhere', la
 ok(badPos.status === 400, 'an address with no position is refused (400)');
 const noName = await admin('POST', { action: 'add', place: { lat: 52, lng: -0.5 } });
 ok(noName.status === 400, 'an address with no name is refused (400)');
+const longHouse = await admin('POST', { action: 'add', place: { house: 'Amazon Northampton', name: 'Collingtree Interchange', lat: 52.18, lng: -0.89 } });
+ok(longHouse.status === 400, 'a name typed into the House box is refused, not cut short (400)');
 const unknown = await admin('POST', { action: 'wipe' });
 ok(unknown.status === 400, 'an unknown action is refused (400)');
 

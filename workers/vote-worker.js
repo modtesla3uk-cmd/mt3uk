@@ -8265,12 +8265,17 @@ async function handleNavigatePlacesAdmin(request, env) {
     } else if (body.action === 'add' || body.action === 'update') {
       var pl = body.place || {}, name = String(pl.name || '').trim().slice(0, 120), lat = +pl.lat, lng = +pl.lng;
       if (!name || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return json({ success: false, message: 'Give a name and a position (latitude and longitude)' }, 400);
+      // The house box is for a house number, such as 17, and the postcode for a postcode: anything longer is refused,
+      // not cut short, so a name typed into the wrong box is not saved half-written.
+      var houseIn = String(pl.house || '').trim(), postIn = String(pl.postcode || '').trim().toUpperCase();
+      if (houseIn.length > 10) return json({ success: false, message: 'The House box is for a house number, such as 17. Put the street or place name in the Street or place name box.' }, 400);
+      if (postIn.length > 10) return json({ success: false, message: 'That does not look like a postcode. Check the Postcode box.' }, 400);
       var fields = {
         name: name,
-        house: String(pl.house || '').trim().slice(0, 10),
+        house: houseIn,
         street: String(pl.street || '').trim().slice(0, 80),
         town: String(pl.town || '').trim().slice(0, 60),
-        postcode: String(pl.postcode || '').trim().toUpperCase().slice(0, 10),
+        postcode: postIn,
         lat: lat,
         lng: lng
       };

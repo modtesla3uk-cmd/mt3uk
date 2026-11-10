@@ -524,6 +524,40 @@ def test_the_next_turn_is_spoken_as_the_phone_nears_it_and_the_voice_can_be_mute
     page.locator("#nav-exit").click()
 
 
+NO_SPEECH = """
+delete window.speechSynthesis;
+delete window.SpeechSynthesisUtterance;
+"""
+
+
+def test_the_speaker_still_shows_on_a_phone_with_no_voice_and_says_so(page):
+    _approve(page, True)
+    page.add_init_script(NO_SPEECH)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # The speaker is there while driving, greyed out, and says why when tapped.
+    expect(page.locator("#nav-voice")).to_be_visible()
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-label", "Voice directions are not available on this phone")
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator("#nav-voice-note")).to_be_hidden()
+    page.locator("#nav-voice").click()
+    expect(page.locator("#nav-voice-note")).to_be_visible()
+    expect(page.locator("#nav-voice-note")).to_contain_text("not available on this phone")
+    page.locator("#nav-exit").click()
+    expect(page.locator("#nav-voice")).to_be_hidden()
+
+
 def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fly_up(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)

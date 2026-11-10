@@ -168,8 +168,9 @@
   function startDrive() {
     if (!routeD || !map) return;
     driving = true;
+    // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
-    if (vbtn) vbtn.style.display = voiceAvailable() ? 'flex' : 'none';
+    if (vbtn) vbtn.style.display = 'flex';
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
@@ -190,6 +191,8 @@
     browsing = false;
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'none';
+    var vnote = $('nav-voice-note');
+    if (vnote) vnote.style.display = 'none';
     if (map) { map.dragging.enable(); map.touchZoom.enable(); }
     var w0 = drivingWrap();
     if (w0) w0.classList.remove('is-browsing', 'dirs-open');
@@ -210,28 +213,46 @@
   function makeVoiceButton() {
     var old = $('nav-voice');
     if (old && old.parentNode) old.parentNode.removeChild(old);
+    var oldNote = $('nav-voice-note');
+    if (oldNote && oldNote.parentNode) oldNote.parentNode.removeChild(oldNote);
     var wrap = document.querySelector('.nav-map-wrap');
     if (!wrap) return null;
+    var note = document.createElement('div');
+    note.id = 'nav-voice-note';
+    note.setAttribute('role', 'status');
+    note.textContent = 'Voice directions are not available on this phone';
+    note.style.cssText = 'position:absolute;right:64px;bottom:240px;z-index:1006;display:none;max-width:210px;background:#16233d;color:#fff;font:600 13px/1.3 system-ui,sans-serif;padding:8px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.25);';
     var b = document.createElement('button');
     b.type = 'button';
     b.id = 'nav-voice';
     b.style.cssText = 'position:absolute;right:12px;top:auto;bottom:228px;z-index:1006;width:44px;height:44px;border-radius:50%;border:1px solid #d8dbe2;background:#fff;color:#16233d;display:none;align-items:center;justify-content:center;padding:0;cursor:pointer;';
     b.addEventListener('click', function () {
+      if (!voiceAvailable()) {
+        // No speech on this phone (the Laps app's web view has none): say so for a moment instead of doing nothing.
+        note.style.display = 'block';
+        clearTimeout(voiceNoteTimer);
+        voiceNoteTimer = setTimeout(function () { note.style.display = 'none'; }, 3000);
+        return;
+      }
       voiceOn = !voiceOn;
       try { localStorage.setItem('mt3ukNavigateVoice', voiceOn ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
       if (!voiceOn && voiceAvailable()) window.speechSynthesis.cancel();
       setVoiceButton();
     });
+    wrap.appendChild(note);
     wrap.appendChild(b);
     return b;
   }
+  var voiceNoteTimer = null;
   function setVoiceButton() {
     var b = $('nav-voice');
     if (!b) return;
-    b.innerHTML = voiceOn ? VOICE_ON : VOICE_OFF;
-    b.style.color = voiceOn ? '#16233d' : '#8a94a6';
-    b.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
-    b.setAttribute('aria-label', voiceOn ? 'Turn voice directions off' : 'Turn voice directions on');
+    var can = voiceAvailable();
+    var on = can && voiceOn;
+    b.innerHTML = on ? VOICE_ON : VOICE_OFF;
+    b.style.color = on ? '#16233d' : '#8a94a6';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.setAttribute('aria-label', !can ? 'Voice directions are not available on this phone' : voiceOn ? 'Turn voice directions off' : 'Turn voice directions on');
   }
 
   // While driving, the map is moved by hand. One finger pans, and two fingers turn and zoom it. The screen movement is

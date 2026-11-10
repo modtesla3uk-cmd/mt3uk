@@ -528,15 +528,26 @@
           var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
           if (!c) return null;
           var seen = {}, names = [];
-          [p.name, p.street, p.district || p.locality, p.city, p.county, p.country].forEach(function (x) {
+          var street = p.street ? (p.housenumber ? p.housenumber + ' ' + p.street : p.street) : '';
+          [p.name, street, p.district || p.locality, p.city, p.county, p.country].forEach(function (x) {
             if (x && !seen[x]) { seen[x] = true; names.push(String(x)); }
           });
-          return { name: names.join(', ').slice(0, 120), at: [+c[1], +c[0]] };
+          var hay = [p.name, p.street, p.district, p.locality, p.city, p.county, p.postcode].filter(Boolean).join(' ').toLowerCase();
+          return { name: names.join(', ').slice(0, 120), at: [+c[1], +c[0]], hay: hay, house: p.housenumber ? String(p.housenumber) : '' };
         }).filter(Boolean);
       });
   }
   // A query of several words is also sent with its last word on its own, because the other words (Tesla, say) can
   // crowd out the place the member means: "Tesla Leic" then still brings up Leicester.
+  // How well a place matches what was typed: each word of the search that it contains (a street, a town), and a house
+  // number that is the same as the one typed. Places that match more come first; the nearest breaks a tie.
+  function matchScore(p, q) {
+    var words = String(q).toLowerCase().split(/[\s,]+/).filter(function (w) { return w.length > 1 && !/^\d+$/.test(w); });
+    var nums = String(q).match(/\d+/g) || [];
+    var n = words.filter(function (w) { return p.hay && p.hay.indexOf(w) >= 0; }).length;
+    if (p.house && nums.indexOf(p.house) >= 0) n += 3;
+    return n;
+  }
   function findPlace(q) {
     var words = q.split(/\s+/), last = words[words.length - 1];
     var asks = [photonPlaces(q)];
@@ -550,7 +561,8 @@
         });
       });
       if (lastFix) out.forEach(function (p) { p.km = metresBetween([lastFix.lat, lastFix.lng], p.at) / 1000; });
-      if (lastFix) out.sort(function (a, b) { return a.km - b.km; });
+      out.forEach(function (p) { p.score = matchScore(p, q); });
+      out.sort(function (a, b) { return (b.score - a.score) || (lastFix ? a.km - b.km : 0); });
       return out.slice(0, 5);
     });
   }

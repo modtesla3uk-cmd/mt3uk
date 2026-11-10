@@ -686,3 +686,18 @@ def test_an_input_event_after_a_suggestion_is_chosen_does_not_search_again(page)
     expect(page.locator("#nav-route")).to_be_visible()
     expect(page.locator("#nav-results button")).to_have_count(0)
     assert len(asked) >= 2, asked
+
+
+def test_a_street_and_town_typed_together_put_the_matching_street_first(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    def reply(route):
+        # Bedford has a road nearer the phone, but Ryder Way (in Flitwick) is the street the member typed.
+        places = [("Ashburnham Road", "Bedford", 52.13, -0.47), ("Ryder Way", "Flitwick", 52.0, -0.47)]
+        route.fulfill(status=200, content_type="application/json", body=_photon(*places), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/photon.komoot.io/**", reply)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("17 ryder way bedford")
+    expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("Ryder Way", timeout=5000)

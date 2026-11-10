@@ -109,12 +109,32 @@
   // Start route (a tap) also says the first step. The speaker button mutes it, and the choice is kept on this device.
   var voiceOn = true, spoken = {};
   try { voiceOn = localStorage.getItem('mt3ukNavigateVoice') !== 'off'; } catch (e) { voiceOn = true; }
+  // In the Laps app the phone's own speech comes through the app's TextToSpeech plugin, because the app's web view
+  // has no speech of its own. Anywhere else the browser's speech is used.
+  function nativeSpeech() {
+    var C = window.Capacitor;
+    if (!C || !C.isNativePlatform || !C.isNativePlatform() || !C.Plugins || !C.Plugins.TextToSpeech) return null;
+    return C.Plugins.TextToSpeech;
+  }
   function voiceAvailable() {
-    return 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance !== 'undefined';
+    return !!nativeSpeech() || ('speechSynthesis' in window && typeof window.SpeechSynthesisUtterance !== 'undefined');
+  }
+  function stopSpeech() {
+    try {
+      var n = nativeSpeech();
+      if (n) { n.stop(); return; }
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } catch (e) { /* speech blocked on this device */ }
   }
   function say(text, cancelFirst) {
     if (!voiceOn || !voiceAvailable() || !text) return;
     try {
+      var n = nativeSpeech();
+      if (n) {
+        // Flush starts the new turn at once; Add waits for the one being said.
+        n.speak({ text: text, lang: 'en-GB', rate: 1, volume: 1, queueStrategy: cancelFirst ? 0 : 1 }).catch(function () { /* the app could not speak */ });
+        return;
+      }
       if (cancelFirst) window.speechSynthesis.cancel();
       var u = new window.SpeechSynthesisUtterance(text);
       u.lang = 'en-GB';
@@ -196,7 +216,7 @@
     if (map) { map.dragging.enable(); map.touchZoom.enable(); }
     var w0 = drivingWrap();
     if (w0) w0.classList.remove('is-browsing', 'dirs-open');
-    if (voiceAvailable()) window.speechSynthesis.cancel();
+    if (voiceAvailable()) stopSpeech();
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.remove('is-driving');
     applyRotation();
@@ -236,7 +256,7 @@
       }
       voiceOn = !voiceOn;
       try { localStorage.setItem('mt3ukNavigateVoice', voiceOn ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
-      if (!voiceOn && voiceAvailable()) window.speechSynthesis.cancel();
+      if (!voiceOn && voiceAvailable()) stopSpeech();
       setVoiceButton();
     });
     wrap.appendChild(note);

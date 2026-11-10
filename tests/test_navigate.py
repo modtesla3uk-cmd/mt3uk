@@ -558,6 +558,54 @@ def test_the_speaker_still_shows_on_a_phone_with_no_voice_and_says_so(page):
     expect(page.locator("#nav-voice")).to_be_hidden()
 
 
+NATIVE_SPEECH = """
+window.__nativeSaid = [];
+window.__nativeStops = 0;
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { TextToSpeech: {
+  speak: function (o) { window.__nativeSaid.push(o.text); return Promise.resolve(); },
+  stop: function () { window.__nativeStops++; return Promise.resolve(); } } } };
+delete window.speechSynthesis;
+delete window.SpeechSynthesisUtterance;
+"""
+
+
+def test_in_the_laps_app_the_turns_are_spoken_by_the_apps_speech_plugin(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_SPEECH)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # The speaker is live (not greyed out) and the app's plugin says the first step, then the next turn.
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-label", "Turn voice directions off")
+    waited = 0
+    said = []
+    while waited < 5000:
+        said = page.evaluate("() => window.__nativeSaid")
+        if any("turn left onto Church Road" in s.lower() for s in said):
+            break
+        page.wait_for_timeout(200)
+        waited += 200
+    assert said[0] == "Head north on Maple Close", said
+    assert "In 300 yards, turn left onto Church Road" in said, said
+    expect(page.locator("#nav-voice-note")).to_be_hidden()
+    # Muting stops the app's speech and is remembered.
+    page.locator("#nav-voice").click()
+    expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "false")
+    assert page.evaluate("() => window.__nativeStops") >= 1
+    page.locator("#nav-exit").click()
+
+
 def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fly_up(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)

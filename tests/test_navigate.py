@@ -398,3 +398,85 @@ def test_the_route_panel_follows_the_finger_and_springs_back_on_a_short_drag(pag
     # A short drag springs back to folded.
     page.wait_for_timeout(400)
     expect(page.locator("#nav-route")).to_have_class(re.compile(r"is-collapsed"))
+
+
+GEO_LEAVES_ROUTE = """
+(function () {
+  var t0 = Date.now();
+  navigator.geolocation.watchPosition = function (ok) {
+    var t = setInterval(function () {
+      // On the route at first, then well off it (about 8 km north) once the route is drawn.
+      var away = Date.now() - t0 > 1500;
+      ok({ coords: { latitude: away ? 52.2 : 52.124, longitude: -0.9955, accuracy: 3, speed: 8.3 }, timestamp: Date.now() });
+    }, 200);
+    return 7;
+  };
+  navigator.geolocation.clearWatch = function () {};
+})();
+"""
+
+
+def test_leaving_the_route_works_out_a_new_one_from_where_the_phone_is(page):
+    _approve(page, True)
+    # Shorter waits for the test, so a reroute happens within seconds.
+    page.add_init_script("window.MT3UK_REROUTE_AFTER_MS = 300; window.MT3UK_REROUTE_GAP_MS = 300;")
+    page.add_init_script(GEO_LEAVES_ROUTE)
+    asked = []
+    def reply(route):
+        asked.append(route.request.post_data)
+        route.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", reply)
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Church Road", "Towcester", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    page.wait_for_timeout(600)
+    page.locator("#nav-to-q").fill("Church Road")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    # The first route, then at least one new route from the phone's position well off the line.
+    waited = 0
+    while len(asked) < 2 and waited < 10000:
+        page.wait_for_timeout(200)
+        waited += 200
+    assert len(asked) >= 2, asked
+    assert json.loads(asked[-1])["from"][0] > 52.19, asked[-1]
+    expect(page.locator("#nav-route")).to_be_visible()
+
+
+GEO_HEADING_EAST = """
+navigator.geolocation.watchPosition = function (ok) {
+  var t = setInterval(function () {
+    // Moving at about 30 km/h, heading due east (90 degrees).
+    ok({ coords: { latitude: 52.124, longitude: -0.9955, accuracy: 3, speed: 8.3, heading: 90 }, timestamp: Date.now() });
+  }, 200);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_start_route_fills_the_screen_and_turns_the_map_to_the_direction_of_travel(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    # Open the directions, then start the route.
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)  # let the panel finish opening before pressing Start
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    expect(page.locator("#nav-turn-text")).to_have_text("Head north on Maple Close")
+    expect(page.locator("#nav-eta")).to_contain_text("min")
+    # Zoomed in closer for driving.
+    assert page.evaluate("() => window.MT3UKNavigate.map().getZoom()") == 18
+    # The map turns so that due east (90 degrees) points up.
+    # Tilted like a 3D view, and turned so the heading is up.
+    page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-90deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
+    page.locator("#nav-exit").click()
+    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-driving"))

@@ -52,6 +52,74 @@
     marker = L.circleMarker([lat, lng], { radius: 8, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
   }
 
+  // While driving the map turns so the direction of travel points up, and leans back like a sat-nav's 3D view.
+  function applyRotation() {
+    var el = $('nav-map');
+    if (!el) return;
+    if (!driving) { el.style.transform = ''; return; }
+    var turn = heading !== null ? -heading : 0;
+    el.style.transform = 'perspective(900px) rotateX(' + DRIVE_TILT + 'deg) rotate(' + turn + 'deg)';
+  }
+  // Arrows for the turn card: straight on unless the step says left or right.
+  var ARROWS = {
+    straight: 'M12 19V5M5 12l7-7 7 7',
+    left: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 6 6v5',
+    right: 'M15 14l5-5-5-5M20 9H10a6 6 0 0 0-6 6v5'
+  };
+  function turnArrow(text) {
+    var t = String(text || '').toLowerCase(), key = /\bleft\b/.test(t) ? 'left' : /\bright\b/.test(t) ? 'right' : 'straight';
+    var el = $('nav-turn-arrow');
+    if (el) el.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + ARROWS[key] + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  // Driving zoom: closer than the map's usual view, so the next turns are easy to read.
+  var DRIVE_ZOOM = 18;
+  function followPhone(zoom) {
+    if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], zoom || map.getZoom(), { animate: false });
+  }
+  // The turn card and the bottom bar: the step we are on and the distance to its end, the time and distance left.
+  function updateDrive() {
+    if (!driving || !routeD || !lastFix) return;
+    var left = leftOnRoute();
+    if (left === null) return;
+    var steps = routeD.steps || [], total = 0;
+    steps.forEach(function (st) { total += st.distanceM || 0; });
+    var done = 0, cur = steps.length - 1;
+    for (var k = 0; k < steps.length; k++) {
+      done += steps[k].distanceM || 0;
+      if (left > total - done) { cur = k; break; }
+    }
+    var toTurn = Math.max(0, left - (total - done));
+    if (left < 25) { set('nav-turn-text', 'You have arrived'); set('nav-turn-dist', ''); turnArrow('straight'); }
+    else if (steps[cur]) { set('nav-turn-text', steps[cur].text); set('nav-turn-dist', 'in ' + distText(toTurn)); turnArrow(steps[cur].text); }
+    var secs = routeD.distanceM ? routeD.durationS * left / routeD.distanceM : 0;
+    var arrive = new Date(Date.now() + secs * 1000);
+    set('nav-eta', Math.max(1, Math.round(secs / 60)) + ' min');
+    set('nav-left', distText(left) + ' \u00b7 ' + arrive.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+    set('nav-drive-speed', ($('nav-speed') || {}).textContent || '\u2013');
+    set('nav-drive-unit', mph ? 'mph' : 'km/h');
+  }
+  function startDrive() {
+    if (!routeD || !map) return;
+    driving = true;
+    $('nav-route').classList.remove('is-dragging');
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (wrap) wrap.classList.add('is-driving');
+    map.invalidateSize();
+    followPhone(DRIVE_ZOOM);
+    applyRotation();
+    updateDrive();
+  }
+  function stopDrive() {
+    driving = false;
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (wrap) wrap.classList.remove('is-driving');
+    applyRotation();
+    if (map) {
+      map.invalidateSize();
+      if (routeLayer) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
+    }
+  }
+
   function showSpeed() {
     if (lastKph === null) return;
     set('nav-speed', String(Math.round(mph ? lastKph * 0.621371 : lastKph)));
@@ -62,12 +130,15 @@
 
   function onPosition(p) {
     var c = p.coords;
-    lastFix = { lat: c.latitude, lng: c.longitude, t: p.timestamp };
+    lastFix = { lat: c.latitude, lng: c.longitude, t: p.timestamp, acc: c.accuracy };
     updateToGo();
+    checkOffRoute();
     status('Your phone has a fix.');
     // Anything under 1 km/h (about 0.6 mph) shows as stopped, so walking pace shows. Parked GPS speed can still wander above this.
     if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6 < 1 ? 0 : c.speed * 3.6; showSpeed(); }
     else { set('nav-speed', '–'); }
+    // The direction of travel is only trusted while moving (above about 2 km/h).
+    if (c.heading != null && !isNaN(c.heading) && lastKph > 2) heading = c.heading;
     if (c.heading != null && !isNaN(c.heading)) {
       set('nav-card', compass(c.heading));
       set('nav-deg', Math.round(c.heading) + '°');
@@ -92,6 +163,7 @@
       trail.addLatLng(here);
       map.panTo(here, { animate: false });
     });
+    if (driving) { applyRotation(); updateDrive(); }
   }
 
   function onError(err) {
@@ -118,6 +190,7 @@
 
   // Distances follow the speed unit: miles (yards under a tenth of a mile) with mph, metres and km with km/h.
   var routeD = null;
+  var driving = false, heading = null, DRIVE_TILT = 58;
   function distText(m) {
     if (mph) {
       var mi = m / 1609.344;
@@ -191,6 +264,9 @@
     }
     function dragStart(e) {
       if (e.button) return;
+      // A button inside the summary (Start route) is left to its own click, which the pointer capture below would take.
+      var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+      if (btn && btn !== e.currentTarget) return;
       var panel = $('nav-route');
       if (!panel) return;
       var folded = panel.classList.contains('is-collapsed');
@@ -238,6 +314,9 @@
         el.addEventListener('pointercancel', dragCancel);
       });
     }
+    var st = $('nav-start'), ex = $('nav-exit');
+    if (st) st.addEventListener('click', startDrive);
+    if (ex) ex.addEventListener('click', stopDrive);
     var rc = $('nav-recentre');
     if (rc) rc.addEventListener('click', function () { if (map && lastFix) map.setView([lastFix.lat, lastFix.lng], map.getZoom(), { animate: true }); });
     var go = $('nav-go'), q = $('nav-to-q');
@@ -381,16 +460,20 @@
       showResults(list);
     }).catch(function () { setRouteMsg('The place search did not answer. Try again.', true); });
   }
+  function requestRoute() {
+    return fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && !!d.success, d: d }; }); });
+  }
   function routeTo() {
     if (!dest) return;
     if (!lastFix) return setRouteMsg('Waiting for your phone\u2019s position before a route can start.', true);
+    reroutes = 0; // a new trip
     setRouteMsg('Working out the route...');
-    fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at }) })
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && !!d.success, d: d }; }); })
+    requestRoute()
       .then(function (res) { if (!res.ok) return setRouteMsg(res.d.message || 'The route could not be worked out.', true); drawRoute(res.d); })
       .catch(function () { setRouteMsg('The route could not be worked out. Check the connection and try again.', true); });
   }
-  function drawRoute(d) {
+  function drawRoute(d, silent) {
     setRouteMsg('');
     loadLeaflet(function () {
       if (!map || !window.L) return;
@@ -398,7 +481,7 @@
       if (destMarker) map.removeLayer(destMarker);
       routeLayer = L.polyline(d.line, { color: '#1c6fd6', weight: 6, opacity: 0.85 }).addTo(map);
       destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
-      map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
+      if (!silent) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     });
     // A new route opens folded: the handle and Drive heading show, and the member taps the handle for the directions.
     $('nav-route').hidden = false;
@@ -409,8 +492,9 @@
     routeD = d;
     renderRouteText();
     updateToGo();
-    // Folded once the directions are in, so the folded height is measured with the full panel.
-    setRouteFolded(true);
+    // Folded once the directions are in, so the folded height is measured with the full panel. A new route on the way
+    // keeps the fold the member has chosen.
+    if (!silent) setRouteFolded(true);
   }
   // The route's length and turns, in the unit now shown.
   function renderRouteText() {
@@ -426,9 +510,9 @@
       ul.appendChild(li);
     });
   }
-  // The distance still to drive along the route line: from the point on it nearest the phone to its end. Returns null
-  // when there is no route line yet.
-  function leftOnRoute() {
+  // The point on the route line nearest the phone: how far off the line it is, and where on the line that point is.
+  // Null when there is no route line yet.
+  function nearestOnRoute() {
     var line = routeD && routeD.line;
     if (!line || line.length < 2 || !lastFix) return null;
     var k = Math.cos(lastFix.lat * Math.PI / 180), best = null;
@@ -442,9 +526,48 @@
       var d = metresBetween([lastFix.lat, lastFix.lng], q);
       if (!best || d < best.d) best = { d: d, q: q, i: i };
     }
-    var left = metresBetween(best.q, line[best.i + 1]);
-    for (var j = best.i + 1; j < line.length - 1; j++) left += metresBetween(line[j], line[j + 1]);
+    return best;
+  }
+  // The distance still to drive along the route line: from that nearest point to the end.
+  function leftOnRoute() {
+    var near = nearestOnRoute();
+    if (!near) return null;
+    var line = routeD.line;
+    var left = metresBetween(near.q, line[near.i + 1]);
+    for (var j = near.i + 1; j < line.length - 1; j++) left += metresBetween(line[j], line[j + 1]);
     return left;
+  }
+
+  // Rerouting: when the phone has been well off the line for a while, a new route is worked out from where it is now to
+  // the same place. Each one costs a routing request, so there is a gap between them and a limit per trip. A new route
+  // keeps the panel's fold and does not move the map.
+  var REROUTE_OFF_M = 60, REROUTE_AFTER_MS = window.MT3UK_REROUTE_AFTER_MS || 10000;
+  var REROUTE_GAP_MS = window.MT3UK_REROUTE_GAP_MS || 30000, REROUTE_MAX = 8;
+  var offSince = 0, lastReroute = 0, reroutes = 0, rerouting = false;
+  function checkOffRoute() {
+    if (!routeD || !dest || !lastFix || rerouting) return;
+    var near = nearestOnRoute();
+    if (!near) return;
+    if (near.d <= Math.max(REROUTE_OFF_M, lastFix.acc || 0)) { offSince = 0; return; }
+    var now = Date.now();
+    if (!offSince) offSince = now;
+    if (now - offSince < REROUTE_AFTER_MS || now - lastReroute < REROUTE_GAP_MS || reroutes >= REROUTE_MAX) return;
+    rerouteNow();
+  }
+  function rerouteNow() {
+    rerouting = true;
+    lastReroute = Date.now();
+    offSince = 0;
+    reroutes++;
+    setRouteMsg('Off the route. Working out a new one...');
+    requestRoute().then(function (res) {
+      rerouting = false;
+      if (!res.ok) return setRouteMsg('Could not work out a new route. Carry on, or try again.', true);
+      drawRoute(res.d, true);
+    }).catch(function () {
+      rerouting = false;
+      setRouteMsg('Could not work out a new route. Check the connection.', true);
+    });
   }
   // The distance to go as the phone's position moves: along the route when there is one, else straight-line.
   // Off-route rerouting is not in this version.

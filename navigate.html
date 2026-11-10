@@ -393,6 +393,28 @@
   .nav-route { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002; max-height: 62%; display: flex; flex-direction: column; background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 18px rgba(0,0,0,.2); transform: translateY(var(--nav-y, 0px)); transition: transform .25s ease-out; animation: navFlyUp .35s ease-out; }
   @keyframes navFlyUp { from { transform: translateY(100%); } to { transform: translateY(var(--nav-y, 0px)); } }
   .nav-route.is-dragging { transition: none; animation: none; }
+  .nav-start { width: 100%; min-height: 48px; margin-top: 6px; border: 0; border-radius: var(--radius, 10px); background: #16233d; color: #fff; font: 700 1rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .nav-turn, .nav-drive-bar { display: none; }
+  /* Driving: the map fills the screen and turns to the direction of travel, with the turn card and a bottom bar over it. */
+  .nav-map-wrap.is-driving { position: fixed; inset: 0; margin: 0; z-index: 3000; background: #ececec; overflow: hidden; }
+  /* A square larger than the screen, centred on the phone, so it still covers the screen when turned and tilted. */
+  .nav-map-wrap.is-driving .nav-map { position: absolute; left: 50%; top: 50%; width: 300vmax; height: 300vmax; margin: -150vmax 0 0 -150vmax; border: 0; border-radius: 0; transition: transform .4s linear; }
+  .nav-map-wrap.is-driving .leaflet-control-container { display: none; }
+  .nav-map-wrap.is-driving .nav-unit-pill, .nav-map-wrap.is-driving .recentre, .nav-map-wrap.is-driving .nav-route { display: none; }
+  .nav-map-wrap.is-driving .nav-turn { display: flex; position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1005; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #0c6b5c; color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  .nav-turn-arrow { flex: none; width: 44px; height: 44px; }
+  .nav-turn-arrow svg { width: 100%; height: 100%; }
+  .nav-turn b { display: block; font-size: 1.1rem; line-height: 1.25; }
+  .nav-turn span { display: block; font-weight: 600; opacity: .9; }
+  .nav-map-wrap.is-driving .nav-drive-bar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; z-index: 1005; align-items: center; gap: 12px; padding: 12px 16px 18px; border-radius: 16px 16px 0 0; background: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,.2); }
+  .nav-exit { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--hairline, #d8dbe2); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; cursor: pointer; }
+  .nav-exit svg { width: 22px; height: 22px; }
+  .nav-drive-info { flex: 1; min-width: 0; }
+  .nav-drive-info b { display: block; font-size: 1.2rem; color: #1c8a4b; }
+  .nav-drive-info span { color: #5b6475; font-weight: 600; }
+  .nav-drive-speed { flex: none; text-align: right; }
+  .nav-drive-speed b { font-size: 1.4rem; }
+  .nav-drive-speed span { color: #5b6475; font-weight: 600; }
   @media (prefers-reduced-motion: reduce) { .nav-route { animation: none; } }
   .nav-route[hidden] { display: none; }
   .nav-route-handle, .nav-route-head, .nav-route-summary { touch-action: none; }
@@ -497,12 +519,22 @@
       <div id="nav-map" class="nav-map" hidden></div>
       <button type="button" class="nav-unit-pill" id="nav-unit" aria-pressed="false">Show in mph</button>
       <button type="button" class="recentre" id="nav-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+      <div class="nav-turn" id="nav-turn" aria-live="polite">
+        <span class="nav-turn-arrow" id="nav-turn-arrow"></span>
+        <div><b id="nav-turn-text">&ndash;</b><span id="nav-turn-dist"></span></div>
+      </div>
+      <div class="nav-drive-bar" id="nav-drive-bar">
+        <button type="button" class="nav-exit" id="nav-exit" aria-label="End the route"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+        <div class="nav-drive-info"><b id="nav-eta">&ndash;</b><span id="nav-left">&ndash;</span></div>
+        <div class="nav-drive-speed"><b id="nav-drive-speed">&ndash;</b> <span id="nav-drive-unit">mph</span></div>
+      </div>
       <div class="nav-route" id="nav-route" hidden>
         <button type="button" class="nav-route-handle" id="nav-route-handle" aria-expanded="true" aria-label="Show or hide the route"><span></span></button>
         <div class="nav-route-head" aria-hidden="true"><b>Drive</b> <span id="nav-route-short">&ndash;</span></div>
         <div class="nav-route-summary">
           <b id="nav-route-len">&ndash;</b>
           <span id="nav-route-to">&ndash;</span>
+          <button type="button" class="nav-start" id="nav-start">Start route</button>
         </div>
         <div class="nav-route-body">
           <dl class="nav-route-stats"><div><dt>To go on the route</dt><dd id="nav-togo">&ndash;</dd></div></dl>
@@ -570,6 +602,6 @@
       });
   })();
 </script>
-<script src="js/navigate.js?v=16" defer></script>
+<script src="js/navigate.js?v=17" defer></script>
 </body>
 </html>

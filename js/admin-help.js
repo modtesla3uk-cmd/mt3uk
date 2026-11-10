@@ -193,6 +193,10 @@
       ['Off, Testers only, Everyone', 'Off hides them from everyone. Testers only shows them to the people on the testers list. Everyone opens them to all members.'],
       ['Add tester', 'Type a member\'s email, or find them by name, to let them use sprints and hill climbs. No email is sent.'],
     ] },
+    'nav-places-wrap': { t: 'Navigate addresses', p: 'Addresses that Navigate finds alongside the map\'s own data, for houses the map does not have yet, such as 17 Ryder Way in Flitwick.', i: [
+      ['Add an address', 'Saves a house, street or place with its town, postcode and position. Navigate finds it when a member types it in the destination.'],
+      ['Remove', 'Takes an address off the list. Navigate stops offering it straight away.'],
+    ] },
     'racebox-wrap': { t: 'RaceBox test in the Laps app', p: 'The RaceBox test panel on the Profile page of the Laps app. It is still being worked on, so only the members you approve see it in the Laps app, and you.', i: [
       ['Open to all members', 'Shows the panel to everyone using the Laps app. Off leaves it to the approved members.'],
       ['Approved members', 'Members who see the panel in the Laps app. Take away hides it from them again.'],

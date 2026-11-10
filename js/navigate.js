@@ -485,9 +485,15 @@
     var go = $('nav-go'), add = $('nav-add-stop');
     if (go) go.addEventListener('click', askRoute);
     if (add) add.addEventListener('click', addStop);
+    var pinBtn = $('nav-pin'), pinUse = $('nav-pin-use'), pinCancel = $('nav-pin-cancel'), stopsEl = $('nav-stops');
+    if (pinBtn) pinBtn.addEventListener('click', startPin);
+    if (pinUse) pinUse.addEventListener('click', usePin);
+    if (pinCancel) pinCancel.addEventListener('click', endPin);
+    if (stopsEl) stopsEl.addEventListener('focusin', function (e) { if (e.target.dataset && e.target.dataset.i !== undefined) activeStop = Number(e.target.dataset.i); });
     renderStops();
     approved().then(function (ok) {
       if (!ok) return;
+      loadLocalPlaces(); // the addresses are loaded before the first search
       $('nav-gate').hidden = true;
       $('nav-body').hidden = false;
       start();
@@ -549,11 +555,37 @@
     if (p.house && nums.indexOf(p.house) >= 0) n += 0.5;
     return n;
   }
+  // Addresses the admin keeps for houses the map does not have (see track-admin.html, Navigate addresses). Loaded once
+  // per page, for approved members; a failed load is tried again on the next search.
+  var localPlaces = null;
+  function loadLocalPlaces() {
+    if (localPlaces !== null) return;
+    localPlaces = [];
+    fetch(WORKER + '/navigate/places', { headers: { 'X-Session-Token': session() } })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (d) { localPlaces = d && d.success && Array.isArray(d.places) ? d.places : []; })
+      .catch(function () { localPlaces = null; });
+  }
+  function localMatches() {
+    return (localPlaces || []).map(function (pl) {
+      var label = (pl.house ? pl.house + ' ' : '') + (pl.name || '');
+      var parts = [label, pl.town, pl.postcode].filter(Boolean);
+      return {
+        name: parts.join(', ').slice(0, 120),
+        at: [+pl.lat, +pl.lng],
+        hay: parts.join(' ').toLowerCase(),
+        house: pl.house ? String(pl.house) : '',
+        local: true
+      };
+    });
+  }
   function findPlace(q) {
+    loadLocalPlaces();
     var words = q.split(/\s+/), last = words[words.length - 1];
     var asks = [photonPlaces(q)];
     if (words.length > 1 && last.length >= 3) asks.push(photonPlaces(last));
     return Promise.all(asks).then(function (lists) {
+      lists.push(localMatches());
       var seen = {}, out = [];
       lists.forEach(function (list) {
         list.forEach(function (p) {
@@ -563,13 +595,15 @@
       });
       if (lastFix) out.forEach(function (p) { p.km = metresBetween([lastFix.lat, lastFix.lng], p.at) / 1000; });
       out.forEach(function (p) { p.score = matchScore(p, q); });
+      // An address from the list is only offered when what was typed matches it.
+      out = out.filter(function (p) { return !p.local || p.score > 0; });
       out.sort(function (a, b) { return (b.score - a.score) || (lastFix ? a.km - b.km : 0); });
       return out.slice(0, 5);
     });
   }
   // The route's stops, in order: the last one is the destination. Each has its own search line, with suggestions in
   // light grey while typing (after three letters and a short pause, so the place service is not asked on every key).
-  var stops = [{ text: '', place: null }], wantRoute = false;
+  var stops = [{ text: '', place: null }], wantRoute = false, activeStop = null, pinIndex = 0;
   var suggestTimer = null, suggestSeq = 0;
   var GRIP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7" fill="currentColor"/><circle cx="15" cy="6" r="1.7" fill="currentColor"/><circle cx="9" cy="12" r="1.7" fill="currentColor"/><circle cx="15" cy="12" r="1.7" fill="currentColor"/><circle cx="9" cy="18" r="1.7" fill="currentColor"/><circle cx="15" cy="18" r="1.7" fill="currentColor"/></svg>';
   var X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
@@ -657,6 +691,32 @@
     grip.addEventListener('pointermove', move);
     grip.addEventListener('pointerup', end);
     grip.addEventListener('pointercancel', end);
+  }
+  // Pin on map: the map shows a pin in its middle; the member pans the map until the pin is on the place and taps Use
+  // this point. The point becomes the stop last typed in (or the destination), with its position as the place.
+  function startPin() {
+    if (!map) return setRouteMsg('Wait for your phone to find its position, then pin the place on the map.', true);
+    pinIndex = activeStop !== null && activeStop < stops.length ? activeStop : stops.length - 1;
+    clearSuggestions();
+    var wrap = document.querySelector('.nav-map-wrap'), pin = $('nav-pin-mode');
+    if (wrap) wrap.classList.add('is-pinning');
+    if (pin) pin.hidden = false;
+    setRouteMsg('Move the map so the pin is on the place, then tap Use this point.');
+    map.invalidateSize();
+    if (wrap) wrap.scrollIntoView({ block: 'center' });
+  }
+  function endPin() {
+    var wrap = document.querySelector('.nav-map-wrap'), pin = $('nav-pin-mode');
+    if (wrap) wrap.classList.remove('is-pinning');
+    if (pin) pin.hidden = true;
+    setRouteMsg('');
+  }
+  function usePin() {
+    if (!map) return endPin();
+    var c = map.getCenter(), i = pinIndex;
+    var place = { name: 'Pinned point, ' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5), at: [c.lat, c.lng] };
+    endPin();
+    choose(place, i);
   }
   function addStop() {
     stops.splice(stops.length - 1, 0, { text: '', place: null });

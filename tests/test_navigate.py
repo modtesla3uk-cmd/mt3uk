@@ -1,6 +1,7 @@
 """navigate.html: the phone's own location on a map, for approved members. The RaceBox is not needed."""
 import json
 import re
+import subprocess
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -716,3 +717,55 @@ def test_a_house_number_alone_does_not_beat_the_street_and_town_typed(page):
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     page.locator("#nav-to-q").fill("17 ryder way flitwick")
     expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("Flitwick", timeout=5000)
+
+
+def test_a_point_pinned_on_the_map_becomes_the_destination_and_is_routed_to(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    asked = []
+    def reply(route):
+        asked.append(route.request.post_data)
+        route.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", reply)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-map")).to_be_visible(timeout=10000)
+    page.locator("#nav-pin").click()
+    expect(page.locator("#nav-pin-mode")).to_be_visible()
+    # Move the map so the pin is on the house, then use that point.
+    page.evaluate("() => window.MT3UKNavigate.map().setView([52.0109, -0.5090], 17, { animate: false })")
+    page.locator("#nav-pin-use").click()
+    expect(page.locator("#nav-pin-mode")).to_be_hidden()
+    expect(page.locator("#nav-to-q")).to_have_value(re.compile(r"Pinned point"))
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    post = json.loads(asked[-1])
+    assert abs(post["to"][0] - 52.0109) < 0.001 and abs(post["to"][1] + 0.5090) < 0.001, post
+
+
+def test_an_address_the_admin_added_is_found_first_when_it_is_typed(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    page.route("**/navigate/places", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"places":[{"id":"p1","name":"Ryder Way","house":"17","street":"","town":"Flitwick","postcode":"MK45 1GN","lat":52.0109,"lng":-0.509}]}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Ryder Way", "Flitwick", 52.0114, -0.5081)), headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.wait_for_timeout(400)
+    page.locator("#nav-to-q").fill("17 ryder way flitwick")
+    expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("17 Ryder Way", timeout=5000)
+    expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("MK45 1GN")
+
+
+def test_the_navigate_address_list_on_the_worker_adds_and_removes_with_the_admin_key(tmp_path):
+    source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
+    module = tmp_path / "worker.mjs"
+    module.write_text(source, encoding="utf-8")
+    result = subprocess.run(
+        ["node", str(ROOT / "tests" / "navigate_places_check.mjs")],
+        env={"WORKER_MODULE": module.as_uri(), "PATH": "/usr/bin:/usr/local/bin:/bin", "TZ": "UTC"},
+        capture_output=True, text=True, timeout=60,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "FAIL" not in result.stdout, result.stdout

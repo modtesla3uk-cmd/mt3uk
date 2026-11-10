@@ -395,6 +395,13 @@
   .nav-stop-actions { display: flex; gap: 8px; margin-top: 8px; }
   .nav-stop-actions .btn { min-height: 44px; flex: none; }
   .nav-stop-actions #nav-go { margin-left: auto; }
+  .nav-stop-actions { flex-wrap: wrap; }
+  .nav-pin-mode { position: absolute; inset: 0; z-index: 1003; pointer-events: none; }
+  .nav-pin-mode[hidden] { display: none; }
+  .nav-pin-icon { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; transform: translate(-50%, -100%); color: #e8542a; pointer-events: none; }
+  .nav-pin-icon svg { width: 100%; height: 100%; }
+  .nav-pin-bar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; gap: 8px; pointer-events: auto; }
+  .nav-pin-bar .btn { flex: 1 1 auto; min-height: 44px; }
   .nav-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
   .nav-results:empty { display: none; }
   .nav-results.is-suggest button { color: #8a94a6; font-weight: 500; background: #fafbfc; border-color: #e4e7ec; }
@@ -540,6 +547,7 @@
       <ol class="nav-stops" id="nav-stops" aria-label="Stops"></ol>
       <div class="nav-stop-actions">
         <button type="button" class="btn btn-secondary" id="nav-add-stop">Add a stop</button>
+        <button type="button" class="btn btn-secondary" id="nav-pin">Pin on map</button>
         <button type="button" class="btn btn-accent" id="nav-go">Route</button>
       </div>
       <ul class="nav-results" id="nav-results"></ul>
@@ -547,6 +555,10 @@
     </form>
     <div class="nav-map-wrap">
       <div id="nav-map" class="nav-map" hidden></div>
+      <div class="nav-pin-mode" id="nav-pin-mode" hidden>
+        <span class="nav-pin-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg></span>
+        <div class="nav-pin-bar"><button type="button" class="btn btn-accent" id="nav-pin-use">Use this point</button><button type="button" class="btn btn-secondary" id="nav-pin-cancel">Cancel</button></div>
+      </div>
       <button type="button" class="nav-unit-pill" id="nav-unit" aria-pressed="false">Show in mph</button>
       <button type="button" class="recentre" id="nav-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
       <div class="nav-turn" id="nav-turn" aria-live="polite">

@@ -335,6 +335,22 @@
 
   <section class="admin-group" id="grp-content" aria-labelledby="grp-content-h">
     <div class="group-head"><h2 id="grp-content-h">Content</h2><p>The words, tyres, vehicles and shared-link picture that Track sessions shows.</p></div>
+    <details class="collapsible" id="nav-places-wrap">
+      <summary><h3 class="panel-title">Navigate addresses <span class="summary-count" id="nav-places-count"></span></h3></summary>
+      <p class="iv-note">Addresses that Navigate finds alongside the map's own data, for houses the map does not have yet, such as 17 Ryder Way in Flitwick. Give the house number, the street or place name, the town and the postcode, and the position as latitude, longitude. To get the position, pin the house on Navigate and copy the figures from the pinned point, or from Google Maps.</p>
+      <p class="iv-note" id="nav-places-note" role="status"></p>
+      <h3 class="sub-head">Add an address</h3>
+      <div class="iv-toolbar">
+        <input type="text" id="np-house" placeholder="House, e.g. 17" aria-label="House number">
+        <input type="text" id="np-name" placeholder="Street or place name" aria-label="Street or place name">
+        <input type="text" id="np-town" placeholder="Town" aria-label="Town">
+        <input type="text" id="np-postcode" placeholder="Postcode" aria-label="Postcode">
+        <input type="text" id="np-position" placeholder="Latitude, longitude" aria-label="Latitude and longitude">
+        <button type="button" class="secondary" id="np-add">Add address</button>
+      </div>
+      <h3 class="sub-head">Addresses</h3>
+      <div id="np-list"></div>
+    </details>
     <div class="panel-wrap">
     <details class="collapsible" id="copy-wrap">
       <summary><h3 class="panel-title">Welcome text</h3></summary>
@@ -491,6 +507,7 @@
 <script src="js/member-finder.js?v=1" defer></script>
 <script src="js/laps-offline-admin.js?v=3" defer></script>
 <script src="js/racebox-admin.js?v=1" defer></script>
+<script src="js/nav-places-admin.js?v=1" defer></script>
 <script src="js/sessions-tree-admin.js?v=2" defer></script>
 <script src="js/tiers-admin.js?v=19" defer></script>
 <script src="js/paypal-admin.js?v=2" defer></script>

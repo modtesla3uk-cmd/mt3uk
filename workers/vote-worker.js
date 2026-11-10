@@ -8239,6 +8239,50 @@ async function handleNavigateRoute(request, env) {
     steps: steps
   });
 }
+// Addresses Navigate finds alongside the map's own data, for houses the map does not have yet. One KV key, kept by
+// the admin on track-admin.html (Navigate addresses).
+var NAV_PLACES_KEY = 'navigate-places';
+async function getNavigatePlaces(env) {
+  var a = await getJsonKey(env, NAV_PLACES_KEY, []);
+  return Array.isArray(a) ? a : [];
+}
+async function handleNavigatePlaces(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
+  if (!(a.open || a.allowed.some(function (x) { return x.email === e; }))) return json({ success: false, message: 'Navigate is not open to this account yet' }, 403);
+  return json({ success: true, places: await getNavigatePlaces(env) });
+}
+async function handleNavigatePlacesAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getNavigatePlaces(env);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    if (body.action === 'remove') {
+      var id = String(body.id || '');
+      list = list.filter(function (p) { return p.id !== id; });
+    } else if (body.action === 'add') {
+      var pl = body.place || {}, name = String(pl.name || '').trim().slice(0, 120), lat = +pl.lat, lng = +pl.lng;
+      if (!name || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return json({ success: false, message: 'Give a name and a position (latitude and longitude)' }, 400);
+      list.unshift({
+        id: 'p' + Date.now().toString(36),
+        name: name,
+        house: String(pl.house || '').trim().slice(0, 10),
+        street: String(pl.street || '').trim().slice(0, 80),
+        town: String(pl.town || '').trim().slice(0, 60),
+        postcode: String(pl.postcode || '').trim().toUpperCase().slice(0, 10),
+        lat: lat,
+        lng: lng
+      });
+      list = list.slice(0, 500);
+    } else {
+      return json({ success: false, message: 'Unknown action' }, 400);
+    }
+    await env.VOTES.put(NAV_PLACES_KEY, JSON.stringify(list));
+  }
+  return json({ success: true, places: list });
+}
 async function getLapsRaceboxAccess(env) {
   var a = await getJsonKey(env, LAPS_RACEBOX_KEY, {});
   return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
@@ -13661,6 +13705,12 @@ export default {
     }
     if (url.pathname === '/navigate/route' && request.method === 'POST') {
       return handleNavigateRoute(request, env);
+    }
+    if (url.pathname === '/navigate/places' && request.method === 'GET') {
+      return handleNavigatePlaces(request, env);
+    }
+    if (url.pathname === '/navigate/places/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleNavigatePlacesAdmin(request, env);
     }
     if (url.pathname === '/laps/racebox/access' && request.method === 'GET') {
       return handleLapsRaceboxAccess(request, env);

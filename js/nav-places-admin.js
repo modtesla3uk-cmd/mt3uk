@@ -10,7 +10,8 @@
   var noteEl = document.getElementById('nav-places-note');
   var listEl = document.getElementById('np-list');
   var addBtn = document.getElementById('np-add');
-  var state = { places: [] };
+  var cancelBtn = document.getElementById('np-cancel');
+  var state = { places: [], editId: null };
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -29,8 +30,20 @@
     listEl.innerHTML = state.places.length ? state.places.map(function (p) {
       var label = (p.house ? p.house + ' ' : '') + p.name + (p.town ? ', ' + p.town : '') + (p.postcode ? ', ' + p.postcode : '');
       return '<div class="iv-row"><span>' + esc(label) + ' <span class="iv-note">' + esc(p.lat.toFixed(5) + ', ' + p.lng.toFixed(5)) + '</span></span>' +
-        '<button type="button" class="secondary" data-remove="' + esc(p.id) + '">Remove</button></div>';
+        '<span><button type="button" class="secondary" data-edit="' + esc(p.id) + '">Edit</button> <button type="button" class="secondary" data-remove="' + esc(p.id) + '">Remove</button></span></div>';
     }).join('') : '<p class="iv-note">No addresses added yet.</p>';
+  }
+  function fill(p) {
+    document.getElementById('np-house').value = p ? (p.house || '') : '';
+    document.getElementById('np-name').value = p ? (p.name || '') : '';
+    document.getElementById('np-town').value = p ? (p.town || '') : '';
+    document.getElementById('np-postcode').value = p ? (p.postcode || '') : '';
+    document.getElementById('np-position').value = p ? (p.lat + ', ' + p.lng) : '';
+  }
+  function editing(on) {
+    addBtn.textContent = on ? 'Save changes' : 'Add address';
+    cancelBtn.hidden = !on;
+    if (!on) { state.editId = null; fill(null); }
   }
   function apply(d) {
     if (!d || !d.ok) { note(d && d.message ? d.message : 'Enter the admin key first.'); return false; }
@@ -52,14 +65,29 @@
     };
     if (!place.name) { note('Give the street or place name.'); return; }
     if (!isFinite(place.lat) || !isFinite(place.lng)) { note('Give the position as latitude, longitude, for example 52.0109, -0.5090.'); return; }
-    call('POST', { action: 'add', place: place }).then(function (d) {
+    var editId = state.editId;
+    var body = editId ? { action: 'update', id: editId, place: place } : { action: 'add', place: place };
+    call('POST', body).then(function (d) {
       if (apply(d)) {
-        note('Address added. Navigate shows it after the next search.');
-        ['np-house', 'np-name', 'np-town', 'np-postcode', 'np-position'].forEach(function (id) { document.getElementById(id).value = ''; });
+        note(editId ? 'Address changed. Navigate uses the new details from the next search.' : 'Address added. Navigate shows it after the next search.');
+        editing(false);
       }
     }).catch(function () { note('Could not reach the server.'); });
   });
+  cancelBtn.addEventListener('click', function () { editing(false); note(''); });
   listEl.addEventListener('click', function (e) {
+    var ed = e.target.closest && e.target.closest('[data-edit]');
+    if (ed) {
+      var id = ed.getAttribute('data-edit');
+      var p = state.places.filter(function (x) { return x.id === id; })[0];
+      if (!p) return;
+      state.editId = id;
+      fill(p);
+      editing(true);
+      note('Change the details, then tap Save changes. Cancel leaves the address as it was.');
+      document.getElementById('np-name').focus();
+      return;
+    }
     var b = e.target.closest && e.target.closest('[data-remove]');
     if (!b) return;
     call('POST', { action: 'remove', id: b.getAttribute('data-remove') }).then(function (d) {

@@ -8262,11 +8262,10 @@ async function handleNavigatePlacesAdmin(request, env) {
     if (body.action === 'remove') {
       var id = String(body.id || '');
       list = list.filter(function (p) { return p.id !== id; });
-    } else if (body.action === 'add') {
+    } else if (body.action === 'add' || body.action === 'update') {
       var pl = body.place || {}, name = String(pl.name || '').trim().slice(0, 120), lat = +pl.lat, lng = +pl.lng;
       if (!name || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return json({ success: false, message: 'Give a name and a position (latitude and longitude)' }, 400);
-      list.unshift({
-        id: 'p' + Date.now().toString(36),
+      var fields = {
         name: name,
         house: String(pl.house || '').trim().slice(0, 10),
         street: String(pl.street || '').trim().slice(0, 80),
@@ -8274,8 +8273,16 @@ async function handleNavigatePlacesAdmin(request, env) {
         postcode: String(pl.postcode || '').trim().toUpperCase().slice(0, 10),
         lat: lat,
         lng: lng
-      });
-      list = list.slice(0, 500);
+      };
+      if (body.action === 'add') {
+        list.unshift(Object.assign({ id: 'p' + Date.now().toString(36) }, fields));
+        list = list.slice(0, 500);
+      } else {
+        var uid = String(body.id || ''), at = -1;
+        list.forEach(function (x, j) { if (x.id === uid) at = j; });
+        if (at < 0) return json({ success: false, message: 'That address is no longer on the list' }, 404);
+        list[at] = Object.assign({ id: uid }, fields);
+      }
     } else {
       return json({ success: false, message: 'Unknown action' }, 400);
     }

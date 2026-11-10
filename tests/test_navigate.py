@@ -701,3 +701,18 @@ def test_a_street_and_town_typed_together_put_the_matching_street_first(page):
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     page.locator("#nav-to-q").fill("17 ryder way bedford")
     expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("Ryder Way", timeout=5000)
+
+
+def test_a_house_number_alone_does_not_beat_the_street_and_town_typed(page):
+    _approve(page, True)
+    page.add_init_script(GEO_TOWCESTER)
+    def reply(route):
+        # Two 17 Ryder roads in other towns have the house number; Ryder Way in Flitwick has the street and the town.
+        places = [("Ryder Road", "Warrington", 53.4, -2.6), ("Ryder Way", "Flitwick", 52.0, -0.47)]
+        route.fulfill(status=200, content_type="application/json", body=_photon(*places), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/photon.komoot.io/**", reply)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("17 ryder way flitwick")
+    expect(page.locator("#nav-results.is-suggest button").first).to_contain_text("Flitwick", timeout=5000)

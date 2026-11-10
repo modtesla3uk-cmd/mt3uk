@@ -545,7 +545,8 @@
     var words = String(q).toLowerCase().split(/[\s,]+/).filter(function (w) { return w.length > 1 && !/^\d+$/.test(w); });
     var nums = String(q).match(/\d+/g) || [];
     var n = words.filter(function (w) { return p.hay && p.hay.indexOf(w) >= 0; }).length;
-    if (p.house && nums.indexOf(p.house) >= 0) n += 3;
+    // A house number is a small help only: a street and a town typed together come before a house number alone.
+    if (p.house && nums.indexOf(p.house) >= 0) n += 0.5;
     return n;
   }
   function findPlace(q) {

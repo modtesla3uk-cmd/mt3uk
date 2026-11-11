@@ -351,11 +351,11 @@ def test_distances_follow_the_speed_unit_miles_with_mph_and_km_with_km_h(page):
     page.locator("#nav-results.is-suggest button").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-route-len")).to_contain_text("mi")
-    expect(page.locator("#nav-steps")).to_contain_text("mi)")
+    expect(page.locator("#nav-steps .nav-step-dist").last).to_contain_text("mi")
     # Switching to km/h changes them all at once, without a new search.
     page.locator("#nav-unit").click()
     expect(page.locator("#nav-route-len")).to_contain_text("1.2 km")
-    expect(page.locator("#nav-steps")).to_contain_text("km)")
+    expect(page.locator("#nav-steps .nav-step-dist").last).to_contain_text("km")
 
 
 def test_the_distance_to_go_follows_the_road_not_the_straight_line(page):
@@ -999,3 +999,24 @@ def test_the_driving_view_shows_the_geoapify_and_openstreetmap_credit(page):
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
     expect(page.locator(".nav-drive-attrib")).to_contain_text("Powered by Geoapify")
     expect(page.locator(".nav-drive-attrib")).to_contain_text("OpenStreetMap")
+
+
+def test_tapping_a_step_shows_where_it_is_on_the_map(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    # The second turn is where the first step ends, on the route line.
+    page.locator("#nav-steps .nav-step").nth(1).click()
+    expect(page.locator("#nav-steps .nav-step").nth(1)).to_have_class(re.compile(r"is-active"))
+    point = page.evaluate("() => window.MT3UKNavigate.stepPoint(1)")
+    page.wait_for_function("(p) => { const c = window.MT3UKNavigate.map().getCenter(); return Math.abs(c.lat - p[0]) < 0.0005 && Math.abs(c.lng - p[1]) < 0.0005; }", arg=point, timeout=5000)
+    assert point[0] > 52.124 and point[1] > -0.9955

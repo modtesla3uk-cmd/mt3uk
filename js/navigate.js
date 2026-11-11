@@ -423,14 +423,26 @@
       gesture = { mode: 'pinch', d0: dist2(pts[0], pts[1]), a0: angle2(pts[0], pts[1]), z0: map.getZoom(), t0: viewTurn };
     }
   }
+  // Pointer moves are collected and applied once per animation frame, so the map redraws at the screen's rate rather than
+  // at the touch rate, which is much faster on newer phones and made the pan and zoom jerky.
+  var gestureFrame = null, gesturePan = [0, 0];
   function gestureMove(e) {
     if (!driving || !map || !touches[e.pointerId] || !gesture) return;
     touches[e.pointerId] = { x: e.clientX, y: e.clientY };
     if (gesture.mode === 'pan' && Object.keys(touches).length === 1) {
       var dx = e.clientX - gesture.last.x, dy = e.clientY - gesture.last.y;
       gesture.last = { x: e.clientX, y: e.clientY };
-      var d = turnedDelta(dx, dy);
-      quietly(function () { map.panBy([-d[0], -d[1]], { animate: false }); });
+      gesturePan = [gesturePan[0] + dx, gesturePan[1] + dy];
+    }
+    if (!gestureFrame) gestureFrame = requestAnimationFrame(applyGesture);
+  }
+  function applyGesture() {
+    gestureFrame = null;
+    if (!driving || !map || !gesture) { gesturePan = [0, 0]; return; }
+    if (gesture.mode === 'pan' && Object.keys(touches).length === 1) {
+      var d = turnedDelta(gesturePan[0], gesturePan[1]);
+      gesturePan = [0, 0];
+      if (d[0] || d[1]) quietly(function () { map.panBy([-d[0], -d[1]], { animate: false }); });
     } else if (gesture.mode === 'pinch') {
       var pts = Object.keys(touches).map(function (id) { return touches[id]; });
       if (pts.length < 2) return;
@@ -440,6 +452,8 @@
     }
   }
   function gestureUp(e) {
+    // Any move not yet applied is applied before the finger lifts, so the last movement is not lost.
+    if (gestureFrame) { cancelAnimationFrame(gestureFrame); applyGesture(); }
     delete touches[e.pointerId];
     if (Object.keys(touches).length === 0) gesture = null;
   }
@@ -1156,6 +1170,45 @@
     if (!silent) setRouteFolded(true);
   }
   // The route's length and turns, in the unit now shown.
+  // Where a step starts on the route line: walk along the line by the distance the steps before it cover.
+  function stepStartPoint(i) {
+    var line = routeD && routeD.line, steps = (routeD && routeD.steps) || [];
+    if (!line || line.length < 2 || i < 0 || i >= steps.length) return null;
+    var want = 0;
+    for (var k = 0; k < i; k++) want += steps[k].distanceM || 0;
+    var acc = 0;
+    for (var j = 0; j < line.length - 1; j++) {
+      var seg = metresBetween(line[j], line[j + 1]);
+      if (acc + seg >= want) {
+        var t = seg ? (want - acc) / seg : 0;
+        return [line[j][0] + (line[j + 1][0] - line[j][0]) * t, line[j][1] + (line[j + 1][1] - line[j][1]) * t];
+      }
+      acc += seg;
+    }
+    return line[line.length - 1];
+  }
+  // Tapping a step shows where it is: the map moves to it, a mark sits on it, and the directions step aside.
+  var stepMark = null;
+  function showStep(i, li) {
+    var p = stepStartPoint(i);
+    if (!p || !map) return;
+    var all = document.querySelectorAll('#nav-steps .nav-step');
+    all.forEach(function (el) { el.classList.toggle('is-active', el === li); });
+    enterBrowse();
+    setRouteFolded(true);
+    if (!stepMark) stepMark = L.circleMarker(p, { radius: 9, color: '#ffffff', weight: 3, fillColor: '#e8542a', fillOpacity: 1 }).addTo(map);
+    else stepMark.setLatLng(p);
+    map.setView(p, Math.max(map.getZoom(), 17), { animate: true });
+  }
+  // The icon for a step: a turn left or right, straight on, a roundabout or the destination.
+  function stepIconSvg(text) {
+    var t = String(text || '');
+    var key = /roundabout/i.test(t) ? 'roundabout' : /arriv|destination/i.test(t) ? 'arrive' : /\bleft\b/i.test(t) ? 'left' : /\bright\b/i.test(t) ? 'right' : 'straight';
+    var inner = key === 'roundabout' ? '<circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>'
+      : key === 'arrive' ? '<path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/>'
+      : '<path d="' + ARROWS[key] + '"/>';
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  }
   function renderRouteText() {
     if (!routeD) return;
     var len = distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min';
@@ -1163,9 +1216,30 @@
     set('nav-route-short', len);
     var ul = $('nav-steps');
     ul.textContent = '';
-    (routeD.steps || []).slice(0, 15).forEach(function (s) {
+    // Each step: its icon, its instruction, and the distance on to the next one, as Google Maps lists them.
+    (routeD.steps || []).slice(0, 15).forEach(function (st, index) {
       var li = document.createElement('li');
-      li.textContent = s.text + ' (' + distText(s.distanceM) + ')';
+      li.className = 'nav-step';
+      var icon = document.createElement('span');
+      icon.className = 'nav-step-icon';
+      icon.innerHTML = stepIconSvg(st.text);
+      var main = document.createElement('span');
+      main.className = 'nav-step-main';
+      var text = document.createElement('span');
+      text.className = 'nav-step-text';
+      text.textContent = st.text;
+      var dist = document.createElement('span');
+      dist.className = 'nav-step-dist';
+      dist.textContent = distText(st.distanceM);
+      main.appendChild(text);
+      main.appendChild(dist);
+      li.appendChild(icon);
+      li.appendChild(main);
+      li.tabIndex = 0;
+      li.setAttribute('role', 'button');
+      li.setAttribute('aria-label', st.text + '. Show it on the map.');
+      li.addEventListener('click', function () { showStep(index, li); });
+      li.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStep(index, li); } });
       ul.appendChild(li);
     });
   }
@@ -1240,6 +1314,6 @@
     var m = left !== null ? left : metresBetween([lastFix.lat, lastFix.lng], dest.at);
     set('nav-togo', distText(m));
   }
-  window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; } };
+  window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; }, stepPoint: function (i) { return stepStartPoint(i); } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

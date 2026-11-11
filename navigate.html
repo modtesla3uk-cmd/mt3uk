@@ -470,7 +470,9 @@
   .nav-map-wrap.is-driving .nav-launch { top: calc(var(--turn, 152px) + 8px); }
   .nav-map-wrap.is-driving .nav-runs { top: calc(var(--turn, 152px) + 58px); }
   .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-launch, .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-runs { display: none; }
-  .nav-launch { white-space: pre-line; text-align: center; line-height: 1.3; display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: #16233d; color: #fff; font-size: 1.1rem; font-weight: 800; box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer; }
+  /* The timer button: plain, with dark text, and small. Go (red) is the only one that stands out. */
+  .nav-launch.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
+  .nav-launch { white-space: nowrap; text-align: center; line-height: 1.3; display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 40px; padding: 6px 12px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font-size: 0.95rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
   /* Past 0 to 60 times under the timer, at the top right of the map, shown while driving with the timer. */
   .nav-runs { position: absolute; top: 102px; right: 12px; z-index: 1005; width: 214px; max-width: calc(100% - 24px); box-sizing: border-box; padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #16233d); font-size: 1rem; }
   .nav-runs[hidden], .nav-runs-list[hidden] { display: none; }
@@ -491,8 +493,18 @@
   .nav-runs-open svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
   .nav-map-wrap.is-driving .nav-runs-open:not([hidden]) { display: flex; }
   .nav-map-wrap.is-driving.runs-open .nav-runs-open { display: none; }
-  /* Free drive (timing with no destination): no turn card and no directions. */
-  .nav-map-wrap.is-free .nav-turn, .nav-map-wrap.is-free #nav-dirs { display: none; }
+  /* Free drive (timing with no destination): no map, no turn card and no directions. A speed and G meter, the Go button
+     in the middle, the runs as a list above the bottom bar. */
+  .nav-map-wrap.is-free .nav-turn, .nav-map-wrap.is-free #nav-dirs, .nav-map-wrap.is-free #nav-map, .nav-map-wrap.is-free #nav-recentre, .nav-map-wrap.is-free #nav-voice, .nav-map-wrap.is-free .nav-unit-pill, .nav-map-wrap.is-free .nav-speed-bubble, .nav-map-wrap.is-free .nav-runs-open, .nav-map-wrap.is-free .nav-runs-hide, .nav-map-wrap.is-free .nav-toast, .nav-map-wrap.is-free .nav-stepper { display: none !important; }
+  .nav-gauge { display: none; }
+  .nav-map-wrap.is-free .nav-gauge { display: block; position: absolute; top: 24px; left: 50%; width: min(240px, 64vw); transform: translateX(-50%); }
+  .nav-map-wrap.is-free .nav-gauge svg { width: 100%; height: auto; display: block; }
+  .nav-gauge-speed { margin: 4px 0 0; text-align: center; color: var(--ink, #16233d); }
+  .nav-gauge-speed b { font-size: 4.4rem; line-height: 1; }
+  .nav-gauge-speed span { font-size: 1.5rem; font-weight: 700; color: #5b6475; }
+  .nav-map-wrap.is-free .nav-launch:not([hidden]) { display: block; top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); min-width: 200px; min-height: 56px; padding: 8px 20px; font-size: 1.35rem; text-align: center; border-radius: 999px; }
+  .nav-map-wrap.is-free.is-driving .nav-runs { display: block; top: auto; bottom: calc(var(--bar, 170px) + 16px); left: 16px; right: 16px; width: auto; max-height: 170px; overflow-y: auto; }
+  .nav-map-wrap.is-free .nav-runs-list li { font-size: 1.05rem; }
   .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
   .nav-map-wrap.is-driving .nav-speed-bubble { display: flex; }
   /* With the directions up, the speed, the speaker and Recentre step aside, so nothing sits over the list. */
@@ -689,6 +701,19 @@
         <button type="button" id="nav-step-next" aria-label="Next turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" id="nav-step-close" aria-label="Close the turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       </div>
+      <div class="nav-gauge" id="nav-gauge" aria-hidden="true">
+        <svg viewBox="0 0 300 300">
+          <circle cx="150" cy="150" r="112" fill="none" stroke="#9aa1ad" stroke-width="3"/>
+          <g id="nav-ticks" stroke="#9aa1ad" stroke-width="2"></g>
+          <circle cx="150" cy="150" r="52" fill="none" stroke="#5b6475" stroke-width="2"/>
+          <circle cx="150" cy="150" r="26" fill="none" stroke="#9aa1ad" stroke-width="1.5" stroke-dasharray="3 4"/>
+          <line x1="150" y1="98" x2="150" y2="202" stroke="#9aa1ad" stroke-width="1.5"/>
+          <line x1="98" y1="150" x2="202" y2="150" stroke="#9aa1ad" stroke-width="1.5"/>
+          <line id="nav-needle" x1="150" y1="150" x2="150" y2="44" stroke="#e8542a" stroke-width="5" stroke-linecap="round"/>
+          <circle id="nav-gdot" cx="150" cy="150" r="9" fill="#b3261e"/>
+        </svg>
+        <p class="nav-gauge-speed"><b id="nav-gauge-speed">0</b> <span id="nav-gauge-unit">mph</span></p>
+      </div>
       <button type="button" class="nav-launch" id="nav-launch" data-launch hidden>Time a run</button>
       <div class="nav-runs" id="nav-runs" hidden>
         <div class="nav-runs-head"><b id="nav-runs-best"></b><button type="button" class="nav-runs-hide" id="nav-runs-hide">Hide</button></div>
@@ -785,6 +810,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=75" defer></script>
+<script src="js/navigate.js?v=84" defer></script>
 </body>
 </html>

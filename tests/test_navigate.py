@@ -1106,7 +1106,7 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
       window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Go")
     # A run from stopped to 60 mph (26.8 m/s), 25 readings a second: stopped for half a second, then accelerating.
     page.evaluate("""() => {
       const t0 = Date.now(); const rd = window.__rb.readers;
@@ -1117,8 +1117,8 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
       }
     }""")
     # About 3.5 seconds from moving to 60 mph: the clock starts when the car first moves above 1 mph.
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
 
 
 def test_the_turn_stepper_goes_forward_and_back_through_the_turns(page):
@@ -1514,7 +1514,7 @@ def test_the_zero_to_sixty_timer_is_on_the_map_only_while_driving(page):
     # Driving: the timer shows, and it works.
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Go")
 
 
 def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of_the_phone(page):
@@ -1581,8 +1581,8 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
         rd.forEach(function (fn) { fn(r); });
       }
     }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
     # The run is kept: the best and the list show under the timer.
     # Driving folds the times away: the Times button opens them.
     page.locator("#nav-runs-open").click()
@@ -1665,12 +1665,12 @@ def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_no
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 2; i++) { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Go")
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
         const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
 
 
 def test_the_times_fold_away_while_driving_and_a_times_button_opens_them(page):
@@ -1723,12 +1723,28 @@ def test_a_run_can_be_timed_with_no_route_by_starting_timing(page):
     expect(page.locator("#nav-eta")).to_have_text("Free drive")
     expect(page.locator("#nav-launch")).to_be_visible()
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Go")
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
         const r = { fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
     page.locator("#nav-exit").click()
     expect(page.locator(".nav-map-wrap.is-driving")).to_have_count(0)
     expect(page.locator("#nav-free")).to_be_visible()
+
+
+def test_the_timer_says_acquiring_gps_fix_until_the_racebox_has_one(page):
+    _approve(page, True)
+    page.add_init_script(RB_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: false, coordinatesValid: false, satellites: 4, lat: 0, lon: 0, speedMs: 0, heading: 0, horizontalAccuracy: 99, utc: Date.now() }); })")
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    expect(page.locator("#nav-launch")).to_have_text("Acquiring GPS fix", timeout=5000)
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    expect(page.locator("#nav-launch")).to_have_text("Time a run", timeout=5000)
 

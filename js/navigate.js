@@ -249,6 +249,8 @@
       set('nav-left', 'No destination. Time a run from a standstill.');
       set('nav-speed-big', ($('nav-speed') || {}).textContent || '\u2013');
       set('nav-speed-big-unit', mph ? 'mph' : 'km/h');
+      // The words above can wrap, so the bar is measured again once they are set.
+      if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
       return;
     }
     // The turn card can take several lines, so what sits under it (the stepper, the toast) starts below its real bottom.
@@ -365,6 +367,39 @@
     if (routeD && routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
     updateDrive();
   }
+  // The speed and G meter for free drive: the needle sweeps 0 to 140 mph over 270 degrees, and the dot is the G forces
+  // (sideways across, lengthways up; 1 g is the edge of the inner circle).
+  var GAUGE_MAX_MPH = 140, GAUGE_R = 52, gaugeBuilt = false;
+  function buildGauge() {
+    var ticks = $('nav-ticks');
+    if (!ticks || gaugeBuilt) return;
+    gaugeBuilt = true;
+    for (var m = 0; m <= GAUGE_MAX_MPH; m += 10) {
+      var a = (-135 + 270 * m / GAUGE_MAX_MPH) * Math.PI / 180, major = m % 20 === 0;
+      var r1 = major ? 96 : 102, r2 = 112;
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', 150 + Math.sin(a) * r1); line.setAttribute('y1', 150 - Math.cos(a) * r1);
+      line.setAttribute('x2', 150 + Math.sin(a) * r2); line.setAttribute('y2', 150 - Math.cos(a) * r2);
+      if (major) line.setAttribute('stroke-width', '3');
+      ticks.appendChild(line);
+    }
+  }
+  function drawGauge(speedMs, g) {
+    buildGauge();
+    var mphNow = (speedMs || 0) * 2.23694;
+    var shownSpeed = mph ? mphNow : (speedMs || 0) * 3.6;
+    var frac = Math.max(0, Math.min(1, mphNow / GAUGE_MAX_MPH));
+    var needle = $('nav-needle');
+    if (needle) needle.setAttribute('transform', 'rotate(' + (-135 + 270 * frac) + ' 150 150)');
+    set('nav-gauge-speed', String(Math.round(shownSpeed)));
+    set('nav-gauge-unit', mph ? 'mph' : 'km/h');
+    var dot = $('nav-gdot');
+    if (dot && g) {
+      var side = Math.max(-1.2, Math.min(1.2, g.y || 0)), fwd = Math.max(-1.2, Math.min(1.2, g.x || 0));
+      dot.setAttribute('cx', 150 + side * GAUGE_R);
+      dot.setAttribute('cy', 150 - fwd * GAUGE_R);
+    }
+  }
   // Start timing with no destination: the same driving screen, with no route and no turns.
   function startFreeDrive() {
     if (!lastFix) { status('Waiting for your phone\u2019s position before timing can start.', true); return; }
@@ -374,6 +409,7 @@
     if (wrap) wrap.classList.add('is-free');
     if ($('nav-exit')) $('nav-exit').textContent = 'End timing';
     startDrive();
+    drawGauge(0, null); // the dial starts at zero, before the first reading
   }
   function stopDrive() {
     freeDrive = false;
@@ -1028,6 +1064,8 @@
       if (rbOff || !r) return;
       rbSats = r.satellites || 0;
       rbFix = !!(r.fixOk && r.coordinatesValid);
+      // The timer's idle label says whether the RaceBox has its satellite fix yet.
+      if (launch.state === 'idle') setLaunchText(idleLabel());
       if (!raceboxOn) setSource(true);
       if (!rbFix) { refreshSourceText(); return; }
       rbLastAt = Date.now();
@@ -1035,6 +1073,7 @@
       refreshSourceText();
       var c = { latitude: r.lat, longitude: r.lon, speed: r.speedMs, heading: r.heading, accuracy: r.horizontalAccuracy };
       applyFix(c, r.utc);
+      if (freeDrive) drawGauge(c.speed, r.gForce);
       launchStep(c.speed, r.utc);
     });
   }
@@ -1093,52 +1132,60 @@
     var list = $('nav-runs-list');
     if (!list) return;
     list.innerHTML = '';
-    a.slice(0, LAUNCH_LIST).forEach(function (r) {
+    a.slice(0, LAUNCH_LIST).forEach(function (r, i) {
       var li = document.createElement('li');
-      li.textContent = r.t.toFixed(2) + ' s' + (typeof r.t30 === 'number' ? ' \u00b7 0\u201330 ' + r.t30.toFixed(2) : '');
+      // Runs are numbered in the order they were timed: the newest is the highest number.
+      li.textContent = 'Run ' + (a.length - i) + ': 0\u201360 ' + r.t.toFixed(2) + ' s' + (typeof r.t30 === 'number' ? ' \u00b7 0\u201330 ' + r.t30.toFixed(2) + ' s' : '');
       if (r.t === best) li.className = 'is-best';
       list.appendChild(li);
     });
   }
   var launch = { state: 'idle', t0: 0, best: null, last: null, stopped: null, t30: null };
-  function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
+  // The timer button's words; go (red) while it waits for the car to move off.
+  function setLaunchText(t, go) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; b.classList.toggle('is-go', !!go); }); }
   // A 0 to 60 run counts only from a standstill: the timer is armed only when the car is under 1 mph, and a car that is
   // already moving when it is armed is not timed (so a rolling start is never saved).
   var LAUNCH_STOPPED_MPH = 1, launchNote = null, TURN_NEAR_M = 800;
   function launchStep(speedMs, ts) {
-    var mph = speedMs * 2.23694;
+    var speedMph = speedMs * 2.23694;
     var wasStopped = launch.stopped === true;
-    launch.stopped = mph < LAUNCH_STOPPED_MPH;
-    if (launch.state === 'armed' && mph > LAUNCH_STOPPED_MPH) {
+    launch.stopped = speedMph < LAUNCH_STOPPED_MPH;
+    if (launch.state === 'armed' && speedMph > LAUNCH_STOPPED_MPH) {
       if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
       else { launch.state = 'idle'; setLaunchText('Not from a stop, not saved. Stop, then tap Time a run.'); return; }
     }
     if (launch.state === 'running') {
       var now = (ts - launch.t0) / 1000;
-      if (launch.t30 === null && mph >= 30) launch.t30 = now;
-      if (mph >= 60) {
+      if (launch.t30 === null && speedMph >= 30) launch.t30 = now;
+      if (speedMph >= 60) {
         var t = now;
         launch.state = 'done';
         launch.last = t;
         launch.best = launch.best === null || t < launch.best ? t : launch.best;
         addRun(t, launch.t30);
-        setLaunchText((launch.t30 !== null ? '0\u201330: ' + launch.t30.toFixed(2) + ' s\n' : '') + '0\u201360: ' + t.toFixed(2) + ' s \u00b7 best ' + launch.best.toFixed(2));
+        // The recorded run on one line, numbered as in the times card: Run 1, Run 2 ... (the newest is the highest).
+        var runNo = runsCache.length;
+        setLaunchText('Run ' + runNo + ': ' + (launch.t30 !== null ? '0\u201330 ' + launch.t30.toFixed(2) + ' s \u00b7 ' : '') + '0\u201360 ' + t.toFixed(2) + ' s');
       } else {
-        setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s');
+        // Once the car is moving the timer shows its time and speed.
+        var shownMph = mph ? speedMph : speedMs * 3.6;
+        setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s \u00b7 ' + Math.round(shownMph) + (mph ? ' mph' : ' km/h'));
       }
     }
   }
+  // The timer's words while it is not running: acquiring the RaceBox's GPS fix, then ready to time a run.
+  function idleLabel() { return rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
   function launchTap() {
-    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('Time a run'); return; }
+    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText(idleLabel()); return; }
     if (launch.stopped !== true) {
       // Moving, or no speed read yet: it is not armed, so a run can only start from a standstill.
-      setLaunchText(launch.stopped === null ? 'Waiting for the RaceBox speed' : 'Stop first, then tap Time a run');
-      setTimeout(function () { if (launch.state === 'idle') setLaunchText('Time a run'); }, 2500);
+      setLaunchText(launch.stopped === null ? 'Acquiring GPS fix' : 'Stop first, then tap Time a run');
+      setTimeout(function () { if (launch.state === 'idle') setLaunchText(idleLabel()); }, 2500);
       return;
     }
     launch.state = 'armed';
     launch.t30 = null;
-    setLaunchText('Time when you move');
+    setLaunchText('Go', true);
   }
   // A destination given in the address, from a Laps track: navigate.html?to=51.2085,-1.6055&name=Thruxton. It is routed
   // once the phone has a position.

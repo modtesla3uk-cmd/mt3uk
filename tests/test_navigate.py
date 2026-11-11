@@ -1102,7 +1102,7 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
       window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Ready")
+    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
     # A run from stopped to 60 mph (26.8 m/s), 25 readings a second: stopped for half a second, then accelerating.
     page.evaluate("""() => {
       const t0 = Date.now(); const rd = window.__rb.readers;
@@ -1113,7 +1113,8 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
       }
     }""")
     # About 3.5 seconds from moving to 60 mph: the clock starts when the car first moves above 1 mph.
-    expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
 
 
 def test_the_turn_stepper_goes_forward_and_back_through_the_turns(page):
@@ -1509,7 +1510,7 @@ def test_the_zero_to_sixty_timer_is_on_the_map_only_while_driving(page):
     # Driving: the timer shows, and it works.
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Ready")
+    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
 
 
 def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of_the_phone(page):
@@ -1576,7 +1577,8 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
         rd.forEach(function (fn) { fn(r); });
       }
     }""")
-    expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
     # The run is kept: the best and the list show under the timer.
     expect(page.locator("#nav-runs")).to_be_visible(timeout=5000)
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"))
@@ -1657,14 +1659,15 @@ def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_no
       window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Stop first, then tap Ready")
+    expect(page.locator("#nav-launch")).to_contain_text("Stop first, then tap Time a run")
     # Stopped, then tapped: it arms, and a run from the stop is timed.
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 2; i++) { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Ready")
+    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
         const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
 

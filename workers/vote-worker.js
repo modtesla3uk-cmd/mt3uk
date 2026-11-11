@@ -8216,7 +8216,10 @@ async function handleNavigateRuns(request, env) {
   try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var t = Number(body && body.t);
   if (!isFinite(t) || t < 2 || t > 60) return json({ success: false, message: 'That is not a 0 to 60 mph time' }, 400);
-  runs.unshift({ t: Math.round(t * 100) / 100, at: new Date().toISOString() });
+  // The 0 to 30 mph split is optional: it must be under the 0 to 60 time.
+  var t30 = body.t30 === null || body.t30 === undefined ? null : Number(body.t30);
+  if (t30 !== null && (!isFinite(t30) || t30 < 0.3 || t30 >= t)) t30 = null;
+  runs.unshift({ t: Math.round(t * 100) / 100, t30: t30 === null ? null : Math.round(t30 * 100) / 100, at: new Date().toISOString() });
   profile.launchRuns = runs.slice(0, LAUNCH_RUNS_MAX);
   await putProfileRecord(env, email, profile);
   return json({ success: true, runs: profile.launchRuns });

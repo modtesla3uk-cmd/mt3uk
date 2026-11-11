@@ -1027,12 +1027,13 @@
       .catch(function () {});
   }
   // A finished run is shown at once and saved to the profile.
-  function addRun(t) {
+  function addRun(t, t30) {
     var s = sessionToken(), rounded = Math.round(t * 100) / 100;
-    runsCache = [{ t: rounded, at: Date.now() }].concat(runsCache).slice(0, 20);
+    var split = t30 !== null && t30 !== undefined ? Math.round(t30 * 100) / 100 : null;
+    runsCache = [{ t: rounded, t30: split, at: Date.now() }].concat(runsCache).slice(0, 20);
     drawRuns();
     if (!s) return;
-    fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ t: rounded }) })
+    fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ t: rounded, t30: split }) })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && d.success && Array.isArray(d.runs)) { runsCache = d.runs; drawRuns(); } })
       .catch(function () {});
@@ -1053,12 +1054,12 @@
     list.innerHTML = '';
     a.slice(0, LAUNCH_LIST).forEach(function (r) {
       var li = document.createElement('li');
-      li.textContent = r.t.toFixed(2) + ' s';
+      li.textContent = r.t.toFixed(2) + ' s' + (typeof r.t30 === 'number' ? ' \u00b7 0\u201330 ' + r.t30.toFixed(2) : '');
       if (r.t === best) li.className = 'is-best';
       list.appendChild(li);
     });
   }
-  var launch = { state: 'idle', t0: 0, best: null, last: null, stopped: null };
+  var launch = { state: 'idle', t0: 0, best: null, last: null, stopped: null, t30: null };
   function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
   // A 0 to 60 run counts only from a standstill: the timer is armed only when the car is under 1 mph, and a car that is
   // already moving when it is armed is not timed (so a rolling start is never saved).
@@ -1069,31 +1070,34 @@
     launch.stopped = mph < LAUNCH_STOPPED_MPH;
     if (launch.state === 'armed' && mph > LAUNCH_STOPPED_MPH) {
       if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
-      else { launch.state = 'idle'; setLaunchText('Not from a stop, not saved. Stop, then tap again.'); return; }
+      else { launch.state = 'idle'; setLaunchText('Not from a stop, not saved. Stop, then tap Time a run.'); return; }
     }
     if (launch.state === 'running') {
+      var now = (ts - launch.t0) / 1000;
+      if (launch.t30 === null && mph >= 30) launch.t30 = now;
       if (mph >= 60) {
-        var t = (ts - launch.t0) / 1000;
+        var t = now;
         launch.state = 'done';
         launch.last = t;
         launch.best = launch.best === null || t < launch.best ? t : launch.best;
-        addRun(t);
-        setLaunchText('0\u201360: ' + t.toFixed(2) + ' s \u00b7 best ' + launch.best.toFixed(2));
+        addRun(t, launch.t30);
+        setLaunchText((launch.t30 !== null ? '0\u201330: ' + launch.t30.toFixed(2) + ' s\n' : '') + '0\u201360: ' + t.toFixed(2) + ' s \u00b7 best ' + launch.best.toFixed(2));
       } else {
         setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s');
       }
     }
   }
   function launchTap() {
-    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('0\u201360 mph'); return; }
+    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('Time a run'); return; }
     if (launch.stopped === false) {
       // Moving: it is not armed, so a run can only start from a standstill.
-      setLaunchText('Stop first, then tap Ready');
-      setTimeout(function () { if (launch.state === 'idle') setLaunchText('0\u201360 mph'); }, 2500);
+      setLaunchText('Stop first, then tap Time a run');
+      setTimeout(function () { if (launch.state === 'idle') setLaunchText('Time a run'); }, 2500);
       return;
     }
     launch.state = 'armed';
-    setLaunchText('Ready \u2013 go when you move');
+    launch.t30 = null;
+    setLaunchText('Go when you move');
   }
   // A destination given in the address, from a Laps track: navigate.html?to=51.2085,-1.6055&name=Thruxton. It is routed
   // once the phone has a position.

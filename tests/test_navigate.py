@@ -54,10 +54,24 @@ def test_a_member_who_is_not_approved_sees_only_the_note(page):
 
 
 def test_a_refused_permission_says_how_to_allow_it(page):
+    # In a browser the site's own permission is what to change; in the Laps app it is the phone's settings.
     _approve(page, True)
     page.add_init_script(GEO_DENIED)
     page.goto("/navigate.html")
-    expect(page.locator("#nav-status")).to_contain_text("Location is not allowed for Laps")
+    expect(page.locator("#nav-status")).to_contain_text("Location is blocked for this site")
+    expect(page.locator("#nav-status")).to_contain_text("allow Location, then tap Try again")
+    expect(page.locator("#nav-loc")).to_be_visible()
+    expect(page.locator("#nav-loc-allow")).to_be_visible()
+    expect(page.locator("#nav-loc-retry")).to_be_visible()
+    expect(page.locator("#nav-status")).to_have_class(re.compile(r"is-bad"))
+
+
+def test_a_refused_permission_in_the_laps_app_says_to_allow_it_in_the_phones_settings(page):
+    _approve(page, True)
+    page.add_init_script("window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: {} };")
+    page.add_init_script(GEO_DENIED)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-status")).to_contain_text("Allow it for the app in the phone")
     expect(page.locator("#nav-status")).to_have_class(re.compile(r"is-bad"))
 
 
@@ -1444,3 +1458,27 @@ def test_the_racebox_toggles_only_show_for_a_member_who_has_a_racebox(page):
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     expect(page.locator("#nav-source-row")).to_have_attribute("hidden", "")
     expect(page.locator("#nav-source-rb")).to_have_count(1)
+
+
+GEO_DENIED_THEN_ALLOWED = """
+var calls = 0, FIX = { coords: { latitude: 52.124, longitude: -0.9955, accuracy: 3, speed: 0, heading: 90 }, timestamp: Date.now() };
+navigator.geolocation.watchPosition = function (ok, fail) {
+  calls++;
+  var n = calls;
+  setTimeout(function () { if (n === 1) fail({ code: 1, message: 'User denied Geolocation' }); else ok(FIX); }, 50);
+  return n;
+};
+navigator.geolocation.getCurrentPosition = function (ok) { setTimeout(function () { ok(FIX); }, 50); };
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_a_blocked_location_in_a_browser_can_be_tried_again_without_reloading(page):
+    _approve(page, True)
+    page.add_init_script(GEO_DENIED_THEN_ALLOWED)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-loc")).to_be_visible(timeout=10000)
+    # Once the member has allowed it in the browser, Try again takes the position without a reload.
+    page.locator("#nav-loc-retry").click()
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-loc")).to_be_hidden()

@@ -360,6 +360,9 @@
   .nav-body { padding: 20px 0 40px; }
   .nav-status { font-weight: 600; margin: 0 0 12px; }
   .nav-status.is-bad { color: #b3261e; }
+  .nav-loc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 14px; }
+  .nav-loc-actions[hidden] { display: none; }
+  .nav-loc-actions .btn { min-height: 44px; }
   /* One layer for the whole page of Navigate, below the header, so the header's menu opens over it. */
   .nav-map-wrap { position: relative; margin: 0 0 14px; isolation: isolate; z-index: 1; }
   /* Recentre: a small round button at the bottom right of the map, back to where the phone is (as Google Maps does). */
@@ -615,6 +618,10 @@
 <div class="nav-body" id="nav-body" hidden>
   <div class="wrap nav-wrap">
     <p class="nav-status" id="nav-status" role="status">Asking your phone for its location...</p>
+    <div class="nav-loc-actions" id="nav-loc" hidden>
+      <button type="button" class="btn btn-accent" id="nav-loc-allow">Allow location</button>
+      <button type="button" class="btn btn-secondary" id="nav-loc-retry">Try again</button>
+    </div>
     <div class="nav-source" id="nav-source-row" role="group" aria-label="Position from" hidden>
       <button type="button" class="nav-source-toggle" id="nav-source-gps" aria-pressed="true">GPS</button>
       <button type="button" class="nav-source-toggle" id="nav-source-rb" aria-pressed="false">RaceBox</button>
@@ -741,6 +748,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=54" defer></script>
+<script src="js/navigate.js?v=56" defer></script>
 </body>
 </html>

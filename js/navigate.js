@@ -477,8 +477,19 @@
 
   function onPosition(p) {
     // The phone's GPS is used only while the RaceBox is not giving readings.
+    setLocActions(false);
     if (raceboxOn && Date.now() - rbLastAt < 3000) return;
     applyFix(p.coords, p.timestamp);
+  }
+  // In a browser a blocked location shows Allow location (asks the browser again, if it has not blocked the site) and Try again
+  // (for after the member has allowed it in the browser's settings), so they do not have to reload the page.
+  function setLocActions(show) { var el = $('nav-loc'); if (el) el.hidden = !show; }
+  function retryLocation(prompt) {
+    if (!navigator.geolocation) return;
+    if (watch !== null) navigator.geolocation.clearWatch(watch);
+    watch = null;
+    if (prompt) navigator.geolocation.getCurrentPosition(function () { start(); }, function (err) { onError(err); }, { enableHighAccuracy: true, timeout: 20000 });
+    else start();
   }
   // One position, from the phone or the RaceBox: the speed, the map, the turns and the route all follow it.
   function applyFix(c, ts) {
@@ -537,7 +548,11 @@
   }
 
   function onError(err) {
-    if (err.code === 1) status('Location is not allowed for Laps. Allow it for the app in the phone’s settings, then open this page again.', true);
+    if (err.code === 1) {
+      // In the Laps app the phone's settings allow it; in a browser the site's own permission does.
+      if (inLapsApp()) status('Location is not allowed for Laps. Allow it for the app in the phone’s settings, then open this page again.', true);
+      else { status('Location is blocked for this site. Tap the icon to the left of the address, open Permissions, allow Location, then tap Try again.', true); setLocActions(true); }
+    }
     else if (err.code === 2) status('Your phone could not get a position yet. Go outside, or wait a moment.', true);
     else status('Your phone took too long to give a position. Trying again.', true);
   }
@@ -739,6 +754,8 @@
       var panel = $('nav-route');
       if (panel) setRouteFolded(!panel.classList.contains('is-collapsed'));
     });
+    if ($('nav-loc-allow')) $('nav-loc-allow').addEventListener('click', function () { retryLocation(true); });
+    if ($('nav-loc-retry')) $('nav-loc-retry').addEventListener('click', function () { retryLocation(false); });
     var go = $('nav-go');
     if (go) go.addEventListener('click', askRoute);
     var pinBtn = $('nav-pin'), pinUse = $('nav-pin-use'), pinCancel = $('nav-pin-cancel'), stopsEl = $('nav-stops');

@@ -113,14 +113,35 @@
     b.classList.toggle('is-go', !!go);
   }
   // Until the RaceBox is connected the button asks for it; once connected it waits for the GPS fix, then it is ready.
-  function idleLabel() { return !rbConnected ? 'Connect to RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
+  // Connecting: the button is greyed out from the tap until the RaceBox connects or fails, so it is not pressed again.
+  var busy = false, busyTimer = null;
+  function setBusy(on) {
+    busy = on;
+    clearTimeout(busyTimer);
+    var b = $('rbt-tm-go');
+    if (b) {
+      b.disabled = on;
+      b.classList.toggle('is-busy', on);
+      b.setAttribute('aria-busy', on ? 'true' : 'false');
+    }
+    // A connection that never answers is given up after half a minute, so the button is not stuck grey.
+    if (on) busyTimer = setTimeout(function () { setBusy(false); refresh(); }, 30000);
+  }
+  function idleLabel() {
+    if (busy) return 'Connecting to RaceBox';
+    return !rbConnected ? 'Connect to RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix';
+  }
 
   // The runs: the timed runs (saved to the profile) and the runs in the saved Drag run drives, newest first. The best is
   // over both, and the latest five show, numbered as timed: the newest is the highest.
   var driveRunList = [];
   function allRuns() {
-    return runs.map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: false }; })
-      .concat(driveRunList.map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: true }; }))
+    var timed = runs.map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: false }; });
+    // A run timed while its drive was recorded is listed once, as the timed run: the drive has the same figures.
+    var drives = driveRunList.filter(function (d) {
+      return !timed.some(function (r) { return Math.abs(r.t - d.t) < 0.05; });
+    }).map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: true }; });
+    return timed.concat(drives)
       .sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
   }
   function drawRuns() {
@@ -189,17 +210,25 @@
       .catch(function () {});
   }
 
+  // A timed run records its own drive, against the strip chosen (Drag run has no Start recording). A drive that was
+  // already recording (Record a drive in Controls) belongs to its owner, so only a drive started here is stopped here.
+  var ownRec = false;
+  function recordRun() { var rr = window.MT3UKRaceBoxRecord; ownRec = !!(rr && rr.start()); }
+  function endRecord() { var rr = window.MT3UKRaceBoxRecord; if (ownRec && rr) rr.stop(); ownRec = false; }
+
   // The 0 to 60 timer: it arms on Go only from a standstill (under 1 mph), starts when the car moves off, and stops
   // at 60 mph. A car already moving when armed is not timed.
   function tap() {
     // Not connected yet: the button connects to the RaceBox, through the page's own connect switch.
     if (!rbConnected && launch.state !== 'armed') {
+      if (busy) return;
       var c = document.getElementById('rbt-connect');
       if (c && c.getAttribute('aria-checked') !== 'true') c.click();
+      setBusy(true);
       setGo('Connecting to RaceBox', false);
       return;
     }
-    if (launch.state === 'armed') { launch.state = 'idle'; setGo(idleLabel(), false); return; }
+    if (launch.state === 'armed') { launch.state = 'idle'; endRecord(); setGo(idleLabel(), false); return; }
     if (launch.stopped !== true) {
       setGo(launch.stopped === null ? 'Acquiring GPS fix' : 'Stop first, then tap Time a run', false);
       setTimeout(function () { if (launch.state === 'idle') setGo(idleLabel(), false); }, 2500);
@@ -207,6 +236,7 @@
     }
     launch.state = 'armed';
     launch.t30 = null;
+    recordRun();
     setGo('Go', true);
   }
   function step(speedMs, ts) {
@@ -215,7 +245,7 @@
     launch.stopped = speedMph < STOP_MPH;
     if (launch.state === 'armed' && speedMph > STOP_MPH) {
       if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
-      else { launch.state = 'idle'; setGo('Not from a stop, not saved. Stop, then tap Time a run.', false); return; }
+      else { launch.state = 'idle'; endRecord(); setGo('Not from a stop, not saved. Stop, then tap Time a run.', false); return; }
     }
     if (launch.state !== 'running') return;
     var now = (ts - launch.t0) / 1000;
@@ -223,6 +253,7 @@
     if (speedMph >= 60) {
       launch.state = 'done';
       addRun(now, launch.t30);
+      endRecord();
       setGo('Run ' + runs.length + ': ' + (launch.t30 !== null ? '0–30 ' + launch.t30.toFixed(2) + ' s · ' : '') + '0–60 ' + now.toFixed(2) + ' s', false);
     } else {
       var shown = useMph() ? speedMph : speedMs * 3.6;
@@ -238,8 +269,9 @@
   }
   function onStatus(ev) {
     if (!ev) return;
-    if (ev.state === 'connected') rbConnected = true;
-    else if (ev.state === 'disconnected' || ev.state === 'notfound' || ev.state === 'failed') { rbConnected = false; rbFix = false; }
+    if (ev.state === 'connected') { rbConnected = true; setBusy(false); }
+    else if (ev.state === 'disconnected' || ev.state === 'notfound' || ev.state === 'failed') { rbConnected = false; rbFix = false; setBusy(false); }
+    else if (!rbConnected && (ev.state === 'scanning' || ev.state === 'connecting' || ev.state === 'discovering') && !busy) setBusy(true);
     refresh();
   }
   function onReading(r) {
@@ -250,6 +282,7 @@
     drawSats();
     if (launch.state === 'idle') setGo(idleLabel(), false);
     drawDial(r.speedMs || 0, r.gForce || null);
+    if (busy) setBusy(false);
     if (rbFix) step(r.speedMs || 0, r.utc);
   }
 

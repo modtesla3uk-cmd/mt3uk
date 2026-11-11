@@ -600,6 +600,7 @@
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
   .rbt-tm-go { min-width: 200px; min-height: 56px; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 1.35rem/1.2 var(--font-body, sans-serif); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
   .rbt-tm-go.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
+  .rbt-tm-go.is-busy { background: #e6e8ec; color: #7a8190; border-color: #c9ced8; cursor: progress; box-shadow: none; }
   .rbt-tm-sats { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .rbt-tm-bars { display: flex; gap: 2px; padding: 3px; border: 1px solid #5b6475; border-radius: 3px; background: #fff; }
   .rbt-tm-seg { width: 6px; height: 12px; border-radius: 1px; background: #dfe3ea; }
@@ -771,8 +772,8 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-timing.js?v=5"></script>
-<script src="js/racebox-test.js?v=75"></script>
+<script src="js/racebox-timing.js?v=7"></script>
+<script src="js/racebox-test.js?v=76"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

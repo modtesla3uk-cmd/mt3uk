@@ -217,3 +217,45 @@ def test_a_saved_drag_drive_gives_its_0_60_run_from_a_standstill_only(page):
     assert abs(result[0]["t"] - 3.2) < 0.1, result
     assert abs(result[0]["t30"] - 1.6) < 0.1, result
 
+
+def test_pressing_connect_greys_the_button_until_the_racebox_answers(page):
+    page.goto("/racebox.html")
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
+    page.locator("#rbt-tm-go").click()
+    # Greyed out and not pressable while it connects, so it is not pressed again.
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connecting to RaceBox")
+    expect(page.locator("#rbt-tm-go")).to_be_disabled()
+    expect(page.locator("#rbt-tm-go")).to_have_class(__import__("re").compile("is-busy"))
+    # The RaceBox answers that it was not found: the button is back to connect.
+    page.evaluate("window.__rbEmit('status', { state: 'notfound' })", None)
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
+    expect(page.locator("#rbt-tm-go")).to_be_enabled()
+
+
+def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once(page):
+    saved = {"runs": []}
+    _runs_route(page, saved)
+    _open_drag(page, saved)
+    page.locator("#rbt-picker-q").fill("Santa Pod")
+    page.locator("#rbt-picker-results button", has_text="Santa Pod Raceway").first.click()
+    expect(page.locator("#rbt-mode-line")).to_contain_text("Santa Pod Raceway")
+    expect(page.locator("#rbt-startstop")).to_be_hidden()
+    _emit(page, live(speed_ms=0.0))
+    expect(page.locator("#rbt-tm-go")).to_have_text("Time a run", timeout=5000)
+    page.locator("#rbt-tm-go").click()
+    expect(page.locator("#rbt-tm-go")).to_have_text("Go")
+    # Tapping Go starts a drive recording at the strip.
+    assert page.evaluate("() => window.MT3UKRaceBoxRecord.active()") is True
+    for i in range(25 * 6):
+        t = i / 25
+        speed = 0.0 if t < 0.5 else min(30.0, 7.5 * (t - 0.5))
+        _emit(page, live(speed_ms=speed, at_ms=i * 40))
+    expect(page.locator("#rbt-tm-go")).to_contain_text("Run 1: 0–30", timeout=5000)
+    # At 60 mph the drive stops, is saved as a drag run at the strip, and its run is listed once, not twice.
+    expect(page.locator("#rbt-drives-list li").first).to_contain_text("Santa Pod Raceway", timeout=10000)
+    expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
+    assert page.evaluate("() => window.MT3UKRaceBoxRecord.active()") is False
+    expect(page.locator("#rbt-tm-list li")).to_have_count(1)
+    expect(page.locator("#rbt-tm-list li .rbt-tm-no").first).not_to_contain_text("(drive)")
+

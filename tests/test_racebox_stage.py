@@ -100,10 +100,14 @@ def _start_drive(page, mode_label):
 def test_a_drive_recorded_as_a_drag_run_is_staged_as_one(page):
     _start_drive(page, "Drag run")
     page.locator("#rbt-picker-results button", has_text="Without a strip").click()
+    # Drag run opens full screen on the timer, which covers the page's Record switch: leave full screen first.
+    page.locator("#rbt-tm-fs").click()
     page.locator("#rbt-record").click()
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
     expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
+    # The saved drives sit in the map area, which Drag run hides: send from No track.
+    page.locator('#rbt-modes [data-mode="road"]').click()
     page.locator(".rbt-send").first.click()
     expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
     text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
@@ -125,17 +129,23 @@ def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
     assert "Mode : Track" in text and "Venue : Thruxton" in text
 
 
-def test_choosing_a_drag_run_or_circuit_shows_the_map_and_a_start_stop_button(page):
+def test_a_drag_run_has_no_start_recording_button_because_a_timed_run_records_itself(page):
     _start_drive(page, "Drag run")
-    expect(page.locator("#rbt-map")).to_be_visible()
-    expect(page.locator("#rbt-startstop")).to_be_visible()
+    expect(page.locator("#rbt-timing")).to_be_visible()
     page.locator("#rbt-picker-results button", has_text="Without a strip").click()
+    expect(page.locator("#rbt-startstop")).to_be_hidden()
+
+
+def test_a_circuit_keeps_the_start_recording_button(page):
+    _start_drive(page, "Circuit")
+    page.locator("#rbt-picker-q").fill("Thruxton")
+    page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
+    expect(page.locator("#rbt-startstop")).to_be_visible()
     expect(page.locator("#rbt-startstop")).to_be_enabled()
     page.locator("#rbt-startstop").click()
     expect(page.locator("#rbt-startstop")).to_have_text("Stop recording")
     page.locator("#rbt-startstop").click()
     expect(page.locator("#rbt-startstop")).to_have_text("Start recording")
-    expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
 
 
 def test_a_circuit_needs_a_track_before_recording_can_start(page):

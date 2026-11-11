@@ -189,6 +189,13 @@
     syncRecFloat();
     syncStartStop();
   }
+  // For the timer: a 0 to 60 run records its own drive, against the strip chosen. A drive already recording (Record a
+  // drive in Controls) is left alone, so the timer only stops a drive it started.
+  window.MT3UKRaceBoxRecord = {
+    start: function () { if (rec.id) return false; startRecording(); return true; },
+    stop: function () { if (rec.id) stopRecording(); },
+    active: function () { return !!rec.id; }
+  };
   function updateRecLine() {
     var line = $('rbt-rec-line');
     if (line && rec.id) line.textContent = 'Recording: ' + rec.count + ' readings';
@@ -224,7 +231,7 @@
         var secs = d.ended ? Math.round((d.ended - d.started) / 1000) : 0;
         var now = rec.id === d.id;
         how.textContent = d.count + ' readings' + (secs ? ', ' + Math.floor(secs / 60) + ' min ' + (secs % 60) + ' s' : '') +
-          (now ? ', recording now' : (!d.ended ? ', unfinished (the app closed while recording)' : '')) + (d.mode === 'drag' ? ', drag run' : d.mode === 'track' ? ', circuit' + (d.venue ? ' at ' + d.venue : '') : '');
+          (now ? ', recording now' : (!d.ended ? ', unfinished (the app closed while recording)' : '')) + (d.mode === 'drag' ? ', drag run' + (d.venue ? ' at ' + d.venue : '') : d.mode === 'track' ? ', circuit' + (d.venue ? ' at ' + d.venue : '') : '');
         info.appendChild(when);
         info.appendChild(how);
         var del = document.createElement('button');
@@ -636,7 +643,8 @@
     var b = $('rbt-startstop');
     if (!b) return;
     var on = !!rec.id;
-    b.hidden = modeNow === 'road';
+    // Drag run has no Start recording: a timed run records itself (racebox-timing.js). Circuit keeps the button.
+    b.hidden = modeNow === 'road' || modeNow === 'drag';
     b.textContent = on ? 'Stop recording' : 'Start recording';
     b.classList.toggle('is-recording', on);
     b.disabled = !on && (!lastFixOk || (modeNow === 'track' && !venueChoice));
@@ -706,7 +714,7 @@
   function placeDragControls(inDrag) {
     var home = document.getElementById('rbt-start-home'), sec = document.getElementById('rbt-timing');
     if (!home || !sec) return;
-    ['rbt-mode-line', 'rbt-startstop', 'rbt-picker'].forEach(function (id) {
+    ['rbt-mode-line', 'rbt-picker'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       if (inDrag) sec.appendChild(el);

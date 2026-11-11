@@ -391,6 +391,10 @@
   .nav-stop { display: flex; align-items: center; gap: 4px; position: relative; background: #fff; border-radius: var(--radius, 10px); }
   .nav-stop.is-moving { z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
   .nav-stop-input { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+  .nav-mic { flex: none; width: 44px; height: 44px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 50%; background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .nav-mic[hidden] { display: none; }
+  .nav-mic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-mic.is-listening { background: #e8542a; border-color: #e8542a; color: #fff; }
   .nav-grip, .nav-stop-remove { flex: none; width: 36px; height: 44px; border: 0; background: none; color: #5b6475; display: grid; place-items: center; padding: 0; touch-action: none; }
   .nav-grip { cursor: grab; }
   .nav-stop-remove { cursor: pointer; }
@@ -525,6 +529,9 @@
   .nav-steps { list-style: none; margin: 0; padding: 0 16px 16px; display: grid; font-size: 1rem; }
   .nav-step { display: flex; align-items: flex-start; gap: 16px; padding: 14px 0; border-top: 1px solid #eef1f5; }
   .nav-step:first-child { border-top: 0; }
+  .nav-stop-row { display: flex; align-items: center; gap: 16px; padding: 14px 8px; margin: 0 -8px; border-top: 2px solid #1c6fd6; border-radius: 10px; cursor: pointer; color: #1c6fd6; font-weight: 800; font-size: 1rem; }
+  .nav-stop-row .nav-step-icon { color: #1c6fd6; }
+  .nav-stop-row:focus-visible { outline: 3px solid #1c6fd6; outline-offset: 2px; }
   .nav-step { cursor: pointer; border-radius: 10px; padding-left: 8px; padding-right: 8px; margin: 0 -8px; }
   .nav-step:focus-visible { outline: 3px solid #1c6fd6; outline-offset: 2px; }
   .nav-step.is-active { background: #eef6ff; }
@@ -720,6 +727,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=36" defer></script>
+<script src="js/navigate.js?v=38" defer></script>
 </body>
 </html>

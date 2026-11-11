@@ -1201,3 +1201,62 @@ def test_the_header_menu_opens_over_the_navigate_page(page):
       const r = m.getBoundingClientRect(); const x = r.left + r.width / 2, y = Math.min(r.bottom - 10, window.innerHeight - 10);
       const el = document.elementFromPoint(x, y); return !!(el && (el.closest('#navlinks') || el.closest('header'))); }""")
     assert hit
+
+
+TWO_STOP_REPLY = ('{"success":true,"distanceM":2400,"durationS":400,'
+                  '"line":[[52.124,-0.9955],[52.126,-0.9950],[52.13,-0.98],[52.14,-0.97]],'
+                  '"steps":[{"text":"Head north on Maple Close","distanceM":180},{"text":"Turn left onto Church Road","distanceM":1060},'
+                  '{"text":"Turn right onto Springfields","distanceM":500},{"text":"Arrive at your destination","distanceM":0}],'
+                  '"stopAfter":[2]}')
+
+
+def test_a_route_with_stops_lists_each_stop_in_its_place_among_the_turns(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=TWO_STOP_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-add-stop").click()
+    expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(2)
+    page.locator("#nav-stops .nav-stop-input").nth(0).fill("52.12, -0.99")
+    page.locator("#nav-to-q").fill("52.14, -0.97")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    # The stop sits after the two turns that lead to it, and before the turn that leaves it.
+    rows = page.locator("#nav-steps > li")
+    expect(rows).to_have_count(5)
+    expect(rows.nth(2)).to_have_class(re.compile(r"nav-stop-row"))
+    expect(rows.nth(2)).to_contain_text("Stop 1")
+    expect(rows.nth(3)).to_contain_text("Turn right onto Springfields")
+    # Tapping the stop shows where it is.
+    rows.nth(2).click()
+    expect(page.locator("#nav-stepper")).to_be_visible()
+    expect(page.locator("#nav-step-label")).to_have_text("Turn 3 of 4")
+
+
+FAKE_SPEECH = """
+window.SpeechRecognition = function () {
+  var self = this;
+  this.start = function () {
+    setTimeout(function () { self.onresult({ resultIndex: 0, results: [[{ transcript: 'Church Road' }]] }); }, 100);
+    setTimeout(function () { self.onend(); }, 300);
+  };
+  this.stop = function () { self.onend(); };
+};
+"""
+
+
+def test_the_destination_can_be_said_instead_of_typed(page):
+    _approve(page, True)
+    page.add_init_script(FAKE_SPEECH)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-stops .nav-mic").last).to_be_visible()
+    page.locator("#nav-stops .nav-mic").last.click()
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    expect(page.locator("#nav-stops .nav-mic").last).to_have_attribute("aria-pressed", "false", timeout=5000)

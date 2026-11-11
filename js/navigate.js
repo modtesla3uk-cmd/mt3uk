@@ -949,6 +949,14 @@
       if (last) input.id = 'nav-to-q';
       input.addEventListener('input', onStopInput);
       input.addEventListener('keydown', onStopKey);
+      var mic = document.createElement('button');
+      mic.type = 'button';
+      mic.className = 'nav-mic';
+      mic.innerHTML = MIC_SVG;
+      mic.setAttribute('aria-label', 'Say the ' + stopLabel(i));
+      mic.setAttribute('aria-pressed', 'false');
+      mic.hidden = !voiceInputAvailable();
+      mic.addEventListener('click', function () { dictate(i, mic); });
       var rm = document.createElement('button');
       rm.type = 'button';
       rm.className = 'nav-stop-remove';
@@ -959,9 +967,45 @@
       grip.addEventListener('pointerdown', function (e) { startMove(e, li, i); });
       li.appendChild(grip);
       li.appendChild(input);
+      li.appendChild(mic);
       li.appendChild(rm);
       ul.appendChild(li);
     });
+  }
+  // Voice input for a place: the phone's speech turns what is said into the box, and the place is then looked up as typed.
+  // The button only shows where the phone or browser can do it.
+  var MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var listening = null;
+  function voiceInputAvailable() { return !!Rec; }
+  function dictate(i, btn) {
+    if (listening) { listening.stop(); return; }
+    if (!Rec) return;
+    var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');
+    var rec = new Rec();
+    rec.lang = 'en-GB';
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.continuous = false;
+    listening = rec;
+    btn.classList.add('is-listening');
+    btn.setAttribute('aria-pressed', 'true');
+    setRouteMsg('Listening. Say the place.');
+    rec.onresult = function (e) {
+      var text = '';
+      for (var k = 0; k < e.results.length; k++) text += e.results[k][0].transcript;
+      if (!input) return;
+      input.value = text.trim();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    rec.onerror = function () { setRouteMsg("Didn't catch that. Try again, or type the place.", true); };
+    rec.onend = function () {
+      listening = null;
+      btn.classList.remove('is-listening');
+      btn.setAttribute('aria-pressed', 'false');
+      if (input && input.value.trim()) setRouteMsg('');
+    };
+    try { rec.start(); } catch (err) { listening = null; btn.classList.remove('is-listening'); setRouteMsg('Voice input could not start. Type the place instead.', true); }
   }
   function onStopInput(e) {
     var i = Number(e.target.dataset.i), v = e.target.value;
@@ -1206,9 +1250,16 @@
       return at && (!lastFix || metresBetween([lastFix.lat, lastFix.lng], at) > 60);
     });
   }
+  // The names of the stops still ahead, in the order they are visited, for the directions to show.
+  function stopNamesAhead() {
+    return stops.slice(0, -1).filter(function (st) {
+      return st.place && st.place.at && (!lastFix || metresBetween([lastFix.lat, lastFix.lng], st.place.at) > 60);
+    }).map(function (st) { return st.place.name || ''; });
+  }
   function requestRoute() {
+    var names = stopNamesAhead();
     return fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at, via: stopsAhead() }) })
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && !!d.success, d: d }; }); });
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (d && d.success) d.viaNames = names; return { ok: r.ok && !!d.success, d: d }; }); });
   }
   function routeTo() {
     if (!dest) return;
@@ -1326,7 +1377,24 @@
     var ul = $('nav-steps');
     ul.textContent = '';
     // Each step: its icon, its instruction, and the distance on to the next one, as Google Maps lists them.
+    var stopAfter = routeD.stopAfter || [], viaNames = routeD.viaNames || [];
+    function stopRow(k) {
+      // A stop on the way: its name, and a tap shows where it is, as for a turn.
+      var row = document.createElement('li');
+      row.className = 'nav-stop-row';
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.innerHTML = '<span class="nav-step-icon">' + stepIconSvg('Arrive at stop') + '</span>';
+      var label = document.createElement('span');
+      label.textContent = 'Stop ' + (k + 1) + ': ' + (viaNames[k] || 'stop ' + (k + 1));
+      row.appendChild(label);
+      var at = stopAfter[k];
+      row.addEventListener('click', function () { showStep(at); });
+      row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStep(at); } });
+      return row;
+    }
     (routeD.steps || []).slice(0, 15).forEach(function (st, index) {
+      stopAfter.forEach(function (after, k) { if (after === index) ul.appendChild(stopRow(k)); });
       var li = document.createElement('li');
       li.className = 'nav-step';
       var icon = document.createElement('span');

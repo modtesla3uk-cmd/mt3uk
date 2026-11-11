@@ -8225,18 +8225,21 @@ async function handleNavigateRoute(request, env) {
   if (!f || !f.geometry || !f.geometry.coordinates) return json({ success: false, message: 'No driving route was found there.' }, 404);
   // One leg per pair of points: the distance and time are the whole trip, and the turns run through every leg.
   var segs = (f.properties && f.properties.segments) || [];
-  var dist = 0, dur = 0, steps = [];
-  segs.forEach(function (seg) {
+  var dist = 0, dur = 0, steps = [], stopAfter = [];
+  segs.forEach(function (seg, k) {
     dist += seg.distance || 0;
     dur += seg.duration || 0;
     (seg.steps || []).forEach(function (s) { steps.push({ text: String(s.instruction || ''), distanceM: Math.round(s.distance || 0) }); });
+    // Where each stop on the way falls in the steps: after this leg's steps, the next leg starts.
+    if (k < segs.length - 1) stopAfter.push(steps.length);
   });
   return json({
     success: true,
     distanceM: Math.round(dist),
     durationS: Math.round(dur),
     line: f.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }),
-    steps: steps
+    steps: steps,
+    stopAfter: stopAfter
   });
 }
 // Addresses Navigate finds alongside the map's own data, for houses the map does not have yet. One KV key, kept by

@@ -1777,6 +1777,8 @@ def test_the_speed_dial_has_its_speed_values_round_the_dial(page):
     page.locator("#nav-free").click()
     page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
     expect(page.locator("#nav-labels text")).to_have_count(8)
+    # A tick every 5 mph, from 0 to 140: 29 ticks round the dial.
+    expect(page.locator("#nav-ticks line")).to_have_count(29)
     expect(page.locator("#nav-labels text").first).to_have_text("0")
     expect(page.locator("#nav-labels text").last).to_have_text("140")
 
@@ -1807,4 +1809,98 @@ def test_the_saved_runs_can_be_cleared_from_the_times_card(page):
     page.locator("#nav-runs-clear").click()
     expect(page.locator("#nav-runs")).to_be_hidden(timeout=5000)
     assert saved["runs"] == []
+
+
+def test_the_g_dot_sits_in_the_middle_when_the_car_is_still(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    # Standing still with the phone mounted at an angle: the box reads some g, but the dot is taken as the middle.
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0.12, y: -0.08 } }); })")
+    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0.12, y: -0.08 } }); })")
+    expect(page.locator("#nav-gdot")).to_have_attribute("cx", "150", timeout=5000)
+    expect(page.locator("#nav-gdot")).to_have_attribute("cy", "150")
+
+
+def test_the_time_a_run_button_does_not_overlap_the_runs_or_the_dial_in_free_drive(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"},{"t":41.1,"t30":11.0,"at":"2026-11-11T17:05:00Z"},{"t":42.0,"t30":11.5,"at":"2026-11-11T17:06:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0, y: 0 } }); })")
+    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
+    page.wait_for_timeout(400)
+    boxes = page.evaluate("""(() => { const b = (s) => document.querySelector(s).getBoundingClientRect();
+      return { speed: b('.nav-gauge-speed'), launch: b('#nav-launch'), runs: b('#nav-runs') }; })()""")
+    assert boxes["speed"]["bottom"] <= boxes["launch"]["top"], boxes
+    assert boxes["launch"]["bottom"] <= boxes["runs"]["top"], boxes
+
+
+def test_the_g_meter_has_its_half_g_and_one_g_values(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-gauge text").filter(has_text="0.5g")).to_have_count(1)
+    expect(page.locator("#nav-gauge text").filter(has_text="1.0g")).to_have_count(1)
+
+
+def test_the_g_meter_has_its_rings_like_the_racebox_display(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    # Two dotted rings (0.5 g and 1.0 g) and a solid outer ring (1.5 g) on the G meter.
+    expect(page.locator("#nav-gauge circle[stroke-dasharray]")).to_have_count(2)
+    expect(page.locator("#nav-gauge text").filter(has_text="1.5g")).to_have_count(1)
+
+
+def test_the_g_meter_is_labelled_g_forces(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-glabel text")).to_have_text("G Forces")
+
+
+def test_the_past_runs_show_the_0_30_before_the_0_60_with_a_gap_between(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":41.1,"t30":11.0,"at":"2026-11-11T17:05:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
+    expect(page.locator("#nav-runs-list li .nav-run-half").first).to_have_text("0\u201330 11.00 s")
+    expect(page.locator("#nav-runs-list li .nav-run-sixty").first).to_have_text("0\u201360 41.10 s")
+    # The 0 to 30 comes before the 0 to 60 on the line.
+    order = page.evaluate("(() => { const li = document.querySelector('#nav-runs-list li'); return [...li.children].map(c => c.className); })()")
+    assert order == ["nav-run-no", "nav-run-half", "nav-run-sixty"], order
 

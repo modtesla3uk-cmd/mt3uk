@@ -369,19 +369,21 @@
   }
   // The speed and G meter for free drive: the needle sweeps 0 to 140 mph over 270 degrees, and the dot is the G forces
   // (sideways across, lengthways up; 1 g is the edge of the inner circle).
-  var GAUGE_MAX_MPH = 140, GAUGE_R = 52, gaugeBuilt = false;
+  // The G rings: 1.0 g is 47 across the drawing (the dotted rings are 0.5 g and 1.0 g, the solid outer ring 1.5 g).
+  var GAUGE_MAX_MPH = 140, GAUGE_R = 47, gaugeBuilt = false, gTare = { x: 0, y: 0 };
   function buildGauge() {
     var ticks = $('nav-ticks'), labels = $('nav-labels');
     if (!ticks || !labels || gaugeBuilt) return;
     gaugeBuilt = true;
     var NS = 'http://www.w3.org/2000/svg';
-    for (var m = 0; m <= GAUGE_MAX_MPH; m += 10) {
-      var a = (-135 + 270 * m / GAUGE_MAX_MPH) * Math.PI / 180, major = m % 20 === 0;
-      var r1 = major ? 96 : 102, r2 = 112;
+    // A tick every 5 mph: longer every 10, longest (with the speed) every 20.
+    for (var m = 0; m <= GAUGE_MAX_MPH; m += 5) {
+      var a = (-135 + 270 * m / GAUGE_MAX_MPH) * Math.PI / 180, major = m % 20 === 0, medium = m % 10 === 0;
+      var r1 = major ? 96 : medium ? 101 : 106, r2 = 112;
       var line = document.createElementNS(NS, 'line');
       line.setAttribute('x1', 150 + Math.sin(a) * r1); line.setAttribute('y1', 150 - Math.cos(a) * r1);
       line.setAttribute('x2', 150 + Math.sin(a) * r2); line.setAttribute('y2', 150 - Math.cos(a) * r2);
-      if (major) line.setAttribute('stroke-width', '3');
+      line.setAttribute('stroke-width', major ? '3' : medium ? '2' : '1.2');
       ticks.appendChild(line);
       // The speed in mph round the dial, every 20 mph.
       if (major) {
@@ -405,7 +407,9 @@
     set('nav-gauge-unit', mph ? 'mph' : 'km/h');
     var dot = $('nav-gdot');
     if (dot && g) {
-      var side = Math.max(-1.2, Math.min(1.2, g.y || 0)), fwd = Math.max(-1.2, Math.min(1.2, g.x || 0));
+      // Zeroed while the car is still: the phone's mounting and gravity are taken out, so the dot sits in the middle at rest.
+      if (mphNow < LAUNCH_STOPPED_MPH) gTare = { x: g.x || 0, y: g.y || 0 };
+      var side = Math.max(-1.2, Math.min(1.2, (g.y || 0) - gTare.y)), fwd = Math.max(-1.2, Math.min(1.2, (g.x || 0) - gTare.x));
       dot.setAttribute('cx', 150 + side * GAUGE_R);
       dot.setAttribute('cy', 150 - fwd * GAUGE_R);
     }
@@ -1172,7 +1176,17 @@
     a.slice(0, LAUNCH_LIST).forEach(function (r, i) {
       var li = document.createElement('li');
       // Runs are numbered in the order they were timed: the newest is the highest number.
-      li.textContent = 'Run ' + (a.length - i) + ': 0\u201360 ' + r.t.toFixed(2) + ' s' + (typeof r.t30 === 'number' ? ' \u00b7 0\u201330 ' + r.t30.toFixed(2) + ' s' : '');
+      // Run number, then the 0 to 30 and the 0 to 60, with a gap between them.
+      var no = document.createElement('span'), half = document.createElement('span'), sixty = document.createElement('span');
+      no.className = 'nav-run-no';
+      no.textContent = 'Run ' + (a.length - i);
+      half.className = 'nav-run-half';
+      half.textContent = typeof r.t30 === 'number' ? '0\u201330 ' + r.t30.toFixed(2) + ' s' : '';
+      sixty.className = 'nav-run-sixty';
+      sixty.textContent = '0\u201360 ' + r.t.toFixed(2) + ' s';
+      li.appendChild(no);
+      li.appendChild(half);
+      li.appendChild(sixty);
       if (r.t === best) li.className = 'is-best';
       list.appendChild(li);
     });

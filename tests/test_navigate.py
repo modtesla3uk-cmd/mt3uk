@@ -1297,3 +1297,25 @@ def test_removing_a_stop_or_clearing_the_route_takes_the_drive_away(page):
     page.locator("#nav-stops .nav-add-stop").last.click()
     page.locator("#nav-stops .nav-remove, #nav-stops .nav-stop-remove").first.click()
     expect(page.locator("#nav-route")).to_be_hidden()
+
+
+def test_the_turn_stepper_does_not_cover_the_open_directions(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-steps .nav-step").nth(0).click()
+    # Tapping a turn folds the list, so the turn's bar shows over the map.
+    expect(page.locator("#nav-stepper")).to_be_visible()
+    # Opening the list again hides the bar, so it does not cover the list.
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    expect(page.locator("#nav-stepper")).to_be_hidden()

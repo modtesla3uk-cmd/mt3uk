@@ -616,6 +616,7 @@
     if (wrap) wrap.classList.toggle('route-collapsed', folded);
     if (wrap && driving) wrap.classList.toggle('dirs-open', !folded);
     if (hd) hd.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    showStepper();
   }
 
   function init() {
@@ -984,7 +985,10 @@
   var MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
   var Rec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
   var listening = null;
-  function voiceInputAvailable() { return !!Rec; }
+  // In the Laps app the web view can show the microphone, but it cannot listen until the app has the speech plugin and
+  // the microphone permission, so the microphone is left out there.
+  function inLapsApp() { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+  function voiceInputAvailable() { return !!Rec && !inLapsApp(); }
   function dictate(i, btn) {
     if (listening) { listening.stop(); return; }
     if (!Rec) return;
@@ -1005,7 +1009,10 @@
       input.value = text.trim();
       input.dispatchEvent(new Event('input', { bubbles: true }));
     };
-    rec.onerror = function () { setRouteMsg("Didn't catch that. Try again, or type the place.", true); };
+    rec.onerror = function (e) {
+      var denied = e && (e.error === 'not-allowed' || e.error === 'service-not-allowed');
+      setRouteMsg(denied ? 'Allow the microphone for this site, then try again. Or type the place.' : "Didn't catch that. Try again, or type the place.", true);
+    };
     rec.onend = function () {
       listening = null;
       btn.classList.remove('is-listening');
@@ -1372,7 +1379,9 @@
     var box = $('nav-stepper');
     if (!box) return;
     var n = stepCount();
-    box.hidden = stepIndex === null || n === 0;
+    // Over the open directions list it would cover the list, so it shows once the list is folded.
+    var pn = $('nav-route'), listOpen = !!(pn && !pn.hidden && !pn.classList.contains('is-collapsed'));
+    box.hidden = stepIndex === null || n === 0 || listOpen;
     var st = stepIndex !== null && routeD && routeD.steps ? routeD.steps[stepIndex] : null;
     set('nav-step-text', st ? st.text : '');
     var ico = $('nav-step-icon');

@@ -255,6 +255,9 @@
     }
     var toTurn = Math.max(0, left - (total - done));
     var next = steps[cur + 1], upcoming = next ? next.text : 'You will arrive at your destination';
+    // The turn card is large and bold only for a turn coming up soon; a turn further off is smaller and lighter.
+    var tEl = $('nav-turn');
+    if (tEl) tEl.classList.toggle('is-near', left < 25 || toTurn <= TURN_NEAR_M);
     if (left < 25) { set('nav-turn-text', 'You have arrived'); set('nav-turn-dist', ''); turnArrow('straight'); arrived(); }
     else { set('nav-turn-text', upcoming); set('nav-turn-dist', 'in ' + distText(toTurn)); turnArrow(upcoming); announce(cur, upcoming, toTurn, left); }
     var secs = routeD.distanceM ? routeD.durationS * left / routeD.distanceM : 0;
@@ -1063,10 +1066,10 @@
   function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
   // A 0 to 60 run counts only from a standstill: the timer is armed only when the car is under 1 mph, and a car that is
   // already moving when it is armed is not timed (so a rolling start is never saved).
-  var LAUNCH_STOPPED_MPH = 1, launchNote = null;
+  var LAUNCH_STOPPED_MPH = 1, launchNote = null, TURN_NEAR_M = 800;
   function launchStep(speedMs, ts) {
     var mph = speedMs * 2.23694;
-    var wasStopped = launch.stopped !== false;
+    var wasStopped = launch.stopped === true;
     launch.stopped = mph < LAUNCH_STOPPED_MPH;
     if (launch.state === 'armed' && mph > LAUNCH_STOPPED_MPH) {
       if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
@@ -1089,15 +1092,15 @@
   }
   function launchTap() {
     if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('Time a run'); return; }
-    if (launch.stopped === false) {
-      // Moving: it is not armed, so a run can only start from a standstill.
-      setLaunchText('Stop first, then tap Time a run');
+    if (launch.stopped !== true) {
+      // Moving, or no speed read yet: it is not armed, so a run can only start from a standstill.
+      setLaunchText(launch.stopped === null ? 'Waiting for the RaceBox speed' : 'Stop first, then tap Time a run');
       setTimeout(function () { if (launch.state === 'idle') setLaunchText('Time a run'); }, 2500);
       return;
     }
     launch.state = 'armed';
     launch.t30 = null;
-    setLaunchText('Go when you move');
+    setLaunchText('Time when you move');
   }
   // A destination given in the address, from a Laps track: navigate.html?to=51.2085,-1.6055&name=Thruxton. It is routed
   // once the phone has a position.

@@ -1102,7 +1102,7 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
       window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
     # A run from stopped to 60 mph (26.8 m/s), 25 readings a second: stopped for half a second, then accelerating.
     page.evaluate("""() => {
       const t0 = Date.now(); const rd = window.__rb.readers;
@@ -1510,7 +1510,7 @@ def test_the_zero_to_sixty_timer_is_on_the_map_only_while_driving(page):
     # Driving: the timer shows, and it works.
     expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
 
 
 def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of_the_phone(page):
@@ -1664,7 +1664,7 @@ def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_no
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 2; i++) { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
     page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go when you move")
+    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
     page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
       for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
         const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")

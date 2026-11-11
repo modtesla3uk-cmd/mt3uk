@@ -1142,3 +1142,41 @@ def test_while_driving_recentre_and_the_speaker_sit_above_the_bottom_bar(page):
     assert boxes["recentreBottom"] <= boxes["barTop"] - 4, boxes
     assert boxes["voiceBottom"] <= boxes["recentreTop"], boxes
     page.locator("#nav-exit").click()
+
+
+def test_the_map_fills_its_box_whenever_the_box_changes_size(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.wait_for_function("() => !!window.MT3UKNavigate.map()", timeout=10000)
+    page.evaluate("() => { const el = document.getElementById('nav-map'); el.style.width = '300px'; }")
+    page.wait_for_function("() => { const el = document.getElementById('nav-map'); return window.MT3UKNavigate.map().getSize().x === el.clientWidth && el.clientWidth < 330; }", timeout=5000)
+    page.evaluate("() => { const el = document.getElementById('nav-map'); el.style.width = ''; }")
+
+
+def test_the_turn_stepper_sits_below_the_turn_card_while_driving(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    page.wait_for_timeout(600)
+    page.locator("#nav-drive-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-steps .nav-step").nth(1).click()
+    expect(page.locator("#nav-stepper")).to_be_visible()
+    page.wait_for_timeout(300)
+    boxes = page.evaluate("""() => { const t = document.getElementById('nav-turn').getBoundingClientRect(), s = document.getElementById('nav-stepper').getBoundingClientRect(); return { turnBottom: t.bottom, stepperTop: s.top }; }""")
+    assert boxes["stepperTop"] >= boxes["turnBottom"] - 1, boxes

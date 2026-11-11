@@ -68,6 +68,9 @@
     el.classList.add('rbt-mono');
     trail = L.polyline([], { color: '#e4b64f', weight: 4 }).addTo(map);
     marker = L.marker([lat, lng], { icon: carIcon(), interactive: false, zIndexOffset: 1000 }).addTo(map);
+    // The map fills its box however the box was shown or sized when the map was made (the RaceBox can give the first fix
+    // before the page has laid out), so the map is told whenever its box changes size.
+    if (window.ResizeObserver) new ResizeObserver(function () { if (map) map.invalidateSize(); }).observe(el);
   }
 
   // While driving the map turns so the direction of travel points up, and leans back like a sat-nav's 3D view.
@@ -238,6 +241,9 @@
     if (!driving || !routeD || !lastFix) return;
     var wrapEl = document.querySelector('.nav-map-wrap'), barEl = $('nav-drive-bar');
     if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
+    // The turn card can take several lines, so what sits under it (the stepper, the toast) starts below its real bottom.
+    var turnEl = $('nav-turn');
+    if (wrapEl && turnEl) wrapEl.style.setProperty('--turn', (turnEl.offsetTop + turnEl.offsetHeight) + 'px');
     var left = leftOnRoute();
     if (left === null) return;
     var steps = routeD.steps || [], total = 0;

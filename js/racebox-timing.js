@@ -115,30 +115,43 @@
   // Until the RaceBox is connected the button asks for it; once connected it waits for the GPS fix, then it is ready.
   function idleLabel() { return !rbConnected ? 'Connect to RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
 
-  // The runs: the best, then the latest five, each with its 0 to 30 and 0 to 60. Numbered as timed: the newest is the highest.
+  // The runs: the timed runs (saved to the profile) and the runs in the saved Drag run drives, newest first. The best is
+  // over both, and the latest five show, numbered as timed: the newest is the highest.
+  var driveRunList = [];
+  function allRuns() {
+    return runs.map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: false }; })
+      .concat(driveRunList.map(function (r) { return { t: r.t, t30: r.t30, at: r.at, drive: true }; }))
+      .sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+  }
   function drawRuns() {
-    var best = bestOf(runs);
+    var all = allRuns();
+    var best = bestOf(all);
     set('rbt-tm-best', best === null ? '' : 'Best ' + best.toFixed(2) + ' s');
     var none = $('rbt-tm-none'), list = $('rbt-tm-list'), clear = $('rbt-tm-clear');
-    if (none) none.hidden = runs.length > 0;
+    if (none) none.hidden = all.length > 0;
     if (clear) clear.hidden = runs.length === 0;
     if (!list) return;
     list.innerHTML = '';
-    runs.slice(0, LIST).forEach(function (r, i) {
+    all.slice(0, LIST).forEach(function (r, i) {
       var li = document.createElement('li');
       if (r.t === best) li.className = 'is-best';
       var no = document.createElement('span'), half = document.createElement('span'), sixty = document.createElement('span');
       no.className = 'rbt-tm-no';
-      no.textContent = 'Run ' + (runs.length - i);
+      no.textContent = 'Run ' + (all.length - i) + (r.drive ? ' (drive)' : '');
       half.className = 'rbt-tm-half';
-      half.textContent = typeof r.t30 === 'number' ? '0–30 ' + r.t30.toFixed(2) + ' s' : '';
+      half.textContent = typeof r.t30 === 'number' ? '0\u201330 ' + r.t30.toFixed(2) + ' s' : '';
       sixty.className = 'rbt-tm-sixty';
-      sixty.textContent = '0–60 ' + r.t.toFixed(2) + ' s';
+      sixty.textContent = '0\u201360 ' + r.t.toFixed(2) + ' s';
       li.appendChild(no);
       li.appendChild(half);
       li.appendChild(sixty);
       list.appendChild(li);
     });
+  }
+  // The saved Drag run drives are read again whenever they change (the page announces it).
+  function refreshDrives() {
+    if (!window.MT3UKRaceBoxDrives || !window.MT3UKRaceBoxDrives.dragRuns) return;
+    window.MT3UKRaceBoxDrives.dragRuns().then(function (list) { driveRunList = list; drawRuns(); }).catch(function () {});
   }
   function loadRuns() {
     var s = token();
@@ -179,9 +192,11 @@
   // The 0 to 60 timer: it arms on Go only from a standstill (under 1 mph), starts when the car moves off, and stops
   // at 60 mph. A car already moving when armed is not timed.
   function tap() {
+    // Not connected yet: the button connects to the RaceBox, through the page's own connect switch.
     if (!rbConnected && launch.state !== 'armed') {
-      setGo('Connect to RaceBox first', false);
-      setTimeout(function () { if (launch.state === 'idle') setGo(idleLabel(), false); }, 2500);
+      var c = document.getElementById('rbt-connect');
+      if (c && c.getAttribute('aria-checked') !== 'true') c.click();
+      setGo('Connecting to RaceBox', false);
       return;
     }
     if (launch.state === 'armed') { launch.state = 'idle'; setGo(idleLabel(), false); return; }
@@ -265,6 +280,8 @@
     if (clear) clear.addEventListener('click', clearRuns);
     drawRuns();
     loadRuns();
+    refreshDrives();
+    window.addEventListener('mt3uk-drives-changed', refreshDrives);
     if (window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.onReading) window.MT3UKRaceBoxApp.onReading(onReading);
     if (window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.onStatus) window.MT3UKRaceBoxApp.onStatus(onStatus);
     // A connection made before this page was opened is shown at once.
@@ -273,5 +290,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
   // For the page's own checks.
-  window.MT3UKRaceBoxTiming = { full: setFull, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
+  window.MT3UKRaceBoxTiming = { full: setFull, refreshDrives: refreshDrives, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
 })();

@@ -157,7 +157,12 @@ def test_drag_run_goes_full_screen_and_the_full_screen_button_brings_the_page_ba
 
 def test_the_readings_fold_away_in_drag_run_and_details_opens_them(page):
     page.goto("/racebox.html")
+    # The readings are folded by default; Details opens them.
+    expect(page.locator("#rbt-band-wrap")).to_be_hidden()
+    page.locator("#rbt-details-toggle").click()
     expect(page.locator("#rbt-band-wrap")).to_be_visible()
+    page.locator("#rbt-details-toggle").click()
+    expect(page.locator("#rbt-band-wrap")).to_be_hidden()
     page.locator('#rbt-modes [data-mode="drag"]').click()
     expect(page.locator("#rbt-details-toggle")).to_have_attribute("aria-expanded", "false")
     expect(page.locator("#rbt-band-wrap")).to_be_hidden()
@@ -173,6 +178,9 @@ def test_the_timer_asks_for_the_racebox_until_it_is_connected(page):
     page.locator('#rbt-modes [data-mode="drag"]').click()
     expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
     expect(page.locator("#rbt-tm-text")).to_have_text("Not connected")
+    # A tap connects: the timer says so at once, and the page's connect is asked for.
+    page.locator("#rbt-tm-go").click()
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connecting to RaceBox", timeout=5000)
     # Connected, with no fix yet: now it says it is acquiring the GPS fix.
     page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
     _emit(page, live(fix=False, sats=4))
@@ -181,4 +189,31 @@ def test_the_timer_asks_for_the_racebox_until_it_is_connected(page):
     # Dropped again: back to asking for the RaceBox.
     page.evaluate("(b) => window.__rbEmit('status', { state: 'disconnected' })", None)
     expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
+
+
+def test_drag_run_leaves_out_the_live_map(page):
+    page.goto("/racebox.html")
+    expect(page.locator(".rbt-map-wrap")).to_be_visible()
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator(".rbt-map-wrap")).to_be_hidden()
+
+
+def test_a_saved_drag_drive_gives_its_0_60_run_from_a_standstill_only(page):
+    # A drive saved in Drag run: a standstill, then a launch at 30 kph a second (60 mph in about 3.2 s), and a rolling
+    # car after it, which is not a run. The runs come out of the readings (speed in km/h, at column 3).
+    page.goto("/racebox.html")
+    result = page.evaluate("""() => {
+      const rows = [];
+      for (let i = 0; i <= 200; i++) {
+        const t = i * 40;
+        const kph = t < 1000 ? 0 : Math.min(120, 30 * (t - 1000) / 1000);
+        rows.push([1700000000000 + t, 52.1, -0.99, kph, 90, 0, 0, 0, 0, 0, 0, 1, 12, 1.2]);
+      }
+      // A rolling car at 40 kph, never stopped: not a run.
+      for (let i = 0; i <= 100; i++) rows.push([1700000010000 + i * 40, 52.1, -0.99, 40, 90, 0, 0, 0, 0, 0, 0, 1, 12, 1.2]);
+      return window.MT3UKRaceBoxDrives.zeroSixty(rows);
+    }""")
+    assert len(result) == 1, result
+    assert abs(result[0]["t"] - 3.2) < 0.1, result
+    assert abs(result[0]["t30"] - 1.6) < 0.1, result
 

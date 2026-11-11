@@ -429,6 +429,7 @@ def test_the_map_turns_so_the_car_goes_up_the_screen_unless_north_up_is_chosen(p
     page.wait_for_timeout(200)
     view = page.evaluate("window.MT3UKRaceBoxView()")
     assert view["headingUp"] is True and abs(view["lastHeading"] - 45) < 0.01, view
+    page.locator("#rbt-details-toggle").click()  # the compass sits in the readings, which fold by default
     page.locator("#rbt-compass").click()
     assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is False
     assert page.locator("#rbt-compass").get_attribute("aria-pressed") == "false"

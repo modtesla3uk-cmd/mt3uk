@@ -202,7 +202,7 @@
     if (rec.buf.length >= 25) flushRecording(false);
     updateRecLine();
   }
-  function drawRecordings() {
+  function drawRecordingsInner() {
     // Which drives are already staged for Laps, so their button shows Sent and Undo.
     var staged = window.MT3UKStage ? window.MT3UKStage.list().catch(function () { return []; }) : Promise.resolve([]);
     return Promise.all([dbRun('recordings', 'readonly', function (st) { return st.getAll(); }), staged]).then(function (both) {
@@ -304,6 +304,43 @@
         return rows;
       });
   }
+  function drawRecordings() {
+    return drawRecordingsInner().then(function () { window.dispatchEvent(new Event('mt3uk-drives-changed')); });
+  }
+  // The 0 to 60 mph runs in the saved Drag run drives, from their readings: a run starts when the car moves off from a
+  // standstill (under 1 mph), and ends at 60 mph; the 0 to 30 is taken on the way. A rolling start is not a run.
+  function zeroSixtyRuns(rows) {
+    var out = [], stopped = false, t0 = null, t30 = null;
+    rows.forEach(function (r) {
+      var kph = r[3], ts = r[0];
+      if (t0 === null) {
+        if (kph < 1.6) stopped = true;
+        else if (stopped) { t0 = ts; t30 = null; }
+        return;
+      }
+      if (t30 === null && kph >= 48.28) t30 = (ts - t0) / 1000;
+      if (kph >= 96.56) { out.push({ t: (ts - t0) / 1000, t30: t30, at: t0 }); t0 = null; stopped = false; }
+      else if (kph < 1.6) { t0 = null; stopped = true; }
+    });
+    return out;
+  }
+  function dragRuns() {
+    return dbRun('recordings', 'readonly', function (st) { return st.getAll(); }).then(function (list) {
+      var drags = list.filter(function (d) { return d.mode === 'drag'; });
+      return Promise.all(drags.map(function (d) {
+        return dbRun('readings', 'readonly', function (st) { return st.getAll(IDBKeyRange.bound([d.id, 0], [d.id, Number.MAX_SAFE_INTEGER])); }).then(function (batches) {
+          var rows = [];
+          (batches || []).forEach(function (b) { rows = rows.concat(b.rows); });
+          rows.sort(function (a, b) { return a[0] - b[0]; });
+          return zeroSixtyRuns(rows).map(function (x) {
+            return { t: Math.round(x.t * 100) / 100, t30: x.t30 === null ? null : Math.round(x.t30 * 100) / 100, at: x.at, drive: d.id };
+          });
+        });
+      }));
+    }).then(function (arrs) { return [].concat.apply([], arrs); });
+  }
+  window.MT3UKRaceBoxDrives = { dragRuns: dragRuns, zeroSixty: zeroSixtyRuns };
+
   function analyseDrive(rows) {
     var out = { distanceM: 0, durationS: 0, movingS: 0, topKph: 0, stops: [], route: [] };
     if (!rows.length) return out;
@@ -664,6 +701,18 @@
     var what = venueChoice ? ': ' + venueChoice.name : (modeNow === 'drag' ? ', no strip' : ': no track chosen yet');
     line.textContent = (modeNow === 'drag' ? 'Drag run' : 'Circuit') + what + '.';
   }
+  // Drag run: the mode line, Start recording and the strip picker sit in the timing section; the other modes keep them
+  // where they were (after the timing, before the map).
+  function placeDragControls(inDrag) {
+    var home = document.getElementById('rbt-start-home'), sec = document.getElementById('rbt-timing');
+    if (!home || !sec) return;
+    ['rbt-mode-line', 'rbt-startstop', 'rbt-picker'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (inDrag) sec.appendChild(el);
+      else home.parentNode.insertBefore(el, home);
+    });
+  }
   // Details: the readings (the grid and the meter) fold away with the Details button.
   function setDetails(open) {
     var band = document.getElementById('rbt-band-wrap'), btn = document.getElementById('rbt-details-toggle');
@@ -684,8 +733,10 @@
     var tsec = document.getElementById('rbt-timing');
     if (tsec) tsec.hidden = m !== 'drag';
     if (window.MT3UKRaceBoxTiming) window.MT3UKRaceBoxTiming.full(m === 'drag');
-    // The readings fold away in the Drag run mode (Details opens them again).
-    setDetails(m !== 'drag');
+    placeDragControls(m === 'drag');
+    document.documentElement.classList.toggle('rbt-drag', m === 'drag');
+    // The readings are folded by default, and fold again on entering the Drag run mode (Details opens them).
+    if (m === 'drag') setDetails(false);
     [].forEach.call(document.querySelectorAll('#rbt-modes [data-mode]'), function (b) {
       var on = b.getAttribute('data-mode') === m;
       b.classList.toggle('is-on', on);

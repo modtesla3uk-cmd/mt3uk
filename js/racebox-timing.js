@@ -113,7 +113,7 @@
     b.classList.toggle('is-go', !!go);
   }
   // Until the RaceBox is connected the button asks for it; once connected it waits for the GPS fix, then it is ready.
-  function idleLabel() { return !rbConnected ? 'Connect the RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
+  function idleLabel() { return !rbConnected ? 'Connect to RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
 
   // The runs: the best, then the latest five, each with its 0 to 30 and 0 to 60. Numbered as timed: the newest is the highest.
   function drawRuns() {
@@ -180,7 +180,7 @@
   // at 60 mph. A car already moving when armed is not timed.
   function tap() {
     if (!rbConnected && launch.state !== 'armed') {
-      setGo('Connect the RaceBox first', false);
+      setGo('Connect to RaceBox first', false);
       setTimeout(function () { if (launch.state === 'idle') setGo(idleLabel(), false); }, 2500);
       return;
     }

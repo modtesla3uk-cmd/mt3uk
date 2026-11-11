@@ -1613,10 +1613,16 @@ def test_the_racebox_toggle_is_on_only_once_the_racebox_is_connected_not_while_i
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     page.locator("#nav-source-rb").click()
     expect(page.locator("#nav-status")).to_contain_text("Looking for a RaceBox")
+    # The wait shows while it looks: a spinner and the words, then both go once it is found or not.
+    expect(page.locator("#nav-source-spin")).to_be_visible()
+    expect(page.locator("#nav-source-label")).to_have_text("Looking for a RaceBox nearby...")
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-busy", "true")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
     expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "true")
     page.evaluate("window.__rbEmitStatus('notfound')")
     expect(page.locator("#nav-status")).to_contain_text("No RaceBox found", timeout=5000)
+    expect(page.locator("#nav-source-spin")).to_be_hidden()
+    expect(page.locator("#nav-source-label")).to_have_text("Using phone GPS")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
     expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
     # Looking again, and this time the RaceBox connects.

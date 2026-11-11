@@ -380,6 +380,10 @@
   .nav-source-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring, 0 0 0 3px rgba(22,35,61,.35)); }
   .nav-source-text { flex: 1 1 100%; font-size: 0.85rem; font-weight: 600; color: #5b6475; }
   .nav-source-text[hidden] { display: none; }
+  .nav-spin { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: 2px solid #c4cad4; border-top-color: #16233d; animation: navSpin 0.8s linear infinite; }
+  .nav-spin[hidden] { display: none; }
+  @keyframes navSpin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .nav-spin { animation: none; } }
   .nav-map { height: 360px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #ececec; }
   .nav-map.rbt-mono .leaflet-tile-pane { filter: grayscale(1) contrast(1.05) brightness(1.04); }
   .nav-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
@@ -459,6 +463,10 @@
   .nav-car { width: 48px; height: 48px; transform-origin: 50% 50%; }
   .nav-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
   /* The speed, large, over the map at the bottom left. */
+  /* While driving the timer sits just under the turn card, and its times under it; a turn being looked at (the stepper) takes the room. */
+  .nav-map-wrap.is-driving .nav-launch { top: calc(var(--turn, 152px) + 8px); }
+  .nav-map-wrap.is-driving .nav-runs { top: calc(var(--turn, 152px) + 58px); }
+  .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-launch, .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-runs { display: none; }
   .nav-launch { display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: #16233d; color: #fff; font-size: .95rem; font-weight: 800; box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer; }
   /* Past 0 to 60 times under the timer, at the top right of the map, shown while driving with the timer. */
   .nav-runs { position: absolute; top: 102px; right: 10px; z-index: 1005; width: 176px; padding: 8px 10px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #16233d); font-size: .85rem; }
@@ -638,7 +646,7 @@
     <div class="nav-source" id="nav-source-row" role="group" aria-label="Position from" hidden>
       <button type="button" class="nav-source-toggle" id="nav-source-gps" aria-pressed="true">GPS</button>
       <button type="button" class="nav-source-toggle" id="nav-source-rb" aria-pressed="false">RaceBox</button>
-      <span class="nav-source-text" id="nav-source-label">Using phone GPS</span>
+      <span class="nav-source-text"><span class="nav-spin" id="nav-source-spin" aria-hidden="true" hidden></span><span id="nav-source-label">Using phone GPS</span></span>
     </div>
     <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
       <label class="nav-dest-label" for="nav-to-q">Where to?</label>
@@ -765,6 +773,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=62" defer></script>
+<script src="js/navigate.js?v=63" defer></script>
 </body>
 </html>

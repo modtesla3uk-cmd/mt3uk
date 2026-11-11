@@ -922,6 +922,7 @@
   // GPS until the RaceBox has its own satellite fix, then the RaceBox.
   var rbFix = false, rbSats = 0, rbShownFix = false, rbSourceText = '';
   function sourceText() {
+    if (rbSearching) return 'Looking for a RaceBox nearby...';
     if (!raceboxOn) return 'Using phone GPS';
     var sats = rbSats ? ' (' + rbSats + ' satellites)' : '';
     if (rbFix) return 'Using the RaceBox, GPS fix' + sats;
@@ -935,9 +936,17 @@
     if (label) label.textContent = t;
   }
   var rbSearching = false;
+  // The wait while the RaceBox is being looked for: a spinner and the words, until it is found or not.
+  function setSearching(on) {
+    rbSearching = on;
+    var sp = $('nav-source-spin'), rb = $('nav-source-rb');
+    if (sp) sp.hidden = !on;
+    if (rb) rb.setAttribute('aria-busy', on ? 'true' : 'false');
+    refreshSourceText();
+  }
   function setSource(on) {
     raceboxOn = on;
-    if (!on) rbSearching = false;
+    if (!on) setSearching(false);
     var gps = $('nav-source-gps'), rb = $('nav-source-rb');
     if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
     if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -953,7 +962,7 @@
     if ($('nav-source-gps')) $('nav-source-gps').addEventListener('click', function () {
       if (!raceboxOn && !rbSearching) return; // already on the phone's GPS
       rbOff = true;
-      rbSearching = false;
+      setSearching(false);
       window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () { setSource(false); status('Using your phone\u2019s GPS for position and speed.'); });
     });
     // RaceBox: on only once the RaceBox is connected. The app's connect answers at once with scanning when no RaceBox is
@@ -961,22 +970,22 @@
     if ($('nav-source-rb')) $('nav-source-rb').addEventListener('click', function () {
       if (raceboxOn || rbSearching) return;
       rbOff = false;
-      rbSearching = true;
+      setSearching(true);
       status('Looking for a RaceBox nearby...');
       window.MT3UKRaceBoxApp.connect()
         .then(function (d) {
-          if (d && d.connected) { rbSearching = false; setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
+          if (d && d.connected) { setSearching(false); setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
         })
-        .catch(function (e) { rbOff = true; rbSearching = false; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
+        .catch(function (e) { rbOff = true; setSearching(false); setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
     });
     window.MT3UKRaceBoxApp.onStatus(function (ev) {
       if (rbOff || !ev) return;
       var st = ev.state;
-      if (st === 'connected') { rbSearching = false; setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
+      if (st === 'connected') { setSearching(false); setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
       else if (st === 'scanning') { status('Looking for a RaceBox nearby...'); }
       else if (st === 'connecting' || st === 'discovering') { status('Connecting to the RaceBox...'); }
-      else if (st === 'notfound') { rbSearching = false; rbOff = true; setSource(false); status('No RaceBox found nearby. Switch it on, then tap RaceBox to look again.', true); }
-      else if (st === 'failed' || st === 'disconnected') { rbSearching = false; if (raceboxOn) setSource(false); status('The RaceBox is not connected. Tap RaceBox to connect again.', true); }
+      else if (st === 'notfound') { setSearching(false); rbOff = true; setSource(false); status('No RaceBox found nearby. Switch it on, then tap RaceBox to look again.', true); }
+      else if (st === 'failed' || st === 'disconnected') { setSearching(false); if (raceboxOn) setSource(false); status('The RaceBox is not connected. Tap RaceBox to connect again.', true); }
     });
     window.MT3UKRaceBoxApp.onReading(function (r) {
       if (rbOff || !r) return;

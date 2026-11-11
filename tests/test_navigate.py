@@ -1539,6 +1539,16 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
     page.add_init_script(RB_MOCK)
     page.add_init_script(GEO_HEADING_EAST)
     page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    # The member's runs are kept on the profile (the worker's /navigate/runs), so a reload brings them back.
+    saved = {"runs": []}
+
+    def runs_reply(r):
+        if r.request.method == "POST":
+            body = json.loads(r.request.post_data or "{}")
+            saved["runs"].insert(0, {"t": body.get("t"), "at": "2026-11-11T13:00:00Z"})
+        r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "runs": saved["runs"]}),
+                  headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"})
+    page.route("**/navigate/runs", runs_reply)
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
@@ -1570,6 +1580,7 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
     page.locator("#nav-runs-switch").click()
     expect(page.locator("#nav-runs-list")).to_be_hidden()
     expect(page.locator("#nav-runs-best")).to_be_visible()
+    assert len(saved["runs"]) == 1, saved
     page.reload()
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"), timeout=10000)
     expect(page.locator("#nav-runs-list")).to_be_hidden()

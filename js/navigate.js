@@ -788,6 +788,7 @@
     renderStops();
     approved().then(function (ok) {
       if (!ok) return;
+      loadRuns();
       // The RaceBox toggles show only for a member who has said they have one (Profile), and only in the Laps app.
       if (memberRacebox && $('nav-source-row') && window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.available) $('nav-source-row').hidden = false;
       loadLocalPlaces(); // the addresses are loaded before the first search
@@ -974,24 +975,40 @@
     });
   }
   // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
-  // Past 0 to 60 runs, kept on this device (localStorage) so the times and the best survive a reload. Newest first.
-  var LAUNCH_KEY = 'mt3uk-launch-runs', LAUNCH_SHOW_KEY = 'mt3uk-launch-show', LAUNCH_MAX = 20, LAUNCH_LIST = 5;
-  function readRuns() {
-    try {
-      var a = JSON.parse(localStorage.getItem(LAUNCH_KEY) || '[]');
-      return Array.isArray(a) ? a.filter(function (r) { return r && typeof r.t === 'number' && isFinite(r.t); }) : [];
-    } catch (e) { return []; }
-  }
-  function saveRuns(a) { try { localStorage.setItem(LAUNCH_KEY, JSON.stringify(a.slice(0, LAUNCH_MAX))); } catch (e) {} }
+  // Past 0 to 60 runs are kept on the member's profile (the worker's /navigate/runs), so they follow the member to any
+  // device. The list is held here once loaded; the Show times switch is kept on this device only.
+  var LAUNCH_SHOW_KEY = 'mt3uk-launch-show', LAUNCH_LIST = 5, API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var runsCache = [];
+  function readRuns() { return runsCache; }
   function readShow() { try { return localStorage.getItem(LAUNCH_SHOW_KEY) !== '0'; } catch (e) { return true; } }
   function saveShow(on) { try { localStorage.setItem(LAUNCH_SHOW_KEY, on ? '1' : '0'); } catch (e) {} }
   var launchShow = readShow();
   function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
+  function sessionToken() { try { return localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return null; } }
+  // Loads the member's saved runs once they are approved (so the card shows them after a reload).
+  function loadRuns() {
+    var s = sessionToken();
+    if (!s) return;
+    fetch(API + '/navigate/runs', { cache: 'no-store', headers: { 'X-Session-Token': s } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.success || !Array.isArray(d.runs)) return;
+        runsCache = d.runs;
+        if (!launch.t0 || launch.state !== 'running') launch.best = bestOf(runsCache);
+        drawRuns();
+      })
+      .catch(function () {});
+  }
+  // A finished run is shown at once and saved to the profile.
   function addRun(t) {
-    var a = readRuns();
-    a.unshift({ t: Math.round(t * 100) / 100, at: Date.now() });
-    saveRuns(a);
+    var s = sessionToken(), rounded = Math.round(t * 100) / 100;
+    runsCache = [{ t: rounded, at: Date.now() }].concat(runsCache).slice(0, 20);
     drawRuns();
+    if (!s) return;
+    fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ t: rounded }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.success && Array.isArray(d.runs)) { runsCache = d.runs; drawRuns(); } })
+      .catch(function () {});
   }
   // The times panel under the timer on the map: the best, a switch to show or hide the list, and the latest few runs.
   function drawRuns() {
@@ -1014,7 +1031,7 @@
       list.appendChild(li);
     });
   }
-  var launch = { state: 'idle', t0: 0, best: bestOf(readRuns()), last: null };
+  var launch = { state: 'idle', t0: 0, best: null, last: null };
   function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
   function launchStep(speedMs, ts) {
     var mph = speedMs * 2.23694;

@@ -8201,6 +8201,26 @@ async function lapsOfflineMembers(env, a) {
 var LAPS_RACEBOX_KEY = 'laps-racebox';
 // Navigate: a driving route from OpenRouteService, for approved members only. The key is a worker secret (ORS_API_KEY),
 // never sent to the page. The reply is trimmed to what the page draws: the line, the distance and time, and the steps.
+// Navigate's 0 to 60 mph runs, kept on the member's profile (profile.launchRuns, newest first, up to 20) so they follow the
+// member to any device. Only members approved for Navigate.
+var LAUNCH_RUNS_MAX = 20;
+async function handleNavigateRuns(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
+  if (!(a.open || a.allowed.some(function (x) { return x.email === e; }))) return json({ success: false, message: 'Navigate is not open to this account yet' }, 403);
+  var profile = await getProfileRecord(env, email);
+  var runs = Array.isArray(profile.launchRuns) ? profile.launchRuns : [];
+  if (request.method === 'GET') return json({ success: true, runs: runs });
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var t = Number(body && body.t);
+  if (!isFinite(t) || t < 2 || t > 60) return json({ success: false, message: 'That is not a 0 to 60 mph time' }, 400);
+  runs.unshift({ t: Math.round(t * 100) / 100, at: new Date().toISOString() });
+  profile.launchRuns = runs.slice(0, LAUNCH_RUNS_MAX);
+  await putProfileRecord(env, email, profile);
+  return json({ success: true, runs: profile.launchRuns });
+}
 async function handleNavigateRoute(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -13771,6 +13791,9 @@ export default {
     }
     if (url.pathname === '/navigate/route' && request.method === 'POST') {
       return handleNavigateRoute(request, env);
+    }
+    if (url.pathname === '/navigate/runs' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleNavigateRuns(request, env);
     }
     if (url.pathname === '/navigate/search' && request.method === 'GET') {
       return handleNavigateSearch(request, env);

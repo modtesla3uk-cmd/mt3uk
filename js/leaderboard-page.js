@@ -375,6 +375,7 @@
       var hid = hidden.indexOf(v.id) !== -1;
       return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card +
         '<button type="button" class="lb-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' +
+        (Number.isFinite(v.lat) && Number.isFinite(v.lng) ? '<a class="lb-dir" href="navigate.html?to=' + v.lat + ',' + v.lng + '&amp;name=' + encodeURIComponent(v.name) + '">Directions</a>' : '') +
         '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '</button></div>';
     }
     h += '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a circuit and let go to keep it for offline use, or tap its cloud. Hold and drag to move it.</p><div class="tp-boards lb-venues">' + shown.map(function (x) {

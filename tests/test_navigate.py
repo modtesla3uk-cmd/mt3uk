@@ -40,7 +40,8 @@ def test_the_navigate_page_does_not_need_the_racebox(page):
     page.add_init_script(GEO_OK)
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    assert page.evaluate("typeof window.MT3UKRaceBoxApp") == "undefined"
+    # The RaceBox script is on the page, but it does nothing outside the Laps app.
+    assert not page.evaluate("!!(window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.available)")
 
 
 def test_a_member_who_is_not_approved_sees_only_the_note(page):
@@ -1020,3 +1021,71 @@ def test_tapping_a_step_shows_where_it_is_on_the_map(page):
     point = page.evaluate("() => window.MT3UKNavigate.stepPoint(1)")
     page.wait_for_function("(p) => { const c = window.MT3UKNavigate.map().getCenter(); return Math.abs(c.lat - p[0]) < 0.0005 && Math.abs(c.lng - p[1]) < 0.0005; }", arg=point, timeout=5000)
     assert point[0] > 52.124 and point[1] > -0.9955
+
+
+def test_a_track_opens_navigate_with_the_track_as_the_destination(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html?to=52.13,-0.98&name=Thruxton%20circuit")
+    # Routed on its own once the phone has a position, to the track named in the address.
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-stops input").first).to_have_value("Thruxton circuit")
+    expect(page.locator("#nav-route-len")).to_contain_text("mi")
+
+
+def test_each_track_on_the_leaderboard_links_to_directions_for_it(page):
+    page.route(re.compile(r".*/track/(counts|tracks).*"), lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"counts":{},"leaders":{},"venues":[]}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/leaderboards.html")
+    links = page.locator("a.lb-dir")
+    expect(links.first).to_be_visible(timeout=10000)
+    href = links.first.get_attribute("href")
+    assert href.startswith("navigate.html?to=") and "&name=" in href, href
+
+
+RB_MOCK = """
+(function () {
+  var mock = { available: true, readers: [],
+    status: function () { return Promise.resolve({ connected: true, name: 'RaceBox Mini' }); },
+    onReading: function (fn) { mock.readers.push(fn); },
+    onStatus: function () {}, connect: function () { return Promise.resolve(); }, disconnect: function () { return Promise.resolve(); } };
+  window.__rb = mock;
+  // The RaceBox script on the page would replace this; keep the test's stand-in.
+  Object.defineProperty(window, 'MT3UKRaceBoxApp', { configurable: true, get: function () { return mock; }, set: function () {} });
+})();
+"""
+
+
+def test_the_racebox_drives_navigate_and_times_0_to_60(page):
+    _approve(page, True)
+    page.add_init_script(RB_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # The first RaceBox reading (stopped) makes the RaceBox the source, and shows the timer.
+    page.evaluate("""() => { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() };
+      window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
+    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
+    page.locator("#nav-launch").click()
+    expect(page.locator("#nav-launch")).to_contain_text("Ready")
+    # A run from stopped to 60 mph (26.8 m/s), 25 readings a second: stopped for half a second, then accelerating.
+    page.evaluate("""() => {
+      const t0 = Date.now(); const rd = window.__rb.readers;
+      for (let i = 0; i < 25 * 6; i++) {
+        const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
+        const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 };
+        rd.forEach(function (fn) { fn(r); });
+      }
+    }""")
+    # About 3.5 seconds from moving to 60 mph: the clock starts when the car first moves above 1 mph.
+    expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)

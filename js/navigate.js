@@ -466,11 +466,24 @@
   }
 
   function onPosition(p) {
-    var c = p.coords;
-    lastFix = { lat: c.latitude, lng: c.longitude, t: p.timestamp, acc: c.accuracy };
+    // The phone's GPS is used only while the RaceBox is not giving readings.
+    if (raceboxOn && Date.now() - rbLastAt < 3000) return;
+    applyFix(p.coords, p.timestamp);
+  }
+  // One position, from the phone or the RaceBox: the speed, the map, the turns and the route all follow it.
+  function applyFix(c, ts) {
+    lastFix = { lat: c.latitude, lng: c.longitude, t: ts, acc: c.accuracy };
+    if (pendingTo && !driving) {
+      var go = pendingTo;
+      pendingTo = null;
+      stops = [{ text: go.name, typed: go.name, place: { name: go.name, at: go.at } }];
+      wantRoute = true;
+      renderStops();
+      routeNow();
+    }
     updateToGo();
     checkOffRoute();
-    status('Your phone has a fix.');
+    if (!raceboxOn) status('Your phone has a fix.');
     // Anything under 1 km/h (about 0.6 mph) shows as stopped, so walking pace shows. Parked GPS speed can still wander above this.
     if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6 < 1 ? 0 : c.speed * 3.6; showSpeed(); }
     else { set('nav-speed', '–'); }
@@ -483,7 +496,7 @@
     }
     set('nav-pos', c.latitude.toFixed(6) + ', ' + c.longitude.toFixed(6));
     set('nav-acc', 'within ' + Math.round(c.accuracy) + ' m');
-    var when = new Date(p.timestamp || Date.now());
+    var when = new Date(ts || Date.now());
     set('nav-time', isNaN(when.getTime()) ? '\u2013' : when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     loadLeaflet(function () {
       ensureMap(c.latitude, c.longitude);
@@ -681,6 +694,9 @@
         setRouteFolded(false);
       });
     }
+    var lb = $('nav-launch');
+    if (lb) lb.addEventListener('click', launchTap);
+    startRaceBox();
     var vb = makeVoiceButton();
     if (vb) setVoiceButton();
     var mapEl = $('nav-map');
@@ -844,6 +860,54 @@
   // The route's stops, in order: the last one is the destination. Each has its own search line, with suggestions in
   // light grey while typing (after three letters and a short pause, so the place service is not asked on every key).
   var stops = [{ text: '', place: null }], wantRoute = false, activeStop = null, pinIndex = 0;
+  // In the Laps app a connected RaceBox gives the position and speed, about 25 times a second, instead of the phone's GPS.
+  var raceboxOn = false, rbLastAt = 0;
+  function startRaceBox() {
+    if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
+    window.MT3UKRaceBoxApp.onReading(function (r) {
+      if (!r || !r.fixOk || !r.coordinatesValid) return;
+      rbLastAt = Date.now();
+      if (!raceboxOn) { raceboxOn = true; status('Using the RaceBox for position and speed.'); var lb = $('nav-launch'); if (lb) lb.hidden = false; }
+      var c = { latitude: r.lat, longitude: r.lon, speed: r.speedMs, heading: r.heading, accuracy: r.horizontalAccuracy };
+      applyFix(c, r.utc);
+      launchStep(c.speed, r.utc);
+    });
+  }
+  // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
+  var launch = { state: 'idle', t0: 0, best: null, last: null };
+  function setLaunchText(t) { var b = $('nav-launch'); if (b) b.textContent = t; }
+  function launchStep(speedMs, ts) {
+    var mph = speedMs * 2.23694;
+    if (launch.state === 'armed' && mph > 1) { launch.state = 'running'; launch.t0 = ts; }
+    if (launch.state === 'running') {
+      if (mph >= 60) {
+        var t = (ts - launch.t0) / 1000;
+        launch.state = 'done';
+        launch.last = t;
+        launch.best = launch.best === null || t < launch.best ? t : launch.best;
+        setLaunchText('0\u201360: ' + t.toFixed(2) + ' s \u00b7 best ' + launch.best.toFixed(2));
+      } else {
+        setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s');
+      }
+    }
+  }
+  function launchTap() {
+    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('0\u201360 mph'); return; }
+    launch.state = 'armed';
+    setLaunchText('Ready \u2013 go when you move');
+  }
+  // A destination given in the address, from a Laps track: navigate.html?to=51.2085,-1.6055&name=Thruxton. It is routed
+  // once the phone has a position.
+  var pendingTo = (function () {
+    try {
+      var q = new URLSearchParams(location.search), m = /^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/.exec(q.get('to') || '');
+      if (!m) return null;
+      var at = [Number(m[1]), Number(m[2])];
+      if (Math.abs(at[0]) > 90 || Math.abs(at[1]) > 180) return null;
+      var name = String(q.get('name') || '').replace(/\s+/g, ' ').trim().slice(0, 80) || at[0].toFixed(5) + ', ' + at[1].toFixed(5);
+      return { name: name, at: at };
+    } catch (e) { return null; }
+  })();
   var suggestTimer = null, suggestSeq = 0;
   var GRIP_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.7" fill="currentColor"/><circle cx="15" cy="6" r="1.7" fill="currentColor"/><circle cx="9" cy="12" r="1.7" fill="currentColor"/><circle cx="15" cy="12" r="1.7" fill="currentColor"/><circle cx="9" cy="18" r="1.7" fill="currentColor"/><circle cx="15" cy="18" r="1.7" fill="currentColor"/></svg>';
   var X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';

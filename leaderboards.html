@@ -455,6 +455,9 @@
   .lb-keep .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
   .lb-keep[aria-pressed="true"] { color: #2e9d4a; }
   .lb-keep[aria-pressed="true"] .icon { fill: currentColor; fill-opacity: 0.2; }
+  /* Directions to the track, on Navigate. */
+  .lb-dir { position: absolute; top: 9px; right: 96px; height: 34px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--radius-pill); border: 1px solid var(--hairline-strong); background: var(--white); color: var(--ink); font-size: .85rem; font-weight: 700; text-decoration: none; }
+  .lb-dir:hover, .lb-dir:focus-visible { background: var(--hairline); }
   .lb-hide { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel); cursor: pointer; }
   .lb-hide:hover, .lb-hide:focus-visible { background: var(--hairline); color: var(--ink); }
   .lb-hide .icon { width: 20px; height: 20px; }

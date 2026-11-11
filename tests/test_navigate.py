@@ -987,9 +987,10 @@ def test_tapping_an_empty_search_box_shows_the_recent_searches_and_one_can_be_us
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     page.locator("#nav-to-q").click()
-    expect(page.locator("#nav-results.is-recent button").first).to_have_text("17 ryder way flitwick")
+    # The full address of the place chosen before, not just what was typed.
+    expect(page.locator("#nav-results.is-recent button").first).to_have_text("Ryder Way, Flitwick, United Kingdom")
     page.locator("#nav-results.is-recent button").first.click()
-    expect(page.locator("#nav-to-q")).to_have_value("17 ryder way flitwick")
+    expect(page.locator("#nav-to-q")).to_have_value("Ryder Way, Flitwick, United Kingdom")
 
 
 def test_the_driving_view_shows_the_geoapify_and_openstreetmap_credit(page):

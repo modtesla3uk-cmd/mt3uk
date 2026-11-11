@@ -1171,17 +1171,26 @@
   }
   // Recent searches: the words and numbers typed for a destination or stop, kept on this device (up to five).
   var RECENT_KEY = 'mt3ukNavigateRecent', RECENT_MAX = 5;
+  // A recent search: what was typed, and the full place it was chosen as, with its position, once it is known. Older
+  // entries were just the typed text.
   function recentSearches() {
     try {
       var a = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-      return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string' && x; }) : [];
+      if (!Array.isArray(a)) return [];
+      return a.map(function (x) {
+        if (typeof x === 'string') return x ? { q: x, name: '', at: null } : null;
+        if (x && typeof x.q === 'string' && x.q) return { q: x.q, name: typeof x.name === 'string' ? x.name : '', at: Array.isArray(x.at) ? x.at : null };
+        return null;
+      }).filter(Boolean);
     } catch (e) { return []; }
   }
-  function saveRecent(text) {
+  function saveRecent(text, place) {
     var t = String(text || '').trim().slice(0, 120);
     if (t.length < 2) return;
-    var list = recentSearches().filter(function (x) { return x.toLowerCase() !== t.toLowerCase(); });
-    list.unshift(t);
+    var name = place && place.name ? String(place.name).slice(0, 160) : '';
+    var at = place && Array.isArray(place.at) ? place.at : null;
+    var list = recentSearches().filter(function (x) { return x.q.toLowerCase() !== t.toLowerCase(); });
+    list.unshift({ q: t, name: name, at: at });
     try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX))); } catch (e) { /* storage blocked */ }
   }
   function showRecent() {
@@ -1189,11 +1198,12 @@
     if (!ul || !list.length) return;
     ul.textContent = '';
     ul.classList.add('is-recent');
-    list.forEach(function (t) {
+    list.forEach(function (entry) {
       var li = document.createElement('li'), b = document.createElement('button');
       b.type = 'button';
-      b.textContent = t;
-      b.addEventListener('click', function () { useRecent(t); });
+      // The full address when the place was chosen, otherwise what was typed.
+      b.textContent = entry.name || entry.q;
+      b.addEventListener('click', function () { useRecent(entry); });
       li.appendChild(b);
       ul.appendChild(li);
     });
@@ -1209,8 +1219,18 @@
     ul.appendChild(li2);
   }
   // A recent search put back in the stop it was typed into, with its suggestions.
-  function useRecent(t) {
+  function useRecent(entry) {
     var i = activeStop !== null && activeStop < stops.length ? activeStop : stops.length - 1;
+    if (entry.name && entry.at) {
+      // The place was chosen before: it goes in whole, with its position, ready to route.
+      stops[i].text = entry.name;
+      stops[i].typed = entry.q;
+      stops[i].place = { name: entry.name, at: entry.at };
+      clearSuggestions();
+      renderStops();
+      return;
+    }
+    var t = entry.q;
     stops[i].text = t;
     stops[i].place = null;
     stops[i].typed = t;
@@ -1234,7 +1254,6 @@
   }
   // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
   function choose(p, i) {
-    saveRecent(stops[i].typed || stops[i].text);
     stops[i].place = p;
     stops[i].text = p.name;
     clearSuggestions();
@@ -1259,7 +1278,6 @@
   }
   function askRoute() {
     wantRoute = true;
-    stops.forEach(function (st) { saveRecent(st.typed); });
     clearTimeout(suggestTimer);
     suggestSeq++; // a suggestion still on its way must not appear after the route is asked for
     clearSuggestions();
@@ -1290,6 +1308,8 @@
     var chain = Promise.resolve();
     stops.forEach(function (_, i) { chain = chain.then(function () { return resolveStop(i); }); });
     chain.then(function () {
+      // The searches that made this route are remembered with the full place, for next time.
+      stops.forEach(function (st) { saveRecent(st.typed || st.text, st.place); });
       dest = stops[stops.length - 1].place;
       renderStops();
       routeTo();

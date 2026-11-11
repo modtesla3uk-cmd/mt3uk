@@ -313,6 +313,20 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.hidden = true; }, 3000);
   }
+  // While driving the map fills the screen. On a phone's browser the page's fixed layout and the visible area can differ
+  // (the address bar comes and goes), so the screen is sized to the visible area, and the drive bar sits on its bottom edge.
+  function fitDrivingScreen() {
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (!wrap) return;
+    var vv = window.visualViewport;
+    if (driving && vv) { wrap.style.top = vv.offsetTop + 'px'; wrap.style.height = vv.height + 'px'; }
+    else { wrap.style.top = ''; wrap.style.height = ''; }
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitDrivingScreen);
+    window.visualViewport.addEventListener('scroll', fitDrivingScreen);
+  }
+  window.addEventListener('resize', fitDrivingScreen);
   function startDrive() {
     if (!routeD || !map) return;
     driving = true;
@@ -325,6 +339,7 @@
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.add('is-driving');
+    fitDrivingScreen();
     setRouteFolded(true); // the directions start folded, and the directions button opens them
     browsing = false;
     if (wrap) wrap.classList.remove('is-browsing', 'dirs-open');
@@ -355,6 +370,7 @@
     if (voiceAvailable()) stopSpeech();
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) wrap.classList.remove('is-driving');
+    fitDrivingScreen();
     applyRotation();
     if (map) {
       map.invalidateSize();
@@ -724,8 +740,8 @@
         setRouteFolded(false);
       });
     }
-    var lb = $('nav-launch');
-    if (lb) lb.addEventListener('click', launchTap);
+    // The 0 to 60 mph timer: the button on the first screen and the one on the map while driving both drive it.
+    document.querySelectorAll('[data-launch]').forEach(function (b) { b.addEventListener('click', launchTap); });
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
     if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
@@ -917,10 +933,10 @@
   }
   function setSource(on) {
     raceboxOn = on;
-    var gps = $('nav-source-gps'), rb = $('nav-source-rb'), lb = $('nav-launch');
+    var gps = $('nav-source-gps'), rb = $('nav-source-rb');
     if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
     if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
-    if (lb) lb.hidden = !on;
+    document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !on; });
     if (!on) { launch.state = 'idle'; rbLastAt = 0; rbFix = false; rbShownFix = false; }
     refreshSourceText();
   }
@@ -956,7 +972,7 @@
   }
   // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
   var launch = { state: 'idle', t0: 0, best: null, last: null };
-  function setLaunchText(t) { var b = $('nav-launch'); if (b) b.textContent = t; }
+  function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
   function launchStep(speedMs, ts) {
     var mph = speedMs * 2.23694;
     if (launch.state === 'armed' && mph > 1) { launch.state = 'running'; launch.t0 = ts; }

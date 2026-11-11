@@ -459,9 +459,9 @@
   .nav-car { width: 48px; height: 48px; transform-origin: 50% 50%; }
   .nav-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
   /* The speed, large, over the map at the bottom left. */
-  .nav-launch { display: none; position: absolute; left: 150px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: #16233d; color: #fff; font-size: .95rem; font-weight: 800; box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer; }
-  .nav-map-wrap.is-driving .nav-launch:not([hidden]) { display: block; }
-  .nav-map-wrap.is-driving.dirs-open .nav-launch { display: none; }
+  .nav-launch { display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: #16233d; color: #fff; font-size: .95rem; font-weight: 800; box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer; }
+  /* The 0 to 60 mph timer sits at the top right of the map, out of the middle, and shows whenever the RaceBox is on. */
+  .nav-launch:not([hidden]) { display: block; }
   .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
   .nav-map-wrap.is-driving .nav-speed-bubble { display: flex; }
   /* With the directions up, the speed, the speaker and Recentre step aside, so nothing sits over the list. */
@@ -657,7 +657,7 @@
         <button type="button" id="nav-step-next" aria-label="Next turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" id="nav-step-close" aria-label="Close the turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       </div>
-      <button type="button" class="nav-launch" id="nav-launch" hidden>0&ndash;60 mph</button>
+      <button type="button" class="nav-launch" id="nav-launch" data-launch hidden>0&ndash;60 mph</button>
       <div class="nav-speed-bubble" id="nav-speed-bubble" aria-hidden="true"><b id="nav-speed-big">&ndash;</b> <span id="nav-speed-big-unit">mph</span></div>
       <div class="nav-toast" id="nav-toast" role="status" hidden></div>
       <div class="nav-drive-bar" id="nav-drive-bar">
@@ -748,6 +748,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=56" defer></script>
+<script src="js/navigate.js?v=59" defer></script>
 </body>
 </html>

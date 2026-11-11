@@ -1482,3 +1482,54 @@ def test_a_blocked_location_in_a_browser_can_be_tried_again_without_reloading(pa
     page.locator("#nav-loc-retry").click()
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     expect(page.locator("#nav-loc")).to_be_hidden()
+
+
+def test_the_zero_to_sixty_timer_is_on_the_map_whenever_the_racebox_is_on_not_only_while_driving(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    # Not on the RaceBox yet: no timer button.
+    expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    # On the RaceBox the timer shows on the map, at the top right, though not driving.
+    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
+    page.wait_for_timeout(400)
+    box = page.locator("#nav-launch").bounding_box()
+    map_box = page.locator("#nav-map").bounding_box()
+    assert box is not None and map_box is not None, (box, map_box)
+    assert box["x"] > map_box["x"] + map_box["width"] / 2, "the timer should sit on the right, not the middle"
+    assert box["y"] < map_box["y"] + map_box["height"] / 3, "the timer should sit at the top of the map"
+    page.locator("#nav-launch").click()
+    expect(page.locator("#nav-launch")).to_contain_text("Ready")
+
+
+def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of_the_phone(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap.is-driving")).to_be_visible(timeout=5000)
+    page.wait_for_timeout(300)
+    # The driving screen's bottom edge is the bottom of the visible area, and the drive bar sits on it.
+    edges = page.evaluate("""() => {
+      const w = document.querySelector('.nav-map-wrap').getBoundingClientRect();
+      const b = document.getElementById('nav-drive-bar').getBoundingClientRect();
+      const vv = window.visualViewport;
+      return { wrapBottom: w.bottom, barBottom: b.bottom, visibleBottom: vv ? vv.offsetTop + vv.height : window.innerHeight };
+    }""")
+    assert abs(edges["wrapBottom"] - edges["visibleBottom"]) < 2, edges
+    assert abs(edges["barBottom"] - edges["wrapBottom"]) < 2, edges
+

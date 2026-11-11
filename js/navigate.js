@@ -372,7 +372,8 @@
     if (w0) w0.classList.remove('is-browsing', 'dirs-open');
     if (voiceAvailable()) stopSpeech();
     var wrap = document.querySelector('.nav-map-wrap');
-    if (wrap) wrap.classList.remove('is-driving');
+    if (wrap) { wrap.classList.remove('is-driving'); wrap.classList.remove('runs-open'); }
+    if ($('nav-runs-open')) { $('nav-runs-open').setAttribute('aria-expanded', 'false'); }
     fitDrivingScreen();
     applyRotation();
     if (map) {
@@ -746,6 +747,20 @@
     // The 0 to 60 mph timer on the map drives the timer; its switch shows or hides the past times.
     document.querySelectorAll('[data-launch]').forEach(function (b) { b.addEventListener('click', launchTap); });
     if ($('nav-runs-switch')) $('nav-runs-switch').addEventListener('click', function () { launchShow = !launchShow; saveShow(launchShow); drawRuns(); });
+    // The times are folded away while driving; the Times button opens them, and it folds them again.
+    if ($('nav-runs-open')) $('nav-runs-open').addEventListener('click', function () {
+      var wrap = document.querySelector('.nav-map-wrap');
+      if (!wrap) return;
+      var open = !wrap.classList.contains('runs-open');
+      wrap.classList.toggle('runs-open', open);
+      this.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    if ($('nav-timer-toggle')) $('nav-timer-toggle').addEventListener('click', function () {
+      launchTimerOn = !launchTimerOn;
+      try { localStorage.setItem(LAUNCH_TIMER_KEY, launchTimerOn ? '1' : '0'); } catch (e) {}
+      drawTimer();
+    });
+    drawTimer();
     drawRuns();
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
@@ -953,7 +968,7 @@
     var gps = $('nav-source-gps'), rb = $('nav-source-rb');
     if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
     if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
-    document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !on; });
+    drawTimer();
     if (!on) { launch.state = 'idle'; rbLastAt = 0; rbFix = false; rbShownFix = false; }
     refreshSourceText();
     drawRuns();
@@ -1042,11 +1057,22 @@
       .catch(function () {});
   }
   // The times panel under the timer on the map: the best, a switch to show or hide the list, and the latest few runs.
+  // The timer can be hidden completely (the Timer switch on the first screen): then its button and its times go too.
+  var LAUNCH_TIMER_KEY = 'mt3uk-launch-timer', launchTimerOn = (function () { try { return localStorage.getItem(LAUNCH_TIMER_KEY) !== '0'; } catch (e) { return true; } })();
+  function drawTimer() {
+    var show = raceboxOn && launchTimerOn;
+    document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !show; });
+    var tt = $('nav-timer-toggle');
+    if (tt) { tt.hidden = !raceboxOn; tt.setAttribute('aria-pressed', launchTimerOn ? 'true' : 'false'); }
+    drawRuns();
+  }
   function drawRuns() {
     var box = $('nav-runs');
     if (!box) return;
     var a = readRuns(), best = bestOf(a);
-    box.hidden = !raceboxOn || !a.length;
+    box.hidden = !raceboxOn || !launchTimerOn || !a.length;
+    var ro = $('nav-runs-open');
+    if (ro) ro.hidden = !raceboxOn || !launchTimerOn || !a.length;
     var sw = $('nav-runs-switch');
     if (sw) sw.setAttribute('aria-checked', launchShow ? 'true' : 'false');
     var head = $('nav-runs-best');

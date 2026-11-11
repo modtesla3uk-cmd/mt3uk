@@ -742,9 +742,12 @@ def test_while_driving_the_map_can_be_panned_and_recentred_and_the_directions_fl
     expect(page.locator("#nav-route")).to_be_hidden()
     expect(page.locator("#nav-drive-bar")).to_be_visible()
     # A press and drag on the map takes it off the phone; Recentre brings it back.
-    page.mouse.move(195, 520)
+    # Start the drag on the map, above the drive bar (its figures are larger now, so it is taller).
+    top = page.locator("#nav-drive-bar").bounding_box()["y"]
+    start = top - 60
+    page.mouse.move(195, start)
     page.mouse.down()
-    page.mouse.move(195, 300, steps=10)
+    page.mouse.move(195, start - 220, steps=10)
     page.mouse.up()
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
     page.locator("#nav-recentre").click()
@@ -838,9 +841,10 @@ def test_two_fingers_turn_the_map_flat_and_recentre_brings_back_3d(page):
     page.locator("#nav-start").click()
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
     # One finger pans: the map keeps its tilt.
-    page.mouse.move(195, 520)
+    top = page.locator("#nav-drive-bar").bounding_box()["y"]
+    page.mouse.move(195, top - 60)
     page.mouse.down()
-    page.mouse.move(195, 420, steps=6)
+    page.mouse.move(195, top - 160, steps=6)
     page.mouse.up()
     expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
     # Browsing is flat (2D) until Recentre.
@@ -1580,6 +1584,8 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
     expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
     expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
     # The run is kept: the best and the list show under the timer.
+    # Driving folds the times away: the Times button opens them.
+    page.locator("#nav-runs-open").click()
     expect(page.locator("#nav-runs")).to_be_visible(timeout=5000)
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"))
     expect(page.locator("#nav-runs-list li.is-best")).to_have_count(1)
@@ -1670,4 +1676,59 @@ def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_no
         const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
     expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
     expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
+
+
+def test_the_timer_can_be_hidden_completely_and_comes_back(page):
+    # The Timer switch on the first screen hides the 0 to 60 button and its times altogether, and the choice is kept.
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    expect(page.locator("#nav-timer-toggle")).to_be_visible(timeout=5000)
+    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "true")
+    page.locator("#nav-timer-toggle").click()
+    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "false")
+    # Off: the timer button and its times are hidden altogether, while driving too.
+    expect(page.locator("#nav-launch")).to_be_hidden()
+    expect(page.locator("#nav-runs")).to_be_hidden()
+    page.reload()
+    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "false", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    expect(page.locator("#nav-launch")).to_be_hidden()
+    page.locator("#nav-timer-toggle").click()
+    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "true")
+
+
+def test_the_times_fold_away_while_driving_and_a_times_button_opens_them(page):
+    _approve(page, True)
+    page.add_init_script(RB_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap.is-driving")).to_be_visible(timeout=5000)
+    # Driving: the times are folded away, and the Times button opens them.
+    expect(page.locator("#nav-runs")).to_be_hidden()
+    expect(page.locator("#nav-runs-open")).to_be_visible(timeout=5000)
+    page.locator("#nav-runs-open").click()
+    expect(page.locator("#nav-runs")).to_be_visible()
+    expect(page.locator("#nav-runs-open")).to_be_hidden()
+    expect(page.locator("#nav-runs-best")).to_have_text("Best 38.60 s")
 

@@ -313,6 +313,22 @@ def test_the_racebox_test_link_shows_in_the_laps_app_only_for_approved_members(p
     expect(page.locator('a[data-racebox-link][href="racebox.html"]').first).to_have_attribute("hidden", "")
 
 
+def test_navigate_is_in_the_laps_menu_for_approved_members_in_a_browser_but_the_racebox_test_is_not(page):
+    # Navigate works in a phone browser, so its menu link shows for approved members there too; the RaceBox test needs the app.
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(
+        status=200, content_type="application/json", body='{"success":true,"access":true,"open":false}'))
+    page.goto("/laps.html")
+    expect(page.locator('a[data-navigate-link][href="navigate.html"]').first).not_to_have_attribute("hidden", "")
+    expect(page.locator('a[data-racebox-link][href="racebox.html"]').first).to_have_attribute("hidden", "")
+    # Not approved: Navigate stays out of the menu.
+    page.unroute("**/laps/racebox/access")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(
+        status=200, content_type="application/json", body='{"success":true,"access":false,"open":false}'))
+    page.goto("/laps.html")
+    expect(page.locator('a[data-navigate-link][href="navigate.html"]').first).to_have_attribute("hidden", "")
+
+
 def test_the_racebox_page_stays_in_the_laps_address_when_opened_from_the_laps_menu():
     # The sign-in handover sends any Laps address that is not on its Laps list to MT3UK, so the RaceBox page must be on it.
     from pathlib import Path

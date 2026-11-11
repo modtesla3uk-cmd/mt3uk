@@ -878,35 +878,57 @@
   var stops = [{ text: '', place: null }], wantRoute = false, activeStop = null, pinIndex = 0;
   // In the Laps app a connected RaceBox gives the position and speed, about 25 times a second, instead of the phone's GPS.
   var raceboxOn = false, rbLastAt = 0, rbOff = false;
-  // The position switch (Laps app only), above the directions: on takes the RaceBox, off uses the phone's GPS.
+  // The RaceBox switch (Laps app only), above the directions. Its own line says what the position comes from: the phone's
+  // GPS until the RaceBox has its own satellite fix, then the RaceBox.
+  var rbFix = false, rbSats = 0, rbShownFix = false, rbSourceText = '';
+  function sourceText() {
+    if (!raceboxOn) return 'Using phone GPS';
+    var sats = rbSats ? ' (' + rbSats + ' satellites)' : '';
+    if (rbFix) return 'Using the RaceBox, GPS fix' + sats;
+    return 'Connected, waiting for a GPS fix' + sats + '. Using phone GPS until then.';
+  }
+  function refreshSourceText() {
+    var t = sourceText();
+    if (t === rbSourceText) return;
+    rbSourceText = t;
+    var label = $('nav-source-label');
+    if (label) label.textContent = t;
+  }
   function setSource(on) {
     raceboxOn = on;
-    var label = $('nav-source-label'), sw = $('nav-source-switch'), lb = $('nav-launch');
-    if (label) label.textContent = on ? 'RaceBox connected' : 'GPS connected';
-    if (sw) sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    var gps = $('nav-source-gps'), rb = $('nav-source-rb'), lb = $('nav-launch');
+    if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
+    if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
     if (lb) lb.hidden = !on;
-    if (!on) { launch.state = 'idle'; rbLastAt = 0; }
+    if (!on) { launch.state = 'idle'; rbLastAt = 0; rbFix = false; rbShownFix = false; }
+    refreshSourceText();
   }
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
     if ($('nav-source-row')) $('nav-source-row').hidden = false;
     setSource(false);
-    if ($('nav-source-switch')) $('nav-source-switch').addEventListener('click', function () {
-      if (raceboxOn) {
-        rbOff = true;
-        window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () { setSource(false); status('Using your phone\u2019s GPS for position and speed.'); });
-      } else {
-        rbOff = false;
-        status('Connecting to the RaceBox...');
-        window.MT3UKRaceBoxApp.connect()
-          .then(function () { setSource(true); status('Using the RaceBox for position and speed.'); })
-          .catch(function (e) { rbOff = true; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
-      }
+    if ($('nav-source-gps')) $('nav-source-gps').addEventListener('click', function () {
+      if (!raceboxOn) return; // already on the phone's GPS
+      rbOff = true;
+      window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () { setSource(false); status('Using your phone\u2019s GPS for position and speed.'); });
+    });
+    if ($('nav-source-rb')) $('nav-source-rb').addEventListener('click', function () {
+      if (raceboxOn) return; // already on the RaceBox
+      rbOff = false;
+      status('Connecting to the RaceBox...');
+      window.MT3UKRaceBoxApp.connect()
+        .then(function () { setSource(true); })
+        .catch(function (e) { rbOff = true; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
     });
     window.MT3UKRaceBoxApp.onReading(function (r) {
-      if (rbOff || !r || !r.fixOk || !r.coordinatesValid) return;
+      if (rbOff || !r) return;
+      rbSats = r.satellites || 0;
+      rbFix = !!(r.fixOk && r.coordinatesValid);
+      if (!raceboxOn) setSource(true);
+      if (!rbFix) { refreshSourceText(); return; }
       rbLastAt = Date.now();
-      if (!raceboxOn) { setSource(true); status('Using the RaceBox for position and speed.'); }
+      if (!rbShownFix) { rbShownFix = true; status('Using the RaceBox for position and speed.'); }
+      refreshSourceText();
       var c = { latitude: r.lat, longitude: r.lon, speed: r.speedMs, heading: r.heading, accuracy: r.horizontalAccuracy };
       applyFix(c, r.utc);
       launchStep(c.speed, r.utc);

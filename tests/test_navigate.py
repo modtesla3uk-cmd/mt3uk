@@ -1397,8 +1397,8 @@ def test_ending_navigation_takes_the_turn_bar_away(page):
 
 
 def test_the_position_switch_above_the_directions_changes_between_the_racebox_and_the_phones_gps(page):
-    # Laps app only: a switch above the directions says RaceBox connected or GPS connected. Off drops the RaceBox
-    # (the 0 to 60 button goes); on connects it again.
+    # Laps app only: a RaceBox switch on the first screen, with a line saying where the position comes from. Until the
+    # RaceBox has its own satellite fix the phone's GPS is used. Off drops the RaceBox (the 0 to 60 button goes); on connects it again.
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)
     page.add_init_script(RB_MOCK)
@@ -1407,22 +1407,25 @@ def test_the_position_switch_above_the_directions_changes_between_the_racebox_an
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
     page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    # The directions start folded; the switch sits above the directions, so open them first.
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
+    # The switch sits on the first screen, under the status line, so it shows before any route.
     expect(page.locator("#nav-source-row")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-route")).to_be_hidden()
     page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_have_text("RaceBox connected", timeout=5000)
-    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#nav-launch")).not_to_have_attribute("hidden", "")
     # Off: back to the phone's GPS, and the 0 to 60 button goes.
-    page.locator("#nav-source-switch").click()
-    expect(page.locator("#nav-source-label")).to_have_text("GPS connected", timeout=5000)
-    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "false")
+    page.locator("#nav-source-gps").click()
+    expect(page.locator("#nav-source-label")).to_have_text("Using phone GPS", timeout=5000)
+    expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
     # On again: connects, and the readings bring the RaceBox back.
-    page.locator("#nav-source-switch").click()
+    page.locator("#nav-source-rb").click()
     page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_have_text("RaceBox connected", timeout=5000)
-    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
+    # Connected but no satellite fix yet: the switch stays on and says so, and the phone's GPS is still used.
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: false, coordinatesValid: false, satellites: 3, lat: 0, lon: 0, speedMs: 0, heading: 0, horizontalAccuracy: 99, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_contain_text("waiting for a GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-label")).to_contain_text("3 satellites")
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")

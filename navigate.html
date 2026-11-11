@@ -355,7 +355,6 @@
 <style>
   .nav-hero { background: var(--ink, #16233d); color: #fff; padding: 22px 0 18px; }
   .nav-hero .lh-title { color: #fff; margin: 12px 0 6px; font-size: clamp(1.5rem, 3vw, 2rem); }
-  .nav-hero .nav-lead { color: #d3d8e2; max-width: 52ch; margin: 0; }
   .nav-gate { padding: 40px 0; text-align: center; color: var(--ink, #16233d); }
   .nav-gate[hidden], .nav-body[hidden], #nav-map[hidden] { display: none; }
   .nav-body { padding: 20px 0 40px; }
@@ -370,15 +369,14 @@
   .nav-unit-pill { position: absolute; top: 10px; right: 10px; z-index: 1000; min-height: 30px; padding: 0 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 700 0.8rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 8px rgba(0,0,0,.16); cursor: pointer; }
   /* The pill is drawn small, but its tap area stays at least 44px high. */
   .nav-unit-pill::before { content: ''; position: absolute; inset: -8px -6px; }
-  /* The position switch (Laps app), above the directions: on for the RaceBox, off for the phone's GPS. */
-  .nav-source { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 4px 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 10px; background: #fff; font-weight: 700; color: var(--ink, #16233d); }
+  /* The position toggles (Laps app) on the first screen: GPS or RaceBox, one on at a time. Small, but still a finger-sized target. */
+  .nav-source { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
   .nav-source[hidden] { display: none; }
-  .nav-source-switch { flex: none; position: relative; width: 64px; height: 44px; border: 0; background: none; padding: 0; cursor: pointer; }
-  .nav-source-switch::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 32px; margin-top: -16px; border-radius: 999px; background: #c4cad4; transition: background 0.15s; }
-  .nav-source-switch::after { content: ""; position: absolute; left: 10px; top: 50%; width: 24px; height: 24px; margin-top: -12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform 0.15s; }
-  .nav-source-switch[aria-checked="true"]::before { background: #17663f; }
-  .nav-source-switch[aria-checked="true"]::after { transform: translateX(20px); }
-  .nav-source-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(22,35,61,.35); border-radius: 999px; }
+  .nav-source-toggle { min-height: 44px; min-width: 88px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .nav-source-toggle[aria-pressed="true"] { background: #17663f; border-color: #17663f; color: #fff; }
+  .nav-source-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring, 0 0 0 3px rgba(22,35,61,.35)); }
+  .nav-source-text { flex: 1 1 100%; font-size: 0.85rem; font-weight: 600; color: #5b6475; }
+  .nav-source-text[hidden] { display: none; }
   .nav-map { height: 360px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #ececec; }
   .nav-map.rbt-mono .leaflet-tile-pane { filter: grayscale(1) contrast(1.05) brightness(1.04); }
   .nav-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
@@ -568,7 +566,7 @@
       <a href="leaderboards.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboards</a>
       <a href="favourites.html" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>Favourites</a>
       <a href="my-analysis.html" data-laps class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg>My Analysis</a>
-      <a href="navigate.html" class="nav-link active" data-racebox-link hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>Navigate</a>
+      <a href="navigate.html" class="nav-link active" data-navigate-link hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>Navigate</a>
       <a href="racebox.html" class="nav-link" data-racebox-link hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0"/><circle cx="12" cy="12" r="2.5"/><path d="M12 14.5 16 9"/></svg>RaceBox test</a>
       <a href="#" class="nav-link nav-bell-drawer" onclick="event.stopPropagation();document.getElementById('nav-bell-btn').click();return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Notifications</a>
       <a href="track.html?add=1" class="nav-link"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add a session</a>
@@ -602,8 +600,8 @@
       <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
     </button>
   </nav>
-<style>[data-racebox-link][hidden]{display:none!important}</style>
-<script>(function(){try{if(!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()))return;var s=localStorage.getItem('mt3ukMyBuildsSession');if(!s)return;fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access',{cache:'no-store',headers:{'X-Session-Token':s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.querySelectorAll('[data-racebox-link]').forEach(function(el){el.hidden=false;});}).catch(function(){});}catch(e){}})();</script>
+<style>[data-racebox-link][hidden],[data-navigate-link][hidden]{display:none!important}</style>
+<script>(function(){try{var s=localStorage.getItem('mt3ukMyBuildsSession');if(!s)return;var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access',{cache:'no-store',headers:{'X-Session-Token':s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.querySelectorAll('[data-navigate-link]').forEach(function(el){el.hidden=false;});if(app)document.querySelectorAll('[data-racebox-link]').forEach(function(el){el.hidden=false;});}).catch(function(){});}catch(e){}})();</script>
 <script>(function(){function go(){try{if(localStorage.getItem('mt3ukLapsSkipIntro')==='1'){document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href','track.html');});}}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
 <script>(function(){document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-feedback-open]');if(!b)return;e.preventDefault();if(window.MT3UKFeedback){window.MT3UKFeedback.open();return;}if(window.MT3UKFeedbackLoading)return;window.MT3UKFeedbackLoading=true;var s=document.createElement('script');s.src='js/feedback.js?v=1';s.onload=function(){window.MT3UKFeedback&&window.MT3UKFeedback.open();};document.head.appendChild(s);});})();</script>
 </header>
@@ -611,13 +609,17 @@
 <section class="page-hero nav-hero">
   <div class="wrap">
     <h1 class="lh-title">Navigate</h1>
-    <p class="nav-lead">Your phone's own location. The RaceBox is not needed for this.</p>
   </div>
 </section>
-<div class="nav-gate" id="nav-gate"><div class="wrap"><p>Navigate is for approved members, in the Laps app.</p></div></div>
+<div class="nav-gate" id="nav-gate"><div class="wrap"><p>Navigate is for approved members.</p></div></div>
 <div class="nav-body" id="nav-body" hidden>
   <div class="wrap nav-wrap">
     <p class="nav-status" id="nav-status" role="status">Asking your phone for its location...</p>
+    <div class="nav-source" id="nav-source-row" role="group" aria-label="Position from" hidden>
+      <button type="button" class="nav-source-toggle" id="nav-source-gps" aria-pressed="true">GPS</button>
+      <button type="button" class="nav-source-toggle" id="nav-source-rb" aria-pressed="false">RaceBox</button>
+      <span class="nav-source-text" id="nav-source-label">Using phone GPS</span>
+    </div>
     <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
       <label class="nav-dest-label" for="nav-to-q">Where to?</label>
       <ol class="nav-stops" id="nav-stops" aria-label="Stops"></ol>
@@ -673,10 +675,6 @@
         </div>
         <div class="nav-route-body">
           <dl class="nav-route-stats"><div><dt>To go on the route</dt><dd id="nav-togo">&ndash;</dd></div></dl>
-          <div class="nav-source" id="nav-source-row" hidden>
-            <span id="nav-source-label">GPS connected</span>
-            <button type="button" class="nav-source-switch" id="nav-source-switch" role="switch" aria-checked="false" aria-label="Use the RaceBox for position and speed"></button>
-          </div>
           <ol class="nav-steps" id="nav-steps"></ol>
         </div>
       </div>
@@ -743,6 +741,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=50" defer></script>
+<script src="js/navigate.js?v=54" defer></script>
 </body>
 </html>

@@ -220,8 +220,24 @@
     if (rbFix) step(r.speedMs || 0, r.utc);
   }
 
+  // Full screen: the timing fills the screen, with its button to come back (the page's own map has its own).
+  var FULL_ICON = { expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5', exit: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' };
+  function setFull(on) {
+    var sec = $('rbt-timing'), fs = $('rbt-tm-fs');
+    if (!sec) return;
+    sec.classList.toggle('rbt-tm-full', !!on);
+    document.documentElement.classList.toggle('rbt-tm-full-on', !!on);
+    if (fs) {
+      fs.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fs.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+      var path = fs.querySelector('path');
+      if (path) path.setAttribute('d', on ? FULL_ICON.exit : FULL_ICON.expand);
+    }
+  }
   function init() {
     if (!$('rbt-timing')) return;
+    var fsBtn = $('rbt-tm-fs');
+    if (fsBtn) fsBtn.addEventListener('click', function () { setFull(!$('rbt-timing').classList.contains('rbt-tm-full')); });
     buildDial();
     drawSats();
     setGo(idleLabel(), false);
@@ -236,5 +252,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
   // For the page's own checks.
-  window.MT3UKRaceBoxTiming = { state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
+  window.MT3UKRaceBoxTiming = { full: setFull, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
 })();

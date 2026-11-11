@@ -81,6 +81,8 @@ def test_drag_run_mode_shows_the_timing_and_the_other_modes_hide_it(page):
     expect(page.locator("#rbt-timing")).to_be_hidden()
     page.locator('#rbt-modes [data-mode="drag"]').click()
     expect(page.locator("#rbt-timing")).to_be_visible()
+    # Full screen covers the page: its own button brings the page back before another mode is chosen.
+    page.locator("#rbt-tm-fs").click()
     page.locator('#rbt-modes [data-mode="road"]').click()
     expect(page.locator("#rbt-timing")).to_be_hidden()
 
@@ -141,3 +143,26 @@ def test_the_dial_has_its_speed_numbers_and_the_g_meter_labels(page):
     expect(page.locator("#rbt-tm-dial text").filter(has_text="140")).to_have_count(1)
     expect(page.locator("#rbt-tm-dial text").filter(has_text="1.0g")).to_have_count(1)
     expect(page.locator("#rbt-tm-dial text").filter(has_text="G Forces")).to_have_count(1)
+
+
+def test_drag_run_goes_full_screen_and_the_full_screen_button_brings_the_page_back(page):
+    page.goto("/racebox.html")
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-timing")).to_have_class("rbt-timing rbt-tm-full", timeout=5000)
+    expect(page.locator("#rbt-tm-fs")).to_have_attribute("aria-pressed", "true")
+    page.locator("#rbt-tm-fs").click()
+    expect(page.locator("#rbt-timing")).not_to_have_class("rbt-timing rbt-tm-full")
+    expect(page.locator("#rbt-tm-fs")).to_have_attribute("aria-pressed", "false")
+
+
+def test_the_readings_fold_away_in_drag_run_and_details_opens_them(page):
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-band-wrap")).to_be_visible()
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-details-toggle")).to_have_attribute("aria-expanded", "false")
+    expect(page.locator("#rbt-band-wrap")).to_be_hidden()
+    page.locator("#rbt-tm-fs").click()
+    page.locator("#rbt-details-toggle").click()
+    expect(page.locator("#rbt-band-wrap")).to_be_visible()
+    expect(page.locator("#rbt-details-toggle")).to_have_attribute("aria-expanded", "true")
+

@@ -664,12 +664,28 @@
     var what = venueChoice ? ': ' + venueChoice.name : (modeNow === 'drag' ? ', no strip' : ': no track chosen yet');
     line.textContent = (modeNow === 'drag' ? 'Drag run' : 'Circuit') + what + '.';
   }
+  // Details: the readings (the grid and the meter) fold away with the Details button.
+  function setDetails(open) {
+    var band = document.getElementById('rbt-band-wrap'), btn = document.getElementById('rbt-details-toggle');
+    if (band) band.classList.toggle('is-folded', !open);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function initDetails() {
+    var btn = document.getElementById('rbt-details-toggle');
+    if (btn) btn.addEventListener('click', function () {
+      var band = document.getElementById('rbt-band-wrap');
+      setDetails(band ? band.classList.contains('is-folded') : true);
+    });
+  }
   function setMode(m) {
     modeNow = m;
     venueChoice = null;
-    // Drag run timing (the 0 to 60 and the dial) is shown only in the Drag run mode.
+    // Drag run timing (the 0 to 60 and the dial) is shown only in the Drag run mode, and it goes full screen there.
     var tsec = document.getElementById('rbt-timing');
     if (tsec) tsec.hidden = m !== 'drag';
+    if (window.MT3UKRaceBoxTiming) window.MT3UKRaceBoxTiming.full(m === 'drag');
+    // The readings fold away in the Drag run mode (Details opens them again).
+    setDetails(m !== 'drag');
     [].forEach.call(document.querySelectorAll('#rbt-modes [data-mode]'), function (b) {
       var on = b.getAttribute('data-mode') === m;
       b.classList.toggle('is-on', on);
@@ -961,6 +977,7 @@
     headingUp = !northUp;
     // The compass is the map's switch: tap it to change between heading up and north up.
     initModes();
+    initDetails();
     $('rbt-compass').addEventListener('click', function () {
       headingUp = !headingUp;
       try { localStorage.setItem('mt3ukRaceBoxNorthUp', headingUp ? '0' : '1'); } catch (e) { /* storage blocked */ }

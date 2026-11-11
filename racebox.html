@@ -430,7 +430,8 @@
     <p id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</p>
     <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
-    <div class="rbt-band">
+    <button type="button" class="rbt-details-toggle" id="rbt-details-toggle" aria-expanded="true" aria-controls="rbt-band-wrap"><span>Details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="rbt-band" id="rbt-band-wrap">
     <dl class="rbt-grid">
       <div class="rbt-speed-tile"><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div class="rbt-heading-tile"><dt>Heading</dt><dd><button type="button" class="rbt-compass" id="rbt-compass" aria-pressed="true" aria-label="Map: heading up. Tap for north up."><svg viewBox="-6 -6 36 36" aria-hidden="true"><g id="rbt-ring"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="-1.2" text-anchor="middle" font-size="6.5" font-weight="700" fill="currentColor">N</text></g><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></button><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
@@ -463,6 +464,7 @@
       <button type="button" class="chip" data-mode="track" aria-pressed="false">Circuit</button>
     </div>
     <section class="rbt-timing" id="rbt-timing" aria-label="Timing a drag run" hidden>
+      <button type="button" class="rbt-tm-fs" id="rbt-tm-fs" aria-pressed="false" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <div class="rbt-tm-dial" id="rbt-tm-dial"></div>
       <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
       <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
@@ -577,6 +579,20 @@
   .rbt-timing { display: grid; justify-items: center; gap: 10px; margin: 16px 0; }
   .rbt-timing[hidden] { display: none; }
   .rbt-tm-dial { width: min(340px, 92vw); }
+  .rbt-timing { position: relative; }
+  .rbt-tm-fs { position: absolute; top: 4px; right: 0; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; padding: 0; cursor: pointer; }
+  .rbt-tm-fs svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Full screen: the Drag run timing fills the screen, with its full-screen button to come back. */
+  html.rbt-tm-full-on { overflow: hidden; }
+  .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: 14px 16px 24px; width: auto; background: #ececec; overflow-y: auto; align-content: start; }
+  .rbt-tm-full .rbt-tm-dial { width: min(400px, 92vw); }
+  .rbt-tm-full .rbt-tm-fs { position: fixed; top: 12px; right: 12px; }
+  /* The readings fold away with Details (outside full screen). */
+  html:not(.rbt-full-on) .rbt-band.is-folded { display: none; }
+  .rbt-details-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin: 8px 0; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.95rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .rbt-details-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s; }
+  .rbt-details-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+  .rbt-full-on .rbt-details-toggle { display: none; }
   .rbt-tm-dial svg { width: 100%; height: auto; display: block; }
   .rbt-tm-speed { margin: 0; text-align: center; color: var(--ink, #16233d); }
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
@@ -753,7 +769,7 @@
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
 <script src="js/racebox-timing.js?v=1"></script>
-<script src="js/racebox-test.js?v=70"></script>
+<script src="js/racebox-test.js?v=71"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

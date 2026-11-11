@@ -740,8 +740,10 @@
         setRouteFolded(false);
       });
     }
-    // The 0 to 60 mph timer: the button on the first screen and the one on the map while driving both drive it.
+    // The 0 to 60 mph timer on the map drives the timer; its switch shows or hides the past times.
     document.querySelectorAll('[data-launch]').forEach(function (b) { b.addEventListener('click', launchTap); });
+    if ($('nav-runs-switch')) $('nav-runs-switch').addEventListener('click', function () { launchShow = !launchShow; saveShow(launchShow); drawRuns(); });
+    drawRuns();
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
     if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
@@ -939,6 +941,7 @@
     document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !on; });
     if (!on) { launch.state = 'idle'; rbLastAt = 0; rbFix = false; rbShownFix = false; }
     refreshSourceText();
+    drawRuns();
   }
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
@@ -971,7 +974,47 @@
     });
   }
   // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
-  var launch = { state: 'idle', t0: 0, best: null, last: null };
+  // Past 0 to 60 runs, kept on this device (localStorage) so the times and the best survive a reload. Newest first.
+  var LAUNCH_KEY = 'mt3uk-launch-runs', LAUNCH_SHOW_KEY = 'mt3uk-launch-show', LAUNCH_MAX = 20, LAUNCH_LIST = 5;
+  function readRuns() {
+    try {
+      var a = JSON.parse(localStorage.getItem(LAUNCH_KEY) || '[]');
+      return Array.isArray(a) ? a.filter(function (r) { return r && typeof r.t === 'number' && isFinite(r.t); }) : [];
+    } catch (e) { return []; }
+  }
+  function saveRuns(a) { try { localStorage.setItem(LAUNCH_KEY, JSON.stringify(a.slice(0, LAUNCH_MAX))); } catch (e) {} }
+  function readShow() { try { return localStorage.getItem(LAUNCH_SHOW_KEY) !== '0'; } catch (e) { return true; } }
+  function saveShow(on) { try { localStorage.setItem(LAUNCH_SHOW_KEY, on ? '1' : '0'); } catch (e) {} }
+  var launchShow = readShow();
+  function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
+  function addRun(t) {
+    var a = readRuns();
+    a.unshift({ t: Math.round(t * 100) / 100, at: Date.now() });
+    saveRuns(a);
+    drawRuns();
+  }
+  // The times panel under the timer on the map: the best, a switch to show or hide the list, and the latest few runs.
+  function drawRuns() {
+    var box = $('nav-runs');
+    if (!box) return;
+    var a = readRuns(), best = bestOf(a);
+    box.hidden = !raceboxOn || !a.length;
+    var sw = $('nav-runs-switch');
+    if (sw) sw.setAttribute('aria-checked', launchShow ? 'true' : 'false');
+    var head = $('nav-runs-best');
+    if (head) head.textContent = best === null ? '' : 'Best ' + best.toFixed(2) + ' s';
+    var list = $('nav-runs-list');
+    if (!list) return;
+    list.hidden = !launchShow;
+    list.innerHTML = '';
+    a.slice(0, LAUNCH_LIST).forEach(function (r) {
+      var li = document.createElement('li');
+      li.textContent = r.t.toFixed(2) + ' s';
+      if (r.t === best) li.className = 'is-best';
+      list.appendChild(li);
+    });
+  }
+  var launch = { state: 'idle', t0: 0, best: bestOf(readRuns()), last: null };
   function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
   function launchStep(speedMs, ts) {
     var mph = speedMs * 2.23694;
@@ -982,6 +1025,7 @@
         launch.state = 'done';
         launch.last = t;
         launch.best = launch.best === null || t < launch.best ? t : launch.best;
+        addRun(t);
         setLaunchText('0\u201360: ' + t.toFixed(2) + ' s \u00b7 best ' + launch.best.toFixed(2));
       } else {
         setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s');

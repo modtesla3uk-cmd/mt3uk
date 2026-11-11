@@ -1533,3 +1533,45 @@ def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of
     assert abs(edges["wrapBottom"] - edges["visibleBottom"]) < 2, edges
     assert abs(edges["barBottom"] - edges["wrapBottom"]) < 2, edges
 
+
+def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_survive_a_reload(page):
+    _approve(page, True)
+    page.add_init_script(RB_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    page.evaluate("""() => { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() };
+      window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
+    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
+    page.locator("#nav-launch").click()
+    page.evaluate("""() => {
+      const t0 = Date.now(); const rd = window.__rb.readers;
+      for (let i = 0; i < 25 * 6; i++) {
+        const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
+        const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 };
+        rd.forEach(function (fn) { fn(r); });
+      }
+    }""")
+    expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    # The run is kept: the best and the list show under the timer.
+    expect(page.locator("#nav-runs")).to_be_visible(timeout=5000)
+    expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"))
+    expect(page.locator("#nav-runs-list li.is-best")).to_have_count(1)
+    # The switch hides the list (the best stays), and the choice is kept after a reload.
+    page.locator("#nav-runs-switch").click()
+    expect(page.locator("#nav-runs-list")).to_be_hidden()
+    expect(page.locator("#nav-runs-best")).to_be_visible()
+    page.reload()
+    expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"), timeout=10000)
+    expect(page.locator("#nav-runs-list")).to_be_hidden()
+    expect(page.locator("#nav-runs-switch")).to_have_attribute("aria-checked", "false")
+

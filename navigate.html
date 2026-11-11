@@ -460,6 +460,19 @@
   .nav-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
   /* The speed, large, over the map at the bottom left. */
   .nav-launch { display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 999px; background: #16233d; color: #fff; font-size: .95rem; font-weight: 800; box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer; }
+  /* Past 0 to 60 times under the timer, at the top right of the map, shown while driving with the timer. */
+  .nav-runs { position: absolute; top: 102px; right: 10px; z-index: 1005; width: 176px; padding: 8px 10px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #16233d); font-size: .85rem; }
+  .nav-runs[hidden], .nav-runs-list[hidden] { display: none; }
+  .nav-runs-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .nav-runs-show { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: #5b6475; }
+  .nav-runs-switch { position: relative; width: 44px; height: 44px; margin-right: -10px; border: 0; background: none; padding: 0; cursor: pointer; }
+  .nav-runs-switch::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 22px; margin-top: -11px; border-radius: 999px; background: #c4cad4; transition: background 0.15s; }
+  .nav-runs-switch::after { content: ""; position: absolute; left: 8px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform 0.15s; }
+  .nav-runs-switch[aria-checked="true"]::before { background: #17663f; }
+  .nav-runs-switch[aria-checked="true"]::after { transform: translateX(16px); }
+  .nav-runs-list { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .nav-runs-list li { font-weight: 600; }
+  .nav-runs-list li.is-best { color: #17663f; font-weight: 800; }
   /* The 0 to 60 mph timer sits at the top right of the map, out of the middle, and shows whenever the RaceBox is on. */
   .nav-launch:not([hidden]) { display: block; }
   .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
@@ -658,6 +671,10 @@
         <button type="button" id="nav-step-close" aria-label="Close the turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       </div>
       <button type="button" class="nav-launch" id="nav-launch" data-launch hidden>0&ndash;60 mph</button>
+      <div class="nav-runs" id="nav-runs" hidden>
+        <div class="nav-runs-head"><b id="nav-runs-best"></b><span class="nav-runs-show"><span>Show times</span><button type="button" class="nav-runs-switch" id="nav-runs-switch" role="switch" aria-checked="true" aria-label="Show the past 0 to 60 times"></button></span></div>
+        <ol class="nav-runs-list" id="nav-runs-list"></ol>
+      </div>
       <div class="nav-speed-bubble" id="nav-speed-bubble" aria-hidden="true"><b id="nav-speed-big">&ndash;</b> <span id="nav-speed-big-unit">mph</span></div>
       <div class="nav-toast" id="nav-toast" role="status" hidden></div>
       <div class="nav-drive-bar" id="nav-drive-bar">
@@ -748,6 +765,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=59" defer></script>
+<script src="js/navigate.js?v=60" defer></script>
 </body>
 </html>

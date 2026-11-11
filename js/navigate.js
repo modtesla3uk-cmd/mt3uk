@@ -706,6 +706,7 @@
     }
     var lb = $('nav-launch');
     if (lb) lb.addEventListener('click', launchTap);
+    if ($('nav-clear')) $('nav-clear').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
     if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
     if ($('nav-step-close')) $('nav-step-close').addEventListener('click', closeStep);
@@ -733,9 +734,8 @@
       var panel = $('nav-route');
       if (panel) setRouteFolded(!panel.classList.contains('is-collapsed'));
     });
-    var go = $('nav-go'), add = $('nav-add-stop');
+    var go = $('nav-go');
     if (go) go.addEventListener('click', askRoute);
-    if (add) add.addEventListener('click', addStop);
     var pinBtn = $('nav-pin'), pinUse = $('nav-pin-use'), pinCancel = $('nav-pin-cancel'), stopsEl = $('nav-stops');
     if (pinBtn) pinBtn.addEventListener('click', startPin);
     if (pinUse) pinUse.addEventListener('click', usePin);
@@ -949,6 +949,12 @@
       if (last) input.id = 'nav-to-q';
       input.addEventListener('input', onStopInput);
       input.addEventListener('keydown', onStopKey);
+      var plus = document.createElement('button');
+      plus.type = 'button';
+      plus.className = 'nav-add-stop';
+      plus.innerHTML = PLUS_SVG;
+      plus.setAttribute('aria-label', 'Add a stop before the ' + stopLabel(i));
+      plus.addEventListener('click', function () { addStopAt(i); });
       var mic = document.createElement('button');
       mic.type = 'button';
       mic.className = 'nav-mic';
@@ -967,6 +973,7 @@
       grip.addEventListener('pointerdown', function (e) { startMove(e, li, i); });
       li.appendChild(grip);
       li.appendChild(input);
+      li.appendChild(plus);
       li.appendChild(mic);
       li.appendChild(rm);
       ul.appendChild(li);
@@ -1011,7 +1018,10 @@
     var i = Number(e.target.dataset.i), v = e.target.value;
     // Only text that really changed gives up the place chosen for the stop. Some keyboards send an input event with the
     // same text after a suggestion is picked, and that must not send the place back to a search.
-    if (v !== stops[i].text) stops[i].place = null;
+    if (v !== stops[i].text) {
+      stops[i].place = null;
+      if (routeD) clearRoute();
+    }
     stops[i].text = v;
     if (v.trim()) stops[i].typed = v;
     suggestWhileTyping(v, i);
@@ -1080,23 +1090,27 @@
     endPin();
     choose(place, i);
   }
-  function addStop() {
-    stops.splice(stops.length - 1, 0, { text: '', place: null });
+  // The + beside a field adds a stop just before that field: the one beside the destination adds a stop on the way.
+  var PLUS_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  function addStopAt(i) {
+    if (stops.length >= 6) return setRouteMsg('There can be up to five stops on the way.', true);
+    stops.splice(i, 0, { text: '', place: null });
     renderStops();
-    var inputs = document.querySelectorAll('#nav-stops .nav-stop-input');
-    if (inputs.length > 1) inputs[inputs.length - 2].focus();
+    var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');
+    if (input) input.focus();
   }
   function removeStop(i) {
     if (stops.length < 2) return;
     stops.splice(i, 1);
     renderStops();
-    if (wantRoute) routeNow(); else clearSuggestions();
+    if (routeD) clearRoute();
+    clearSuggestions();
   }
   function moveStop(from, to) {
     var st = stops.splice(from, 1)[0];
     stops.splice(to, 0, st);
     renderStops();
-    if (wantRoute) routeNow();
+    if (routeD) clearRoute();
   }
   function showSuggestions(list, i) {
     var ul = $('nav-results');
@@ -1186,10 +1200,10 @@
     saveRecent(stops[i].typed || stops[i].text);
     stops[i].place = p;
     stops[i].text = p.name;
-    if (i === stops.length - 1) wantRoute = true;
     clearSuggestions();
     renderStops();
-    if (wantRoute) routeNow();
+    // The route on the map no longer matches the stop, so it is taken away until Route is pressed again.
+    if (routeD) clearRoute();
   }
   function showResults(list, i) {
     var ul = $('nav-results');
@@ -1260,6 +1274,26 @@
     var names = stopNamesAhead();
     return fetch(WORKER + '/navigate/route', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session() }, body: JSON.stringify({ from: [lastFix.lat, lastFix.lng], to: dest.at, via: stopsAhead() }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (d && d.success) d.viaNames = names; return { ok: r.ok && !!d.success, d: d }; }); });
+  }
+  // Takes the route away: the line, the destination mark, the turn selection and the Drive panel. Nothing is asked of the
+  // server, and a new route needs Route to be pressed.
+  function clearRoute() {
+    routeD = null;
+    dest = null;
+    wantRoute = false;
+    if (routeLayer && map) { map.removeLayer(routeLayer); routeLayer = null; }
+    if (destMarker && map) { map.removeLayer(destMarker); destMarker = null; }
+    closeStep();
+    var panel = $('nav-route');
+    if (panel) panel.hidden = true;
+    setRouteMsg('');
+    updateClearButton();
+  }
+  function updateClearButton() { var b = $('nav-clear'); if (b) b.hidden = !routeD; }
+  function clearEverything() {
+    clearRoute();
+    stops = [{ text: '', place: null }];
+    renderStops();
   }
   function routeTo() {
     if (!dest) return;
@@ -1369,6 +1403,7 @@
     return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
   }
   function renderRouteText() {
+    updateClearButton();
     if (!routeD) return;
     closeStep(); // a new route starts with no turn selected
     var len = distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min';

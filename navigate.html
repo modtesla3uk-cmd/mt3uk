@@ -391,6 +391,8 @@
   .nav-stop { display: flex; align-items: center; gap: 4px; position: relative; background: #fff; border-radius: var(--radius, 10px); }
   .nav-stop.is-moving { z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
   .nav-stop-input { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+  .nav-add-stop { flex: none; width: 44px; height: 44px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 50%; background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .nav-add-stop svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
   .nav-mic { flex: none; width: 44px; height: 44px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 50%; background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; cursor: pointer; padding: 0; }
   .nav-mic[hidden] { display: none; }
   .nav-mic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -506,7 +508,13 @@
   /* The handle on the bottom bar while driving: tap or swipe up to bring the directions up. */
   .nav-drive-handle { width: 100%; min-height: 26px; margin: -6px 0 -4px; padding: 0; border: 0; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; touch-action: none; }
   .nav-drive-handle span { display: block; width: 44px; height: 5px; border-radius: 3px; background: #c5ccd6; }
-  .nav-route-summary { padding: 0 16px 8px; display: grid; gap: 2px; flex: none; }
+  .nav-route-summary { position: relative; padding: 0 16px 8px; display: grid; gap: 2px; flex: none; }
+  /* The trip text keeps clear of the Clear route button at the top right; Start route runs the full width. */
+  .nav-route-summary #nav-route-len, .nav-route-summary #nav-route-to { padding-right: 48px; }
+  /* Clear route: a round close button at the top right of the trip, clear of the trip text. */
+  .nav-clear { position: absolute; top: 2px; right: 12px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; padding: 0; cursor: pointer; }
+  .nav-clear[hidden] { display: none; }
+  .nav-clear svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .nav-route-head { display: none; padding: 0 16px 12px; align-items: baseline; gap: 10px; min-width: 0; }
   .nav-route-head b { font-size: 1rem; }
   .nav-route-head span { color: #5b6475; font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -611,7 +619,6 @@
       <ol class="nav-stops" id="nav-stops" aria-label="Stops"></ol>
       <p class="nav-attrib">Address search: <a href="https://www.geoapify.com/" rel="noopener">Powered by Geoapify</a>. Map data &copy; OpenStreetMap contributors.</p>
       <div class="nav-stop-actions">
-        <button type="button" class="btn btn-secondary" id="nav-add-stop">Add a stop</button>
         <button type="button" class="btn btn-secondary" id="nav-pin">Pin on map</button>
         <button type="button" class="btn btn-accent" id="nav-go">Route</button>
       </div>
@@ -655,6 +662,7 @@
         <button type="button" class="nav-route-handle" id="nav-route-handle" aria-expanded="true" aria-label="Show or hide the route"><span></span></button>
         <div class="nav-route-head" aria-hidden="true"><b>Drive</b> <span id="nav-route-short">&ndash;</span></div>
         <div class="nav-route-summary">
+          <button type="button" class="nav-clear" id="nav-clear" aria-label="Clear route" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
           <b id="nav-route-len">&ndash;</b>
           <span id="nav-route-to">&ndash;</span>
           <button type="button" class="nav-start" id="nav-start">Start route</button>
@@ -727,6 +735,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=38" defer></script>
+<script src="js/navigate.js?v=42" defer></script>
 </body>
 </html>

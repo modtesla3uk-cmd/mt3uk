@@ -223,6 +223,7 @@ def test_a_place_name_with_several_matches_lets_the_member_pick(page):
     page.locator("#nav-go").click()
     expect(page.locator("#nav-results button")).to_have_count(2)
     page.locator("#nav-results button", has_text="Towcester").click()
+    page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
 
 
@@ -315,6 +316,7 @@ def test_suggestions_appear_in_light_grey_while_typing_and_one_can_be_chosen(pag
     expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
     expect(page.locator("#nav-results.is-suggest button")).to_contain_text("Towcester")
     page.locator("#nav-results.is-suggest button").click()
+    page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
 
 
@@ -350,6 +352,7 @@ def test_distances_follow_the_speed_unit_miles_with_mph_and_km_with_km_h(page):
     expect(page.locator("#nav-results small")).to_contain_text("mi away")
     expect(page.locator("#nav-results small")).not_to_contain_text("km")
     page.locator("#nav-results.is-suggest button").click()
+    page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-route-len")).to_contain_text("mi")
     expect(page.locator("#nav-steps .nav-step-dist").last).to_contain_text("mi")
@@ -759,7 +762,7 @@ def test_a_stop_can_be_added_and_the_route_goes_through_it(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-add-stop").click()
+    page.locator("#nav-stops .nav-add-stop").last.click()
     expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(2)
     page.locator("#nav-stops .nav-stop-input").nth(0).fill("Towcester")
     page.locator("#nav-to-q").fill("Church Road")
@@ -782,7 +785,7 @@ def test_a_stop_can_be_dragged_to_a_new_place_and_the_route_follows(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-add-stop").click()
+    page.locator("#nav-stops .nav-add-stop").last.click()
     page.locator("#nav-stops .nav-stop-input").nth(0).fill("Leicester")
     page.locator("#nav-to-q").fill("Church Road")
     page.locator("#nav-go").click()
@@ -795,6 +798,10 @@ def test_a_stop_can_be_dragged_to_a_new_place_and_the_route_follows(page):
     page.mouse.move(x, y + 90, steps=8)
     page.mouse.up()
     expect(page.locator("#nav-stops .nav-stop-input").nth(1)).to_have_value(re.compile(r"Leicester"))
+    expect(page.locator("#nav-route")).to_be_hidden()
+    with page.expect_request("**/navigate/route"):
+        page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
     post = json.loads(asked[-1])
     assert abs(post["to"][0] - 52.6369) < 0.01, post
     assert len(post["via"]) == 1 and abs(post["via"][0][0] - 52.131) < 0.01, post
@@ -855,6 +862,7 @@ def test_an_input_event_after_a_suggestion_is_chosen_does_not_search_again(page)
     page.locator("#nav-to-q").fill("Planet")
     expect(page.locator("#nav-results.is-suggest button")).to_have_count(2, timeout=5000)
     page.locator("#nav-results.is-suggest button").nth(0).click()
+    page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
     # A keyboard sends an input event with the same text: the chosen place is kept, so Route does not search again.
     page.locator("#nav-to-q").dispatch_event("input")
@@ -911,6 +919,7 @@ def test_a_point_pinned_on_the_map_becomes_the_destination_and_is_routed_to(page
     # Move the map so the pin is on the house, then use that point.
     page.evaluate("() => window.MT3UKNavigate.map().setView([52.0109, -0.5090], 17, { animate: false })")
     page.locator("#nav-pin-use").click()
+    page.locator("#nav-go").click()
     expect(page.locator("#nav-pin-mode")).to_be_hidden()
     expect(page.locator("#nav-to-q")).to_have_value(re.compile(r"Pinned point"))
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
@@ -1217,7 +1226,7 @@ def test_a_route_with_stops_lists_each_stop_in_its_place_among_the_turns(page):
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-add-stop").click()
+    page.locator("#nav-stops .nav-add-stop").last.click()
     expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(2)
     page.locator("#nav-stops .nav-stop-input").nth(0).fill("52.12, -0.99")
     page.locator("#nav-to-q").fill("52.14, -0.97")
@@ -1260,3 +1269,31 @@ def test_the_destination_can_be_said_instead_of_typed(page):
     page.locator("#nav-stops .nav-mic").last.click()
     expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
     expect(page.locator("#nav-stops .nav-mic").last).to_have_attribute("aria-pressed", "false", timeout=5000)
+
+
+def test_removing_a_stop_or_clearing_the_route_takes_the_drive_away(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    # Nothing is routed until Route is pressed.
+    expect(page.locator("#nav-route")).to_be_hidden()
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-clear")).to_be_visible()
+    # Clear route takes the drive away and empties the stops.
+    page.locator("#nav-clear").click()
+    expect(page.locator("#nav-route")).to_be_hidden()
+    expect(page.locator("#nav-clear")).to_be_hidden()
+    expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(1)
+    expect(page.locator("#nav-stops .nav-stop-input").first).to_have_value("")
+    # Adding a stop and routing, then removing the stop, takes the drive away again.
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-stops .nav-add-stop").last.click()
+    page.locator("#nav-stops .nav-remove, #nav-stops .nav-stop-remove").first.click()
+    expect(page.locator("#nav-route")).to_be_hidden()

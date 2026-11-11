@@ -1180,3 +1180,24 @@ def test_the_turn_stepper_sits_below_the_turn_card_while_driving(page):
     page.wait_for_timeout(300)
     boxes = page.evaluate("""() => { const t = document.getElementById('nav-turn').getBoundingClientRect(), s = document.getElementById('nav-stepper').getBoundingClientRect(); return { turnBottom: t.bottom, stepperTop: s.top }; }""")
     assert boxes["stepperTop"] >= boxes["turnBottom"] - 1, boxes
+
+
+def test_the_header_menu_opens_over_the_navigate_page(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.wait_for_timeout(400)
+    page.locator("#hamburger").click()
+    page.wait_for_timeout(400)
+    # A point in the open menu, below the header, is the menu's own, not the map or the Drive panel underneath.
+    hit = page.evaluate("""() => { const m = document.querySelector('#navlinks') || document.querySelector('header nav');
+      const r = m.getBoundingClientRect(); const x = r.left + r.width / 2, y = Math.min(r.bottom - 10, window.innerHeight - 10);
+      const el = document.elementFromPoint(x, y); return !!(el && (el.closest('#navlinks') || el.closest('header'))); }""")
+    assert hit

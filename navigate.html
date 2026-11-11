@@ -361,7 +361,8 @@
   .nav-body { padding: 20px 0 40px; }
   .nav-status { font-weight: 600; margin: 0 0 12px; }
   .nav-status.is-bad { color: #b3261e; }
-  .nav-map-wrap { position: relative; margin: 0 0 14px; }
+  /* One layer for the whole page of Navigate, below the header, so the header's menu opens over it. */
+  .nav-map-wrap { position: relative; margin: 0 0 14px; isolation: isolate; z-index: 1; }
   /* Recentre: a small round button at the bottom right of the map, back to where the phone is (as Google Maps does). */
   .recentre { position: absolute; right: 10px; bottom: 10px; z-index: 1001; width: 46px; height: 46px; padding: 0; border: 1px solid var(--hairline, #d8dbe2); border-radius: 50%; background: #fff; color: var(--ink, #16233d); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer; }
   .recentre svg { width: 24px; height: 24px; display: block; }
@@ -719,6 +720,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=35" defer></script>
+<script src="js/navigate.js?v=36" defer></script>
 </body>
 </html>

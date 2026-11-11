@@ -825,47 +825,6 @@ def test_a_stop_can_be_dragged_to_a_new_place_and_the_route_follows(page):
     assert len(post["via"]) == 1 and abs(post["via"][0][0] - 52.131) < 0.01, post
 
 
-def test_two_fingers_turn_the_map_flat_and_recentre_brings_back_3d(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
-    # One finger pans: the map keeps its tilt.
-    top = page.locator("#nav-drive-bar").bounding_box()["y"]
-    page.mouse.move(195, top - 60)
-    page.mouse.down()
-    page.mouse.move(195, top - 160, steps=6)
-    page.mouse.up()
-    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
-    # Browsing is flat (2D) until Recentre.
-    assert "rotateX(0deg)" in page.evaluate("() => document.getElementById('nav-map').style.transform")
-    # Two fingers turn the map by 45 degrees (the heading is due east, so the map starts turned by -90 degrees).
-    page.evaluate("""() => {
-      var m = document.getElementById('nav-map');
-      function ev(type, id, x, y) { m.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 })); }
-      ev('pointerdown', 1, 150, 500); ev('pointerdown', 2, 240, 500);
-      ev('pointermove', 2, 240, 590);
-      ev('pointerup', 2, 240, 590); ev('pointerup', 1, 150, 500);
-    }""")
-    page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-4[4-6](\\.\\d+)?deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
-    page.locator("#nav-recentre").click()
-    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
-    # Recentre brings back the 3D view, facing the direction of travel.
-    page.wait_for_function("() => /rotateX\\(60deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
-    expect(page.locator("#nav-exit")).to_have_text("End navigation")
-    page.locator("#nav-exit").click()
-
-
 def test_an_input_event_after_a_suggestion_is_chosen_does_not_search_again(page):
     _approve(page, True)
     page.add_init_script(GEO_TOWCESTER)
@@ -1083,42 +1042,6 @@ RB_MOCK = """
   Object.defineProperty(window, 'MT3UKRaceBoxApp', { configurable: true, get: function () { return mock; }, set: function () {} });
 })();
 """
-
-
-def test_the_racebox_drives_navigate_and_times_0_to_60(page):
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
-    # The first RaceBox reading (stopped) makes the RaceBox the source, and shows the timer.
-    page.evaluate("""() => { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() };
-      window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
-    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
-    page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go")
-    # A run from stopped to 60 mph (26.8 m/s), 25 readings a second: stopped for half a second, then accelerating.
-    page.evaluate("""() => {
-      const t0 = Date.now(); const rd = window.__rb.readers;
-      for (let i = 0; i < 25 * 6; i++) {
-        const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
-        const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 };
-        rd.forEach(function (fn) { fn(r); });
-      }
-    }""")
-    # About 3.5 seconds from moving to 60 mph: the clock starts when the car first moves above 1 mph.
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
 
 
 def test_the_turn_stepper_goes_forward_and_back_through_the_turns(page):
@@ -1416,41 +1339,6 @@ def test_ending_navigation_takes_the_turn_bar_away(page):
     expect(page.locator("#nav-turn")).to_be_hidden()
 
 
-def test_the_position_switch_above_the_directions_changes_between_the_racebox_and_the_phones_gps(page):
-    # Laps app only: a RaceBox switch on the first screen, with a line saying where the position comes from. Until the
-    # RaceBox has its own satellite fix the phone's GPS is used. Off drops the RaceBox (the 0 to 60 button goes); on connects it again.
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    # The switch sits on the first screen, under the status line, so it shows before any route.
-    expect(page.locator("#nav-source-row")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-route")).to_be_hidden()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
-    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator("#nav-launch")).not_to_have_attribute("hidden", "")
-    # Off: back to the phone's GPS, and the 0 to 60 button goes.
-    page.locator("#nav-source-gps").click()
-    expect(page.locator("#nav-source-label")).to_have_text("Using phone GPS", timeout=5000)
-    expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "true")
-    expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
-    # On again: connects, and the readings bring the RaceBox back.
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
-    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
-    # Connected but no satellite fix yet: the switch stays on and says so, and the phone's GPS is still used.
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: false, coordinatesValid: false, satellites: 3, lat: 0, lon: 0, speedMs: 0, heading: 0, horizontalAccuracy: 99, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_contain_text("waiting for a GPS fix", timeout=5000)
-    expect(page.locator("#nav-source-label")).to_contain_text("3 satellites")
-    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
-
-
 def test_the_racebox_toggles_only_show_for_a_member_who_has_a_racebox(page):
     # A member who has not said they have a RaceBox (Profile) gets no GPS or RaceBox toggles, even in the Laps app.
     _approve(page, True)
@@ -1489,34 +1377,6 @@ def test_a_blocked_location_in_a_browser_can_be_tried_again_without_reloading(pa
     expect(page.locator("#nav-loc")).to_be_hidden()
 
 
-def test_the_zero_to_sixty_timer_is_on_the_map_only_while_driving(page):
-    # On the main map the timer and its times are left out; they show on the map once navigation has started.
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix (12 satellites)", timeout=5000)
-    # On the RaceBox but not driving: no timer on the main map.
-    expect(page.locator("#nav-launch")).to_be_hidden()
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    expect(page.locator(".nav-map-wrap.is-driving")).to_be_visible(timeout=5000)
-    # Driving: the timer shows, and it works.
-    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
-    page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go")
-
-
 def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of_the_phone(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)
@@ -1544,57 +1404,6 @@ def test_while_driving_the_screen_and_the_drive_bar_sit_on_the_visible_bottom_of
     assert abs(edges["barBottom"] - edges["wrapBottom"]) < 2, edges
 
 
-def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_survive_a_reload(page):
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    # The member's runs are kept on the profile (the worker's /navigate/runs), so a reload brings them back.
-    saved = {"runs": []}
-
-    def runs_reply(r):
-        if r.request.method == "POST":
-            body = json.loads(r.request.post_data or "{}")
-            saved["runs"].insert(0, {"t": body.get("t"), "at": "2026-11-11T13:00:00Z"})
-        r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "runs": saved["runs"]}),
-                  headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"})
-    page.route("**/navigate/runs", runs_reply)
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    page.evaluate("""() => { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() };
-      window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
-    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
-    page.locator("#nav-launch").click()
-    page.evaluate("""() => {
-      const t0 = Date.now(); const rd = window.__rb.readers;
-      for (let i = 0; i < 25 * 6; i++) {
-        const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
-        const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 };
-        rd.forEach(function (fn) { fn(r); });
-      }
-    }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
-    # The run is kept: the best and the list show under the timer.
-    # Driving folds the times away: the Times button opens them.
-    page.locator("#nav-runs-open").click()
-    expect(page.locator("#nav-runs")).to_be_visible(timeout=5000)
-    expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"))
-    expect(page.locator("#nav-runs-list li.is-best")).to_have_count(1)
-    # The switch hides the list (the best stays), and the choice is kept after a reload.
-    assert len(saved["runs"]) == 1, saved
-    page.reload()
-    expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"), timeout=10000)
-
-
 RB_SCANNING = """
 (function () {
   var fns = [];
@@ -1609,6 +1418,95 @@ RB_SCANNING = """
   Object.defineProperty(window, 'MT3UKRaceBoxApp', { configurable: true, get: function () { return mock; }, set: function () {} });
 })();
 """
+
+
+def test_the_racebox_search_gives_up_after_a_while_when_the_racebox_is_out_of_range(page):
+    # Out of range: the search stops after a while (a short time here), and the RaceBox is not left looking.
+    _approve(page, True)
+    page.add_init_script("window.MT3UK_RB_SEARCH_MS = 800;")
+    page.add_init_script(RB_SCANNING)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    expect(page.locator("#nav-source-spin")).to_be_visible()
+    expect(page.locator("#nav-status")).to_contain_text("No RaceBox found nearby", timeout=5000)
+    expect(page.locator("#nav-source-spin")).to_be_hidden()
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
+
+
+def test_two_fingers_turn_the_map_flat_and_recentre_brings_back_3d(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    # One finger pans: the map keeps its tilt.
+    top = page.locator("#nav-drive-bar").bounding_box()["y"]
+    page.mouse.move(195, top - 60)
+    page.mouse.down()
+    page.mouse.move(195, top - 160, steps=6)
+    page.mouse.up()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-browsing"))
+    # Browsing is flat (2D) until Recentre.
+    assert "rotateX(0deg)" in page.evaluate("() => document.getElementById('nav-map').style.transform")
+    # Two fingers turn the map by 45 degrees (the heading is due east, so the map starts turned by -90 degrees).
+    page.evaluate("""() => {
+      var m = document.getElementById('nav-map');
+      function ev(type, id, x, y) { m.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 })); }
+      ev('pointerdown', 1, 150, 500); ev('pointerdown', 2, 240, 500);
+      ev('pointermove', 2, 240, 590);
+      ev('pointerup', 2, 240, 590); ev('pointerup', 1, 150, 500);
+    }""")
+    page.wait_for_function("() => /rotateX\\(\\d+deg\\) rotate\\(-4[4-6](\\.\\d+)?deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
+    page.locator("#nav-recentre").click()
+    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
+    # Recentre brings back the 3D view, facing the direction of travel.
+    page.wait_for_function("() => /rotateX\\(60deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
+    expect(page.locator("#nav-exit")).to_have_text("End navigation")
+    page.locator("#nav-exit").click()
+
+
+def test_the_position_switch_above_the_directions_changes_between_the_racebox_and_the_phones_gps(page):
+    # Laps app only: a RaceBox switch on the first screen, with a line saying where the position comes from. Until the
+    # RaceBox has its own satellite fix the phone's GPS is used. Off drops the RaceBox (the 0 to 60 button goes); on connects it again.
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    # The switch sits on the first screen, under the status line, so it shows before any route.
+    expect(page.locator("#nav-source-row")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-route")).to_be_hidden()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
+    # Off: back to the phone's GPS, and the 0 to 60 button goes.
+    page.locator("#nav-source-gps").click()
+    expect(page.locator("#nav-source-label")).to_have_text("Using phone GPS", timeout=5000)
+    expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "true")
+    # On again: connects, and the readings bring the RaceBox back.
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_have_text("Using the RaceBox, GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
+    # Connected but no satellite fix yet: the switch stays on and says so, and the phone's GPS is still used.
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: false, coordinatesValid: false, satellites: 3, lat: 0, lon: 0, speedMs: 0, heading: 0, horizontalAccuracy: 99, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_contain_text("waiting for a GPS fix", timeout=5000)
+    expect(page.locator("#nav-source-label")).to_contain_text("3 satellites")
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
 
 
 def test_the_racebox_toggle_is_on_only_once_the_racebox_is_connected_not_while_it_is_searched_for(page):
@@ -1632,275 +1530,8 @@ def test_the_racebox_toggle_is_on_only_once_the_racebox_is_connected_not_while_i
     expect(page.locator("#nav-source-spin")).to_be_hidden()
     expect(page.locator("#nav-source-label")).to_have_text("Using phone GPS")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
-    expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
     # Looking again, and this time the RaceBox connects.
     page.locator("#nav-source-rb").click()
     page.evaluate("window.__rbEmitStatus('connected')")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true", timeout=5000)
     expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "false")
-
-
-def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_not_timed(page):
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    # Moving at about 22 mph: tapping does not arm the timer.
-    page.evaluate("""() => { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 10, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() };
-      window.__rb.readers.forEach(function (fn) { fn(r); }); }""")
-    expect(page.locator("#nav-launch")).to_be_visible(timeout=5000)
-    page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Stop first, then tap Time a run")
-    # Stopped, then tapped: it arms, and a run from the stop is timed.
-    page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
-      for (let i = 0; i < 25 * 2; i++) { const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go")
-    page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
-      for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
-        const r = { fixOk: true, coordinatesValid: true, lat: 52.13, lon: -0.98, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330 \d\.\d\d s"))
-
-
-def test_the_times_fold_away_while_driving_and_a_times_button_opens_them(page):
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    page.locator("#nav-to-q").fill("52.13, -0.98")
-    page.locator("#nav-go").click()
-    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    page.locator("#nav-route-handle").click()
-    expect(page.locator("#nav-steps")).to_be_visible()
-    page.wait_for_timeout(400)
-    page.locator("#nav-start").click()
-    expect(page.locator(".nav-map-wrap.is-driving")).to_be_visible(timeout=5000)
-    # Driving: the times are folded away, and the Times button opens them.
-    expect(page.locator("#nav-runs")).to_be_hidden()
-    expect(page.locator("#nav-runs-open")).to_be_visible(timeout=5000)
-    page.locator("#nav-runs-open").click()
-    expect(page.locator("#nav-runs")).to_be_visible()
-    expect(page.locator("#nav-runs-open")).to_be_hidden()
-    expect(page.locator("#nav-runs-best")).to_have_text("Best 38.60 s")
-    # Hide folds the times away again, from the card's own header, so they can be hidden in the drive view too.
-    page.locator("#nav-runs-hide").click()
-    expect(page.locator("#nav-runs")).to_be_hidden()
-    expect(page.locator("#nav-runs-open")).to_be_visible()
-
-
-def test_a_run_can_be_timed_with_no_route_by_starting_timing(page):
-    # Start timing opens the driving screen with no destination: the timer works, and End timing comes back to the first screen.
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    expect(page.locator("#nav-free")).to_be_visible(timeout=5000)
-    expect(page.locator("#nav-map")).to_be_visible(timeout=10000)
-    page.locator("#nav-free").click()
-    expect(page.locator(".nav-map-wrap.is-driving.is-free")).to_be_visible(timeout=5000)
-    expect(page.locator("#nav-turn")).to_be_hidden()
-    expect(page.locator("#nav-eta")).to_have_text("Free drive")
-    expect(page.locator("#nav-launch")).to_be_visible()
-    page.locator("#nav-launch").click()
-    expect(page.locator("#nav-launch")).to_contain_text("Go")
-    page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
-      for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
-        const r = { fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
-    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360 3\.[45]\d s"), timeout=5000)
-    page.locator("#nav-exit").click()
-    expect(page.locator(".nav-map-wrap.is-driving")).to_have_count(0)
-    expect(page.locator("#nav-free")).to_be_visible()
-
-
-def test_the_timer_says_acquiring_gps_fix_until_the_racebox_has_one(page):
-    _approve(page, True)
-    page.add_init_script(RB_MOCK)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: false, coordinatesValid: false, satellites: 4, lat: 0, lon: 0, speedMs: 0, heading: 0, horizontalAccuracy: 99, utc: Date.now() }); })")
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    expect(page.locator("#nav-launch")).to_have_text("Acquiring GPS fix", timeout=5000)
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    expect(page.locator("#nav-launch")).to_have_text("Time a run", timeout=5000)
-
-
-def test_the_racebox_search_gives_up_after_a_while_when_the_racebox_is_out_of_range(page):
-    # Out of range: the search stops after a while (a short time here), and the RaceBox is not left looking.
-    _approve(page, True)
-    page.add_init_script("window.MT3UK_RB_SEARCH_MS = 800;")
-    page.add_init_script(RB_SCANNING)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    expect(page.locator("#nav-source-spin")).to_be_visible()
-    expect(page.locator("#nav-status")).to_contain_text("No RaceBox found nearby", timeout=5000)
-    expect(page.locator("#nav-source-spin")).to_be_hidden()
-    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
-
-
-def test_the_speed_dial_has_its_speed_values_round_the_dial(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
-    expect(page.locator("#nav-labels text")).to_have_count(8)
-    # A tick every 5 mph, from 0 to 140: 29 ticks round the dial.
-    expect(page.locator("#nav-ticks line")).to_have_count(29)
-    expect(page.locator("#nav-labels text").first).to_have_text("0")
-    expect(page.locator("#nav-labels text").last).to_have_text("140")
-
-
-def test_the_saved_runs_can_be_cleared_from_the_times_card(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    saved = {"runs": [{"t": 38.6, "t30": 10.2, "at": "2026-11-11T17:00:00Z"}]}
-
-    def runs_reply(r):
-        if r.request.method == "POST" and json.loads(r.request.post_data or "{}").get("clear") is True:
-            saved["runs"] = []
-        r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "runs": saved["runs"]}),
-                  headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"})
-    page.route("**/navigate/runs", runs_reply)
-    page.on("dialog", lambda d: d.accept())
-    page.set_viewport_size({"width": 390, "height": 844})
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
-    expect(page.locator("#nav-runs-best")).to_have_text("Best 38.60 s", timeout=5000)
-    page.locator("#nav-runs-clear").click()
-    expect(page.locator("#nav-runs")).to_be_hidden(timeout=5000)
-    assert saved["runs"] == []
-
-
-def test_the_g_dot_sits_in_the_middle_when_the_car_is_still(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.set_viewport_size({"width": 390, "height": 844})
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    # Standing still with the phone mounted at an angle: the box reads some g, but the dot is taken as the middle.
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0.12, y: -0.08 } }); })")
-    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0.12, y: -0.08 } }); })")
-    expect(page.locator("#nav-gdot")).to_have_attribute("cx", "150", timeout=5000)
-    expect(page.locator("#nav-gdot")).to_have_attribute("cy", "150")
-
-
-def test_the_time_a_run_button_does_not_overlap_the_runs_or_the_dial_in_free_drive(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"},{"t":41.1,"t30":11.0,"at":"2026-11-11T17:05:00Z"},{"t":42.0,"t30":11.5,"at":"2026-11-11T17:06:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.set_viewport_size({"width": 390, "height": 844})
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now(), gForce: { x: 0, y: 0 } }); })")
-    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
-    page.wait_for_timeout(400)
-    boxes = page.evaluate("""(() => { const b = (s) => document.querySelector(s).getBoundingClientRect();
-      return { speed: b('.nav-gauge-speed'), launch: b('#nav-launch'), runs: b('#nav-runs') }; })()""")
-    assert boxes["speed"]["bottom"] <= boxes["launch"]["top"], boxes
-    assert boxes["launch"]["bottom"] <= boxes["runs"]["top"], boxes
-
-
-def test_the_g_meter_has_its_half_g_and_one_g_values(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    expect(page.locator("#nav-gauge text").filter(has_text="0.5g")).to_have_count(1)
-    expect(page.locator("#nav-gauge text").filter(has_text="1.0g")).to_have_count(1)
-
-
-def test_the_g_meter_has_its_rings_like_the_racebox_display(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    # Two dotted rings (0.5 g and 1.0 g) and a solid outer ring (1.5 g) on the G meter.
-    expect(page.locator("#nav-gauge circle[stroke-dasharray]")).to_have_count(2)
-    expect(page.locator("#nav-gauge text").filter(has_text="1.5g")).to_have_count(1)
-
-
-def test_the_g_meter_is_labelled_g_forces(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    expect(page.locator("#nav-glabel text")).to_have_text("G Forces")
-
-
-def test_the_past_runs_show_the_0_30_before_the_0_60_with_a_gap_between(page):
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":41.1,"t30":11.0,"at":"2026-11-11T17:05:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
-    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
-    page.locator("#nav-free").click()
-    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
-    expect(page.locator("#nav-runs-list li .nav-run-half").first).to_have_text("0\u201330 11.00 s")
-    expect(page.locator("#nav-runs-list li .nav-run-sixty").first).to_have_text("0\u201360 41.10 s")
-    # The 0 to 30 comes before the 0 to 60 on the line.
-    order = page.evaluate("(() => { const li = document.querySelector('#nav-runs-list li'); return [...li.children].map(c => c.className); })()")
-    assert order == ["nav-run-no", "nav-run-half", "nav-run-sixty"], order
-

@@ -462,6 +462,17 @@
       <button type="button" class="chip" data-mode="drag" aria-pressed="false">Drag run</button>
       <button type="button" class="chip" data-mode="track" aria-pressed="false">Circuit</button>
     </div>
+    <section class="rbt-timing" id="rbt-timing" aria-label="Timing a drag run" hidden>
+      <div class="rbt-tm-dial" id="rbt-tm-dial"></div>
+      <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
+      <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
+      <div class="rbt-tm-sats"><span class="rbt-tm-bars" id="rbt-tm-bars" role="img" aria-label="GPS satellites"></span><span class="rbt-tm-text" id="rbt-tm-text">Waiting for a GPS fix</span></div>
+      <div class="rbt-tm-runs">
+        <div class="rbt-tm-head"><b id="rbt-tm-best"></b><button type="button" class="rbt-tm-clear" id="rbt-tm-clear" hidden>Clear</button></div>
+        <p class="rbt-tm-none" id="rbt-tm-none">No runs yet. Stop, tap Time a run, then go.</p>
+        <ol class="rbt-tm-list" id="rbt-tm-list"></ol>
+      </div>
+    </section>
     <p class="rbt-mode-line" id="rbt-mode-line" hidden></p>
     <button type="button" class="btn btn-accent rbt-startstop" id="rbt-startstop" hidden>Start recording</button>
     <div class="rbt-picker" id="rbt-picker" hidden>
@@ -562,6 +573,31 @@
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-zero { width: 100%; margin-top: 0; }
   .rbt-rec-line { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: #b3261e; }
   .rbt-rec-line[hidden] { display: none; }
+  /* Drag run timing: the speed dial and G meter, the Time a run button, the satellites and the runs. */
+  .rbt-timing { display: grid; justify-items: center; gap: 10px; margin: 16px 0; }
+  .rbt-timing[hidden] { display: none; }
+  .rbt-tm-dial { width: min(340px, 92vw); }
+  .rbt-tm-dial svg { width: 100%; height: auto; display: block; }
+  .rbt-tm-speed { margin: 0; text-align: center; color: var(--ink, #16233d); }
+  .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
+  .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
+  .rbt-tm-go { min-width: 200px; min-height: 56px; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 1.35rem/1.2 var(--font-body, sans-serif); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
+  .rbt-tm-go.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
+  .rbt-tm-sats { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .rbt-tm-bars { display: flex; gap: 2px; padding: 3px; border: 1px solid #5b6475; border-radius: 3px; background: #fff; }
+  .rbt-tm-seg { width: 6px; height: 12px; border-radius: 1px; background: #dfe3ea; }
+  .rbt-tm-seg.is-on { background: #9fd8b4; }
+  .rbt-tm-text { font-size: 0.75rem; font-weight: 700; color: #5b6475; white-space: nowrap; }
+  .rbt-tm-runs { width: min(360px, 92vw); padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); color: var(--ink, #16233d); }
+  .rbt-tm-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .rbt-tm-clear { min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: #b3261e; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .rbt-tm-clear[hidden], .rbt-tm-none[hidden] { display: none; }
+  .rbt-tm-none { margin: 6px 0 0; color: #5b6475; font-weight: 600; }
+  .rbt-tm-list { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .rbt-tm-list li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 18px; row-gap: 2px; font-weight: 600; }
+  .rbt-tm-list li.is-best { color: #17663f; font-weight: 800; }
+  .rbt-tm-no { min-width: 64px; }
+  .rbt-tm-half, .rbt-tm-sixty { white-space: nowrap; }
   .rbt-rec-note { margin: 8px 0 0; font-size: 0.9rem; color: #5b6475; }
   .rbt-rec-note[hidden] { display: none; }
   .rbt-drives { margin: 18px 0 0; }
@@ -716,7 +752,8 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-test.js?v=69"></script>
+<script src="js/racebox-timing.js?v=1"></script>
+<script src="js/racebox-test.js?v=70"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

@@ -237,22 +237,10 @@
   }
   // The turn card and the voice follow the next instruction: the one at the end of the step we are on, with the
   // distance to it.
-  // Free drive: timing with no destination. The map, the timer and the times show; there is no route or turn card.
-  var freeDrive = false;
   function updateDrive() {
     if (!driving || !lastFix) return;
     var wrapEl = document.querySelector('.nav-map-wrap'), barEl = $('nav-drive-bar');
     if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
-    if (!routeD) {
-      if (wrapEl) wrapEl.style.setProperty('--turn', '12px');
-      set('nav-eta', 'Free drive');
-      set('nav-left', 'No destination. Time a run from a standstill.');
-      set('nav-speed-big', ($('nav-speed') || {}).textContent || '\u2013');
-      set('nav-speed-big-unit', mph ? 'mph' : 'km/h');
-      // The words above can wrap, so the bar is measured again once they are set.
-      if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
-      return;
-    }
     // The turn card can take several lines, so what sits under it (the stepper, the toast) starts below its real bottom.
     var turnEl = $('nav-turn');
     if (wrapEl && turnEl) wrapEl.style.setProperty('--turn', (turnEl.offsetTop + turnEl.offsetHeight) + 'px');
@@ -343,7 +331,7 @@
   }
   window.addEventListener('resize', fitDrivingScreen);
   function startDrive() {
-    if (!map || (!routeD && !freeDrive)) return;
+    if (!map || !routeD) return;
     driving = true;
     // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
@@ -364,72 +352,10 @@
     followPhone(DRIVE_ZOOM);
     applyRotation();
     spoken = {};
-    if (routeD && routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
+    if (routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
     updateDrive();
   }
-  // The speed and G meter for free drive: the needle sweeps 0 to 140 mph over 270 degrees, and the dot is the G forces
-  // (sideways across, lengthways up; 1 g is the edge of the inner circle).
-  // The G rings: 1.0 g is 47 across the drawing (the dotted rings are 0.5 g and 1.0 g, the solid outer ring 1.5 g).
-  var GAUGE_MAX_MPH = 140, GAUGE_R = 47, gaugeBuilt = false, gTare = { x: 0, y: 0 };
-  function buildGauge() {
-    var ticks = $('nav-ticks'), labels = $('nav-labels');
-    if (!ticks || !labels || gaugeBuilt) return;
-    gaugeBuilt = true;
-    var NS = 'http://www.w3.org/2000/svg';
-    // A tick every 5 mph: longer every 10, longest (with the speed) every 20.
-    for (var m = 0; m <= GAUGE_MAX_MPH; m += 5) {
-      var a = (-135 + 270 * m / GAUGE_MAX_MPH) * Math.PI / 180, major = m % 20 === 0, medium = m % 10 === 0;
-      var r1 = major ? 96 : medium ? 101 : 106, r2 = 112;
-      var line = document.createElementNS(NS, 'line');
-      line.setAttribute('x1', 150 + Math.sin(a) * r1); line.setAttribute('y1', 150 - Math.cos(a) * r1);
-      line.setAttribute('x2', 150 + Math.sin(a) * r2); line.setAttribute('y2', 150 - Math.cos(a) * r2);
-      line.setAttribute('stroke-width', major ? '3' : medium ? '2' : '1.2');
-      ticks.appendChild(line);
-      // The speed in mph round the dial, every 20 mph.
-      if (major) {
-        var text = document.createElementNS(NS, 'text');
-        text.setAttribute('x', 150 + Math.sin(a) * 130);
-        text.setAttribute('y', 150 - Math.cos(a) * 130 + 5);
-        text.setAttribute('text-anchor', 'middle');
-        text.textContent = String(m);
-        labels.appendChild(text);
-      }
-    }
-  }
-  function drawGauge(speedMs, g) {
-    buildGauge();
-    var mphNow = (speedMs || 0) * 2.23694;
-    var shownSpeed = mph ? mphNow : (speedMs || 0) * 3.6;
-    var frac = Math.max(0, Math.min(1, mphNow / GAUGE_MAX_MPH));
-    var needle = $('nav-needle');
-    if (needle) needle.setAttribute('transform', 'rotate(' + (-135 + 270 * frac) + ' 150 150)');
-    set('nav-gauge-speed', String(Math.round(shownSpeed)));
-    set('nav-gauge-unit', mph ? 'mph' : 'km/h');
-    var dot = $('nav-gdot');
-    if (dot && g) {
-      // Zeroed while the car is still: the phone's mounting and gravity are taken out, so the dot sits in the middle at rest.
-      if (mphNow < LAUNCH_STOPPED_MPH) gTare = { x: g.x || 0, y: g.y || 0 };
-      var side = Math.max(-1.2, Math.min(1.2, (g.y || 0) - gTare.y)), fwd = Math.max(-1.2, Math.min(1.2, (g.x || 0) - gTare.x));
-      dot.setAttribute('cx', 150 + side * GAUGE_R);
-      dot.setAttribute('cy', 150 - fwd * GAUGE_R);
-    }
-  }
-  // Start timing with no destination: the same driving screen, with no route and no turns.
-  function startFreeDrive() {
-    if (!lastFix) { status('Waiting for your phone\u2019s position before timing can start.', true); return; }
-    if (!map) { status('The map is still loading. Tap Start timing again in a moment.', true); return; }
-    freeDrive = true;
-    var wrap = document.querySelector('.nav-map-wrap');
-    if (wrap) wrap.classList.add('is-free');
-    if ($('nav-exit')) $('nav-exit').textContent = 'End timing';
-    startDrive();
-    drawGauge(0, null); // the dial starts at zero, before the first reading
-  }
   function stopDrive() {
-    freeDrive = false;
-    var wrapF = document.querySelector('.nav-map-wrap');
-    if (wrapF) wrapF.classList.remove('is-free');
-    if ($('nav-exit')) $('nav-exit').textContent = 'End navigation';
     driving = false;
     if (frame) cancelAnimationFrame(frame);
     frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
@@ -447,7 +373,6 @@
     if (voiceAvailable()) stopSpeech();
     var wrap = document.querySelector('.nav-map-wrap');
     if (wrap) { wrap.classList.remove('is-driving'); wrap.classList.remove('runs-open'); }
-    if ($('nav-runs-open')) { $('nav-runs-open').setAttribute('aria-expanded', 'false'); }
     fitDrivingScreen();
     applyRotation();
     if (map) {
@@ -819,30 +744,6 @@
         setRouteFolded(false);
       });
     }
-    // The 0 to 60 mph timer on the map drives the timer; its switch shows or hides the past times.
-    document.querySelectorAll('[data-launch]').forEach(function (b) { b.addEventListener('click', launchTap); });
-    // The times are folded away while driving; the Times button opens them, and the Hide button in their header folds them again.
-    function setRunsOpen(open) {
-      var wrap = document.querySelector('.nav-map-wrap');
-      if (wrap) wrap.classList.toggle('runs-open', open);
-      if ($('nav-runs-open')) $('nav-runs-open').setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-    if ($('nav-runs-open')) $('nav-runs-open').addEventListener('click', function () { setRunsOpen(true); });
-    if ($('nav-runs-hide')) $('nav-runs-hide').addEventListener('click', function () { setRunsOpen(false); });
-    // Clear removes the member's saved runs, after a confirm (it cannot be undone).
-    if ($('nav-runs-clear')) $('nav-runs-clear').addEventListener('click', function () {
-      if (!window.confirm('Clear all your saved 0 to 60 runs? This cannot be undone.')) return;
-      runsCache = [];
-      drawTimer();
-      var s = sessionToken();
-      if (!s) return;
-      fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ clear: true }) })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) { if (d && d.success && Array.isArray(d.runs)) { runsCache = d.runs; drawTimer(); } })
-        .catch(function () {});
-    });
-    drawTimer();
-    drawRuns();
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
     if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
@@ -860,7 +761,6 @@
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);
-    if ($('nav-free')) $('nav-free').addEventListener('click', startFreeDrive);
     var rc = $('nav-recentre');
     if (rc) rc.addEventListener('click', function () {
       if (driving) return recentreDrive();
@@ -888,7 +788,6 @@
     renderStops();
     approved().then(function (ok) {
       if (!ok) return;
-      loadRuns();
       // The RaceBox toggles show only for a member who has said they have one (Profile), and only in the Laps app.
       if (memberRacebox && $('nav-source-row') && window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.available) $('nav-source-row').hidden = false;
       loadLocalPlaces(); // the addresses are loaded before the first search
@@ -1064,10 +963,8 @@
     var gps = $('nav-source-gps'), rb = $('nav-source-rb');
     if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
     if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
-    drawTimer();
-    if (!on) { launch.state = 'idle'; rbLastAt = 0; rbFix = false; rbShownFix = false; }
+    if (!on) { rbLastAt = 0; rbFix = false; rbShownFix = false; }
     refreshSourceText();
-    drawRuns();
   }
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
@@ -1106,7 +1003,6 @@
       rbSats = r.satellites || 0;
       rbFix = !!(r.fixOk && r.coordinatesValid);
       // The timer's idle label says whether the RaceBox has its satellite fix yet.
-      if (launch.state === 'idle') setLaunchText(idleLabel());
       if (!raceboxOn) setSource(true);
       if (!rbFix) { refreshSourceText(); return; }
       rbLastAt = Date.now();
@@ -1114,130 +1010,9 @@
       refreshSourceText();
       var c = { latitude: r.lat, longitude: r.lon, speed: r.speedMs, heading: r.heading, accuracy: r.horizontalAccuracy };
       applyFix(c, r.utc);
-      if (freeDrive) drawGauge(c.speed, r.gForce);
-      launchStep(c.speed, r.utc);
     });
   }
-  // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
-  // Past 0 to 60 runs are kept on the member's profile (the worker's /navigate/runs), so they follow the member to any
-  // device. The list is held here once loaded.
-  var LAUNCH_LIST = 5, API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  var runsCache = [];
-  function readRuns() { return runsCache; }
-  function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
-  function sessionToken() { try { return localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return null; } }
-  // Loads the member's saved runs once they are approved (so the card shows them after a reload).
-  function loadRuns() {
-    var s = sessionToken();
-    if (!s) return;
-    fetch(API + '/navigate/runs', { cache: 'no-store', headers: { 'X-Session-Token': s } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (!d || !d.success || !Array.isArray(d.runs)) return;
-        runsCache = d.runs;
-        if (!launch.t0 || launch.state !== 'running') launch.best = bestOf(runsCache);
-        drawRuns();
-      })
-      .catch(function () {});
-  }
-  // A finished run is shown at once and saved to the profile.
-  function addRun(t, t30) {
-    var s = sessionToken(), rounded = Math.round(t * 100) / 100;
-    var split = t30 !== null && t30 !== undefined ? Math.round(t30 * 100) / 100 : null;
-    runsCache = [{ t: rounded, t30: split, at: Date.now() }].concat(runsCache).slice(0, 20);
-    drawRuns();
-    if (!s) return;
-    fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ t: rounded, t30: split }) })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { if (d && d.success && Array.isArray(d.runs)) { runsCache = d.runs; drawRuns(); } })
-      .catch(function () {});
-  }
-  // The times panel under the timer on the map: the best, a switch to show or hide the list, and the latest few runs.
-  // The timer shows while driving (a route, or free drive from Start timing) once the RaceBox is on.
-  function drawTimer() {
-    var show = raceboxOn;
-    document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !show; });
-    var nf = $('nav-free');
-    if (nf) nf.hidden = !show;
-    drawRuns();
-  }
-  function drawRuns() {
-    var box = $('nav-runs');
-    if (!box) return;
-    var a = readRuns(), best = bestOf(a);
-    box.hidden = !raceboxOn || !a.length;
-    var ro = $('nav-runs-open');
-    if (ro) ro.hidden = !raceboxOn || !a.length;
-    var head = $('nav-runs-best');
-    if (head) head.textContent = best === null ? '' : 'Best ' + best.toFixed(2) + ' s';
-    var list = $('nav-runs-list');
-    if (!list) return;
-    list.innerHTML = '';
-    a.slice(0, LAUNCH_LIST).forEach(function (r, i) {
-      var li = document.createElement('li');
-      // Runs are numbered in the order they were timed: the newest is the highest number.
-      // Run number, then the 0 to 30 and the 0 to 60, with a gap between them.
-      var no = document.createElement('span'), half = document.createElement('span'), sixty = document.createElement('span');
-      no.className = 'nav-run-no';
-      no.textContent = 'Run ' + (a.length - i);
-      half.className = 'nav-run-half';
-      half.textContent = typeof r.t30 === 'number' ? '0\u201330 ' + r.t30.toFixed(2) + ' s' : '';
-      sixty.className = 'nav-run-sixty';
-      sixty.textContent = '0\u201360 ' + r.t.toFixed(2) + ' s';
-      li.appendChild(no);
-      li.appendChild(half);
-      li.appendChild(sixty);
-      if (r.t === best) li.className = 'is-best';
-      list.appendChild(li);
-    });
-  }
-  var launch = { state: 'idle', t0: 0, best: null, last: null, stopped: null, t30: null };
-  // The timer button's words; go (red) while it waits for the car to move off.
-  function setLaunchText(t, go) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; b.classList.toggle('is-go', !!go); }); }
-  // A 0 to 60 run counts only from a standstill: the timer is armed only when the car is under 1 mph, and a car that is
-  // already moving when it is armed is not timed (so a rolling start is never saved).
-  var LAUNCH_STOPPED_MPH = 1, launchNote = null, TURN_NEAR_M = 800;
-  function launchStep(speedMs, ts) {
-    var speedMph = speedMs * 2.23694;
-    var wasStopped = launch.stopped === true;
-    launch.stopped = speedMph < LAUNCH_STOPPED_MPH;
-    if (launch.state === 'armed' && speedMph > LAUNCH_STOPPED_MPH) {
-      if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
-      else { launch.state = 'idle'; setLaunchText('Not from a stop, not saved. Stop, then tap Time a run.'); return; }
-    }
-    if (launch.state === 'running') {
-      var now = (ts - launch.t0) / 1000;
-      if (launch.t30 === null && speedMph >= 30) launch.t30 = now;
-      if (speedMph >= 60) {
-        var t = now;
-        launch.state = 'done';
-        launch.last = t;
-        launch.best = launch.best === null || t < launch.best ? t : launch.best;
-        addRun(t, launch.t30);
-        // The recorded run on one line, numbered as in the times card: Run 1, Run 2 ... (the newest is the highest).
-        var runNo = runsCache.length;
-        setLaunchText('Run ' + runNo + ': ' + (launch.t30 !== null ? '0\u201330 ' + launch.t30.toFixed(2) + ' s \u00b7 ' : '') + '0\u201360 ' + t.toFixed(2) + ' s');
-      } else {
-        // Once the car is moving the timer shows its time and speed.
-        var shownMph = mph ? speedMph : speedMs * 3.6;
-        setLaunchText(((ts - launch.t0) / 1000).toFixed(2) + ' s \u00b7 ' + Math.round(shownMph) + (mph ? ' mph' : ' km/h'));
-      }
-    }
-  }
-  // The timer's words while it is not running: acquiring the RaceBox's GPS fix, then ready to time a run.
-  function idleLabel() { return rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
-  function launchTap() {
-    if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText(idleLabel()); return; }
-    if (launch.stopped !== true) {
-      // Moving, or no speed read yet: it is not armed, so a run can only start from a standstill.
-      setLaunchText(launch.stopped === null ? 'Acquiring GPS fix' : 'Stop first, then tap Time a run');
-      setTimeout(function () { if (launch.state === 'idle') setLaunchText(idleLabel()); }, 2500);
-      return;
-    }
-    launch.state = 'armed';
-    launch.t30 = null;
-    setLaunchText('Go', true);
-  }
+  var TURN_NEAR_M = 800; // a turn this close is shown large and bold on the turn card
   // A destination given in the address, from a Laps track: navigate.html?to=51.2085,-1.6055&name=Thruxton. It is routed
   // once the phone has a position.
   var pendingTo = (function () {

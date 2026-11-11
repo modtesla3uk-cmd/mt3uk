@@ -466,52 +466,10 @@
   .nav-car { width: 48px; height: 48px; transform-origin: 50% 50%; }
   .nav-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
   /* The speed, large, over the map at the bottom left. */
-  /* While driving the timer sits just under the turn card, and its times under it; a turn being looked at (the stepper) takes the room. */
-  .nav-map-wrap.is-driving .nav-launch { top: calc(var(--turn, 152px) + 8px); }
-  .nav-map-wrap.is-driving .nav-runs { top: calc(var(--turn, 152px) + 58px); }
-  .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-launch, .nav-map-wrap.is-driving:has(.nav-stepper:not([hidden])) .nav-runs { display: none; }
-  /* The timer button: plain, with dark text, and small. Go (red) is the only one that stands out. */
-  .nav-launch.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
-  .nav-launch { white-space: nowrap; text-align: center; line-height: 1.3; display: none; position: absolute; top: 52px; right: 10px; z-index: 1005; min-height: 40px; padding: 6px 12px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font-size: 0.95rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
-  /* Past 0 to 60 times under the timer, at the top right of the map, shown while driving with the timer. */
-  .nav-runs { position: absolute; top: 102px; right: 12px; z-index: 1005; width: 214px; max-width: calc(100% - 24px); box-sizing: border-box; padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); color: var(--ink, #16233d); font-size: 1rem; }
-  .nav-runs[hidden], .nav-runs-list[hidden] { display: none; }
-  .nav-runs-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
-  .nav-runs-actions { display: flex; gap: 6px; flex: none; }
-  .nav-runs-clear { flex: none; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: #b3261e; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; }
-  .nav-runs-hide { flex: none; min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; }
-  .nav-runs-head b { white-space: nowrap; }
-  .nav-runs-list { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-  .nav-runs-list li { font-weight: 600; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 18px; row-gap: 2px; }
-  .nav-run-no { min-width: 64px; }
-  .nav-run-half, .nav-run-sixty { white-space: nowrap; }
-  .nav-runs-list li.is-best { color: #17663f; font-weight: 800; }
   /* The 0 to 60 mph timer sits at the top right of the map, out of the middle, and shows whenever the RaceBox is on. */
   /* The timer and its times show only while driving: on the main map they are left out. */
-  .nav-map-wrap.is-driving .nav-launch:not([hidden]) { display: block; }
-  .nav-map-wrap:not(.is-driving) .nav-runs { display: none; }
   /* While driving the times are folded away under the timer; the Times button opens them, and they fold again. */
-  .nav-map-wrap.is-driving .nav-runs { display: none; }
-  .nav-map-wrap.is-driving.runs-open .nav-runs { display: block; }
-  .nav-runs-open { position: absolute; top: calc(var(--turn, 152px) + 58px); right: 12px; z-index: 1005; display: none; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.95rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 10px rgba(0,0,0,.2); cursor: pointer; }
-  .nav-runs-open svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .nav-map-wrap.is-driving .nav-runs-open:not([hidden]) { display: flex; }
-  .nav-map-wrap.is-driving.runs-open .nav-runs-open { display: none; }
-  /* Free drive (timing with no destination): no map, no turn card and no directions. A speed and G meter, the Go button
      in the middle, the runs as a list above the bottom bar. */
-  /* Free drive: the bottom bar is only the End timing button; the words and the voice button are left out. */
-  .nav-map-wrap.is-free .nav-drive-bar { padding: 8px 16px 14px; }
-  .nav-map-wrap.is-free .nav-drive-handle, .nav-map-wrap.is-free .nav-drive-top, .nav-map-wrap.is-free .nav-drive-attrib { display: none !important; }
-  .nav-map-wrap.is-free .nav-turn, .nav-map-wrap.is-free #nav-dirs, .nav-map-wrap.is-free #nav-map, .nav-map-wrap.is-free #nav-recentre, .nav-map-wrap.is-free #nav-voice, .nav-map-wrap.is-free .nav-unit-pill, .nav-map-wrap.is-free .nav-speed-bubble, .nav-map-wrap.is-free .nav-runs-open, .nav-map-wrap.is-free .nav-runs-hide, .nav-map-wrap.is-free .nav-toast, .nav-map-wrap.is-free .nav-stepper { display: none !important; }
-  .nav-gauge { display: none; }
-  .nav-map-wrap.is-free .nav-gauge { display: block; position: absolute; top: 12px; left: 50%; width: min(344px, 92vw); transform: translateX(-50%); }
-  .nav-map-wrap.is-free .nav-gauge svg { width: 100%; height: auto; display: block; }
-  .nav-gauge-speed { margin: 4px 0 0; text-align: center; color: var(--ink, #16233d); }
-  .nav-gauge-speed b { font-size: 4.4rem; line-height: 1; }
-  .nav-gauge-speed span { font-size: 1.5rem; font-weight: 700; color: #5b6475; }
-  .nav-map-wrap.is-free .nav-launch:not([hidden]) { display: block; top: 55%; left: 50%; right: auto; transform: translate(-50%, -50%); min-width: 200px; min-height: 56px; padding: 8px 20px; font-size: 1.35rem; text-align: center; border-radius: 999px; }
-  .nav-map-wrap.is-free.is-driving .nav-runs { display: block; top: auto; bottom: calc(var(--bar, 170px) + 16px); left: 16px; right: 16px; width: auto; max-height: 170px; overflow-y: auto; }
-  .nav-map-wrap.is-free .nav-runs-list li { font-size: 1.05rem; }
   .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
   .nav-map-wrap.is-driving .nav-speed-bubble { display: flex; }
   /* With the directions up, the speed, the speaker and Recentre step aside, so nothing sits over the list. */
@@ -675,7 +633,6 @@
     <div class="nav-source" id="nav-source-row" role="group" aria-label="Position from" hidden>
       <button type="button" class="nav-source-toggle" id="nav-source-gps" aria-pressed="true">GPS</button>
       <button type="button" class="nav-source-toggle" id="nav-source-rb" aria-pressed="false">RaceBox</button>
-      <button type="button" class="nav-source-toggle" id="nav-free" hidden>Start timing</button>
       <span class="nav-source-text"><span class="nav-spin" id="nav-source-spin" aria-hidden="true" hidden></span><span id="nav-source-label">Using phone GPS</span></span>
     </div>
     <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
@@ -708,29 +665,6 @@
         <button type="button" id="nav-step-next" aria-label="Next turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" id="nav-step-close" aria-label="Close the turn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
       </div>
-      <div class="nav-gauge" id="nav-gauge" aria-hidden="true">
-        <svg viewBox="0 0 300 300">
-          <circle cx="150" cy="150" r="112" fill="none" stroke="#9aa1ad" stroke-width="3"/>
-          <g id="nav-ticks" stroke="#9aa1ad" stroke-width="2"></g>
-          <g id="nav-labels" fill="#5b6475" font-size="15" font-weight="700"></g>
-          <circle cx="150" cy="150" r="70" fill="none" stroke="#5b6475" stroke-width="2"/>
-          <circle cx="150" cy="150" r="47" fill="none" stroke="#9aa1ad" stroke-width="1.5" stroke-dasharray="3 4"/>
-          <circle cx="150" cy="150" r="23" fill="none" stroke="#9aa1ad" stroke-width="1.5" stroke-dasharray="3 4"/>
-          <line x1="75" y1="150" x2="225" y2="150" stroke="#9aa1ad" stroke-width="1.5"/>
-          <line x1="150" y1="75" x2="150" y2="225" stroke="#9aa1ad" stroke-width="1.5"/>
-          <line id="nav-needle" x1="150" y1="150" x2="150" y2="44" stroke="#e8542a" stroke-width="5" stroke-linecap="round"/>
-          <g fill="#5b6475" font-size="11" font-weight="700" aria-hidden="true"><text x="175" y="145">0.5g</text><text x="199" y="145">1.0g</text><text x="222" y="145">1.5g</text></g>
-          <g id="nav-glabel" aria-hidden="true"><rect x="100" y="236" width="100" height="26" rx="3" fill="#ececec" stroke="#5b6475" stroke-width="1.5"/><text x="150" y="255" text-anchor="middle" font-size="14" font-weight="700" fill="#5b6475">G Forces</text></g>
-          <circle id="nav-gdot" cx="150" cy="150" r="9" fill="#b3261e"/>
-        </svg>
-        <p class="nav-gauge-speed"><b id="nav-gauge-speed">0</b> <span id="nav-gauge-unit">mph</span></p>
-      </div>
-      <button type="button" class="nav-launch" id="nav-launch" data-launch hidden>Time a run</button>
-      <div class="nav-runs" id="nav-runs" hidden>
-        <div class="nav-runs-head"><b id="nav-runs-best"></b><span class="nav-runs-actions"><button type="button" class="nav-runs-clear" id="nav-runs-clear">Clear</button><button type="button" class="nav-runs-hide" id="nav-runs-hide">Hide</button></span></div>
-        <ol class="nav-runs-list" id="nav-runs-list"></ol>
-      </div>
-      <button type="button" class="nav-runs-open" id="nav-runs-open" aria-expanded="false" aria-controls="nav-runs" hidden>Times<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="nav-speed-bubble" id="nav-speed-bubble" aria-hidden="true"><b id="nav-speed-big">&ndash;</b> <span id="nav-speed-big-unit">mph</span></div>
       <div class="nav-toast" id="nav-toast" role="status" hidden></div>
       <div class="nav-drive-bar" id="nav-drive-bar">
@@ -821,6 +755,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=97" defer></script>
+<script src="js/navigate.js?v=100" defer></script>
 </body>
 </html>

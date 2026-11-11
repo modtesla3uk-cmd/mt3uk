@@ -667,6 +667,9 @@
   function setMode(m) {
     modeNow = m;
     venueChoice = null;
+    // Drag run timing (the 0 to 60 and the dial) is shown only in the Drag run mode.
+    var tsec = document.getElementById('rbt-timing');
+    if (tsec) tsec.hidden = m !== 'drag';
     [].forEach.call(document.querySelectorAll('#rbt-modes [data-mode]'), function (b) {
       var on = b.getAttribute('data-mode') === m;
       b.classList.toggle('is-on', on);

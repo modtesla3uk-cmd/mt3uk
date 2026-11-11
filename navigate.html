@@ -509,7 +509,8 @@
   .nav-route-summary b { font-size: 1.25rem; }
   .nav-route-summary span { color: #5b6475; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-route-body { padding: 0 16px 16px; overflow-y: auto; min-height: 0; }
-  .nav-route.is-collapsed .nav-route-body, .nav-route.is-collapsed .nav-route-summary { visibility: hidden; }
+  /* Folded, the trip and Start route stay showing at the bottom; only the directions are hidden. */
+  .nav-route.is-collapsed .nav-route-body { visibility: hidden; }
   .nav-route.is-dragging .nav-route-body, .nav-route.is-dragging .nav-route-summary { visibility: visible; }
   .nav-route-stats { margin: 0 0 10px; }
   .nav-route-stats dt { font-size: 0.8rem; color: #5b6475; margin: 0; }
@@ -718,6 +719,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=33" defer></script>
+<script src="js/navigate.js?v=34" defer></script>
 </body>
 </html>

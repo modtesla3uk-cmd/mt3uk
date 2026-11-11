@@ -588,7 +588,9 @@
     if (!panel || !hd || !head) return 0;
     var was = head.style.display;
     head.style.display = 'flex';
-    var h = hd.offsetHeight + head.offsetHeight;
+    // Folded, the handle, the heading and the trip with Start route are shown; the directions are not.
+    var summary = panel.querySelector('.nav-route-summary');
+    var h = hd.offsetHeight + head.offsetHeight + (summary ? summary.offsetHeight : 0);
     head.style.display = was;
     return h;
   }

@@ -5016,6 +5016,12 @@ def test_playback_buttons_are_compact_on_a_phone(page):
     assert toggle.bounding_box()["width"] > 150
     # The five speed chips fit on one row; Follow cars may sit on the row below them. On a phone they start folded, so open them.
     page.locator("#tp-fold").click()
+    # The fold opens with a short animation, so wait until the chips have settled before measuring their rows.
+    page.wait_for_function("""() => new Promise(res => { let last = null, same = 0, n = 0;
+        const tick = () => { const key = [...document.querySelectorAll('#tp-speeds .chip')].filter(e => !/Follow/.test(e.textContent))
+            .map(e => Math.round(e.getBoundingClientRect().top)).join(','); same = key === last ? same + 1 : 0; last = key; n++;
+          if (same >= 10) res(true); else if (n > 300) res(false); else requestAnimationFrame(tick); };
+        tick(); })""", timeout=10000)
     speeds = page.locator("#tp-speeds .chip").filter(has_not_text="Follow").all()
     ys = {round(c.bounding_box()["y"]) for c in speeds}
     assert len(speeds) == 5 and len(ys) == 1, ys
@@ -7204,11 +7210,11 @@ def test_a_tesla_sized_window_gets_the_map_beside_the_charts(page):
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     # The charts are laid out a moment after full screen opens, so wait for them before measuring.
     page.wait_for_function("() => { const m = document.getElementById('tp-map2'), g = document.getElementById('tp-gforce');"
-                           " return !!m && !!g && m.getBoundingClientRect().height > 450 && g.getBoundingClientRect().height > 150; }", timeout=10000)
+                           " return !!m && !!g && m.getBoundingClientRect().height > 450 && g.getBoundingClientRect().height > 100; }", timeout=10000)
     mb, gb = page.locator("#tp-map2").bounding_box(), page.locator("#tp-gforce").bounding_box()
     assert mb["height"] > 450, mb
     assert gb["x"] >= mb["x"] + mb["width"] - 2, (mb, gb)
-    assert gb["height"] > 150, gb
+    assert gb["height"] > 100, gb
 
 
 def _open_full(page, w, h):

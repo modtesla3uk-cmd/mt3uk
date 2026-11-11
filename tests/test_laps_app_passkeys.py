@@ -131,10 +131,13 @@ def test_the_app_sends_its_firebase_token_to_the_site_when_signed_in(page):
     page.add_init_script("try { localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); } catch (e) {}")
     sent = []
     page.route("**/push/fcm", lambda route: (sent.append(route.request.post_data), route.fulfill(status=200, body='{"success":true}', content_type="application/json")))
+    # On load the page renews the fake session with the live worker, which would refuse it and sign it out: answer that here.
+    page.route("**/session/refresh**", lambda route: route.fulfill(status=200, body='{"success":true}', content_type="application/json"))
     page.goto("/laps-signin.html")
     page.wait_for_function("typeof window.__pn.registration === 'function'")
-    page.evaluate("window.__pn.registration({ value: 'f' + 'a'.repeat(160) })")
-    page.wait_for_timeout(500)
+    # Wait for the token to go to the site, rather than a fixed pause a slow run can miss.
+    with page.expect_response(lambda r: "/push/fcm" in r.url, timeout=10000):
+        page.evaluate("window.__pn.registration({ value: 'f' + 'a'.repeat(160) })")
     assert sent and ("fa" + "a" * 10) in sent[0], sent
 
 

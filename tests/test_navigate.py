@@ -1535,3 +1535,14 @@ def test_the_racebox_toggle_is_on_only_once_the_racebox_is_connected_not_while_i
     page.evaluate("window.__rbEmitStatus('connected')")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true", timeout=5000)
     expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "false")
+
+
+def test_the_large_speed_only_shows_while_driving(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    # Not driving: the Speed tile shows the speed, and the large figure over the map does not.
+    expect(page.locator("#nav-speed-bubble")).to_be_hidden()
+    expect(page.locator(".nav-speed-tile")).to_be_visible()
+

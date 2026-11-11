@@ -1284,11 +1284,12 @@ def test_removing_a_stop_or_clearing_the_route_takes_the_drive_away(page):
     expect(page.locator("#nav-route")).to_be_hidden()
     page.locator("#nav-go").click()
     expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
-    expect(page.locator("#nav-clear")).to_be_visible()
-    # Clear route takes the drive away and empties the stops.
-    page.locator("#nav-clear").click()
+    expect(page.locator("#nav-end-route")).to_be_visible()
+    expect(page.locator("#nav-clear")).to_have_count(0)
+    # End route, beside Route, takes the drive away and empties the stops.
+    page.locator("#nav-end-route").click()
     expect(page.locator("#nav-route")).to_be_hidden()
-    expect(page.locator("#nav-clear")).to_be_hidden()
+    expect(page.locator("#nav-end-route")).to_be_hidden()
     expect(page.locator("#nav-stops .nav-stop-input")).to_have_count(1)
     expect(page.locator("#nav-stops .nav-stop-input").first).to_have_value("")
     # Adding a stop and routing, then removing the stop, takes the drive away again.
@@ -1393,3 +1394,35 @@ def test_ending_navigation_takes_the_turn_bar_away(page):
     page.locator("#nav-exit").click()
     expect(page.locator("#nav-stepper")).to_be_hidden()
     expect(page.locator("#nav-turn")).to_be_hidden()
+
+
+def test_the_position_switch_above_the_directions_changes_between_the_racebox_and_the_phones_gps(page):
+    # Laps app only: a switch above the directions says RaceBox connected or GPS connected. Off drops the RaceBox
+    # (the 0 to 60 button goes); on connects it again.
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    # The directions start folded; the switch sits above the directions, so open them first.
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-source-row")).to_be_visible(timeout=10000)
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_have_text("RaceBox connected", timeout=5000)
+    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#nav-launch")).not_to_have_attribute("hidden", "")
+    # Off: back to the phone's GPS, and the 0 to 60 button goes.
+    page.locator("#nav-source-switch").click()
+    expect(page.locator("#nav-source-label")).to_have_text("GPS connected", timeout=5000)
+    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
+    # On again: connects, and the readings bring the RaceBox back.
+    page.locator("#nav-source-switch").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: 8, heading: 90, horizontalAccuracy: 3, utc: Date.now() }); })")
+    expect(page.locator("#nav-source-label")).to_have_text("RaceBox connected", timeout=5000)
+    expect(page.locator("#nav-source-switch")).to_have_attribute("aria-checked", "true")

@@ -370,6 +370,15 @@
   .nav-unit-pill { position: absolute; top: 10px; right: 10px; z-index: 1000; min-height: 30px; padding: 0 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 700 0.8rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 8px rgba(0,0,0,.16); cursor: pointer; }
   /* The pill is drawn small, but its tap area stays at least 44px high. */
   .nav-unit-pill::before { content: ''; position: absolute; inset: -8px -6px; }
+  /* The position switch (Laps app), above the directions: on for the RaceBox, off for the phone's GPS. */
+  .nav-source { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; padding: 4px 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 10px; background: #fff; font-weight: 700; color: var(--ink, #16233d); }
+  .nav-source[hidden] { display: none; }
+  .nav-source-switch { flex: none; position: relative; width: 64px; height: 44px; border: 0; background: none; padding: 0; cursor: pointer; }
+  .nav-source-switch::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 32px; margin-top: -16px; border-radius: 999px; background: #c4cad4; transition: background 0.15s; }
+  .nav-source-switch::after { content: ""; position: absolute; left: 10px; top: 50%; width: 24px; height: 24px; margin-top: -12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform 0.15s; }
+  .nav-source-switch[aria-checked="true"]::before { background: #17663f; }
+  .nav-source-switch[aria-checked="true"]::after { transform: translateX(20px); }
+  .nav-source-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(22,35,61,.35); border-radius: 999px; }
   .nav-map { height: 360px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #ececec; }
   .nav-map.rbt-mono .leaflet-tile-pane { filter: grayscale(1) contrast(1.05) brightness(1.04); }
   .nav-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
@@ -405,6 +414,7 @@
   .nav-stop-actions { display: flex; gap: 8px; margin-top: 8px; }
   .nav-stop-actions .btn { min-height: 44px; flex: none; }
   .nav-stop-actions #nav-go { margin-left: auto; }
+  .nav-stop-actions #nav-end-route[hidden] { display: none; }
   .nav-stop-actions { flex-wrap: wrap; }
   .nav-pin-mode { position: absolute; inset: 0; z-index: 1003; pointer-events: none; }
   .nav-pin-mode[hidden] { display: none; }
@@ -509,12 +519,6 @@
   .nav-drive-handle { width: 100%; min-height: 26px; margin: -6px 0 -4px; padding: 0; border: 0; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; touch-action: none; }
   .nav-drive-handle span { display: block; width: 44px; height: 5px; border-radius: 3px; background: #c5ccd6; }
   .nav-route-summary { position: relative; padding: 0 16px 8px; display: grid; gap: 2px; flex: none; }
-  /* The trip text keeps clear of the Clear route button at the top right; Start route runs the full width. */
-  .nav-route-summary #nav-route-len, .nav-route-summary #nav-route-to { padding-right: 48px; }
-  /* Clear route: a round close button at the top right of the trip, clear of the trip text. */
-  .nav-clear { position: absolute; top: 2px; right: 12px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; padding: 0; cursor: pointer; }
-  .nav-clear[hidden] { display: none; }
-  .nav-clear svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
   .nav-route-head { display: none; padding: 0 16px 12px; align-items: baseline; gap: 10px; min-width: 0; }
   .nav-route-head b { font-size: 1rem; }
   .nav-route-head span { color: #5b6475; font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -621,6 +625,7 @@
       <div class="nav-stop-actions">
         <button type="button" class="btn btn-secondary" id="nav-pin">Pin on map</button>
         <button type="button" class="btn btn-accent" id="nav-go">Route</button>
+        <button type="button" class="btn btn-secondary" id="nav-end-route" hidden>End route</button>
       </div>
       <ul class="nav-results" id="nav-results"></ul>
       <p class="nav-route-msg" id="nav-route-msg" role="status" hidden></p>
@@ -662,13 +667,16 @@
         <button type="button" class="nav-route-handle" id="nav-route-handle" aria-expanded="true" aria-label="Show or hide the route"><span></span></button>
         <div class="nav-route-head" aria-hidden="true"><b>Drive</b> <span id="nav-route-short">&ndash;</span></div>
         <div class="nav-route-summary">
-          <button type="button" class="nav-clear" id="nav-clear" aria-label="Clear route" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
           <b id="nav-route-len">&ndash;</b>
           <span id="nav-route-to">&ndash;</span>
           <button type="button" class="nav-start" id="nav-start">Start route</button>
         </div>
         <div class="nav-route-body">
           <dl class="nav-route-stats"><div><dt>To go on the route</dt><dd id="nav-togo">&ndash;</dd></div></dl>
+          <div class="nav-source" id="nav-source-row" hidden>
+            <span id="nav-source-label">GPS connected</span>
+            <button type="button" class="nav-source-switch" id="nav-source-switch" role="switch" aria-checked="false" aria-label="Use the RaceBox for position and speed"></button>
+          </div>
           <ol class="nav-steps" id="nav-steps"></ol>
         </div>
       </div>
@@ -735,6 +743,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=47" defer></script>
+<script src="js/navigate.js?v=50" defer></script>
 </body>
 </html>

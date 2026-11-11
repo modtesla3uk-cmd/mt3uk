@@ -709,7 +709,7 @@
     }
     var lb = $('nav-launch');
     if (lb) lb.addEventListener('click', launchTap);
-    if ($('nav-clear')) $('nav-clear').addEventListener('click', clearEverything);
+    if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
     if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
     if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
     if ($('nav-step-close')) $('nav-step-close').addEventListener('click', closeStep);
@@ -877,13 +877,36 @@
   // light grey while typing (after three letters and a short pause, so the place service is not asked on every key).
   var stops = [{ text: '', place: null }], wantRoute = false, activeStop = null, pinIndex = 0;
   // In the Laps app a connected RaceBox gives the position and speed, about 25 times a second, instead of the phone's GPS.
-  var raceboxOn = false, rbLastAt = 0;
+  var raceboxOn = false, rbLastAt = 0, rbOff = false;
+  // The position switch (Laps app only), above the directions: on takes the RaceBox, off uses the phone's GPS.
+  function setSource(on) {
+    raceboxOn = on;
+    var label = $('nav-source-label'), sw = $('nav-source-switch'), lb = $('nav-launch');
+    if (label) label.textContent = on ? 'RaceBox connected' : 'GPS connected';
+    if (sw) sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    if (lb) lb.hidden = !on;
+    if (!on) { launch.state = 'idle'; rbLastAt = 0; }
+  }
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
+    if ($('nav-source-row')) $('nav-source-row').hidden = false;
+    setSource(false);
+    if ($('nav-source-switch')) $('nav-source-switch').addEventListener('click', function () {
+      if (raceboxOn) {
+        rbOff = true;
+        window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () { setSource(false); status('Using your phone\u2019s GPS for position and speed.'); });
+      } else {
+        rbOff = false;
+        status('Connecting to the RaceBox...');
+        window.MT3UKRaceBoxApp.connect()
+          .then(function () { setSource(true); status('Using the RaceBox for position and speed.'); })
+          .catch(function (e) { rbOff = true; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
+      }
+    });
     window.MT3UKRaceBoxApp.onReading(function (r) {
-      if (!r || !r.fixOk || !r.coordinatesValid) return;
+      if (rbOff || !r || !r.fixOk || !r.coordinatesValid) return;
       rbLastAt = Date.now();
-      if (!raceboxOn) { raceboxOn = true; status('Using the RaceBox for position and speed.'); var lb = $('nav-launch'); if (lb) lb.hidden = false; }
+      if (!raceboxOn) { setSource(true); status('Using the RaceBox for position and speed.'); }
       var c = { latitude: r.lat, longitude: r.lon, speed: r.speedMs, heading: r.heading, accuracy: r.horizontalAccuracy };
       applyFix(c, r.utc);
       launchStep(c.speed, r.utc);
@@ -1357,7 +1380,8 @@
     setRouteMsg('');
     updateClearButton();
   }
-  function updateClearButton() { var b = $('nav-clear'); if (b) b.hidden = !routeD; }
+  // End route sits beside Route and shows only while a route is on the map.
+  function updateClearButton() { var b = $('nav-end-route'); if (b) b.hidden = !routeD; }
   function clearEverything() {
     clearRoute();
     stops = [{ text: '', place: null }];

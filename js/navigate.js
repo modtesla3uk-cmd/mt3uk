@@ -1280,6 +1280,10 @@
     if (!box) return;
     var n = stepCount();
     box.hidden = stepIndex === null || n === 0;
+    var st = stepIndex !== null && routeD && routeD.steps ? routeD.steps[stepIndex] : null;
+    set('nav-step-text', st ? st.text : '');
+    var ico = $('nav-step-icon');
+    if (ico) ico.innerHTML = st ? stepIconSvg(st.text) : '';
     set('nav-step-label', 'Turn ' + (stepIndex + 1) + ' of ' + n);
     var prev = $('nav-step-prev'), next = $('nav-step-next');
     if (prev) prev.disabled = stepIndex === null || stepIndex <= 0;

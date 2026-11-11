@@ -1089,3 +1089,54 @@ def test_the_racebox_drives_navigate_and_times_0_to_60(page):
     }""")
     # About 3.5 seconds from moving to 60 mph: the clock starts when the car first moves above 1 mph.
     expect(page.locator("#nav-launch")).to_have_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+
+
+def test_the_turn_stepper_goes_forward_and_back_through_the_turns(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-steps .nav-step").nth(0).click()
+    expect(page.locator("#nav-stepper")).to_be_visible()
+    expect(page.locator("#nav-step-label")).to_have_text("Turn 1 of 2")
+    expect(page.locator("#nav-step-prev")).to_be_disabled()
+    page.locator("#nav-step-next").click()
+    expect(page.locator("#nav-step-label")).to_have_text("Turn 2 of 2")
+    expect(page.locator("#nav-step-next")).to_be_disabled()
+    page.locator("#nav-step-prev").click()
+    expect(page.locator("#nav-step-label")).to_have_text("Turn 1 of 2")
+    page.locator("#nav-step-close").click()
+    expect(page.locator("#nav-stepper")).to_be_hidden()
+
+
+def test_while_driving_recentre_and_the_speaker_sit_above_the_bottom_bar(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    page.wait_for_timeout(800)
+    boxes = page.evaluate("""() => { const b = document.getElementById('nav-drive-bar').getBoundingClientRect(),
+      r = document.getElementById('nav-recentre').getBoundingClientRect(), v = document.getElementById('nav-voice').getBoundingClientRect();
+      return { barTop: b.top, recentreBottom: r.bottom, voiceBottom: v.bottom, recentreTop: r.top }; }""")
+    assert boxes["recentreBottom"] <= boxes["barTop"] - 4, boxes
+    assert boxes["voiceBottom"] <= boxes["recentreTop"], boxes
+    page.locator("#nav-exit").click()

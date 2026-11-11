@@ -236,6 +236,8 @@
   // distance to it.
   function updateDrive() {
     if (!driving || !routeD || !lastFix) return;
+    var wrapEl = document.querySelector('.nav-map-wrap'), barEl = $('nav-drive-bar');
+    if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
     var left = leftOnRoute();
     if (left === null) return;
     var steps = routeD.steps || [], total = 0;
@@ -696,6 +698,9 @@
     }
     var lb = $('nav-launch');
     if (lb) lb.addEventListener('click', launchTap);
+    if ($('nav-step-prev')) $('nav-step-prev').addEventListener('click', function () { moveStep(-1); });
+    if ($('nav-step-next')) $('nav-step-next').addEventListener('click', function () { moveStep(1); });
+    if ($('nav-step-close')) $('nav-step-close').addEventListener('click', closeStep);
     startRaceBox();
     var vb = makeVoiceButton();
     if (vb) setVoiceButton();
@@ -1252,17 +1257,44 @@
     return line[line.length - 1];
   }
   // Tapping a step shows where it is: the map moves to it, a mark sits on it, and the directions step aside.
-  var stepMark = null;
+  var stepMark = null, stepIndex = null;
+  function stepCount() { return routeD && routeD.steps ? routeD.steps.length : 0; }
   function showStep(i, li) {
     var p = stepStartPoint(i);
     if (!p || !map) return;
+    stepIndex = i;
     var all = document.querySelectorAll('#nav-steps .nav-step');
-    all.forEach(function (el) { el.classList.toggle('is-active', el === li); });
+    all.forEach(function (el, k) { el.classList.toggle('is-active', k === i); });
+    if (!li && all[i]) li = all[i];
+    if (li && li.scrollIntoView) li.scrollIntoView({ block: 'nearest' });
     enterBrowse();
     setRouteFolded(true);
     if (!stepMark) stepMark = L.circleMarker(p, { radius: 9, color: '#ffffff', weight: 3, fillColor: '#e8542a', fillOpacity: 1 }).addTo(map);
     else stepMark.setLatLng(p);
     map.setView(p, Math.max(map.getZoom(), 17), { animate: true });
+    showStepper();
+  }
+  // The stepper: back and forward through the turns from the one shown, and its number out of all of them.
+  function showStepper() {
+    var box = $('nav-stepper');
+    if (!box) return;
+    var n = stepCount();
+    box.hidden = stepIndex === null || n === 0;
+    set('nav-step-label', 'Turn ' + (stepIndex + 1) + ' of ' + n);
+    var prev = $('nav-step-prev'), next = $('nav-step-next');
+    if (prev) prev.disabled = stepIndex === null || stepIndex <= 0;
+    if (next) next.disabled = stepIndex === null || stepIndex >= n - 1;
+  }
+  function closeStep() {
+    stepIndex = null;
+    document.querySelectorAll('#nav-steps .nav-step').forEach(function (el) { el.classList.remove('is-active'); });
+    if (stepMark && map) { map.removeLayer(stepMark); stepMark = null; }
+    showStepper();
+  }
+  function moveStep(d) {
+    if (stepIndex === null) return;
+    var i = stepIndex + d;
+    if (i >= 0 && i < stepCount()) showStep(i);
   }
   // The icon for a step: a turn left or right, straight on, a roundabout or the destination.
   function stepIconSvg(text) {
@@ -1275,6 +1307,7 @@
   }
   function renderRouteText() {
     if (!routeD) return;
+    closeStep(); // a new route starts with no turn selected
     var len = distText(routeD.distanceM) + ', about ' + Math.max(1, Math.round(routeD.durationS / 60)) + ' min';
     set('nav-route-len', len);
     set('nav-route-short', len);

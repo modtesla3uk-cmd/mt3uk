@@ -8214,6 +8214,12 @@ async function handleNavigateRuns(request, env) {
   if (request.method === 'GET') return json({ success: true, runs: runs });
   var body;
   try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  // Clear the member's saved runs (the Clear button on the times card).
+  if (body && body.clear === true) {
+    profile.launchRuns = [];
+    await putProfileRecord(env, email, profile);
+    return json({ success: true, runs: [] });
+  }
   var t = Number(body && body.t);
   if (!isFinite(t) || t < 2 || t > 60) return json({ success: false, message: 'That is not a 0 to 60 mph time' }, 400);
   // The 0 to 30 mph split is optional: it must be under the 0 to 60 time.

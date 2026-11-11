@@ -371,17 +371,27 @@
   // (sideways across, lengthways up; 1 g is the edge of the inner circle).
   var GAUGE_MAX_MPH = 140, GAUGE_R = 52, gaugeBuilt = false;
   function buildGauge() {
-    var ticks = $('nav-ticks');
-    if (!ticks || gaugeBuilt) return;
+    var ticks = $('nav-ticks'), labels = $('nav-labels');
+    if (!ticks || !labels || gaugeBuilt) return;
     gaugeBuilt = true;
+    var NS = 'http://www.w3.org/2000/svg';
     for (var m = 0; m <= GAUGE_MAX_MPH; m += 10) {
       var a = (-135 + 270 * m / GAUGE_MAX_MPH) * Math.PI / 180, major = m % 20 === 0;
       var r1 = major ? 96 : 102, r2 = 112;
-      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      var line = document.createElementNS(NS, 'line');
       line.setAttribute('x1', 150 + Math.sin(a) * r1); line.setAttribute('y1', 150 - Math.cos(a) * r1);
       line.setAttribute('x2', 150 + Math.sin(a) * r2); line.setAttribute('y2', 150 - Math.cos(a) * r2);
       if (major) line.setAttribute('stroke-width', '3');
       ticks.appendChild(line);
+      // The speed in mph round the dial, every 20 mph.
+      if (major) {
+        var text = document.createElementNS(NS, 'text');
+        text.setAttribute('x', 150 + Math.sin(a) * 130);
+        text.setAttribute('y', 150 - Math.cos(a) * 130 + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = String(m);
+        labels.appendChild(text);
+      }
     }
   }
   function drawGauge(speedMs, g) {
@@ -584,7 +594,8 @@
     }
     updateToGo();
     checkOffRoute();
-    if (!raceboxOn) status('Your phone has a fix.');
+    // The phone's own fix does not overwrite a RaceBox message (searching, not found, or the GPS choice).
+    if (!raceboxOn && !rbSearching && !rbOff) status('Your phone has a fix.');
     // Anything under 1 km/h (about 0.6 mph) shows as stopped, so walking pace shows. Parked GPS speed can still wander above this.
     if (c.speed != null && !isNaN(c.speed)) { lastKph = c.speed * 3.6 < 1 ? 0 : c.speed * 3.6; showSpeed(); }
     else { set('nav-speed', '–'); }
@@ -814,6 +825,18 @@
     }
     if ($('nav-runs-open')) $('nav-runs-open').addEventListener('click', function () { setRunsOpen(true); });
     if ($('nav-runs-hide')) $('nav-runs-hide').addEventListener('click', function () { setRunsOpen(false); });
+    // Clear removes the member's saved runs, after a confirm (it cannot be undone).
+    if ($('nav-runs-clear')) $('nav-runs-clear').addEventListener('click', function () {
+      if (!window.confirm('Clear all your saved 0 to 60 runs? This cannot be undone.')) return;
+      runsCache = [];
+      drawTimer();
+      var s = sessionToken();
+      if (!s) return;
+      fetch(API + '/navigate/runs', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'X-Session-Token': s }, body: JSON.stringify({ clear: true }) })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { if (d && d.success && Array.isArray(d.runs)) { runsCache = d.runs; drawTimer(); } })
+        .catch(function () {});
+    });
     drawTimer();
     drawRuns();
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
@@ -1010,8 +1033,22 @@
   }
   var rbSearching = false;
   // The wait while the RaceBox is being looked for: a spinner and the words, until it is found or not.
+  // The search for a RaceBox stops after a while, rather than looking for ever when it is out of range.
+  var RB_SEARCH_MS = window.MT3UK_RB_SEARCH_MS || 30000, rbSearchTimer = null;
+  function giveUpRaceBox() {
+    if (!rbSearching) return;
+    rbOff = true;
+    if (!window.MT3UKRaceBoxApp) { setSearching(false); setSource(false); return; }
+    window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () {
+      setSearching(false);
+      setSource(false);
+      status('No RaceBox found nearby. Switch it on, then tap RaceBox to look again.', true);
+    });
+  }
   function setSearching(on) {
     rbSearching = on;
+    clearTimeout(rbSearchTimer);
+    rbSearchTimer = on ? setTimeout(giveUpRaceBox, RB_SEARCH_MS) : null;
     var sp = $('nav-source-spin'), rb = $('nav-source-rb');
     if (sp) sp.hidden = !on;
     if (rb) rb.setAttribute('aria-busy', on ? 'true' : 'false');

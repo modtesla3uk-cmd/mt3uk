@@ -1748,3 +1748,63 @@ def test_the_timer_says_acquiring_gps_fix_until_the_racebox_has_one(page):
     page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
     expect(page.locator("#nav-launch")).to_have_text("Time a run", timeout=5000)
 
+
+def test_the_racebox_search_gives_up_after_a_while_when_the_racebox_is_out_of_range(page):
+    # Out of range: the search stops after a while (a short time here), and the RaceBox is not left looking.
+    _approve(page, True)
+    page.add_init_script("window.MT3UK_RB_SEARCH_MS = 800;")
+    page.add_init_script(RB_SCANNING)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    expect(page.locator("#nav-source-spin")).to_be_visible()
+    expect(page.locator("#nav-status")).to_contain_text("No RaceBox found nearby", timeout=5000)
+    expect(page.locator("#nav-source-spin")).to_be_hidden()
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
+
+
+def test_the_speed_dial_has_its_speed_values_round_the_dial(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
+    expect(page.locator("#nav-labels text")).to_have_count(8)
+    expect(page.locator("#nav-labels text").first).to_have_text("0")
+    expect(page.locator("#nav-labels text").last).to_have_text("140")
+
+
+def test_the_saved_runs_can_be_cleared_from_the_times_card(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    saved = {"runs": [{"t": 38.6, "t30": 10.2, "at": "2026-11-11T17:00:00Z"}]}
+
+    def runs_reply(r):
+        if r.request.method == "POST" and json.loads(r.request.post_data or "{}").get("clear") is True:
+            saved["runs"] = []
+        r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "runs": saved["runs"]}),
+                  headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"})
+    page.route("**/navigate/runs", runs_reply)
+    page.on("dialog", lambda d: d.accept())
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    page.wait_for_selector("#nav-map:not([hidden])", timeout=10000)
+    page.wait_for_selector("#nav-free:not([hidden])", timeout=5000)
+    page.locator("#nav-free").click()
+    page.wait_for_selector(".nav-map-wrap.is-free", timeout=5000)
+    expect(page.locator("#nav-runs-best")).to_have_text("Best 38.60 s", timeout=5000)
+    page.locator("#nav-runs-clear").click()
+    expect(page.locator("#nav-runs")).to_be_hidden(timeout=5000)
+    assert saved["runs"] == []
+

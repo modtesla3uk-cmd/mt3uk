@@ -30,6 +30,8 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Admin lookups take a nickname, name or email.** Every find or member lookup in admin uses the shared member finder (`js/member-finder.js`), so a member can be found by nickname, name or email. Never add an email-only box for a member.
 - **Proofread new copy** for spelling and grammar before adding it, and before showing it to Richard. Use British spelling (colour, tyres, programme). Plurals never take an apostrophe: "modified Teslas", "the 2020s", "MOTs". An apostrophe is only for possession or a missing letter ("the Tesla's brakes", "who's quickest"). "Its" is possessive and "it's" means "it is".
 
+- **App builds (Laps Android app, `capacitor-app/`).** When a change needs the app rebuilding (a plugin, a permission, a version bump), give the full steps every time: in the `capacitor-app` folder run `npm install` and `npx cap sync android`; then in Android Studio (already open) choose **File, Sync Project with Gradle Files** (or **Sync Now**); then **Build, Generate Signed App Bundle / APK**, **Android App Bundle**, the upload keystore and the **release** variant; then upload the bundle to Play Console's internal testing track with a higher version code than the last release. Keep the version code and name in `capacitor-app/android/app/build.gradle` up to date.
+
 ## Worker
 
 - `workers/vote-worker.js` deploys automatically through GitHub Actions on push to `main`, so there is no manual `wrangler deploy`.

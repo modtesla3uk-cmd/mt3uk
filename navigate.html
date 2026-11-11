@@ -429,11 +429,23 @@
   /* Recentre sits under the turn card, so it is never covered by the directions or the bottom bar. */
   .nav-map-wrap.is-driving #nav-recentre { top: auto; bottom: 172px; right: 12px; }
   .nav-map-wrap.is-driving.is-browsing #nav-recentre { background: #16233d; color: #fff; }
-  .nav-map-wrap.is-driving .nav-turn { display: flex; position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1005; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #0c6b5c; color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
-  .nav-turn-arrow { flex: none; width: 44px; height: 44px; }
+  .nav-map-wrap.is-driving .nav-turn { display: flex; position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1005; align-items: center; gap: 16px; padding: 18px 18px; border-radius: 16px; background: #0c6b5c; color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  .nav-turn-arrow { flex: none; width: 64px; height: 64px; }
   .nav-turn-arrow svg { width: 100%; height: 100%; }
-  .nav-turn b { display: block; font-size: 1.1rem; line-height: 1.25; }
-  .nav-turn span { display: block; font-weight: 600; opacity: .9; }
+  .nav-turn b { display: block; font-size: 1.7rem; line-height: 1.2; }
+  .nav-turn span { display: block; font-size: 1.1rem; font-weight: 600; opacity: .95; }
+  /* The car: a red arrow, turned by the script. */
+  .nav-car-wrap { background: none; border: 0; }
+  .nav-car { width: 48px; height: 48px; transform-origin: 50% 50%; }
+  .nav-car svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  /* The speed, large, over the map at the bottom left. */
+  .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: 206px; z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
+  .nav-map-wrap.is-driving .nav-speed-bubble { display: flex; }
+  .nav-speed-bubble b { font-size: 3.2rem; line-height: 1; font-weight: 800; }
+  .nav-speed-bubble span { font-size: 1rem; font-weight: 700; color: #5b6475; }
+  /* A short message over the map, such as rerouting. */
+  .nav-toast { position: absolute; left: 50%; transform: translateX(-50%); top: 152px; z-index: 1006; padding: 10px 18px; border-radius: 999px; background: #16233d; color: #fff; font-size: 1rem; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  .nav-toast[hidden] { display: none; }
   /* Their own layers, so the tilted map cannot paint over them. */
   .nav-map-wrap.is-driving .nav-turn, .nav-map-wrap.is-driving .nav-drive-bar { transform: translateZ(0); }
   .nav-map-wrap.is-driving .nav-drive-bar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; z-index: 1005; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px 18px; border-radius: 16px 16px 0 0; background: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,.2); }
@@ -575,11 +587,12 @@
         <span class="nav-turn-arrow" id="nav-turn-arrow"></span>
         <div><b id="nav-turn-text">&ndash;</b><span id="nav-turn-dist"></span></div>
       </div>
+      <div class="nav-speed-bubble" id="nav-speed-bubble" aria-hidden="true"><b id="nav-speed-big">&ndash;</b> <span id="nav-speed-big-unit">mph</span></div>
+      <div class="nav-toast" id="nav-toast" role="status" hidden></div>
       <div class="nav-drive-bar" id="nav-drive-bar">
         <button type="button" class="nav-drive-handle" id="nav-drive-handle" aria-expanded="false" aria-label="Show the directions"><span></span></button>
         <div class="nav-drive-top">
           <div class="nav-drive-info"><b id="nav-eta">&ndash;</b><span id="nav-left">&ndash;</span></div>
-          <div class="nav-drive-speed"><b id="nav-drive-speed">&ndash;</b> <span id="nav-drive-unit">mph</span></div>
           <button type="button" class="nav-voice" id="nav-voice" aria-pressed="true" aria-label="Turn voice directions off"></button>
         </div>
         <div class="nav-drive-actions">
@@ -662,6 +675,6 @@
       });
   })();
 </script>
-<script src="js/navigate.js?v=26" defer></script>
+<script src="js/navigate.js?v=27" defer></script>
 </body>
 </html>

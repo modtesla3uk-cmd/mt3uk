@@ -44,6 +44,17 @@
     document.head.appendChild(js);
   }
 
+  // The car: a red arrow, wider than the route line, turned to the way the phone is heading.
+  function carIcon() {
+    return L.divIcon({ className: 'nav-car-wrap', iconSize: [48, 48], iconAnchor: [24, 24],
+      html: '<div class="nav-car"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4 L41 43 L24 34 L7 43 Z" fill="#e0301e" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg></div>' });
+  }
+  // The arrow sits in the map, so it turns with the map: it is turned to the heading itself.
+  function orientCar() {
+    var el = marker && marker.getElement ? marker.getElement() : null;
+    var car = el && el.querySelector('.nav-car');
+    if (car) car.style.transform = 'rotate(' + (drawHeading !== null && driving ? drawHeading : (heading || 0)) + 'deg)';
+  }
   function ensureMap(lat, lng) {
     if (map || !window.L) return;
     var el = $('nav-map');
@@ -56,7 +67,7 @@
     L.tileLayer(MAP_BASE, { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
     el.classList.add('rbt-mono');
     trail = L.polyline([], { color: '#e4b64f', weight: 4 }).addTo(map);
-    marker = L.circleMarker([lat, lng], { radius: 8, color: '#16233d', fillColor: '#1c8a4b', fillOpacity: 1 }).addTo(map);
+    marker = L.marker([lat, lng], { icon: carIcon(), interactive: false, zIndexOffset: 1000 }).addTo(map);
   }
 
   // While driving the map turns so the direction of travel points up, and leans back like a sat-nav's 3D view.
@@ -168,7 +179,7 @@
       var n = nativeSpeech();
       if (n) {
         // Flush starts the new turn at once; Add waits for the one being said.
-        var opts = { text: text, lang: 'en-GB', rate: 0.95, pitch: 1, volume: 1, queueStrategy: cancelFirst ? 0 : 1 };
+        var opts = { text: text, lang: 'en-GB', rate: 0.9, pitch: 1, volume: 1, queueStrategy: cancelFirst ? 0 : 1 };
         if (nativeVoice !== null) opts.voice = nativeVoice;
         n.speak(opts).catch(function () { /* the app could not speak */ });
         return;
@@ -176,7 +187,7 @@
       if (cancelFirst) window.speechSynthesis.cancel();
       var u = new window.SpeechSynthesisUtterance(text);
       u.lang = 'en-GB';
-      u.rate = 0.95;
+      u.rate = 0.9;
       u.volume = 1;
       var bv = browserVoice();
       if (bv) u.voice = bv;
@@ -194,13 +205,33 @@
     return (m / 1000).toFixed(1) + ' kilometres';
   }
   function lowerFirst(t) { return String(t || '').charAt(0).toLowerCase() + String(t || '').slice(1); }
+  // The turn itself, short enough to hear: "turn left", "turn right", "take the roundabout", or the instruction as it is.
+  function turnWord(t) {
+    var s = String(t || '');
+    if (/roundabout/i.test(s)) return 'take the roundabout';
+    if (/\bleft\b/i.test(s)) return 'turn left';
+    if (/\bright\b/i.test(s)) return 'turn right';
+    return lowerFirst(s);
+  }
   function announce(cur, upcoming, toTurn, left) {
     var steps = routeD.steps || [], key = cur + ':';
-    if (toTurn <= 400 && !spoken[key + 'far']) { spoken[key + 'far'] = true; say('In ' + spokenDistance(toTurn) + ', ' + lowerFirst(upcoming)); }
-    if (toTurn <= 60 && !spoken[key + 'near']) { spoken[key + 'near'] = true; say('Now, ' + lowerFirst(upcoming), true); }
-    if (left < 25 && !spoken.arrive) { spoken.arrive = true; say('You have arrived.'); }
+    // Earlier than before, and the direction comes first, so there is time to hear it: half a mile or so out, then 200
+    // yards, then "now". Commas give the voice a pause after each part.
+    if (toTurn <= 800 && toTurn > 200 && !spoken[key + 'far']) { spoken[key + 'far'] = true; say('In ' + spokenDistance(toTurn) + ', ' + lowerFirst(upcoming) + '.'); }
+    if (toTurn <= 200 && toTurn > 40 && !spoken[key + 'mid']) { spoken[key + 'mid'] = true; say('In ' + spokenDistance(toTurn) + ', ' + turnWord(upcoming) + '.'); }
+    if (toTurn <= 40 && !spoken[key + 'near']) { spoken[key + 'near'] = true; say('Now, ' + turnWord(upcoming) + '.', true); }
+
   }
 
+  // At the destination, once: "You have arrived at 12 Maple Close, Towcester." (the place's name as it was chosen).
+  function arrived() {
+    if (spoken.arrive) return;
+    spoken.arrive = true;
+    var where = dest && dest.name ? String(dest.name).replace(/\s+/g, ' ').trim() : '';
+    // A place given only as coordinates is not worth saying aloud.
+    if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(where)) where = '';
+    say(where ? 'You have arrived at ' + where + '.' : 'You have arrived.');
+  }
   // The turn card and the voice follow the next instruction: the one at the end of the step we are on, with the
   // distance to it.
   function updateDrive() {
@@ -216,14 +247,14 @@
     }
     var toTurn = Math.max(0, left - (total - done));
     var next = steps[cur + 1], upcoming = next ? next.text : 'You will arrive at your destination';
-    if (left < 25) { set('nav-turn-text', 'You have arrived'); set('nav-turn-dist', ''); turnArrow('straight'); }
+    if (left < 25) { set('nav-turn-text', 'You have arrived'); set('nav-turn-dist', ''); turnArrow('straight'); arrived(); }
     else { set('nav-turn-text', upcoming); set('nav-turn-dist', 'in ' + distText(toTurn)); turnArrow(upcoming); announce(cur, upcoming, toTurn, left); }
     var secs = routeD.distanceM ? routeD.durationS * left / routeD.distanceM : 0;
     var arrive = new Date(Date.now() + secs * 1000);
     set('nav-eta', Math.max(1, Math.round(secs / 60)) + ' min');
     set('nav-left', distText(left) + ' \u00b7 ' + arrive.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-    set('nav-drive-speed', ($('nav-speed') || {}).textContent || '\u2013');
-    set('nav-drive-unit', mph ? 'mph' : 'km/h');
+    set('nav-speed-big', ($('nav-speed') || {}).textContent || '\u2013');
+    set('nav-speed-big-unit', mph ? 'mph' : 'km/h');
   }
   // A new fix while driving: the dot is carried on from it at the phone's speed, along the way the phone is heading.
   function setFix(here, c) {
@@ -258,11 +289,22 @@
     marker.setLatLng(shownPos);
     if (!browsing) quietly(function () { map.setView(shownPos, map.getZoom(), { animate: false }); });
     applyRotation();
+    orientCar();
     // Every frame while driving, so the dot keeps moving between the fixes.
     frame = requestAnimationFrame(stepFrame);
   }
   function startFrames() { if (!frame && driving) frame = requestAnimationFrame(stepFrame); }
 
+  // A short message over the map, for example while rerouting.
+  var toastTimer = null;
+  function showToast(text) {
+    var t = $('nav-toast');
+    if (!t) return;
+    t.textContent = text;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3000);
+  }
   function startDrive() {
     if (!routeD || !map) return;
     driving = true;
@@ -270,6 +312,7 @@
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'flex';
     pickNativeVoice();
+    if (trail) trail.setStyle({ opacity: 0 });
     shownPos = null; targetPos = null; drawHeading = heading; fixPos = null; velMs = 0;
     $('nav-route').classList.remove('is-dragging');
     var wrap = document.querySelector('.nav-map-wrap');
@@ -290,6 +333,7 @@
     driving = false;
     if (frame) cancelAnimationFrame(frame);
     frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
+    if (trail) trail.setStyle({ opacity: 1 });
     browsing = false;
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'none';
@@ -418,6 +462,7 @@
     else { set('nav-speed', '–'); }
     // The direction of travel is only trusted while moving (above about 2 km/h).
     if (c.heading != null && !isNaN(c.heading) && lastKph > 2) heading = c.heading;
+    orientCar();
     if (c.heading != null && !isNaN(c.heading)) {
       set('nav-card', compass(c.heading));
       set('nav-deg', Math.round(c.heading) + '°');
@@ -1089,7 +1134,10 @@
       if (!map || !window.L) return;
       if (routeLayer) map.removeLayer(routeLayer);
       if (destMarker) map.removeLayer(destMarker);
-      routeLayer = L.polyline(d.line, { color: '#1c6fd6', weight: 6, opacity: 0.85 }).addTo(map);
+      routeLayer = L.featureGroup([
+        L.polyline(d.line, { color: '#ffffff', weight: 17, opacity: 1, lineCap: 'round', lineJoin: 'round' }),
+        L.polyline(d.line, { color: '#1c6fd6', weight: 11, opacity: 1, lineCap: 'round', lineJoin: 'round' })
+      ]).addTo(map);
       destMarker = L.circleMarker(d.line[d.line.length - 1], { radius: 8, color: '#16233d', fillColor: '#e8542a', fillOpacity: 1 }).bindTooltip(dest.name).addTo(map);
       if (!silent && !driving) map.fitBounds(routeLayer.getBounds(), { paddingTopLeft: [30, 30], paddingBottomRight: [30, 260], maxZoom: 17 });
     });
@@ -1154,7 +1202,7 @@
   // Rerouting: when the phone has been well off the line for a while, a new route is worked out from where it is now to
   // the same place. Each one costs a routing request, so there is a gap between them and a limit per trip. A new route
   // keeps the panel's fold and does not move the map.
-  var REROUTE_OFF_M = 60, REROUTE_AFTER_MS = window.MT3UK_REROUTE_AFTER_MS || 10000;
+  var REROUTE_OFF_M = 45, REROUTE_AFTER_MS = window.MT3UK_REROUTE_AFTER_MS || 4000;
   var REROUTE_GAP_MS = window.MT3UK_REROUTE_GAP_MS || 30000, REROUTE_MAX = 8;
   var offSince = 0, lastReroute = 0, reroutes = 0, rerouting = false;
   function checkOffRoute() {
@@ -1173,10 +1221,12 @@
     offSince = 0;
     reroutes++;
     setRouteMsg('Off the route. Working out a new one...');
+    showToast('Rerouting...');
     requestRoute().then(function (res) {
       rerouting = false;
       if (!res.ok) return setRouteMsg('Could not work out a new route. Carry on, or try again.', true);
       drawRoute(res.d, true);
+      showToast('New route. Follow the blue line.');
     }).catch(function () {
       rerouting = false;
       setRouteMsg('Could not work out a new route. Check the connection.', true);

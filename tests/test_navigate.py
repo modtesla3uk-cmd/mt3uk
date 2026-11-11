@@ -547,7 +547,7 @@ def test_the_next_turn_is_spoken_as_the_phone_nears_it_and_the_voice_can_be_mute
         page.wait_for_timeout(200)
         waited += 200
     assert said[0] == "Head north on Maple Close", said
-    assert "In 300 yards, turn left onto Church Road" in said, said
+    assert "In 300 yards, turn left onto Church Road." in said, said
     # The speaker button mutes the voice and remembers it.
     page.locator("#nav-voice").click()
     expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "false")
@@ -628,12 +628,47 @@ def test_in_the_laps_app_the_turns_are_spoken_by_the_apps_speech_plugin(page):
         page.wait_for_timeout(200)
         waited += 200
     assert said[0] == "Head north on Maple Close", said
-    assert "In 300 yards, turn left onto Church Road" in said, said
+    assert "In 300 yards, turn left onto Church Road." in said, said
     expect(page.locator("#nav-voice-note")).to_be_hidden()
     # Muting stops the app's speech and is remembered.
     page.locator("#nav-voice").click()
     expect(page.locator("#nav-voice")).to_have_attribute("aria-pressed", "false")
     assert page.evaluate("() => window.__nativeStops") >= 1
+    page.locator("#nav-exit").click()
+
+
+GEO_AT_THE_END = """
+navigator.geolocation.watchPosition = function (ok) {
+  var t = setInterval(function () {
+    ok({ coords: { latitude: 52.13, longitude: -0.98, accuracy: 4, speed: 0 }, timestamp: Date.now() });
+  }, 100);
+  setTimeout(function () { clearInterval(t); }, 6000);
+  return 7;
+};
+navigator.geolocation.clearWatch = function () {};
+"""
+
+
+def test_on_arrival_the_voice_says_the_place_it_is_at(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_SPEECH)
+    page.add_init_script(GEO_AT_THE_END)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    page.wait_for_function("() => window.__nativeSaid.some(s => s.indexOf('You have arrived') === 0)", timeout=8000)
+    said = [s for s in page.evaluate("() => window.__nativeSaid") if s.startswith("You have arrived")]
+    # The place typed in is only coordinates here, so it is not read out; a named place is.
+    assert said and said[0] == "You have arrived.", said
     page.locator("#nav-exit").click()
 
 

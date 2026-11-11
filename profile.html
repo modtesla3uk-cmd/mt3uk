@@ -698,6 +698,11 @@
             <button type="button" class="si-btn si-btn-primary app-btn" id="pf-app-btn">Install the app</button>
             <div class="app-steps pf-app-steps" hidden></div>
           </div>
+          <div class="pf-card" id="racebox-card">
+            <div class="lo-row"><h2>I have a RaceBox</h2><button type="button" class="lo-switch" role="switch" aria-checked="false" aria-label="I have a RaceBox" id="pf-racebox"></button></div>
+            <p class="app-text">Turn this on if you have a RaceBox. It then shows on Navigate, so you can use it for position and speed in the Laps app.</p>
+            <p class="si-status" id="pf-racebox-status" role="status"></p>
+          </div>
           <div class="pf-card" id="offline-mode" hidden>
             <div class="lo-row"><h2>Offline mode</h2><button type="button" class="lo-switch" role="switch" aria-checked="false" aria-label="Offline mode" data-offline-toggle></button></div>
             <p class="app-text">Keep a copy of Laps on this device so it opens with no signal. At the track you can open your past sessions and maps, and add a session from a file already on your device: it is sent when you are back online. Whether you have the file offline depends on your logger.</p>
@@ -1175,6 +1180,18 @@
       }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-signout-all-status'), 'Network error, please try again.', 'err'); });
     });
 
+    // ---------- I have a RaceBox ----------
+    $('pf-racebox').addEventListener('click', function () {
+      var btn = $('pf-racebox'), on = btn.getAttribute('aria-checked') !== 'true';
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+      status($('pf-racebox-status'), 'Saving…');
+      api('POST', '/profile', { racebox: on }).then(function (data) {
+        if (!data.success) { btn.setAttribute('aria-checked', on ? 'false' : 'true'); status($('pf-racebox-status'), data.message || 'Could not save.', 'err'); return; }
+        profile.racebox = on;
+        status($('pf-racebox-status'), on ? 'Thanks. The RaceBox now shows on Navigate.' : 'The RaceBox is off. It no longer shows on Navigate.', 'ok');
+      }).catch(function () { btn.setAttribute('aria-checked', on ? 'false' : 'true'); });
+    });
+
     // ---------- Emails and leaving ----------
     $('pf-emails').addEventListener('change', function () {
       var on = $('pf-emails').checked;
@@ -1227,6 +1244,7 @@
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;
       loadPasskeys();
+      $('pf-racebox').setAttribute('aria-checked', profile.racebox ? 'true' : 'false');
       if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
       if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps, forget: function (p) { api('POST', '/profile', { appRemoved: p }).catch(function () {}); } });
       // Messages and Friends open in the chat window (js/messenger.js).

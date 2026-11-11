@@ -1155,3 +1155,19 @@ def test_a_question_about_a_mod_shows_the_mod_and_can_be_answered(device_page):
     # Not friends, but they asked, so the reply box is there.
     assert page.locator("#mc-compose").is_visible()
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_i_have_a_racebox_switch_is_saved_for_the_member(device_page):
+    # Profile asks each member whether they have a RaceBox; the answer shows the RaceBox toggles on Navigate for them.
+    page = device_page
+    signed_in(page)
+    page.goto("/profile.html")
+    page.locator("#pf-racebox").wait_for(state="visible", timeout=5000)
+    assert page.locator("#pf-racebox").get_attribute("aria-checked") == "false"
+    page.click("#pf-racebox")
+    page.wait_for_function("document.getElementById('pf-racebox').getAttribute('aria-checked') === 'true'", timeout=5000)
+    saved = [c for c in calls(page, "/profile") if c[0] == "POST" and "racebox" in c[2]]
+    assert saved and saved[-1][2]["racebox"] is True
+    page.locator("#pf-racebox-status").filter(has_text="Navigate").wait_for(timeout=5000)
+    assert page.errors == [], diagnostics(page)

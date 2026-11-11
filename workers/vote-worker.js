@@ -995,6 +995,7 @@ async function handleProfileGet(request, env) {
     hideRealName: !!profile.hideRealName,
     apps: profile.apps && typeof profile.apps === 'object' ? profile.apps : {},
     emailsOff: !!profile.emailsOff,
+    racebox: !!profile.racebox,
     member: (await env.VOTES.get('subscriber:' + email)) !== null,
     since: (await env.VOTES.get('subscriber-since:' + email)) || '',
     lapsOnly: await isLapsOnlyAccount(env, email),
@@ -1037,6 +1038,12 @@ async function handleProfileUpdate(request, env) {
     var profile = await getProfileRecord(env, email);
     profile.emailsOff = !!body.emailsOff;
     await putProfileRecord(env, email, profile);
+  }
+  // "I have a RaceBox" (Profile): shows the RaceBox on Navigate for this member only.
+  if ('racebox' in body) {
+    var rbProfile = await getProfileRecord(env, email);
+    rbProfile.racebox = !!body.racebox;
+    await putProfileRecord(env, email, rbProfile);
   }
   // Visibility: show the nickname or the full name, and whether members can
   // find them by their real name.
@@ -8348,7 +8355,9 @@ async function handleLapsRaceboxAccess(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var a = await getLapsRaceboxAccess(env), e = accessEmail(email);
-  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
+  // racebox: the member has said they have a RaceBox (Profile), so Navigate shows its toggle.
+  var rbOwner = await getProfileRecord(env, email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open, racebox: !!rbOwner.racebox });
 }
 async function handleLapsRaceboxAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);

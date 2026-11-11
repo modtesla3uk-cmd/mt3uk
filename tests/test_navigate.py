@@ -21,7 +21,8 @@ def _photon(*places):
 def _approve(page, access):
     page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
     page.add_init_script(ADMIN)
-    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":%s}' % ("true" if access else "false"), headers={"Access-Control-Allow-Origin": "*"}))
+    # racebox: the member has said they have a RaceBox (Profile), so the RaceBox toggles show on Navigate.
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":%s,"racebox":true}' % ("true" if access else "false"), headers={"Access-Control-Allow-Origin": "*"}))
 
 
 def test_an_approved_member_sees_the_phones_position_and_speed(page):
@@ -1429,3 +1430,17 @@ def test_the_position_switch_above_the_directions_changes_between_the_racebox_an
     expect(page.locator("#nav-source-label")).to_contain_text("waiting for a GPS fix", timeout=5000)
     expect(page.locator("#nav-source-label")).to_contain_text("3 satellites")
     expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true")
+
+
+def test_the_racebox_toggles_only_show_for_a_member_who_has_a_racebox(page):
+    # A member who has not said they have a RaceBox (Profile) gets no GPS or RaceBox toggles, even in the Laps app.
+    _approve(page, True)
+    page.unroute("**/laps/racebox/access")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true,"racebox":false}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script(RB_MOCK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-source-row")).to_have_attribute("hidden", "")
+    expect(page.locator("#nav-source-rb")).to_have_count(1)

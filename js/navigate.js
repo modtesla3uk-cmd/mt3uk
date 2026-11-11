@@ -547,6 +547,8 @@
     watch = navigator.geolocation.watchPosition(onPosition, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   }
 
+  // Whether this member has said they have a RaceBox (Profile), from the same answer as approval.
+  var memberRacebox = false;
   function approved() {
     // The same approval list as the RaceBox test, for now.
     var s = null;
@@ -554,7 +556,7 @@
     if (!s) return Promise.resolve(false);
     return fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access', { cache: 'no-store', headers: { 'X-Session-Token': s } })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { return !!(d && d.access); })
+      .then(function (d) { memberRacebox = !!(d && d.racebox); return !!(d && d.access); })
       .catch(function () { return false; });
   }
 
@@ -751,6 +753,8 @@
     renderStops();
     approved().then(function (ok) {
       if (!ok) return;
+      // The RaceBox toggles show only for a member who has said they have one (Profile), and only in the Laps app.
+      if (memberRacebox && $('nav-source-row') && window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.available) $('nav-source-row').hidden = false;
       loadLocalPlaces(); // the addresses are loaded before the first search
       $('nav-gate').hidden = true;
       $('nav-body').hidden = false;
@@ -905,7 +909,6 @@
   }
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
-    if ($('nav-source-row')) $('nav-source-row').hidden = false;
     setSource(false);
     if ($('nav-source-gps')) $('nav-source-gps').addEventListener('click', function () {
       if (!raceboxOn) return; // already on the phone's GPS

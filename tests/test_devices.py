@@ -567,7 +567,7 @@ def profile_reply(path, method, post_data, state):
     state.setdefault("profile_calls", []).append((method, path, body))
     if path == "/profile" and method == "GET":
         return {"success": True, "email": "member@example.com", "id": "me", "lapsOnly": bool(state.get("laps_only")), "firstName": p["firstName"], "lastName": p["lastName"],
-                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "modQuestionsOff": p.get("modQuestionsOff", False), "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
+                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "modQuestionsOff": p.get("modQuestionsOff", False), "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "racebox": bool(p.get("racebox")), "member": True, "since": "2026-01-10T10:00:00Z",
                 "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
                 "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}
     if path == "/profile" and method == "POST":
@@ -581,7 +581,7 @@ def profile_reply(path, method, post_data, state):
         state["saved_once"] = True
         if body.get("nickname") == "taken":
             return {"success": False, "message": "That nickname is taken. Try another."}
-        for k in ("firstName", "lastName", "nickname", "emailsOff", "showName", "hideRealName", "modQuestionsOff"):
+        for k in ("firstName", "lastName", "nickname", "emailsOff", "showName", "hideRealName", "modQuestionsOff", "racebox"):
             if k in body:
                 p[k] = body[k]
         return {"success": True, "firstName": p["firstName"], "lastName": p["lastName"], "nickname": p["nickname"],

@@ -1073,7 +1073,7 @@ RB_MOCK = """
   var mock = { available: true, readers: [],
     status: function () { return Promise.resolve({ connected: true, name: 'RaceBox Mini' }); },
     onReading: function (fn) { mock.readers.push(fn); },
-    onStatus: function () {}, connect: function () { return Promise.resolve(); }, disconnect: function () { return Promise.resolve(); } };
+    onStatus: function () {}, connect: function () { return Promise.resolve({ connected: true, name: 'RaceBox Mini' }); }, disconnect: function () { return Promise.resolve(); } };
   window.__rb = mock;
   // The RaceBox script on the page would replace this; keep the test's stand-in.
   Object.defineProperty(window, 'MT3UKRaceBoxApp', { configurable: true, get: function () { return mock; }, set: function () {} });
@@ -1585,4 +1585,43 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"), timeout=10000)
     expect(page.locator("#nav-runs-list")).to_be_hidden()
     expect(page.locator("#nav-runs-switch")).to_have_attribute("aria-checked", "false")
+
+
+RB_SCANNING = """
+(function () {
+  var fns = [];
+  var mock = { available: true, readers: [],
+    status: function () { return Promise.resolve({ connected: false, name: '' }); },
+    onReading: function (fn) { mock.readers.push(fn); },
+    onStatus: function (fn) { fns.push(fn); },
+    connect: function () { return Promise.resolve({ scanning: true, permitted: true }); },
+    disconnect: function () { return Promise.resolve(); } };
+  window.__rb = mock;
+  window.__rbEmitStatus = function (state) { fns.forEach(function (fn) { fn({ state: state, detail: '' }); }); };
+  Object.defineProperty(window, 'MT3UKRaceBoxApp', { configurable: true, get: function () { return mock; }, set: function () {} });
+})();
+"""
+
+
+def test_the_racebox_toggle_is_on_only_once_the_racebox_is_connected_not_while_it_is_searched_for(page):
+    # The app answers "scanning" at once when no RaceBox is connected yet, so the toggle waits for the device's status.
+    _approve(page, True)
+    page.add_init_script(RB_SCANNING)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    expect(page.locator("#nav-status")).to_contain_text("Looking for a RaceBox")
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "true")
+    page.evaluate("window.__rbEmitStatus('notfound')")
+    expect(page.locator("#nav-status")).to_contain_text("No RaceBox found", timeout=5000)
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator("#nav-launch")).to_have_attribute("hidden", "")
+    # Looking again, and this time the RaceBox connects.
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rbEmitStatus('connected')")
+    expect(page.locator("#nav-source-rb")).to_have_attribute("aria-pressed", "true", timeout=5000)
+    expect(page.locator("#nav-source-gps")).to_have_attribute("aria-pressed", "false")
 

@@ -934,8 +934,10 @@
     var label = $('nav-source-label');
     if (label) label.textContent = t;
   }
+  var rbSearching = false;
   function setSource(on) {
     raceboxOn = on;
+    if (!on) rbSearching = false;
     var gps = $('nav-source-gps'), rb = $('nav-source-rb');
     if (gps) gps.setAttribute('aria-pressed', on ? 'false' : 'true');
     if (rb) rb.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -947,18 +949,34 @@
   function startRaceBox() {
     if (!window.MT3UKRaceBoxApp || !window.MT3UKRaceBoxApp.available) return;
     setSource(false);
+    // GPS stops the RaceBox, or the search for one. The phone's GPS is what is used whenever the RaceBox is not on.
     if ($('nav-source-gps')) $('nav-source-gps').addEventListener('click', function () {
-      if (!raceboxOn) return; // already on the phone's GPS
+      if (!raceboxOn && !rbSearching) return; // already on the phone's GPS
       rbOff = true;
+      rbSearching = false;
       window.MT3UKRaceBoxApp.disconnect().catch(function () {}).then(function () { setSource(false); status('Using your phone\u2019s GPS for position and speed.'); });
     });
+    // RaceBox: on only once the RaceBox is connected. The app's connect answers at once with scanning when no RaceBox is
+    // connected yet, so the switch waits for the device's own status (connected, or notfound).
     if ($('nav-source-rb')) $('nav-source-rb').addEventListener('click', function () {
-      if (raceboxOn) return; // already on the RaceBox
+      if (raceboxOn || rbSearching) return;
       rbOff = false;
-      status('Connecting to the RaceBox...');
+      rbSearching = true;
+      status('Looking for a RaceBox nearby...');
       window.MT3UKRaceBoxApp.connect()
-        .then(function () { setSource(true); })
-        .catch(function (e) { rbOff = true; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
+        .then(function (d) {
+          if (d && d.connected) { rbSearching = false; setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
+        })
+        .catch(function (e) { rbOff = true; rbSearching = false; setSource(false); status((e && e.message) || 'The RaceBox could not be connected.', true); });
+    });
+    window.MT3UKRaceBoxApp.onStatus(function (ev) {
+      if (rbOff || !ev) return;
+      var st = ev.state;
+      if (st === 'connected') { rbSearching = false; setSource(true); status('Connected to the RaceBox. Waiting for a GPS fix.'); }
+      else if (st === 'scanning') { status('Looking for a RaceBox nearby...'); }
+      else if (st === 'connecting' || st === 'discovering') { status('Connecting to the RaceBox...'); }
+      else if (st === 'notfound') { rbSearching = false; rbOff = true; setSource(false); status('No RaceBox found nearby. Switch it on, then tap RaceBox to look again.', true); }
+      else if (st === 'failed' || st === 'disconnected') { rbSearching = false; if (raceboxOn) setSource(false); status('The RaceBox is not connected. Tap RaceBox to connect again.', true); }
     });
     window.MT3UKRaceBoxApp.onReading(function (r) {
       if (rbOff || !r) return;

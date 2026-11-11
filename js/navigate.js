@@ -1698,6 +1698,23 @@
     var m = left !== null ? left : metresBetween([lastFix.lat, lastFix.lng], dest.at);
     set('nav-togo', distText(m));
   }
-  window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; }, stepPoint: function (i) { return stepStartPoint(i); } };
+  // The phone's browse layout keeps the GPS row, the status and the map buttons above the bottom sheet (Speed and Position,
+// or the route panel), whatever its height. The sheet's height is kept in --sheet on the page.
+(function () {
+  var grid = document.querySelector('.nav-grid'), route = document.getElementById('nav-route');
+  if (!grid) return;
+  function fit() {
+    var h = Math.max(grid.offsetHeight, route ? route.offsetHeight : 0);
+    document.documentElement.style.setProperty('--sheet', h + 'px');
+  }
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    ro.observe(grid);
+    if (route) ro.observe(route);
+  }
+  window.addEventListener('resize', fit);
+  fit();
+})();
+window.MT3UKNavigate = { map: function () { return map; }, fix: function () { return lastFix; }, trailPoints: function () { return trail ? trail.getLatLngs().length : 0; }, stepPoint: function (i) { return stepStartPoint(i); } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

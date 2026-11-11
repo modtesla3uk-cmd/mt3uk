@@ -1319,3 +1319,25 @@ def test_the_turn_stepper_does_not_cover_the_open_directions(page):
     page.locator("#nav-route-handle").click()
     expect(page.locator("#nav-steps")).to_be_visible()
     expect(page.locator("#nav-stepper")).to_be_hidden()
+
+
+NATIVE_MIC = """
+window.__micStarts = 0;
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { SpeechRecognition: {
+  requestPermissions: function () { return Promise.resolve({ speechRecognition: 'granted' }); },
+  start: function () { window.__micStarts++; return Promise.resolve({ matches: ['Church Road'] }); },
+  stop: function () { return Promise.resolve(); } } } };
+"""
+
+
+def test_in_the_laps_app_the_microphone_uses_the_speech_plugin(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_MIC)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-stops .nav-mic").last).to_be_visible()
+    page.locator("#nav-stops .nav-mic").last.click()
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    assert page.evaluate("() => window.__micStarts") == 1

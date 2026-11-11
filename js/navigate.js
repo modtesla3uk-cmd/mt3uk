@@ -988,8 +988,38 @@
   // In the Laps app the web view can show the microphone, but it cannot listen until the app has the speech plugin and
   // the microphone permission, so the microphone is left out there.
   function inLapsApp() { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
-  function voiceInputAvailable() { return !!Rec && !inLapsApp(); }
+  // In the Laps app the speech plugin listens; the plugin asks for the microphone the first time.
+  function nativeMic() {
+    if (!inLapsApp() || !window.Capacitor.Plugins) return null;
+    return window.Capacitor.Plugins.SpeechRecognition || null;
+  }
+  function voiceInputAvailable() { return !!nativeMic() || (!!Rec && !inLapsApp()); }
+  var nativeListening = false;
+  function dictateNative(i, btn) {
+    var sr = nativeMic();
+    if (nativeListening) { sr.stop(); return; }
+    var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');
+    nativeListening = true;
+    btn.classList.add('is-listening');
+    btn.setAttribute('aria-pressed', 'true');
+    setRouteMsg('Listening. Say the place.');
+    Promise.resolve(sr.requestPermissions()).then(function (p) {
+      if (!p || (p.speechRecognition !== 'granted' && p.speechRecognition !== undefined)) throw new Error('denied');
+      return sr.start({ language: 'en-GB', maxResults: 1, partialResults: false, popup: false });
+    }).then(function (r) {
+      var text = r && r.matches && r.matches[0] ? String(r.matches[0]).trim() : '';
+      if (input && text) { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); setRouteMsg(''); }
+      else setRouteMsg("Didn't catch that. Try again, or type the place.", true);
+    }).catch(function () {
+      setRouteMsg('Allow the microphone for Laps in the phone settings, then try again. Or type the place.', true);
+    }).then(function () {
+      nativeListening = false;
+      btn.classList.remove('is-listening');
+      btn.setAttribute('aria-pressed', 'false');
+    });
+  }
   function dictate(i, btn) {
+    if (nativeMic()) return dictateNative(i, btn);
     if (listening) { listening.stop(); return; }
     if (!Rec) return;
     var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');

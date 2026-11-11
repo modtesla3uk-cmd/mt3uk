@@ -237,10 +237,20 @@
   }
   // The turn card and the voice follow the next instruction: the one at the end of the step we are on, with the
   // distance to it.
+  // Free drive: timing with no destination. The map, the timer and the times show; there is no route or turn card.
+  var freeDrive = false;
   function updateDrive() {
-    if (!driving || !routeD || !lastFix) return;
+    if (!driving || !lastFix) return;
     var wrapEl = document.querySelector('.nav-map-wrap'), barEl = $('nav-drive-bar');
     if (wrapEl && barEl) wrapEl.style.setProperty('--bar', barEl.offsetHeight + 'px');
+    if (!routeD) {
+      if (wrapEl) wrapEl.style.setProperty('--turn', '12px');
+      set('nav-eta', 'Free drive');
+      set('nav-left', 'No destination. Time a run from a standstill.');
+      set('nav-speed-big', ($('nav-speed') || {}).textContent || '\u2013');
+      set('nav-speed-big-unit', mph ? 'mph' : 'km/h');
+      return;
+    }
     // The turn card can take several lines, so what sits under it (the stepper, the toast) starts below its real bottom.
     var turnEl = $('nav-turn');
     if (wrapEl && turnEl) wrapEl.style.setProperty('--turn', (turnEl.offsetTop + turnEl.offsetHeight) + 'px');
@@ -331,7 +341,7 @@
   }
   window.addEventListener('resize', fitDrivingScreen);
   function startDrive() {
-    if (!routeD || !map) return;
+    if (!map || (!routeD && !freeDrive)) return;
     driving = true;
     // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
@@ -352,10 +362,24 @@
     followPhone(DRIVE_ZOOM);
     applyRotation();
     spoken = {};
-    if (routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
+    if (routeD && routeD.steps && routeD.steps[0]) say(routeD.steps[0].text, true);
     updateDrive();
   }
+  // Start timing with no destination: the same driving screen, with no route and no turns.
+  function startFreeDrive() {
+    if (!lastFix) { status('Waiting for your phone\u2019s position before timing can start.', true); return; }
+    if (!map) { status('The map is still loading. Tap Start timing again in a moment.', true); return; }
+    freeDrive = true;
+    var wrap = document.querySelector('.nav-map-wrap');
+    if (wrap) wrap.classList.add('is-free');
+    if ($('nav-exit')) $('nav-exit').textContent = 'End timing';
+    startDrive();
+  }
   function stopDrive() {
+    freeDrive = false;
+    var wrapF = document.querySelector('.nav-map-wrap');
+    if (wrapF) wrapF.classList.remove('is-free');
+    if ($('nav-exit')) $('nav-exit').textContent = 'End navigation';
     driving = false;
     if (frame) cancelAnimationFrame(frame);
     frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
@@ -746,20 +770,14 @@
     }
     // The 0 to 60 mph timer on the map drives the timer; its switch shows or hides the past times.
     document.querySelectorAll('[data-launch]').forEach(function (b) { b.addEventListener('click', launchTap); });
-    if ($('nav-runs-switch')) $('nav-runs-switch').addEventListener('click', function () { launchShow = !launchShow; saveShow(launchShow); drawRuns(); });
-    // The times are folded away while driving; the Times button opens them, and it folds them again.
-    if ($('nav-runs-open')) $('nav-runs-open').addEventListener('click', function () {
+    // The times are folded away while driving; the Times button opens them, and the Hide button in their header folds them again.
+    function setRunsOpen(open) {
       var wrap = document.querySelector('.nav-map-wrap');
-      if (!wrap) return;
-      var open = !wrap.classList.contains('runs-open');
-      wrap.classList.toggle('runs-open', open);
-      this.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-    if ($('nav-timer-toggle')) $('nav-timer-toggle').addEventListener('click', function () {
-      launchTimerOn = !launchTimerOn;
-      try { localStorage.setItem(LAUNCH_TIMER_KEY, launchTimerOn ? '1' : '0'); } catch (e) {}
-      drawTimer();
-    });
+      if (wrap) wrap.classList.toggle('runs-open', open);
+      if ($('nav-runs-open')) $('nav-runs-open').setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if ($('nav-runs-open')) $('nav-runs-open').addEventListener('click', function () { setRunsOpen(true); });
+    if ($('nav-runs-hide')) $('nav-runs-hide').addEventListener('click', function () { setRunsOpen(false); });
     drawTimer();
     drawRuns();
     if ($('nav-end-route')) $('nav-end-route').addEventListener('click', clearEverything);
@@ -779,6 +797,7 @@
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);
+    if ($('nav-free')) $('nav-free').addEventListener('click', startFreeDrive);
     var rc = $('nav-recentre');
     if (rc) rc.addEventListener('click', function () {
       if (driving) return recentreDrive();
@@ -1021,13 +1040,10 @@
   }
   // The 0 to 60 mph timer, on the RaceBox's speed. Armed, it starts when the car first moves above 1 mph, and stops at 60.
   // Past 0 to 60 runs are kept on the member's profile (the worker's /navigate/runs), so they follow the member to any
-  // device. The list is held here once loaded; the Show times switch is kept on this device only.
-  var LAUNCH_SHOW_KEY = 'mt3uk-launch-show', LAUNCH_LIST = 5, API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  // device. The list is held here once loaded.
+  var LAUNCH_LIST = 5, API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var runsCache = [];
   function readRuns() { return runsCache; }
-  function readShow() { try { return localStorage.getItem(LAUNCH_SHOW_KEY) !== '0'; } catch (e) { return true; } }
-  function saveShow(on) { try { localStorage.setItem(LAUNCH_SHOW_KEY, on ? '1' : '0'); } catch (e) {} }
-  var launchShow = readShow();
   function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
   function sessionToken() { try { return localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return null; } }
   // Loads the member's saved runs once they are approved (so the card shows them after a reload).
@@ -1057,29 +1073,25 @@
       .catch(function () {});
   }
   // The times panel under the timer on the map: the best, a switch to show or hide the list, and the latest few runs.
-  // The timer can be hidden completely (the Timer switch on the first screen): then its button and its times go too.
-  var LAUNCH_TIMER_KEY = 'mt3uk-launch-timer', launchTimerOn = (function () { try { return localStorage.getItem(LAUNCH_TIMER_KEY) !== '0'; } catch (e) { return true; } })();
+  // The timer shows while driving (a route, or free drive from Start timing) once the RaceBox is on.
   function drawTimer() {
-    var show = raceboxOn && launchTimerOn;
+    var show = raceboxOn;
     document.querySelectorAll('[data-launch]').forEach(function (b) { b.hidden = !show; });
-    var tt = $('nav-timer-toggle');
-    if (tt) { tt.hidden = !raceboxOn; tt.setAttribute('aria-pressed', launchTimerOn ? 'true' : 'false'); }
+    var nf = $('nav-free');
+    if (nf) nf.hidden = !show;
     drawRuns();
   }
   function drawRuns() {
     var box = $('nav-runs');
     if (!box) return;
     var a = readRuns(), best = bestOf(a);
-    box.hidden = !raceboxOn || !launchTimerOn || !a.length;
+    box.hidden = !raceboxOn || !a.length;
     var ro = $('nav-runs-open');
-    if (ro) ro.hidden = !raceboxOn || !launchTimerOn || !a.length;
-    var sw = $('nav-runs-switch');
-    if (sw) sw.setAttribute('aria-checked', launchShow ? 'true' : 'false');
+    if (ro) ro.hidden = !raceboxOn || !a.length;
     var head = $('nav-runs-best');
     if (head) head.textContent = best === null ? '' : 'Best ' + best.toFixed(2) + ' s';
     var list = $('nav-runs-list');
     if (!list) return;
-    list.hidden = !launchShow;
     list.innerHTML = '';
     a.slice(0, LAUNCH_LIST).forEach(function (r) {
       var li = document.createElement('li');

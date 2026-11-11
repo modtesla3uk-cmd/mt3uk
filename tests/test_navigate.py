@@ -1590,14 +1590,9 @@ def test_past_zero_to_sixty_times_show_under_the_timer_and_can_be_hidden_and_sur
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"))
     expect(page.locator("#nav-runs-list li.is-best")).to_have_count(1)
     # The switch hides the list (the best stays), and the choice is kept after a reload.
-    page.locator("#nav-runs-switch").click()
-    expect(page.locator("#nav-runs-list")).to_be_hidden()
-    expect(page.locator("#nav-runs-best")).to_be_visible()
     assert len(saved["runs"]) == 1, saved
     page.reload()
     expect(page.locator("#nav-runs-best")).to_have_text(re.compile(r"Best 3\.[45]\d s"), timeout=10000)
-    expect(page.locator("#nav-runs-list")).to_be_hidden()
-    expect(page.locator("#nav-runs-switch")).to_have_attribute("aria-checked", "false")
 
 
 RB_SCANNING = """
@@ -1678,33 +1673,6 @@ def test_the_zero_to_sixty_only_arms_from_a_standstill_and_a_rolling_start_is_no
     expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201330: \d\.\d\d s"))
 
 
-def test_the_timer_can_be_hidden_completely_and_comes_back(page):
-    # The Timer switch on the first screen hides the 0 to 60 button and its times altogether, and the choice is kept.
-    _approve(page, True)
-    page.add_init_script(GEO_HEADING_EAST)
-    page.add_init_script(RB_MOCK)
-    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
-    page.route("**/navigate/runs", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"runs":[{"t":38.6,"t30":10.2,"at":"2026-11-11T17:00:00Z"}]}', headers={"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type, x-session-token", "Access-Control-Allow-Methods": "GET, POST, OPTIONS"}))
-    page.goto("/navigate.html")
-    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    expect(page.locator("#nav-timer-toggle")).to_be_visible(timeout=5000)
-    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "true")
-    page.locator("#nav-timer-toggle").click()
-    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "false")
-    # Off: the timer button and its times are hidden altogether, while driving too.
-    expect(page.locator("#nav-launch")).to_be_hidden()
-    expect(page.locator("#nav-runs")).to_be_hidden()
-    page.reload()
-    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "false", timeout=10000)
-    page.locator("#nav-source-rb").click()
-    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
-    expect(page.locator("#nav-launch")).to_be_hidden()
-    page.locator("#nav-timer-toggle").click()
-    expect(page.locator("#nav-timer-toggle")).to_have_attribute("aria-pressed", "true")
-
-
 def test_the_times_fold_away_while_driving_and_a_times_button_opens_them(page):
     _approve(page, True)
     page.add_init_script(RB_MOCK)
@@ -1731,4 +1699,36 @@ def test_the_times_fold_away_while_driving_and_a_times_button_opens_them(page):
     expect(page.locator("#nav-runs")).to_be_visible()
     expect(page.locator("#nav-runs-open")).to_be_hidden()
     expect(page.locator("#nav-runs-best")).to_have_text("Best 38.60 s")
+    # Hide folds the times away again, from the card's own header, so they can be hidden in the drive view too.
+    page.locator("#nav-runs-hide").click()
+    expect(page.locator("#nav-runs")).to_be_hidden()
+    expect(page.locator("#nav-runs-open")).to_be_visible()
+
+
+def test_a_run_can_be_timed_with_no_route_by_starting_timing(page):
+    # Start timing opens the driving screen with no destination: the timer works, and End timing comes back to the first screen.
+    _approve(page, True)
+    page.add_init_script(RB_MOCK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-source-rb").click()
+    page.evaluate("window.__rb.readers.forEach(function (fn) { fn({ fixOk: true, coordinatesValid: true, satellites: 12, lat: 52.124, lon: -0.9955, speedMs: 0, heading: 90, horizontalAccuracy: 1.2, utc: Date.now() }); })")
+    expect(page.locator("#nav-free")).to_be_visible(timeout=5000)
+    expect(page.locator("#nav-map")).to_be_visible(timeout=10000)
+    page.locator("#nav-free").click()
+    expect(page.locator(".nav-map-wrap.is-driving.is-free")).to_be_visible(timeout=5000)
+    expect(page.locator("#nav-turn")).to_be_hidden()
+    expect(page.locator("#nav-eta")).to_have_text("Free drive")
+    expect(page.locator("#nav-launch")).to_be_visible()
+    page.locator("#nav-launch").click()
+    expect(page.locator("#nav-launch")).to_contain_text("Time when you move")
+    page.evaluate("""() => { const t0 = Date.now(); const rd = window.__rb.readers;
+      for (let i = 0; i < 25 * 6; i++) { const t = i / 25, speed = t < 0.5 ? 0 : Math.min(30, 7.5 * (t - 0.5));
+        const r = { fixOk: true, coordinatesValid: true, lat: 52.124, lon: -0.9955, speedMs: speed, heading: 90, horizontalAccuracy: 1.2, utc: t0 + i * 40 }; rd.forEach(function (fn) { fn(r); }); } }""")
+    expect(page.locator("#nav-launch")).to_contain_text(re.compile(r"0\u201360: 3\.[45]\d s"), timeout=5000)
+    page.locator("#nav-exit").click()
+    expect(page.locator(".nav-map-wrap.is-driving")).to_have_count(0)
+    expect(page.locator("#nav-free")).to_be_visible()
 

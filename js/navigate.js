@@ -1058,11 +1058,19 @@
       list.appendChild(li);
     });
   }
-  var launch = { state: 'idle', t0: 0, best: null, last: null };
+  var launch = { state: 'idle', t0: 0, best: null, last: null, stopped: null };
   function setLaunchText(t) { document.querySelectorAll('[data-launch]').forEach(function (b) { b.textContent = t; }); }
+  // A 0 to 60 run counts only from a standstill: the timer is armed only when the car is under 1 mph, and a car that is
+  // already moving when it is armed is not timed (so a rolling start is never saved).
+  var LAUNCH_STOPPED_MPH = 1, launchNote = null;
   function launchStep(speedMs, ts) {
     var mph = speedMs * 2.23694;
-    if (launch.state === 'armed' && mph > 1) { launch.state = 'running'; launch.t0 = ts; }
+    var wasStopped = launch.stopped !== false;
+    launch.stopped = mph < LAUNCH_STOPPED_MPH;
+    if (launch.state === 'armed' && mph > LAUNCH_STOPPED_MPH) {
+      if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
+      else { launch.state = 'idle'; setLaunchText('Not from a stop, not saved. Stop, then tap again.'); return; }
+    }
     if (launch.state === 'running') {
       if (mph >= 60) {
         var t = (ts - launch.t0) / 1000;
@@ -1078,6 +1086,12 @@
   }
   function launchTap() {
     if (launch.state === 'armed') { launch.state = 'idle'; setLaunchText('0\u201360 mph'); return; }
+    if (launch.stopped === false) {
+      // Moving: it is not armed, so a run can only start from a standstill.
+      setLaunchText('Stop first, then tap Ready');
+      setTimeout(function () { if (launch.state === 'idle') setLaunchText('0\u201360 mph'); }, 2500);
+      return;
+    }
     launch.state = 'armed';
     setLaunchText('Ready \u2013 go when you move');
   }

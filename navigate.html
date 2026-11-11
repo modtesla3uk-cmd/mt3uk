@@ -482,7 +482,9 @@
   .nav-runs-list li { font-weight: 600; }
   .nav-runs-list li.is-best { color: #17663f; font-weight: 800; }
   /* The 0 to 60 mph timer sits at the top right of the map, out of the middle, and shows whenever the RaceBox is on. */
-  .nav-launch:not([hidden]) { display: block; }
+  /* The timer and its times show only while driving: on the main map they are left out. */
+  .nav-map-wrap.is-driving .nav-launch:not([hidden]) { display: block; }
+  .nav-map-wrap:not(.is-driving) .nav-runs { display: none; }
   .nav-speed-bubble { display: none; position: absolute; left: 12px; bottom: calc(var(--bar, 190px) + 12px); z-index: 1005; align-items: baseline; gap: 6px; padding: 8px 16px 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 2px 10px rgba(0,0,0,.22); color: #16233d; }
   .nav-map-wrap.is-driving .nav-speed-bubble { display: flex; }
   /* With the directions up, the speed, the speaker and Recentre step aside, so nothing sits over the list. */
@@ -773,6 +775,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=63" defer></script>
+<script src="js/navigate.js?v=65" defer></script>
 </body>
 </html>

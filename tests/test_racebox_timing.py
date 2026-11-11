@@ -166,3 +166,19 @@ def test_the_readings_fold_away_in_drag_run_and_details_opens_them(page):
     expect(page.locator("#rbt-band-wrap")).to_be_visible()
     expect(page.locator("#rbt-details-toggle")).to_have_attribute("aria-expanded", "true")
 
+
+def test_the_timer_asks_for_the_racebox_until_it_is_connected(page):
+    # Not connected yet: the button asks for the RaceBox (not the GPS fix), and the satellites say so.
+    page.goto("/racebox.html")
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connect the RaceBox", timeout=5000)
+    expect(page.locator("#rbt-tm-text")).to_have_text("Not connected")
+    # Connected, with no fix yet: now it says it is acquiring the GPS fix.
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    _emit(page, live(fix=False, sats=4))
+    expect(page.locator("#rbt-tm-go")).to_have_text("Acquiring GPS fix", timeout=5000)
+    expect(page.locator("#rbt-tm-text")).to_have_text("Waiting for a GPS fix")
+    # Dropped again: back to asking for the RaceBox.
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'disconnected' })", None)
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connect the RaceBox", timeout=5000)
+

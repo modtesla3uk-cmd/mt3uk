@@ -25,7 +25,7 @@
   function clamp(v, m) { return Math.max(-m, Math.min(m, v)); }
 
   var runs = [];
-  var rbFix = false, rbSats = 0, gTare = { x: 0, y: 0 };
+  var rbFix = false, rbSats = 0, rbConnected = false, gTare = { x: 0, y: 0 };
   var launch = { state: 'idle', t0: 0, t30: null, stopped: null };
 
   function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
@@ -103,7 +103,7 @@
     var on = rbFix ? Math.min(rbSats, SEGS) : 0;
     var segs = bars.children;
     for (var k = 0; k < segs.length; k++) segs[k].classList.toggle('is-on', k < on);
-    set('rbt-tm-text', rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : 'Waiting for a GPS fix');
+    set('rbt-tm-text', !rbConnected ? 'Not connected' : rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : 'Waiting for a GPS fix');
   }
 
   function setGo(text, go) {
@@ -112,7 +112,8 @@
     b.textContent = text;
     b.classList.toggle('is-go', !!go);
   }
-  function idleLabel() { return rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
+  // Until the RaceBox is connected the button asks for it; once connected it waits for the GPS fix, then it is ready.
+  function idleLabel() { return !rbConnected ? 'Connect the RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix'; }
 
   // The runs: the best, then the latest five, each with its 0 to 30 and 0 to 60. Numbered as timed: the newest is the highest.
   function drawRuns() {
@@ -178,6 +179,11 @@
   // The 0 to 60 timer: it arms on Go only from a standstill (under 1 mph), starts when the car moves off, and stops
   // at 60 mph. A car already moving when armed is not timed.
   function tap() {
+    if (!rbConnected && launch.state !== 'armed') {
+      setGo('Connect the RaceBox first', false);
+      setTimeout(function () { if (launch.state === 'idle') setGo(idleLabel(), false); }, 2500);
+      return;
+    }
     if (launch.state === 'armed') { launch.state = 'idle'; setGo(idleLabel(), false); return; }
     if (launch.stopped !== true) {
       setGo(launch.stopped === null ? 'Acquiring GPS fix' : 'Stop first, then tap Time a run', false);
@@ -210,8 +216,20 @@
   }
 
   // Every reading from the RaceBox: the satellites, the dial and the G meter, and the timer on a fix.
+  // The RaceBox's connection, from its status: connected, or not (searching, not found, dropped).
+  function refresh() {
+    drawSats();
+    if (launch.state === 'idle') setGo(idleLabel(), false);
+  }
+  function onStatus(ev) {
+    if (!ev) return;
+    if (ev.state === 'connected') rbConnected = true;
+    else if (ev.state === 'disconnected' || ev.state === 'notfound' || ev.state === 'failed') { rbConnected = false; rbFix = false; }
+    refresh();
+  }
   function onReading(r) {
     if (!r) return;
+    rbConnected = true;
     rbSats = r.satellites || 0;
     rbFix = !!(r.fixOk && r.coordinatesValid);
     drawSats();
@@ -248,6 +266,9 @@
     drawRuns();
     loadRuns();
     if (window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.onReading) window.MT3UKRaceBoxApp.onReading(onReading);
+    if (window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.onStatus) window.MT3UKRaceBoxApp.onStatus(onStatus);
+    // A connection made before this page was opened is shown at once.
+    if (window.MT3UKRaceBoxApp && window.MT3UKRaceBoxApp.status) window.MT3UKRaceBoxApp.status().then(function (st) { if (st && st.connected) { rbConnected = true; refresh(); } }).catch(function () {});
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

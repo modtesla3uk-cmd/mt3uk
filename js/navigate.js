@@ -342,6 +342,8 @@
     if (frame) cancelAnimationFrame(frame);
     frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
     if (trail) trail.setStyle({ opacity: 1 });
+    // The turn picked on the way is not carried on after navigation ends.
+    closeStep();
     browsing = false;
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'none';
@@ -997,21 +999,28 @@
   var nativeListening = false;
   function dictateNative(i, btn) {
     var sr = nativeMic();
-    if (nativeListening) { sr.stop(); return; }
+    if (nativeListening) { try { sr.stop(); } catch (e) { /* already stopped */ } return; }
     var input = document.querySelector('#nav-stops .nav-stop-input[data-i="' + i + '"]');
     nativeListening = true;
     btn.classList.add('is-listening');
     btn.setAttribute('aria-pressed', 'true');
     setRouteMsg('Listening. Say the place.');
-    Promise.resolve(sr.requestPermissions()).then(function (p) {
-      if (!p || (p.speechRecognition !== 'granted' && p.speechRecognition !== undefined)) throw new Error('denied');
+    // Permission first: asked only when it is not already granted, so a second press does not ask again.
+    Promise.resolve(sr.checkPermissions ? sr.checkPermissions() : null).then(function (st) {
+      if (st && st.speechRecognition === 'granted') return st;
+      return sr.requestPermissions();
+    }).then(function (p) {
+      var got = p && p.speechRecognition;
+      if (got && got !== 'granted') throw new Error('microphone not allowed (' + got + ')');
       return sr.start({ language: 'en-GB', maxResults: 1, partialResults: false, popup: false });
     }).then(function (r) {
       var text = r && r.matches && r.matches[0] ? String(r.matches[0]).trim() : '';
       if (input && text) { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); setRouteMsg(''); }
       else setRouteMsg("Didn't catch that. Try again, or type the place.", true);
-    }).catch(function () {
-      setRouteMsg('Allow the microphone for Laps in the phone settings, then try again. Or type the place.', true);
+    }).catch(function (e) {
+      var msg = e && e.message ? String(e.message) : String(e || '');
+      if (/not allowed|denied|permission/i.test(msg)) setRouteMsg('Allow the microphone for Laps in the phone settings, then try again. Or type the place.', true);
+      else setRouteMsg('Voice input did not work (' + msg + '). Try again, or type the place.', true);
     }).then(function () {
       nativeListening = false;
       btn.classList.remove('is-listening');
@@ -1254,6 +1263,8 @@
   }
   // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
   function choose(p, i) {
+    // Remembered now, with its full name, so it is there as a recent search even if no route is started.
+    saveRecent(stops[i].typed || stops[i].text, p);
     stops[i].place = p;
     stops[i].text = p.name;
     clearSuggestions();

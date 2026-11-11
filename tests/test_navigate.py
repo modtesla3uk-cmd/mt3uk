@@ -1342,3 +1342,54 @@ def test_in_the_laps_app_the_microphone_uses_the_speech_plugin(page):
     page.locator("#nav-stops .nav-mic").last.click()
     expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
     assert page.evaluate("() => window.__micStarts") == 1
+
+
+NATIVE_MIC_TWICE = """
+window.__micStarts = 0; window.__permAsks = 0;
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { SpeechRecognition: {
+  checkPermissions: function () { return Promise.resolve({ speechRecognition: window.__permAsks ? 'granted' : 'prompt' }); },
+  requestPermissions: function () { window.__permAsks++; return Promise.resolve({ speechRecognition: 'granted' }); },
+  start: function () { window.__micStarts++; return Promise.resolve({ matches: ['Church Road'] }); },
+  stop: function () { return Promise.resolve(); } } } };
+"""
+
+
+def test_the_microphone_asks_for_permission_once_and_works_for_each_destination(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_MIC_TWICE)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-stops .nav-mic").last.click()
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    page.locator("#nav-stops .nav-mic").last.click()
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    assert page.evaluate("() => window.__micStarts") == 2
+    assert page.evaluate("() => window.__permAsks") == 1
+
+
+def test_ending_navigation_takes_the_turn_bar_away(page):
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    page.wait_for_timeout(600)
+    page.locator("#nav-drive-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-steps .nav-step").nth(0).click()
+    expect(page.locator("#nav-stepper")).to_be_visible()
+    page.locator("#nav-exit").click()
+    expect(page.locator("#nav-stepper")).to_be_hidden()
+    expect(page.locator("#nav-turn")).to_be_hidden()

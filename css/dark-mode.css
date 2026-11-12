@@ -131,3 +131,6 @@ html[data-mode="dark"] .nav-map-wrap.is-driving #nav-recentre { background-color
 html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-rec-note, html[data-mode="dark"] .nav-route-msg { color: #f5b041 !important; }
 /* The RaceBox note about the Laps app was white with pale text: a dark box with light text, and the amber prompt colour on its lead. */
 html[data-mode="dark"] .rbt-phone-note { background: #111827 !important; color: #eef2f7 !important; border: 1px solid #5b6475; }
+/* The message to turn Bluetooth on is gold in dark mode (and a deeper gold on white in light mode). */
+.rbt-tm-sats .rbt-tm-text.rbt-tm-bt { color: #a86a00; }
+html[data-mode="dark"] .rbt-tm-sats .rbt-tm-text.rbt-tm-bt { color: #f5c542 !important; }

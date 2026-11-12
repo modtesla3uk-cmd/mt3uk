@@ -124,7 +124,8 @@
     var on = rbFix ? Math.min(rbSats, SEGS) : 0;
     var segs = bars.children;
     for (var k = 0; k < segs.length; k++) segs[k].classList.toggle('is-on', k < on);
-    set('rbt-tm-text', !rbConnected ? 'Not connected' : rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : 'Waiting for a GPS fix');
+    set('rbt-tm-text', !rbConnected ? (btOff ? 'Bluetooth is off. Turn it on, then tap Connect to RaceBox.' : 'Not connected') : rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : 'Waiting for a GPS fix');
+    var tmText = document.getElementById('rbt-tm-text'); if (tmText) tmText.classList.toggle('rbt-tm-bt', !!(btOff && !rbConnected));
   }
 
   function setGo(text, go) {
@@ -148,6 +149,7 @@
     // A connection that never answers is given up after half a minute, so the button is not stuck grey.
     if (on) busyTimer = setTimeout(function () { setBusy(false); refresh(); }, 30000);
   }
+  var btOff = false;
   function idleLabel() {
     if (busy) return 'Connecting to RaceBox';
     return !rbConnected ? 'Connect to RaceBox' : rbFix ? 'Time a run' : 'Acquiring GPS fix';
@@ -302,7 +304,12 @@
   }
   function onStatus(ev) {
     if (!ev) return;
+    if (ev.state !== 'disconnected' || ev.detail !== 'bluetooth') btOff = false;
     if (ev.state === 'connected') { rbConnected = true; setBusy(false); }
+    else if (ev.state === 'disconnected' && ev.detail === 'bluetooth') {
+      // The phone's Bluetooth is off: the full-screen view hides the page's own message, so say it here too.
+      rbConnected = false; rbFix = false; btOff = true; setBusy(false);
+    }
     else if (ev.state === 'disconnected' || ev.state === 'notfound' || ev.state === 'failed') { rbConnected = false; rbFix = false; setBusy(false); }
     else if (!rbConnected && (ev.state === 'scanning' || ev.state === 'connecting' || ev.state === 'discovering') && !busy) setBusy(true);
     refresh();

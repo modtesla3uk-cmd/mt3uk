@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=16"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=18"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -640,6 +640,8 @@
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
   .rbt-tm-go { min-width: 200px; min-height: 56px; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 1.35rem/1.2 var(--font-body, sans-serif); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
+  /* In full screen the Connect to RaceBox (Go) button is smaller, so the dial has more room. */
+  .rbt-tm-full-on .rbt-tm-go { font-size: 1.05rem; min-height: 46px; min-width: 0; padding: 6px 18px; }
   .rbt-tm-go.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
   .rbt-tm-go.is-busy { background: #e6e8ec; color: #7a8190; border-color: #c9ced8; cursor: progress; box-shadow: none; }
   .rbt-tm-sats { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -647,6 +649,8 @@
   .rbt-tm-seg { width: 6px; height: 12px; border-radius: 1px; background: #dfe3ea; }
   .rbt-tm-seg.is-on { background: #9fd8b4; }
   .rbt-tm-text { font-size: 0.75rem; font-weight: 700; color: #5b6475; white-space: nowrap; }
+  /* The message to turn Bluetooth on is larger, so it is read at a glance. */
+  .rbt-tm-text.rbt-tm-bt { font-size: 1rem; line-height: 1.3; white-space: normal; text-align: center; }
   .rbt-tm-runs { width: min(360px, 92vw); padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); color: var(--ink, #16233d); }
   .rbt-tm-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .rbt-tm-clear { min-height: 44px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: #b3261e; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; }
@@ -813,7 +817,7 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=4"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-timing.js?v=11"></script>
+<script src="js/racebox-timing.js?v=14"></script>
 <script src="js/racebox-test.js?v=82"></script>
 <script>
   (function () {

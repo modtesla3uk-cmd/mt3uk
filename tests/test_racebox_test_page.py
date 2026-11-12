@@ -496,3 +496,16 @@ def test_if_bluetooth_is_turned_off_while_connecting_the_page_says_so_and_asks_f
     expect(page.locator("#rbt-status")).to_have_text("Bluetooth is off. Turn it on, then tap Connect to RaceBox.", timeout=5000)
     expect(page.locator("#rbt-connect-label")).to_have_text("Connect to RaceBox")
     expect(page.locator("#rbt-prompt")).to_have_text("Turn Bluetooth on, then tap Connect to RaceBox.")
+
+
+def test_full_screen_connecting_says_when_bluetooth_is_off_and_the_button_goes_back(page):
+    # In full screen the timer's own Go button connects. If Bluetooth is off, the button goes back to Connect and the
+    # full-screen view says why, since the page's own message is hidden behind it.
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script(BLUETOOTH_OFF_PLUGIN)
+    page.goto("/racebox.html")
+    page.locator("button[data-mode='drag']").first.evaluate("b => b.click()")
+    page.locator("#rbt-tm-go").evaluate("b => b.click()")
+    expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
+    expect(page.locator("#rbt-tm-text")).to_have_text("Bluetooth is off. Turn it on, then tap Connect to RaceBox.")

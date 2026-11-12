@@ -542,7 +542,7 @@
   .nav-route-stats dd { margin: 0; font-weight: 700; }
   .nav-map-wrap.has-route .recentre { bottom: 250px; }
   .nav-map-wrap.has-route.route-collapsed .recentre { bottom: 84px; }
-  .nav-route-msg { margin: 8px 0 0; font-weight: 600; }
+  .nav-route-msg { margin: 0 0 8px; font-weight: 600; }
   .nav-route-msg.is-bad { color: #b3261e; }
   .nav-route-msg[hidden] { display: none; }
   .nav-route[hidden] { display: none; }
@@ -701,6 +701,7 @@
     </div>
     <form class="nav-dest" id="nav-dest" role="search" onsubmit="return false;">
       <label class="nav-dest-label" for="nav-to-q">Where to?</label>
+      <p class="nav-route-msg" id="nav-route-msg" role="status" hidden></p>
       <ol class="nav-stops" id="nav-stops" aria-label="Stops"></ol>
       <p class="nav-attrib">Address search: <a href="https://www.geoapify.com/" rel="noopener">Powered by Geoapify</a>. Map data &copy; OpenStreetMap contributors.</p>
       <div class="nav-stop-actions">
@@ -709,7 +710,6 @@
         <button type="button" class="btn btn-secondary" id="nav-end-route" hidden>End route</button>
       </div>
       <ul class="nav-results" id="nav-results"></ul>
-      <p class="nav-route-msg" id="nav-route-msg" role="status" hidden></p>
     </form>
     <div class="nav-map-wrap">
       <div id="nav-map" class="nav-map" hidden></div>

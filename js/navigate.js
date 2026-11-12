@@ -812,6 +812,17 @@
       mapEl.addEventListener('pointerup', gestureUp);
       mapEl.addEventListener('pointercancel', gestureUp);
     }
+    // In landscape the Start route button moves out of the directions panel, to sit above the route card on the right. In
+    // portrait it goes back into the panel's summary.
+    var startEl = $('nav-start'), landMq = window.matchMedia ? window.matchMedia('(orientation: landscape) and (max-height: 600px)') : null;
+    function placeStart() {
+      if (!startEl) return;
+      var wrap = document.querySelector('.nav-map-wrap'), sum = document.querySelector('.nav-route-summary');
+      if (landMq && landMq.matches && wrap) { if (startEl.parentNode !== wrap) wrap.appendChild(startEl); }
+      else if (sum && startEl.parentNode !== sum) sum.appendChild(startEl);
+    }
+    if (landMq && landMq.addEventListener) landMq.addEventListener('change', placeStart);
+    placeStart();
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);

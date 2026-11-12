@@ -563,7 +563,7 @@
   @media (min-width: 700px) { .nav-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .nav-grid .nav-wide { grid-column: span 2; } }
   /* Browse on a phone, as the Navigate mock-up: the map fills the screen under the header, with the search floating at the
      top and the readings in a sheet at the bottom (Route is in the sheet). Driving keeps its own full-screen view. */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 600px) {
     body:has(#nav-body:not([hidden])) .page-hero { display: none; }
     /* Driving: the Laps header goes, and the map takes the whole screen. */
     body:has(.nav-map-wrap.is-driving) > header { display: none; }
@@ -597,6 +597,34 @@
     .nav-map-wrap:not(.is-driving) .nav-unit-pill { top: auto; bottom: calc(var(--sheet, 230px) + 78px + var(--stack, 0px)); right: 12px; }
     .nav-map-wrap:not(.is-driving) .recentre { bottom: calc(var(--sheet, 230px) + 12px + var(--stack, 0px)); }
     .nav-map-wrap:not(.is-driving).has-route .recentre { bottom: calc(var(--sheet, 230px) + 12px + var(--stack, 0px)); }
+  }
+  @media (orientation: landscape) and (max-height: 600px) {
+    /* Landscape on a phone: the Laps header and the title go, the map fills the screen. The search card is at the top left,
+       the speed and position panel at the bottom right, and the GPS row at the bottom left. */
+    body:has(#nav-body:not([hidden])) > header { display: none; }
+    .nav-body { inset: 0; }
+    .nav-dest { top: auto; bottom: 8px; left: auto; right: 8px; width: min(36vw, 340px); max-height: calc(100% - 16px); }
+    .nav-grid { top: 8px; left: 8px; right: auto; bottom: auto; width: min(32vw, 300px); grid-template-columns: 1fr 1fr; border-radius: 16px; }
+    .nav-grid > div:nth-child(n+4) { display: none; }
+    .nav-status { top: auto; left: 8px; right: auto; bottom: 80px; width: max-content; max-width: 52vw; }
+    .nav-source { top: auto; left: 8px; right: auto; bottom: 8px; }
+    /* The map buttons run down the right edge from the top: Light mode, the compass, the zoom, then the unit, and recentre sits above the sheet. */
+    .nav-theme { top: 8px; right: 8px; bottom: auto; }
+    .nav-compass { top: 50px; right: 8px; bottom: auto; width: 40px; height: 40px; }
+    .nav-compass svg { width: 24px; height: 24px; }
+    .nav-map-wrap:not(.is-driving) .recentre { top: 96px; bottom: auto; right: 8px; width: 40px; height: 40px; }
+    .nav-map-wrap:not(.is-driving) .leaflet-top.leaflet-left { top: 142px; right: 8px; }
+    .nav-map-wrap:not(.is-driving) .nav-unit-pill { top: 8px; bottom: auto; left: auto; right: 112px; }
+    /* The directions panel sits bottom left, under the search card; the GPS row steps aside while directions are open. */
+    #nav-route { left: 0; right: auto; width: min(36vw, 340px); max-height: 50%; }
+    /* The Start route button, in landscape: the same height as the route card's buttons, above that card on the right. It only
+       shows while the directions are open or folded. */
+    .nav-map-wrap > .nav-start { display: none; }
+    .nav-map-wrap:has(#nav-route:not([hidden])) > .nav-start { display: flex; position: absolute; right: 24px; bottom: 24px; z-index: 1003; width: min(26vw, 220px); height: 56px; min-height: 56px; align-items: center; justify-content: center; }
+    /* Once the route is worked out, Start route takes the place of the route card; the card comes back in portrait. */
+    body:has(#nav-route:not([hidden])) #nav-dest { display: none; }
+    .nav-map-wrap.is-driving > .nav-start { display: none; }
+    body:has(#nav-route:not([hidden])) .nav-status, body:has(#nav-route:not([hidden])) .nav-source { display: none; }
   }
 </style>
 </head>
@@ -793,6 +821,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=106" defer></script>
+<script src="js/navigate.js?v=107" defer></script>
 </body>
 </html>

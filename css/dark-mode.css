@@ -91,6 +91,9 @@ html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-status, html[d
 html[data-mode="dark"] .nav-pin-bar, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-search-panel, html[data-mode="dark"] .nav-search-results {
   background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
 }
+/* Search results and suggestions: dark boxes with light text (they were white with pale grey text, which could not be read). */
+html[data-mode="dark"] .nav-results button { background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
+html[data-mode="dark"] .nav-results button small { color: #b8c2d4 !important; }
 html[data-mode="dark"] .nav-route-handle span, html[data-mode="dark"] .nav-route-handle { background-color: #5b6475 !important; }
 html[data-mode="dark"] .nav-attrib, html[data-mode="dark"] .nav-drive-attrib, html[data-mode="dark"] .nav-step-dist, html[data-mode="dark"] .nav-route-len,
 html[data-mode="dark"] .nav-grid dt, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-source-text, html[data-mode="dark"] .nav-dest-label { color: #a3aec0 !important; }

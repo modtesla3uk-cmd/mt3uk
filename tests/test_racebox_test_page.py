@@ -428,11 +428,13 @@ def test_the_map_turns_so_the_car_goes_up_the_screen_unless_north_up_is_chosen(p
     page.evaluate("(b) => window.__rbEmit('data', { base64: b })", moving)
     page.wait_for_timeout(200)
     view = page.evaluate("window.MT3UKRaceBoxView()")
-    assert view["headingUp"] is True and abs(view["lastHeading"] - 45) < 0.01, view
+    # North up by default, as on Navigate: the map does not turn with the heading until the compass is tapped.
+    assert view["headingUp"] is False and abs(view["lastHeading"] - 45) < 0.01, view
     page.locator("#rbt-details-toggle").click()  # the compass sits in the readings, which fold by default
-    page.locator("#rbt-compass").click()
-    assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is False
     assert page.locator("#rbt-compass").get_attribute("aria-pressed") == "false"
+    page.locator("#rbt-compass").click()
+    assert page.evaluate("window.MT3UKRaceBoxView().headingUp") is True
+    assert page.locator("#rbt-compass").get_attribute("aria-pressed") == "true"
 
 
 def test_the_g_meter_dot_follows_the_trend_not_every_bump(page):

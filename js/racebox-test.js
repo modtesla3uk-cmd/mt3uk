@@ -1047,8 +1047,9 @@
     window.addEventListener('resize', fitBand);
     window.addEventListener('resize', function () { moveHeading(document.documentElement.classList.contains('rbt-full-on')); });
     $('rbt-rec-float').addEventListener('click', function () { $('rbt-record').click(); });
-    var northUp = false;
-    try { northUp = localStorage.getItem('mt3ukRaceBoxNorthUp') === '1'; } catch (e) { /* storage blocked: heading up */ }
+    // North up by default, as on Navigate. A member who has tapped the compass keeps the choice they made.
+    var northUp = true;
+    try { northUp = localStorage.getItem('mt3ukRaceBoxNorthUp') !== '0'; } catch (e) { /* storage blocked: north up */ }
     headingUp = !northUp;
     // The compass is the map's switch: tap it to change between heading up and north up.
     initModes();

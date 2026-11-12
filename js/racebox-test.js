@@ -714,10 +714,12 @@
   function placeDragControls(inDrag) {
     var home = document.getElementById('rbt-start-home'), sec = document.getElementById('rbt-timing');
     if (!home || !sec) return;
+    // In Drag run the mode line and the strip picker go into the left group of the timer (landscape centres it).
+    var left = document.getElementById('rbt-tm-left') || sec;
     ['rbt-mode-line', 'rbt-picker'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
-      if (inDrag) sec.appendChild(el);
+      if (inDrag) left.appendChild(el);
       else home.parentNode.insertBefore(el, home);
     });
   }

@@ -466,8 +466,8 @@
     </div>
     <section class="rbt-timing" id="rbt-timing" aria-label="Timing a drag run" hidden>
       <button type="button" class="rbt-tm-fs" id="rbt-tm-fs" aria-pressed="false" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-      <button type="button" class="rbt-tm-mode" id="rbt-tm-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
       <div class="rbt-tm-dial" id="rbt-tm-dial"></div>
+      <div class="rbt-tm-col rbt-tm-col-r">
       <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
       <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
       <div class="rbt-tm-sats"><span class="rbt-tm-bars" id="rbt-tm-bars" role="img" aria-label="GPS satellites"></span><span class="rbt-tm-text" id="rbt-tm-text">Waiting for a GPS fix</span></div>
@@ -475,6 +475,10 @@
         <div class="rbt-tm-head"><b id="rbt-tm-best"></b><button type="button" class="rbt-tm-clear" id="rbt-tm-clear" hidden>Clear</button></div>
         <p class="rbt-tm-none" id="rbt-tm-none">No runs yet. Stop, tap Time a run, then go.</p>
         <ol class="rbt-tm-list" id="rbt-tm-list"></ol>
+      </div>
+      <button type="button" class="rbt-tm-mode" id="rbt-tm-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
+      </div>
+      <div class="rbt-tm-col rbt-tm-col-l" id="rbt-tm-left">
       </div>
     </section>
     <p class="rbt-mode-line" id="rbt-mode-line" hidden></p>
@@ -597,6 +601,21 @@
   .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: 14px 16px 24px; width: auto; background: #ececec; overflow-y: auto; align-content: start; }
   .rbt-tm-full .rbt-tm-dial { width: min(400px, 92vw); }
   .rbt-tm-full .rbt-tm-fs { position: fixed; top: 12px; right: 12px; }
+  /* Side groups: they do not change the portrait layout. In landscape the dial sits in the middle of the screen, the left group
+     (the best run, the mode line and the strip picker) and the right group (speed, Time a run and the satellites) are each
+     centred vertically beside it. The picker scrolls if it is taller than the screen. */
+  .rbt-tm-col { display: contents; }
+  @media (orientation: landscape) and (max-height: 600px) {
+    .rbt-tm-full { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 16px; row-gap: 8px; align-items: start; align-content: stretch; min-height: calc(100vh - 20px); padding: 10px 16px; box-sizing: border-box; }
+    .rbt-tm-full .rbt-tm-dial { grid-column: 2; grid-row: 1 / span 12; position: sticky; top: 8px; align-self: start; justify-self: center; width: min(calc(100vh - 40px), 44vw); }
+    .rbt-tm-full .rbt-tm-col { display: flex; flex-direction: column; justify-content: safe center; align-items: stretch; align-self: stretch; gap: 8px; grid-row: 1 / span 12; min-width: 0; }
+    .rbt-tm-full .rbt-tm-col-l { grid-column: 1; }
+    .rbt-tm-full .rbt-tm-col-r { grid-column: 3; }
+    .rbt-tm-full .rbt-tm-speed { margin: 0; text-align: center; }
+    .rbt-tm-full .rbt-tm-col > * { width: 100%; }
+    .rbt-tm-full .rbt-tm-mode { position: static; align-self: center; }
+    .rbt-tm-full .rbt-picker { max-height: calc(100vh - 120px); overflow-y: auto; }
+  }
   /* The readings fold away with Details (outside full screen). */
   html:not(.rbt-full-on) .rbt-band.is-folded { display: none; }
   .rbt-details-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin: 8px 0; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.95rem/1 var(--font-body, sans-serif); cursor: pointer; }
@@ -788,7 +807,7 @@
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
 <script src="js/racebox-timing.js?v=11"></script>
-<script src="js/racebox-test.js?v=80"></script>
+<script src="js/racebox-test.js?v=81"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

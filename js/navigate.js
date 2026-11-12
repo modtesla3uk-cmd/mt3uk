@@ -66,6 +66,7 @@
     map.on('zoomstart', userMoved);
     L.tileLayer(MAP_BASE, { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
     el.classList.add('rbt-mono');
+    wrapBrowseTurn();
     trail = L.polyline([], { color: '#e4b64f', weight: 4 }).addTo(map);
     marker = L.marker([lat, lng], { icon: carIcon(), interactive: false, zIndexOffset: 1000 }).addTo(map);
     // The map fills its box however the box was shown or sized when the map was made (the RaceBox can give the first fix
@@ -73,11 +74,37 @@
     if (window.ResizeObserver) new ResizeObserver(function () { if (map) map.invalidateSize(); }).observe(el);
   }
 
+  // Browsing on a phone, the map can turn so the direction of travel points up (the compass on the map switches it to north
+  // up). Only the map's picture turns (its tiles, route and car), so the zoom and the other controls stay upright, as on the
+  // RaceBox page. A turned map cannot be dragged, so it is dragged only when it is north up.
+  var browseUp = true, turnWrap = null;
+  function wrapBrowseTurn() {
+    if (turnWrap || !map) return;
+    var pane = map.getPanes().mapPane;
+    turnWrap = document.createElement('div');
+    turnWrap.className = 'nav-turn-wrap';
+    turnWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
+    pane.parentNode.insertBefore(turnWrap, pane);
+    turnWrap.appendChild(pane);
+  }
+  function phoneBrowse() { return !!(window.matchMedia && window.matchMedia('(max-width: 780px)').matches); }
+  function setBrowseTurn() {
+    var up = !driving && browseUp && heading !== null && phoneBrowse();
+    if (map && !driving) { if (up) map.dragging.disable(); else map.dragging.enable(); }
+    if (turnWrap) turnWrap.style.transform = up ? 'rotate(' + (-heading) + 'deg)' : '';
+    var b = $('nav-compass'), needle = $('nav-compass-needle');
+    if (b) {
+      b.setAttribute('aria-pressed', browseUp ? 'true' : 'false');
+      b.setAttribute('aria-label', browseUp ? 'Map: direction of travel up. Tap for north up.' : 'Map: north up. Tap for direction of travel up.');
+    }
+    // The needle points to north on the screen: north is at -heading when the map is turned.
+    if (needle) needle.style.transform = 'rotate(' + (up ? -heading : 0) + 'deg)';
+  }
   // While driving the map turns so the direction of travel points up, and leans back like a sat-nav's 3D view.
   function applyRotation() {
     var el = $('nav-map');
     if (!el) return;
-    if (!driving) { el.style.transform = ''; return; }
+    if (!driving) { el.style.transform = ''; setBrowseTurn(); return; }
     // 3D only while following the phone. Once the member pans, turns or zooms, the map is flat (2D) until Recentre.
     var tilt = browsing ? 0 : DRIVE_TILT;
     var h = drawHeading !== null ? drawHeading : heading;
@@ -355,6 +382,7 @@
     if (!map || !routeD) return;
     driving = true;
     keepAwake(true);
+    setBrowseTurn();
     // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'flex';
@@ -589,7 +617,8 @@
         quietly(function () { map.panTo(here, { animate: false }); });
       }
     });
-    if (driving) { applyRotation(); updateDrive(); }
+    applyRotation();
+    if (driving) updateDrive();
   }
 
   function onError(err) {
@@ -786,6 +815,8 @@
     var st = $('nav-start'), ex = $('nav-exit');
     if (st) st.addEventListener('click', startDrive);
     if (ex) ex.addEventListener('click', stopDrive);
+    var comp = $('nav-compass');
+    if (comp) comp.addEventListener('click', function () { browseUp = !browseUp; setBrowseTurn(); });
     var rc = $('nav-recentre');
     if (rc) rc.addEventListener('click', function () {
       if (driving) return recentreDrive();

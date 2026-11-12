@@ -1598,3 +1598,19 @@ def test_the_screen_stays_on_while_driving_and_is_released_after(page):
     page.locator("#nav-exit").click()
     expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-driving"))
     assert page.evaluate("window.__released") == 1
+
+
+def test_the_compass_on_the_map_turns_the_map_to_the_direction_of_travel_and_back(page):
+    # Browsing on a phone, the map turns so the direction of travel points up; the compass on the map turns it back to north up.
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    expect(page.locator("#nav-compass")).to_be_visible()
+    expect(page.locator("#nav-compass")).to_have_attribute("aria-pressed", "true")
+    page.wait_for_function("() => { const t = document.querySelector('.nav-turn-wrap'); return t && t.style.transform === 'rotate(-90deg)'; }", timeout=10000)
+    page.locator("#nav-compass").click()
+    expect(page.locator("#nav-compass")).to_have_attribute("aria-pressed", "false")
+    page.wait_for_function("() => document.querySelector('.nav-turn-wrap').style.transform === ''", timeout=5000)

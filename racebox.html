@@ -434,7 +434,7 @@
     <div class="rbt-band is-folded" id="rbt-band-wrap">
     <dl class="rbt-grid">
       <div class="rbt-speed-tile"><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
-      <div class="rbt-heading-tile"><dt>Heading</dt><dd><button type="button" class="rbt-compass" id="rbt-compass" aria-pressed="false" aria-label="Map: north up. Tap for heading up."><svg viewBox="-6 -6 36 36" aria-hidden="true"><g id="rbt-ring"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="-1.2" text-anchor="middle" font-size="6.5" font-weight="700" fill="currentColor">N</text></g><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></button><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
+      <div class="rbt-heading-tile"><dt>Heading</dt><dd><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
       <div class="rbt-wide"><dt>Position</dt><dd><span id="rbt-street" class="rbt-street" hidden></span><span id="rbt-pos" class="rbt-pos">&ndash;</span></dd></div>
       <div><dt>GPS fix</dt><dd><span id="rbt-fix">&ndash;</span></dd></div>
       <div class="rbt-extra"><dt>Satellites</dt><dd><span id="rbt-sats">&ndash;</span></dd></div>
@@ -503,7 +503,7 @@
         <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
       </div>
     </div>
-<div class="rbt-map-frame"><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="recentre" id="rbt-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
+<div class="rbt-map-frame"><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="rbt-compass rbt-compass-map" id="rbt-compass" aria-pressed="true" aria-label="Map: heading up. Tap for north up."><svg viewBox="-6 -6 36 36" aria-hidden="true"><g id="rbt-ring"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="12" y="-1.2" text-anchor="middle" font-size="6.5" font-weight="700" fill="currentColor">N</text></g><path id="rbt-arrow" d="M12 3.5 L16.5 16 L12 13.5 L7.5 16 Z" fill="currentColor"/></svg></button><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="recentre" id="rbt-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
 <style>
@@ -553,6 +553,9 @@
   .rbt-map-wrap { position: relative; }
   /* The map and the buttons on it (Go full screen, recentre) share one box, so the buttons sit on the map and not over the saved drives above it. */
   .rbt-map-frame { position: relative; }
+  /* The compass on the map: tap it to switch between the direction of travel up and north up. */
+  .rbt-map-frame > .rbt-compass-map { display: flex; position: absolute; top: 62px; right: 10px; z-index: 1001; width: 46px; height: 46px; margin: 0; padding: 0; align-items: center; justify-content: center; border: 1px solid var(--hairline, #d8dbe2); border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .rbt-map-frame > .rbt-compass-map svg { width: 28px; height: 28px; }
   .rbt-fs-btn { position: absolute; top: 10px; right: 10px; z-index: 1001; min-height: 44px; background: #fff; }
   .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
   .rbt-prompt { margin: 0 0 10px; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
@@ -775,7 +778,7 @@
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
 <script src="js/racebox-timing.js?v=7"></script>
-<script src="js/racebox-test.js?v=78"></script>
+<script src="js/racebox-test.js?v=79"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

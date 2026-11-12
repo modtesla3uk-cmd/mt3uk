@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=14"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=16"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -601,6 +601,13 @@
   .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: 14px 16px 24px; width: auto; background: #ececec; overflow-y: auto; align-content: start; }
   .rbt-tm-full .rbt-tm-dial { width: min(400px, 92vw); }
   .rbt-tm-full .rbt-tm-fs { position: fixed; top: 12px; right: 12px; }
+  /* Portrait full screen: the speed, the GPS button and the satellites sit above the dial, which is in the middle of the screen. */
+  @media (orientation: portrait) {
+    .rbt-tm-full-on .rbt-tm-speed { order: -3; }
+    .rbt-tm-full-on .rbt-tm-go { order: -2; }
+    .rbt-tm-full-on .rbt-tm-sats { order: -1; }
+    .rbt-tm-full-on .rbt-tm-dial { margin: 16px auto; }
+  }
   /* Side groups: they do not change the portrait layout. In landscape the dial sits in the middle of the screen, the left group
      (the best run, the mode line and the strip picker) and the right group (speed, Time a run and the satellites) are each
      centred vertically beside it. The picker scrolls if it is taller than the screen. */

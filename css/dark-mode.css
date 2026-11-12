@@ -127,3 +127,7 @@ html[data-mode="dark"] .leaflet-control-attribution a { color: #9fd8f0 !importan
 html[data-mode="dark"] #nav-route-short, html[data-mode="dark"] .nav-route-head span, html[data-mode="dark"] .nav-route-head b { color: #c9d3e2 !important; }
 /* Driving: the Re-centre button is a labelled pill, black with white text in dark mode. */
 html[data-mode="dark"] .nav-map-wrap.is-driving #nav-recentre { background-color: #000000 !important; color: #ffffff !important; border-color: #5b6475 !important; }
+/* Prompts (what to do next) are amber in dark mode, so they stand out from the readings: RaceBox status and notes, and Navigate messages. */
+html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-rec-note, html[data-mode="dark"] .nav-route-msg { color: #f5b041 !important; }
+/* The RaceBox note about the Laps app was white with pale text: a dark box with light text, and the amber prompt colour on its lead. */
+html[data-mode="dark"] .rbt-phone-note { background: #111827 !important; color: #eef2f7 !important; border: 1px solid #5b6475; }

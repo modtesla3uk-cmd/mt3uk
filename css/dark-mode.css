@@ -1,0 +1,69 @@
+/*
+  Dark mode for the RaceBox and Navigate pages: a black page with near-black cards. Switched on by data-mode="dark" on <html>
+  (both pages set it). The colours are tokens for the pages that use them, and the rules below cover the parts drawn with
+  fixed colours, such as the map pictures and the drag run timer.
+*/
+:root[data-mode="dark"] {
+  color-scheme: dark;
+  --paper: #000000; --paper-2: #141414; --surface-card: #141414; --surface: #141414;
+  --ink: #eef2f7; --ink-2: #c9d3e2; --steel: #a3aec0; --ink-deep: #eef2f7;
+  --hairline: rgba(255,255,255,.14); --hairline-strong: rgba(255,255,255,.28);
+  --c-paper: #000000; --c-muted: #a3aec0; --c-link: #7fd1b5;
+  --btn-primary: #22705f; --btn-primary-text: #ffffff;
+  --btn-secondary: #141414; --btn-secondary-text: #eef2f7;
+  --btn-accent-text: #111111;
+  --card: #141414; --line: rgba(255,255,255,.14); --line-strong: rgba(255,255,255,.28); --white: #141414;
+}
+html[data-mode="dark"] body { background: #000000; color: #eef2f7; }
+html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #000000 !important; }
+html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .chip, html[data-mode="dark"] .field, html[data-mode="dark"] .card,
+html[data-mode="dark"] a.back-link { background-color: #141414; color: #eef2f7; border-color: rgba(255,255,255,.16); }
+html[data-mode="dark"] .btn-accent { color: #111111 !important; }
+html[data-mode="dark"] .nav-map .leaflet-tile-pane { filter: invert(.92) hue-rotate(180deg) brightness(.85) contrast(.95); }
+
+/* The RaceBox timer and the Navigate page. */
+html[data-mode="dark"] body, html[data-mode="dark"] .rbt-body, html[data-mode="dark"] .rbt-panel-wrap, html[data-mode="dark"] #rbt-timing,
+html[data-mode="dark"] .rbt-tm-full, html[data-mode="dark"] .nav-body, html[data-mode="dark"] .nav-wrap { background-color: #000000 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-speed b, html[data-mode="dark"] .rbt-mode-line, html[data-mode="dark"] .rbt-tm-speed { color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-speed span, html[data-mode="dark"] .rbt-tm-sats .rbt-tm-text, html[data-mode="dark"] .rbt-tm-none { color: #a3aec0 !important; }
+html[data-mode="dark"] .rbt-tm-go { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-go.is-go { background: #d9462b !important; color: #fff !important; }
+html[data-mode="dark"] .rbt-tm-go.is-busy { background: #1f2a40 !important; color: #7d8aa3 !important; }
+html[data-mode="dark"] .rbt-tm-runs, html[data-mode="dark"] .rbt-tm-none, html[data-mode="dark"] .rbt-tm-list li { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-fs svg, html[data-mode="dark"] .rbt-compass-map svg { color: #eef2f7; stroke: #eef2f7; }
+html[data-mode="dark"] .rbt-compass-map { background: #141414 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-sats { color: #a3aec0 !important; }
+html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-rate, html[data-mode="dark"] .rbt-rec-note, html[data-mode="dark"] .rbt-stage-msg { color: #c9d3e2 !important; }
+html[data-mode="dark"] .rbt-map-frame .leaflet-bar a, html[data-mode="dark"] .leaflet-bar a { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-map { background: #141414 !important; }
+html[data-mode="dark"] .rbt-map.leaflet-container { background: #141414 !important; }
+html[data-mode="dark"] .rbt-clear, html[data-mode="dark"] .rbt-fs-btn, html[data-mode="dark"] .rbt-menu-btn { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-drives-empty, html[data-mode="dark"] .rbt-drives-title { color: #c9d3e2 !important; }
+html[data-mode="dark"] .rbt-meter, html[data-mode="dark"] .rbt-grid > div { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-meter-title, html[data-mode="dark"] .rbt-meter-cap, html[data-mode="dark"] .rbt-grid dt { color: #a3aec0 !important; }
+html[data-mode="dark"] .rbt-m-face { fill: #141414; } html[data-mode="dark"] .rbt-m-ring { stroke: #5b6d8f; } html[data-mode="dark"] .rbt-m-cross { stroke: #3c4d6d; }
+html[data-mode="dark"] .nav-status { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-compass { background: #141414 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] #nav-compass-needle path:last-child { fill: #eef2f7 !important; }
+html[data-mode="dark"] .nav-source-toggle { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .nav-source-toggle[aria-pressed="true"] { background: #22705f !important; color: #fff !important; border-color: #22705f !important; }
+html[data-mode="dark"] .nav-source-text, html[data-mode="dark"] .nav-attrib, html[data-mode="dark"] .nav-route-msg { color: #c9d3e2 !important; }
+html[data-mode="dark"] .nav-toast { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-speed-tile, html[data-mode="dark"] .nav-heading-tile, html[data-mode="dark"] .nav-grid > div { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .nav-grid dt { color: #a3aec0 !important; }
+html[data-mode="dark"] .nav-route, html[data-mode="dark"] .nav-drive-bar { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-route-summary, html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-step { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .nav-start { background: #22705f !important; color: #fff !important; }
+html[data-mode="dark"] #rbt-tm-glabel rect { fill: #141414 !important; stroke: #5b6d8f !important; }
+html[data-mode="dark"] #rbt-tm-glabel text { fill: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-dial text { fill: #d5dce8 !important; }
+/* The Drag run card (the strip picker), and the light and dark button in the timer: they had white backgrounds. */
+html[data-mode="dark"] .rbt-picker { background: #141414 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .rbt-picker button, html[data-mode="dark"] .rbt-picker .chip, html[data-mode="dark"] .rbt-picker .field,
+html[data-mode="dark"] .rbt-picker input { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-picker .chip.is-on { background: #22705f !important; color: #ffffff !important; border-color: #22705f !important; }
+html[data-mode="dark"] .rbt-picker-now, html[data-mode="dark"] .rbt-picker small { color: #a3aec0 !important; }
+html[data-mode="dark"] .rbt-picker-title, html[data-mode="dark"] .rbt-picker-search span { color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-mode { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }

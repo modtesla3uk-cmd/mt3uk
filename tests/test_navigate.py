@@ -1614,3 +1614,18 @@ def test_the_compass_on_the_map_turns_the_map_to_the_direction_of_travel_and_bac
     page.locator("#nav-compass").click()
     expect(page.locator("#nav-compass")).to_have_attribute("aria-pressed", "false")
     page.wait_for_function("() => document.querySelector('.nav-turn-wrap').style.transform === ''", timeout=5000)
+
+
+def test_the_navigate_page_is_dark_black_and_the_toggle_switches_to_light_and_keeps_it(page):
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+    expect(page.locator("#nav-mode-toggle")).to_be_visible()
+    page.locator("#nav-mode-toggle").click()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
+    page.reload()
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=1"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -419,6 +419,7 @@
     <p class="rbt-phone-note" id="rbt-phone-note" hidden>To connect a RaceBox and get its GPS, open this page on your phone in the Laps app. On a computer you can look around the page, but nothing comes from a RaceBox.</p>
     <div class="rbt-flyout" id="rbt-flyout">
     <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
+    <button type="button" class="btn btn-secondary rbt-mode-toggle" id="rbt-mode-toggle" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
@@ -465,6 +466,7 @@
     </div>
     <section class="rbt-timing" id="rbt-timing" aria-label="Timing a drag run" hidden>
       <button type="button" class="rbt-tm-fs" id="rbt-tm-fs" aria-pressed="false" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button type="button" class="rbt-tm-mode" id="rbt-tm-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
       <div class="rbt-tm-dial" id="rbt-tm-dial"></div>
       <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
       <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
@@ -587,6 +589,8 @@
   .rbt-tm-dial { width: min(340px, 92vw); }
   .rbt-timing { position: relative; }
   .rbt-tm-fs { position: absolute; top: 4px; right: 0; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; padding: 0; cursor: pointer; }
+  .rbt-tm-mode { position: absolute; top: 4px; left: 0; z-index: 2; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.85rem/1 var(--font-body, sans-serif); cursor: pointer; }
+  .rbt-tm-full .rbt-tm-mode { position: fixed; top: 12px; left: 12px; }
   .rbt-tm-fs svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   /* Full screen: the Drag run timing fills the screen, with its full-screen button to come back. */
   html.rbt-tm-full-on { overflow: hidden; }

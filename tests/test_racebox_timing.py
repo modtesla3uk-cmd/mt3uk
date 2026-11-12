@@ -259,3 +259,21 @@ def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once
     expect(page.locator("#rbt-tm-list li")).to_have_count(1)
     expect(page.locator("#rbt-tm-list li .rbt-tm-no").first).not_to_contain_text("(drive)")
 
+
+
+def test_the_racebox_page_is_dark_black_and_the_toggle_switches_to_light_and_keeps_it(page):
+    page.goto("/racebox.html")
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+    expect(page.locator("#rbt-mode-toggle")).to_have_text("Light mode")
+    page.locator("#rbt-mode-toggle").click()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") != "rgb(0, 0, 0)"
+    expect(page.locator("#rbt-mode-toggle")).to_have_text("Dark mode")
+    # In Drag run the timer covers the page, so its own button switches the mode too.
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-tm-mode")).to_be_visible()
+    page.locator("#rbt-tm-mode").click()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "dark"
+    page.locator("#rbt-tm-mode").click()
+    page.reload()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"

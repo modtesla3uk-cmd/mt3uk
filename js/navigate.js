@@ -1703,14 +1703,35 @@
 (function () {
   var grid = document.querySelector('.nav-grid'), route = document.getElementById('nav-route');
   if (!grid) return;
+  // The part of a sheet that is on the screen: a folded route panel is moved down with a transform, so its full height
+  // would wrongly lift the controls.
+  function shown(el) {
+    if (!el) return 0;
+    var r = el.getBoundingClientRect();
+    if (!r.height) return 0;
+    return Math.max(0, Math.min(r.height, window.innerHeight - r.top));
+  }
   function fit() {
-    var h = Math.max(grid.offsetHeight, route ? route.offsetHeight : 0);
-    document.documentElement.style.setProperty('--sheet', h + 'px');
+    var h = Math.max(shown(grid), shown(route));
+    document.documentElement.style.setProperty('--sheet', Math.round(h) + 'px');
   }
   if (window.ResizeObserver) {
     var ro = new ResizeObserver(fit);
     ro.observe(grid);
     if (route) ro.observe(route);
+  }
+  // The panel moves for a moment after it changes (it flies up, or folds), so the height is read on each frame until it settles.
+  function settle() {
+    var t0 = Date.now();
+    (function tick() {
+      fit();
+      if (Date.now() - t0 < 700 && window.requestAnimationFrame) requestAnimationFrame(tick);
+    })();
+  }
+  if (route && window.MutationObserver) {
+    new MutationObserver(settle).observe(route, { attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    route.addEventListener('transitionend', settle);
+    route.addEventListener('animationend', settle);
   }
   window.addEventListener('resize', fit);
   fit();

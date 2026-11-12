@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=13"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=14"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -624,6 +624,23 @@
     .nav-map-wrap.is-driving .nav-drive-info { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
     .nav-map-wrap.is-driving .nav-drive-info b { display: inline; font-size: 1.35rem; }
     /* Driving in landscape: the speed sits in the top right corner, with the speaker and Recentre stacked beneath it. */
+    /* Landscape: the directions panel runs the full height on the left, so the list shows and scrolls inside it. */
+    .nav-map-wrap.is-driving.dirs-open { --dirs-w: min(32vw, 300px); }
+    .nav-map-wrap.is-driving.dirs-open #nav-route { top: 8px; bottom: 8px; left: 8px; max-height: none; width: var(--dirs-w); }
+    .nav-map-wrap.is-driving.dirs-open #nav-route .nav-route-summary b { font-size: 1.15rem; }
+    .nav-map-wrap.is-driving.dirs-open #nav-route .nav-route-head b { font-size: 1rem; }
+    .nav-map-wrap.is-driving.dirs-open #nav-route .nav-step-line b { font-size: .9rem; }
+    .nav-map-wrap.is-driving.dirs-open #nav-route .nav-step-icon { width: 26px; height: 26px; }
+    .nav-map-wrap.is-driving.dirs-open #nav-route .nav-step-info small { font-size: .8rem; }
+    .nav-map-wrap.is-driving.dirs-open .nav-turn { left: calc(var(--dirs-w) + 24px); right: 12px; width: auto; transform: translateZ(0); }
+    /* Landscape with the directions open: the drive bar stays, to the right of the panel, so End navigation is still there. */
+    .nav-map-wrap.is-driving.dirs-open .nav-drive-bar { display: flex; left: calc(var(--dirs-w) + 24px); right: 12px; width: auto; transform: translateZ(0); }
+    /* Landscape driving: the drive bar is one compact row, so it covers less of the map. */
+    .nav-map-wrap.is-driving .nav-drive-bar { flex-direction: row; align-items: center; gap: 10px; padding: 6px 10px; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-handle, .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-attrib { display: none; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-top { flex: 1 1 auto; min-width: 0; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-actions { flex: none; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-info b { font-size: 1.2rem; }
     .nav-map-wrap.is-driving .nav-speed-bubble { left: auto; right: 12px; top: 12px; bottom: auto; }
     .nav-map-wrap.is-driving #nav-voice { top: calc(50% - 22px) !important; bottom: auto !important; right: 12px !important; }
     .nav-map-wrap.is-driving #nav-recentre { top: auto; bottom: 12px; right: 12px; }
@@ -850,6 +867,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=110" defer></script>
+<script src="js/navigate.js?v=112" defer></script>
 </body>
 </html>

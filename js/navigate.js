@@ -108,7 +108,9 @@
     // 3D only while following the phone. Once the member pans, turns or zooms, the map is flat (2D) until Recentre.
     var tilt = browsing ? 0 : DRIVE_TILT;
     var h = drawHeading !== null ? drawHeading : heading;
-    var turn = browsing ? viewTurn : (h !== null ? -h : 0);
+    // In portrait the map stays north up while driving, so the names read upright; the car arrow still points the way you are going.
+    var portrait = window.matchMedia && window.matchMedia('(orientation: portrait)').matches;
+    var turn = browsing ? viewTurn : (portrait ? 0 : (h !== null ? -h : 0));
     // The car sits lower on the screen in 3D, as in Google's view, so more of the road ahead shows.
     var lift = Math.round(window.innerHeight * 0.2 * (tilt / DRIVE_TILT));
     el.style.transform = 'translateY(' + lift + 'px) perspective(2600px) rotateX(' + tilt + 'deg) rotate(' + turn + 'deg)';

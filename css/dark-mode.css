@@ -67,3 +67,18 @@ html[data-mode="dark"] .rbt-picker-now, html[data-mode="dark"] .rbt-picker small
 html[data-mode="dark"] .rbt-picker-title, html[data-mode="dark"] .rbt-picker-search span { color: #eef2f7 !important; }
 html[data-mode="dark"] .rbt-tm-mode { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+/* No white in dark mode: black surfaces with a grey outline on the buttons, switches, cards and map buttons. */
+html[data-mode="dark"] .rbt-switch, html[data-mode="dark"] .rbt-details-toggle, html[data-mode="dark"] .rbt-drives,
+html[data-mode="dark"] .rbt-drives-list > li, html[data-mode="dark"] .rbt-view, html[data-mode="dark"] .rbt-picker,
+html[data-mode="dark"] .rbt-band, html[data-mode="dark"] .rbt-meter, html[data-mode="dark"] .rbt-grid > div,
+html[data-mode="dark"] .rbt-tm-bars, html[data-mode="dark"] .rbt-tm-go, html[data-mode="dark"] .rbt-tm-mode,
+html[data-mode="dark"] .rbt-tm-fs, html[data-mode="dark"] .rbt-tm-clear, html[data-mode="dark"] .rbt-fs-btn,
+html[data-mode="dark"] .rbt-clear, html[data-mode="dark"] .rbt-zero, html[data-mode="dark"] .rbt-mode-toggle,
+html[data-mode="dark"] .rbt-compass-map, html[data-mode="dark"] .rbt-rec-float, html[data-mode="dark"] .rbt-menu-btn,
+html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .btn-danger, html[data-mode="dark"] .rbt-del,
+html[data-mode="dark"] .nav-stop, html[data-mode="dark"] .nav-add-stop, html[data-mode="dark"] .nav-mic, html[data-mode="dark"] .nav-unit-pill,
+html[data-mode="dark"] .recentre, html[data-mode="dark"] .nav-theme, html[data-mode="dark"] .nav-compass, html[data-mode="dark"] .nav-source-toggle {
+  background-color: #000000 !important; color: #eef2f7 !important; border: 1px solid #5b6475 !important;
+}
+html[data-mode="dark"] .leaflet-control-attribution { background: rgba(0,0,0,.7) !important; color: #c9d3e2 !important; }
+html[data-mode="dark"] .rbt-track { background-color: #3c4658 !important; }

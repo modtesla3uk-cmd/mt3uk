@@ -408,6 +408,9 @@
   function stopDrive() {
     driving = false;
     keepAwake(false);
+    // Take the driving classes off first, so the directions fold in the normal layout and not the drive one.
+    var wrapOff = document.querySelector('.nav-map-wrap');
+    if (wrapOff) wrapOff.classList.remove('is-driving', 'runs-open', 'dirs-open', 'is-browsing');
     // Ending the navigation folds the directions back to the drive summary, as they start.
     setRouteFolded(true);
     if (frame) cancelAnimationFrame(frame);
@@ -651,7 +654,7 @@
 
   // Distances follow the speed unit: miles (yards under a tenth of a mile) with mph, metres and km with km/h.
   var routeD = null;
-  var driving = false, heading = null, DRIVE_TILT = 60;
+  var driving = false, heading = null, DRIVE_TILT = 45;
   // Browsing: while driving, a press-and-drag or a pinch takes the map off the phone and flat, until Recentre.
   var browsing = false, programmatic = false, viewTurn = 0, touches = {}, gesture = null;
   function quietly(fn) { programmatic = true; try { fn(); } finally { programmatic = false; } }

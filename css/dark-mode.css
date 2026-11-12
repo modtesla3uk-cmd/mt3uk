@@ -91,10 +91,25 @@ html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-status, html[d
 html[data-mode="dark"] .nav-pin-bar, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-search-panel, html[data-mode="dark"] .nav-search-results {
   background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
 }
+/* The arrival time and the distance to go are white on the dark drive panel (the green and grey were hard to read). */
+html[data-mode="dark"] .nav-drive-info b, html[data-mode="dark"] .nav-drive-info span { color: #ffffff !important; }
+/* The map area had a light grey background above the map, which showed as a grey edge round the top card: black in dark mode. */
+html[data-mode="dark"] .nav-map-wrap { background-color: #000000 !important; }
+/* The turn card's drop shadow showed as a grey edge on the dark map: no shadow in dark mode. */
+html[data-mode="dark"] .nav-map-wrap.is-driving .nav-turn { box-shadow: none !important; }
+/* The drive bar was flat black, which was harsh over the map: a dark slate with a soft outline instead. */
+html[data-mode="dark"] .nav-map-wrap.is-driving .nav-drive-bar { background-color: rgba(30, 37, 51, 0.82) !important; border-color: #3a4456 !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* The Directions button on the drive bar was white with light text in dark mode. */
+html[data-mode="dark"] .nav-dirs-btn { background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 /* Search results and suggestions: dark boxes with light text (they were white with pale grey text, which could not be read). */
 html[data-mode="dark"] .nav-results button { background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 html[data-mode="dark"] .nav-results button small { color: #b8c2d4 !important; }
-html[data-mode="dark"] .nav-route-handle span, html[data-mode="dark"] .nav-route-handle { background-color: #5b6475 !important; }
+/* The directions rows had curved grey edges that read as boxes: plain rows with a faint separator line instead. */
+html[data-mode="dark"] .nav-step, html[data-mode="dark"] .nav-steps li { border-radius: 0 !important; border-top: 1px solid #262e3d !important; }
+/* The turn arrows in the directions list were navy, which could not be seen on black. */
+html[data-mode="dark"] .nav-step-icon { color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-route-handle span { background-color: #5b6475 !important; }
+html[data-mode="dark"] .nav-route-handle { background-color: transparent !important; }
 html[data-mode="dark"] .nav-attrib, html[data-mode="dark"] .nav-drive-attrib, html[data-mode="dark"] .nav-step-dist, html[data-mode="dark"] .nav-route-len,
 html[data-mode="dark"] .nav-grid dt, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-source-text, html[data-mode="dark"] .nav-dest-label { color: #a3aec0 !important; }
 html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-step-text, html[data-mode="dark"] .nav-step-main { color: #eef2f7 !important; }

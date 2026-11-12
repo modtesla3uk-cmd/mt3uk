@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=3"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=12"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -498,6 +498,8 @@
   /* Their own layers, so the tilted map cannot paint over them. */
   .nav-map-wrap.is-driving .nav-turn, .nav-map-wrap.is-driving .nav-drive-bar { transform: translateZ(0); }
   .nav-map-wrap.is-driving .nav-drive-bar { display: flex; position: absolute; left: 0; right: 0; bottom: 0; z-index: 1005; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px 18px; border-radius: 16px 16px 0 0; background: #fff; box-shadow: 0 -4px 18px rgba(0,0,0,.2); }
+  .nav-map-wrap.is-driving .nav-drive-info { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+  .nav-map-wrap.is-driving .nav-drive-info b { display: inline; }
   .nav-drive-attrib { display: none; margin: 0; font-size: 0.7rem; color: #5b6475; text-align: center; }
   .nav-map-wrap.is-driving .nav-drive-attrib { display: block; }
   .nav-drive-attrib a { color: inherit; }
@@ -527,11 +529,12 @@
   .nav-drive-handle { width: 100%; min-height: 26px; margin: -6px 0 -4px; padding: 0; border: 0; background: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; touch-action: none; }
   .nav-drive-handle span { display: block; width: 44px; height: 5px; border-radius: 3px; background: #c5ccd6; }
   .nav-route-summary { position: relative; padding: 0 16px 8px; display: grid; gap: 2px; flex: none; }
-  .nav-route-head { display: none; padding: 0 16px 12px; align-items: baseline; gap: 10px; min-width: 0; }
-  .nav-route-head b { font-size: 1rem; }
-  .nav-route-head span { color: #5b6475; font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-route-head { display: flex; padding: 0 16px 12px; align-items: baseline; gap: 10px; min-width: 0; }
+  .nav-route-head b { font-size: 1.2rem; }
+  .nav-route-head span { color: #5b6475; font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nav-route.is-collapsed .nav-route-head { display: flex; }
-  .nav-route-summary b { font-size: 1.25rem; }
+  .nav-route:not(.is-collapsed) .nav-route-head span { display: none; }
+  .nav-route-summary b { font-size: 1.6rem; }
   .nav-route-summary span { color: #5b6475; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nav-route-body { padding: 0 16px 16px; overflow-y: auto; min-height: 0; }
   /* Folded, the trip and Start route stay showing at the bottom; only the directions are hidden. */
@@ -576,7 +579,9 @@
     .nav-body .nav-wrap > * { position: fixed; z-index: 1004; margin: 0; }
     .nav-status { top: auto; bottom: calc(var(--sheet, 230px) + 92px + var(--stack, 0px)); left: 12px; right: 12px; font-size: 0.85rem; margin: 0; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.94); box-shadow: 0 2px 8px rgba(0,0,0,.18); display: inline-block; width: max-content; max-width: calc(100% - 24px); }
     .nav-source { top: auto; bottom: calc(var(--sheet, 230px) + 12px + var(--stack, 0px)); left: 12px; right: auto; width: max-content; max-width: 62%; }
-    .nav-dest { top: 88px; left: 12px; right: 12px; background: #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.22); max-height: calc(100% - 24px); overflow-y: auto; }
+    .nav-dest { top: 88px; left: 12px; right: 12px; background: #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.22); max-height: calc(100% - 24px); display: flex; flex-direction: column; overflow: hidden; }
+    .nav-dest > * { flex: none; }
+    .nav-dest > .nav-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
     .nav-dest-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .nav-attrib { font-size: 0.72rem; margin: 6px 0 0; }
     .nav-grid { left: 0; right: 0; bottom: 0; top: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px 14px 16px; background: #fff; border-radius: 18px 18px 0 0; box-shadow: 0 -4px 18px rgba(0,0,0,.2); }
@@ -599,6 +604,27 @@
     .nav-map-wrap:not(.is-driving).has-route .recentre { bottom: calc(var(--sheet, 230px) + 12px + var(--stack, 0px)); }
   }
   @media (orientation: landscape) and (max-height: 600px) {
+    /* Driving in landscape: the drive bar is a side panel on the left, so the map stays visible beside it. */
+    /* Driving in landscape: the drive bar is a compact strip at the bottom centre, the width of the turn card above it. */
+    .nav-map-wrap.is-driving .nav-drive-bar { left: 50%; right: auto; bottom: 8px; width: min(56vw, 520px); max-height: calc(100% - 16px); overflow-y: auto; border-radius: 16px; padding: 4px 12px 8px; gap: 6px; transform: translateX(-50%) translateZ(0); }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-handle { height: 14px; min-height: 0; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-end { white-space: nowrap; }
+    .nav-map-wrap.is-driving .nav-drive-bar .nav-drive-attrib { display: none; }
+    /* The turn card does not need the full width in landscape: it sits centred at the top, clear of the speaker and Recentre. */
+    .nav-map-wrap.is-driving .nav-turn { left: 50%; right: auto; width: min(56vw, 520px); transform: translateX(-50%) translateZ(0); padding: 8px 12px; gap: 10px; }
+    .nav-map-wrap.is-driving .nav-turn-arrow { width: 28px; height: 28px; }
+    .nav-map-wrap.is-driving .nav-turn.is-near .nav-turn-arrow { width: 40px; height: 40px; }
+    .nav-map-wrap.is-driving .nav-turn b { font-size: .95rem; }
+    .nav-map-wrap.is-driving .nav-turn.is-near b { font-size: 1.25rem; }
+    .nav-map-wrap.is-driving .nav-turn span { font-size: .8rem; }
+    .nav-map-wrap.is-driving .nav-turn.is-near span { font-size: .95rem; }
+    .nav-map-wrap.is-driving .nav-drive-info { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+    .nav-map-wrap.is-driving .nav-drive-info b { display: inline; font-size: 1.35rem; }
+    /* Driving in landscape: the speed sits in the top right corner, with the speaker and Recentre stacked beneath it. */
+    .nav-map-wrap.is-driving .nav-speed-bubble { left: auto; right: 12px; top: 12px; bottom: auto; }
+    .nav-map-wrap.is-driving #nav-voice { top: calc(50% - 22px) !important; bottom: auto !important; right: 12px !important; }
+    .nav-map-wrap.is-driving #nav-recentre { top: auto; bottom: 12px; right: 12px; }
+    .nav-map-wrap.is-driving .nav-drive-info span { font-size: .9rem; }
     /* Landscape on a phone: the Laps header and the title go, the map fills the screen. The search card is at the top left,
        the speed and position panel at the bottom right, and the GPS row at the bottom left. */
     body:has(#nav-body:not([hidden])) > header { display: none; }
@@ -623,7 +649,7 @@
     .nav-map-wrap:has(#nav-route:not([hidden])) > .nav-start { display: flex; position: absolute; right: 24px; bottom: 24px; z-index: 1003; width: min(26vw, 220px); height: 56px; min-height: 56px; align-items: center; justify-content: center; }
     /* Once the route is worked out, Start route takes the place of the route card; the card comes back in portrait. */
     body:has(#nav-route:not([hidden])) #nav-dest { display: none; }
-    .nav-map-wrap.is-driving > .nav-start { display: none; }
+    .nav-map-wrap.is-driving > .nav-start, .nav-map-wrap.is-driving > .nav-start[hidden] { display: none !important; }
     body:has(#nav-route:not([hidden])) .nav-status, body:has(#nav-route:not([hidden])) .nav-source { display: none; }
   }
 </style>
@@ -821,6 +847,6 @@
 </script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
-<script src="js/navigate.js?v=108" defer></script>
+<script src="js/navigate.js?v=110" defer></script>
 </body>
 </html>

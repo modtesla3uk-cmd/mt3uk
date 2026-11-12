@@ -1544,7 +1544,7 @@ def test_two_fingers_turn_the_map_flat_and_recentre_brings_back_3d(page):
     page.locator("#nav-recentre").click()
     expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-browsing"))
     # Recentre brings back the 3D view, facing the direction of travel.
-    page.wait_for_function("() => /rotateX\\(60deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
+    page.wait_for_function("() => /rotateX\\(45deg\\)/.test(document.getElementById('nav-map').style.transform)", timeout=5000)
     expect(page.locator("#nav-exit")).to_have_text("End navigation")
     page.locator("#nav-exit").click()
 

@@ -42,7 +42,12 @@
   // if the app is not connected, the page is told it is disconnected because Bluetooth is off.
   var BUSY_STATES = { scanning: true, connecting: true, discovering: true, retrying: true };
   var busyTimer = null;
-  function busyWaitMs() { return window.MT3UK_BUSY_MS || 25000; }
+  // Connecting with no news for a few seconds is the sign that Bluetooth may be off, so that is checked sooner.
+  // A search (scanning, discovering, retrying) still gets longer, as the RaceBox can take a while to be found.
+  function busyWaitMs(state) {
+    if (window.MT3UK_BUSY_MS) return window.MT3UK_BUSY_MS;
+    return state === 'connecting' ? 3000 : 25000;
+  }
   function watchBusy(ev) {
     clearTimeout(busyTimer);
     busyTimer = null;
@@ -53,7 +58,7 @@
       if (!plugin) return off();
       Promise.resolve().then(function () { return plugin.status(); })
         .then(function (r) { if (!(r && r.connected)) off(); }, off);
-    }, busyWaitMs());
+    }, busyWaitMs(ev.state));
   }
 
   // Connects the plugin's events to the listeners, once.

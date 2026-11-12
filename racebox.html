@@ -601,12 +601,12 @@
   .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: 14px 16px 24px; width: auto; background: #ececec; overflow-y: auto; align-content: start; }
   .rbt-tm-full .rbt-tm-dial { width: min(400px, 92vw); }
   .rbt-tm-full .rbt-tm-fs { position: fixed; top: 12px; right: 12px; }
-  /* Portrait full screen: the speed, the GPS button and the satellites sit above the dial, which is in the middle of the screen. */
+  /* Portrait, in and out of full screen: the speed, the GPS button and the satellites sit above the speedometer. */
   @media (orientation: portrait) {
-    .rbt-tm-full-on .rbt-tm-speed { order: -3; }
-    .rbt-tm-full-on .rbt-tm-go { order: -2; }
-    .rbt-tm-full-on .rbt-tm-sats { order: -1; }
-    .rbt-tm-full-on .rbt-tm-dial { margin: 16px auto; }
+    .rbt-timing .rbt-tm-speed { order: -3; }
+    .rbt-timing .rbt-tm-go { order: -2; }
+    .rbt-timing .rbt-tm-sats { order: -1; }
+    .rbt-timing .rbt-tm-dial { margin: 16px auto; }
   }
   /* Side groups: they do not change the portrait layout. In landscape the dial sits in the middle of the screen, the left group
      (the best run, the mode line and the strip picker) and the right group (speed, Time a run and the satellites) are each
@@ -640,6 +640,8 @@
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
   .rbt-tm-go { min-width: 200px; min-height: 56px; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 1.35rem/1.2 var(--font-body, sans-serif); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
+  /* The Go button under the speedometer (Connect to RaceBox, Time a run) is smaller, so the dial and the readings have room. */
+  .rbt-tm-go { font-size: 1.05rem; min-height: 48px; min-width: 0; padding: 8px 18px; }
   /* In full screen the Connect to RaceBox (Go) button is smaller, so the dial has more room. */
   .rbt-tm-full-on .rbt-tm-go { font-size: 1.05rem; min-height: 46px; min-width: 0; padding: 6px 18px; }
   .rbt-tm-go.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
@@ -815,7 +817,7 @@
 <script src="js/layout-edit.js?v=11"></script>
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
-<script src="js/racebox-app.js?v=4"></script>
+<script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=4"></script>
 <script src="js/racebox-timing.js?v=14"></script>
 <script src="js/racebox-test.js?v=82"></script>

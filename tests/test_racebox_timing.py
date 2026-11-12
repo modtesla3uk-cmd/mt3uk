@@ -140,7 +140,8 @@ def test_the_saved_runs_can_be_cleared(page):
 
 def test_the_dial_has_its_speed_numbers_and_the_g_meter_labels(page):
     _open_drag(page)
-    expect(page.locator("#rbt-tm-dial text").filter(has_text="140")).to_have_count(1)
+    # 140 mph on the outside, and 140 km/h inside it (the km/h scale has its own numbers).
+    expect(page.locator("#rbt-tm-dial text").filter(has_text="140")).to_have_count(2)
     expect(page.locator("#rbt-tm-dial text").filter(has_text="1.0g")).to_have_count(1)
     expect(page.locator("#rbt-tm-dial text").filter(has_text="G Forces")).to_have_count(1)
 
@@ -277,3 +278,34 @@ def test_the_racebox_page_is_dark_black_and_the_toggle_switches_to_light_and_kee
     page.locator("#rbt-tm-mode").click()
     page.reload()
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
+
+
+def test_the_dial_pulses_three_times_when_the_gps_fix_comes_in(page):
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    _emit(page, live(fix=False, sats=4))
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-timing")).to_be_visible(timeout=10000)
+    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-pulse')")
+    _emit(page, live(speed_ms=0.0))
+    expect(page.locator("#rbt-tm-dial")).to_have_class(__import__("re").compile("rbt-tm-pulse"), timeout=5000)
+    # Three pulses of 0.8 seconds, then the dial is still again.
+    page.wait_for_timeout(3000)
+    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-pulse')")
+    # Further readings with the fix do not pulse it again.
+    _emit(page, live(speed_ms=0.0, at_ms=500))
+    page.wait_for_timeout(200)
+    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-pulse')")
+
+
+def test_the_dial_glows_red_while_the_car_is_moving(page):
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
+    _emit(page, live(speed_ms=0.0))
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-timing")).to_be_visible(timeout=10000)
+    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-moving')")
+    _emit(page, live(speed_ms=12.0, at_ms=500))
+    expect(page.locator("#rbt-tm-dial")).to_have_class(__import__("re").compile("rbt-tm-moving"), timeout=5000)
+    _emit(page, live(speed_ms=0.0, at_ms=1000))
+    expect(page.locator("#rbt-tm-dial")).not_to_have_class(__import__("re").compile("rbt-tm-moving"), timeout=5000)

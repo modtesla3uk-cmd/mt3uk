@@ -52,6 +52,23 @@
         t.textContent = String(m);
       }
     }
+    // The same needle reads km/h on the inside, with the same increments as the mph scale: a tick every 5 km/h, a medium
+    // one every 10, and a long one with its number every 20.
+    var KPH_FULL = MAX_MPH * 1.60934;
+    var kphTicks = svgEl('g', { stroke: '#6b7790', 'stroke-linecap': 'round' }, s);
+    var kphLabels = svgEl('g', { fill: '#6b7790', 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle' }, s);
+    for (var k = 0; k <= KPH_FULL; k += 5) {
+      var ka = (-135 + 270 * k / KPH_FULL) * Math.PI / 180, kmajor = k % 20 === 0, kmed = k % 10 === 0;
+      var kr1 = kmajor ? 84 : kmed ? 86 : 87;
+      svgEl('line', { x1: 150 + Math.sin(ka) * kr1, y1: 150 - Math.cos(ka) * kr1, x2: 150 + Math.sin(ka) * 90, y2: 150 - Math.cos(ka) * 90, 'stroke-width': kmajor ? 1.6 : kmed ? 1.2 : 0.8 }, kphTicks);
+      if (kmajor) {
+        // Each number sits clear of the G ring (radius 70), outside it, between the rings.
+        var kt = svgEl('text', { x: 150 + Math.sin(ka) * 77, y: 150 - Math.cos(ka) * 77 + 3 }, kphLabels);
+        kt.textContent = String(k);
+      }
+    }
+    var unitT = svgEl('text', { x: 150, y: 62, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#6b7790' }, s);
+    unitT.textContent = 'km/h';
     svgEl('circle', { cx: 150, cy: 150, r: 70, fill: 'none', stroke: '#5b6475', 'stroke-width': 2 }, s);
     svgEl('circle', { cx: 150, cy: 150, r: 47, fill: 'none', stroke: '#9aa1ad', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, s);
     svgEl('circle', { cx: 150, cy: 150, r: 23, fill: 'none', stroke: '#9aa1ad', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, s);
@@ -63,8 +80,8 @@
     svgEl('text', { x: 222, y: 145 }, g).textContent = '1.5g';
     svgEl('line', { id: 'rbt-tm-needle', x1: 150, y1: 150, x2: 150, y2: 44, stroke: '#e8542a', 'stroke-width': 5, 'stroke-linecap': 'round' }, s);
     var lab = svgEl('g', { id: 'rbt-tm-glabel' }, s);
-    svgEl('rect', { x: 100, y: 236, width: 100, height: 26, rx: 3, fill: '#ececec', stroke: '#5b6475', 'stroke-width': 1.5 }, lab);
-    var words = svgEl('text', { x: 150, y: 255, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: '#5b6475' }, lab);
+    // The G Forces label, straight, under the inner G rings.
+    var words = svgEl('text', { x: 150, y: 236, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#5b6475', 'letter-spacing': 0.6 }, lab);
     words.textContent = 'G Forces';
     svgEl('circle', { id: 'rbt-tm-gdot', cx: 150, cy: 150, r: 9, fill: '#b3261e' }, s);
   }
@@ -72,6 +89,9 @@
   // The needle and the speed; the dot is the G forces, zeroed while the car is still.
   function drawDial(speedMs, g) {
     var mphNow = (speedMs || 0) * 2.23694;
+    // The dial glows red while the car is moving.
+    var dialHost = $('rbt-tm-dial');
+    if (dialHost) dialHost.classList.toggle('rbt-tm-moving', mphNow >= STOP_MPH);
     var frac = Math.max(0, Math.min(1, mphNow / MAX_MPH));
     var needle = $('rbt-tm-needle');
     if (needle) needle.setAttribute('transform', 'rotate(' + (-135 + 270 * frac) + ' 150 150)');
@@ -261,6 +281,18 @@
     }
   }
 
+  // The dial pulses three times when the RaceBox first gets a GPS fix, so the member can see it has one.
+  var pulseTimer = null;
+  function pulseDial() {
+    var host = $('rbt-tm-dial');
+    if (!host) return;
+    host.classList.remove('rbt-tm-pulse');
+    void host.offsetWidth; // restart the animation
+    host.classList.add('rbt-tm-pulse');
+    clearTimeout(pulseTimer);
+    pulseTimer = setTimeout(function () { host.classList.remove('rbt-tm-pulse'); }, 2600);
+  }
+
   // Every reading from the RaceBox: the satellites, the dial and the G meter, and the timer on a fix.
   // The RaceBox's connection, from its status: connected, or not (searching, not found, dropped).
   function refresh() {
@@ -278,7 +310,9 @@
     if (!r) return;
     rbConnected = true;
     rbSats = r.satellites || 0;
-    rbFix = !!(r.fixOk && r.coordinatesValid);
+    var fixNow = !!(r.fixOk && r.coordinatesValid);
+    if (fixNow && !rbFix) pulseDial();
+    rbFix = fixNow;
     drawSats();
     if (launch.state === 'idle') setGo(idleLabel(), false);
     drawDial(r.speedMs || 0, r.gForce || null);
@@ -305,6 +339,8 @@
     var fsBtn = $('rbt-tm-fs');
     if (fsBtn) fsBtn.addEventListener('click', function () { setFull(!$('rbt-timing').classList.contains('rbt-tm-full')); });
     buildDial();
+    // The needle starts at 0 mph, not at its drawn position (straight up, which is 70 mph).
+    drawDial(0, null);
     drawSats();
     setGo(idleLabel(), false);
     var go = $('rbt-tm-go');
@@ -323,5 +359,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
   // For the page's own checks.
-  window.MT3UKRaceBoxTiming = { full: setFull, refreshDrives: refreshDrives, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
+  window.MT3UKRaceBoxTiming = { full: setFull, refreshDrives: refreshDrives, pulseIfFix: function () { if (rbFix) pulseDial(); }, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
 })();

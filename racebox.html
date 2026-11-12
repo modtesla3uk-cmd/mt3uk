@@ -604,6 +604,12 @@
   .rbt-details-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
   .rbt-full-on .rbt-details-toggle { display: none; }
   .rbt-tm-dial svg { width: 100%; height: auto; display: block; }
+  /* The dial pulses three times when the GPS fix comes in (js/racebox-timing.js adds rbt-tm-pulse for a while). */
+  .rbt-tm-dial.rbt-tm-pulse { animation: rbt-tm-pulse .8s ease-in-out 3; transform-origin: 50% 50%; }
+  @keyframes rbt-tm-pulse { 0%, 100% { transform: scale(1); filter: none; } 50% { transform: scale(1.06); filter: drop-shadow(0 0 16px rgba(232,42,42,.75)); } }
+  @media (prefers-reduced-motion: reduce) { .rbt-tm-dial.rbt-tm-pulse { animation: none; } }
+  /* While the car is moving the dial glows red. */
+  .rbt-tm-dial.rbt-tm-moving svg { filter: drop-shadow(0 0 14px rgba(232,42,42,.6)); }
   .rbt-tm-speed { margin: 0; text-align: center; color: var(--ink, #16233d); }
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
@@ -781,8 +787,8 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-timing.js?v=7"></script>
-<script src="js/racebox-test.js?v=79"></script>
+<script src="js/racebox-timing.js?v=10"></script>
+<script src="js/racebox-test.js?v=80"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

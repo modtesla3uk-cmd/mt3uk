@@ -741,6 +741,8 @@
     var tsec = document.getElementById('rbt-timing');
     if (tsec) tsec.hidden = m !== 'drag';
     if (window.MT3UKRaceBoxTiming) window.MT3UKRaceBoxTiming.full(m === 'drag');
+    // Opening Drag run with a fix already in hand pulses the dial too, as it does when the fix first arrives.
+    if (m === 'drag' && window.MT3UKRaceBoxTiming && window.MT3UKRaceBoxTiming.pulseIfFix) window.MT3UKRaceBoxTiming.pulseIfFix();
     placeDragControls(m === 'drag');
     document.documentElement.classList.toggle('rbt-drag', m === 'drag');
     // The readings are folded by default, and fold again on entering the Drag run mode (Details opens them).

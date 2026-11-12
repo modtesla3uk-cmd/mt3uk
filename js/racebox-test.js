@@ -22,7 +22,7 @@
     if (s === 'discovering') return 'Setting up the connection…';
     if (s === 'connected') return 'Connected to ' + (d || 'the RaceBox') + '. Live readings below.';
     if (s === 'retrying') return 'The connection did not work. Trying again (' + d + ' of 3)…';
-    if (s === 'disconnected') return 'Disconnected.';
+    if (s === 'disconnected') return d === 'bluetooth' ? 'Bluetooth is off. Turn it on, then tap Connect to RaceBox.' : 'Disconnected.';
     if (s === 'notfound') return 'No RaceBox found. Switch it on, keep it close, and try again.';
     if (s === 'failed') return 'The RaceBox could not be used' + (d ? ' (' + d + ')' : '') + '. Try again.';
     return 'Status: ' + (s || 'unknown');
@@ -1018,7 +1018,7 @@
       setConnectButton(e && e.state);
       if (e && (e.state === 'disconnected' || e.state === 'notfound' || e.state === 'failed')) {
         setDot(false);
-        setPrompt('Not connected. Tap Connect to RaceBox to start.');
+        setPrompt(e.detail === 'bluetooth' ? 'Turn Bluetooth on, then tap Connect to RaceBox.' : 'Not connected. Tap Connect to RaceBox to start.');
         lastFixOk = false;
         setRecordAvailable(false);
       } else if (e && e.state === 'connected') {

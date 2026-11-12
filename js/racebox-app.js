@@ -38,6 +38,24 @@
     return out;
   }
 
+  // A connect that stays busy with no new event for a while (the phone's Bluetooth may have been turned off) is checked:
+  // if the app is not connected, the page is told it is disconnected because Bluetooth is off.
+  var BUSY_STATES = { scanning: true, connecting: true, discovering: true, retrying: true };
+  var busyTimer = null;
+  function busyWaitMs() { return window.MT3UK_BUSY_MS || 25000; }
+  function watchBusy(ev) {
+    clearTimeout(busyTimer);
+    busyTimer = null;
+    if (!ev || !BUSY_STATES[ev.state]) return;
+    busyTimer = setTimeout(function () {
+      var plugin = getPlugin();
+      var off = function () { fire(statusListeners, { state: 'disconnected', detail: 'bluetooth' }); };
+      if (!plugin) return off();
+      Promise.resolve().then(function () { return plugin.status(); })
+        .then(function (r) { if (!(r && r.connected)) off(); }, off);
+    }, busyWaitMs());
+  }
+
   // Connects the plugin's events to the listeners, once.
   function attach(plugin) {
     if (attached || !plugin || !parser) return;
@@ -51,7 +69,7 @@
         }
       });
     });
-    plugin.addListener('status', function (ev) { fire(statusListeners, ev); });
+    plugin.addListener('status', function (ev) { watchBusy(ev); fire(statusListeners, ev); });
   }
 
   // The names of the plugins this page can see, for working out a problem on a phone.
@@ -69,6 +87,7 @@
       var plugin = getPlugin();
       if (!plugin) return Promise.reject(new Error('RaceBox is not available on this page. Plugins here: ' + pluginNames() + '.'));
       attach(plugin);
+      watchBusy({ state: 'connecting' });
       return plugin.connect();
     },
     // Whether the app is connected to a RaceBox already, so a page opened again can show it: { connected, name }.

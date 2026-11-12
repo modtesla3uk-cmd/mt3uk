@@ -471,3 +471,28 @@ def test_in_landscape_full_screen_the_g_meter_is_over_the_map_and_the_column_bor
     assert box["left"] >= 250, box
     assert box["width"] >= 125, box
     assert box["border"] == "1px", box
+
+
+BLUETOOTH_OFF_PLUGIN = """
+window.__rbListeners = {};
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { RaceBox: {
+  addListener: function (name, fn) { (window.__rbListeners[name] = window.__rbListeners[name] || []).push(fn); },
+  status: function () { return Promise.resolve({ connected: false, name: '' }); },
+  connect: function () { window.__rbFire('status', { state: 'connecting', detail: 'RaceBox' }); return Promise.resolve(); },
+  disconnect: function () { return Promise.resolve(); } } } };
+window.__rbFire = function (name, ev) { (window.__rbListeners[name] || []).forEach(function (fn) { fn(ev); }); };
+window.MT3UK_BUSY_MS = 400;
+"""
+
+
+def test_if_bluetooth_is_turned_off_while_connecting_the_page_says_so_and_asks_for_it_on(page):
+    # The app can stay "connecting" when the phone's Bluetooth is turned off. After a wait with no news, the page is
+    # told it is disconnected because Bluetooth is off, and asks for Bluetooth to be turned on.
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":true}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script(BLUETOOTH_OFF_PLUGIN)
+    page.goto("/racebox.html")
+    page.locator("#rbt-connect").evaluate("b => b.click()")
+    expect(page.locator("#rbt-status")).to_have_text("Bluetooth is off. Turn it on, then tap Connect to RaceBox.", timeout=5000)
+    expect(page.locator("#rbt-connect-label")).to_have_text("Connect to RaceBox")
+    expect(page.locator("#rbt-prompt")).to_have_text("Turn Bluetooth on, then tap Connect to RaceBox.")

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=12"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=13"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -369,6 +369,9 @@
   .recentre { position: absolute; right: 10px; bottom: 10px; z-index: 1001; width: 46px; height: 46px; padding: 0; border: 1px solid var(--hairline, #d8dbe2); border-radius: 50%; background: #fff; color: var(--ink, #16233d); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); cursor: pointer; }
   .recentre svg { width: 24px; height: 24px; display: block; }
   .recentre[hidden] { display: none !important; }
+  .recentre-label { display: none; }
+  .nav-map-wrap.is-driving #nav-recentre { width: auto; height: 44px; min-width: 44px; padding: 0 16px 0 12px; border-radius: 999px; display: flex; align-items: center; gap: 8px; font: 700 0.95rem/1 var(--font-body, sans-serif); }
+  .nav-map-wrap.is-driving #nav-recentre .recentre-label { display: inline; }
   .nav-unit-pill { position: absolute; top: 10px; right: 10px; z-index: 1000; min-height: 30px; padding: 0 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 700 0.8rem/1 var(--font-body, sans-serif); box-shadow: 0 2px 8px rgba(0,0,0,.16); cursor: pointer; }
   /* The pill is drawn small, but its tap area stays at least 44px high. */
   .nav-unit-pill::before { content: ''; position: absolute; inset: -8px -6px; }
@@ -744,7 +747,7 @@
         <div class="nav-pin-bar"><button type="button" class="btn btn-accent" id="nav-pin-use">Use this point</button><button type="button" class="btn btn-secondary" id="nav-pin-cancel">Cancel</button></div>
       </div>
       <button type="button" class="nav-unit-pill" id="nav-unit" aria-pressed="false">Show in mph</button>
-      <button type="button" class="recentre" id="nav-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+      <button type="button" class="recentre" id="nav-recentre" aria-label="Re-centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19.5 20.5 12 16.6 4.5 20.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span class="recentre-label">Re-centre</span></button>
       <button type="button" class="nav-theme" id="nav-mode-toggle" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
       <button type="button" class="nav-compass" id="nav-compass" aria-pressed="true" aria-label="Map: direction of travel up. Tap for north up."><svg viewBox="0 0 24 24" aria-hidden="true"><g id="nav-compass-needle"><path d="M12 2.5 15.5 12h-7z" fill="#c8453a"/><path d="M12 21.5 8.5 12h7z" fill="#16233d"/></g></svg></button>
       <div class="nav-turn" id="nav-turn" aria-live="polite">

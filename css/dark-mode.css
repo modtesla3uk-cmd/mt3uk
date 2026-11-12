@@ -125,3 +125,5 @@ html[data-mode="dark"] .nav-route-stats dd, html[data-mode="dark"] .nav-route-he
 }
 html[data-mode="dark"] .leaflet-control-attribution a { color: #9fd8f0 !important; }
 html[data-mode="dark"] #nav-route-short, html[data-mode="dark"] .nav-route-head span, html[data-mode="dark"] .nav-route-head b { color: #c9d3e2 !important; }
+/* Driving: the Re-centre button is a labelled pill, black with white text in dark mode. */
+html[data-mode="dark"] .nav-map-wrap.is-driving #nav-recentre { background-color: #000000 !important; color: #ffffff !important; border-color: #5b6475 !important; }

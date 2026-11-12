@@ -880,6 +880,14 @@
   }
 
   route();
+  // Directions to a track go to Navigate, which is for approved members: the button shows only once the access says so.
+  var dirToken = signedInToken();
+  if (dirToken) {
+    fetch(API + '/laps/racebox/access', { cache: 'no-store', headers: { 'X-Session-Token': dirToken } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.access) document.documentElement.classList.add('lb-can-directions'); })
+      .catch(function () { /* no button without an answer */ });
+  }
   // The free-tier usage ring beside the title (js/quota-ring.js), for a signed-in member on a free tier.
   var ringToken = signedInToken();
   if (ringToken) {

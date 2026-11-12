@@ -1022,13 +1022,34 @@ def test_a_track_opens_navigate_with_the_track_as_the_destination(page):
     expect(page.locator("#nav-route-len")).to_contain_text("mi")
 
 
-def test_each_track_on_the_leaderboard_links_to_directions_for_it(page):
+def _leaderboard_directions(page, approved):
+    # A signed-in member, and whether they are approved for Navigate (the leaderboard asks the same question).
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'test-session');")
     page.route(re.compile(r".*/track/(counts|tracks).*"), lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"counts":{},"leaders":{},"venues":[]}', headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/laps/racebox/access", lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"access":%s,"racebox":false}' % ("true" if approved else "false"), headers={"Access-Control-Allow-Origin": "*"}))
+
+
+def test_each_track_on_the_leaderboard_links_to_directions_for_it(page):
+    _leaderboard_directions(page, True)
     page.goto("/leaderboards.html")
     links = page.locator("a.lb-dir")
     expect(links.first).to_be_visible(timeout=10000)
     href = links.first.get_attribute("href")
     assert href.startswith("navigate.html?to=") and "&name=" in href, href
+
+
+def test_directions_are_hidden_from_members_who_are_not_approved(page):
+    _leaderboard_directions(page, False)
+    page.goto("/leaderboards.html")
+    links = page.locator("a.lb-dir")
+    expect(links.first).to_be_hidden(timeout=10000)
+    # Signed out, the button is hidden too.
+    ctx = page.context.browser.new_context()
+    other = ctx.new_page()
+    other.route(re.compile(r".*/track/(counts|tracks).*"), lambda r: r.fulfill(status=200, content_type="application/json", body='{"success":true,"counts":{},"leaders":{},"venues":[]}', headers={"Access-Control-Allow-Origin": "*"}))
+    other.goto("http://localhost:8123/leaderboards.html")
+    expect(other.locator("a.lb-dir").first).to_be_hidden(timeout=10000)
+    ctx.close()
 
 
 RB_MOCK = """

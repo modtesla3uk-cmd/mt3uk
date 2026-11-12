@@ -1546,3 +1546,34 @@ def test_the_large_speed_only_shows_while_driving(page):
     expect(page.locator("#nav-speed-bubble")).to_be_hidden()
     expect(page.locator(".nav-speed-tile")).to_be_visible()
 
+
+
+def test_the_screen_stays_on_while_driving_and_is_released_after(page):
+    # The screen wake lock is asked for when the drive starts and let go when it ends (the phone may drop it on its own,
+    # so the page asks again when it comes back into view).
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.add_init_script("""
+      window.__wake = 0; window.__released = 0;
+      Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request: async function (t) {
+        window.__wake++; window.__lastType = t;
+        return { released: false, release: async function () { window.__released++; }, addEventListener: function () {} };
+      } } });
+    """)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    assert page.evaluate("window.__wake") == 1
+    assert page.evaluate("window.__lastType") == "screen"
+    page.locator("#nav-exit").click()
+    expect(page.locator(".nav-map-wrap")).not_to_have_class(re.compile(r"is-driving"))
+    assert page.evaluate("window.__released") == 1

@@ -330,9 +330,31 @@
     window.visualViewport.addEventListener('scroll', fitDrivingScreen);
   }
   window.addEventListener('resize', fitDrivingScreen);
+  // While driving the screen stays on. The screen wake lock is asked for again when the page comes back into view, since the
+  // phone lets it go when the page is hidden. Released when the drive ends.
+  var wakeLock = null, wantAwake = false;
+  function requestWake() {
+    if (!wantAwake || wakeLock || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+    navigator.wakeLock.request('screen').then(function (lock) {
+      wakeLock = lock;
+      if (lock && lock.addEventListener) lock.addEventListener('release', function () { if (wakeLock === lock) wakeLock = null; });
+    }).catch(function () { wakeLock = null; });
+  }
+  function keepAwake(on) {
+    wantAwake = !!on;
+    if (!wantAwake) {
+      var lock = wakeLock;
+      wakeLock = null;
+      if (lock && lock.release) lock.release().catch(function () {});
+      return;
+    }
+    requestWake();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') requestWake(); });
   function startDrive() {
     if (!map || !routeD) return;
     driving = true;
+    keepAwake(true);
     // The speaker always shows while driving. On a phone with no voice it is greyed out and says so when tapped.
     var vbtn = $('nav-voice');
     if (vbtn) vbtn.style.display = 'flex';
@@ -357,6 +379,7 @@
   }
   function stopDrive() {
     driving = false;
+    keepAwake(false);
     // Ending the navigation folds the directions back to the drive summary, as they start.
     setRouteFolded(true);
     if (frame) cancelAnimationFrame(frame);

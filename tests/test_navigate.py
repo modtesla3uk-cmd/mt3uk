@@ -1334,6 +1334,31 @@ def test_the_microphone_asks_for_permission_once_and_works_for_each_destination(
     assert page.evaluate("() => window.__permAsks") == 1
 
 
+NATIVE_MIC_NO_MATCH_THEN_OK = """
+window.__micCalls = [];
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { SpeechRecognition: {
+  requestPermissions: function () { return Promise.resolve({ speechRecognition: 'granted' }); },
+  start: function (o) {
+    window.__micCalls.push(o.language || 'default');
+    if (o.language) return Promise.reject(new Error('No match'));
+    return Promise.resolve({ matches: ['Church Road'] });
+  },
+  stop: function () { return Promise.resolve(); } } } };
+"""
+
+
+def test_a_no_match_in_british_english_is_retried_once_with_the_phones_language(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_MIC_NO_MATCH_THEN_OK)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-stops .nav-mic").last.click()
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    assert page.evaluate("() => window.__micCalls") == ["en-GB", "default"]
+
+
 def test_ending_navigation_takes_the_turn_bar_away(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)

@@ -1165,6 +1165,16 @@
   }
   function voiceInputAvailable() { return !!nativeMic() || (!!Rec && !inLapsApp()); }
   var nativeListening = false;
+  // The plugin's start options: British English first, with the phone's own language as the fallback (no language given).
+  function startNative(sr, lang) {
+    var opts = { maxResults: 1, partialResults: false, popup: false };
+    if (lang) opts.language = lang;
+    return sr.start(opts);
+  }
+  function isNoMatch(e) {
+    var m = e && e.message ? String(e.message) : String(e || '');
+    return /no match|no speech|didn.?t catch/i.test(m);
+  }
   function dictateNative(i, btn) {
     var sr = nativeMic();
     if (nativeListening) { try { sr.stop(); } catch (e) { /* already stopped */ } return; }
@@ -1180,7 +1190,12 @@
     }).then(function (p) {
       var got = p && p.speechRecognition;
       if (got && got !== 'granted') throw new Error('microphone not allowed (' + got + ')');
-      return sr.start({ language: 'en-GB', maxResults: 1, partialResults: false, popup: false });
+      return startNative(sr, 'en-GB').catch(function (e) {
+        // "No match" means the recogniser heard speech it could not match in British English. Try once more with the
+        // phone's own language before giving up.
+        if (isNoMatch(e)) return startNative(sr, null);
+        throw e;
+      });
     }).then(function (r) {
       var text = r && r.matches && r.matches[0] ? String(r.matches[0]).trim() : '';
       if (input && text) { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); setRouteMsg(''); }
@@ -1188,7 +1203,7 @@
     }).catch(function (e) {
       var msg = e && e.message ? String(e.message) : String(e || '');
       if (/not allowed|denied|permission/i.test(msg)) setRouteMsg('Allow the microphone for Laps in the phone settings, then try again. Or type the place.', true);
-      else setRouteMsg('Voice input did not work (' + msg + '). Try again, or type the place.', true);
+      else setRouteMsg("Didn't catch that. Try again, or type the place.", true);
     }).then(function () {
       nativeListening = false;
       btn.classList.remove('is-listening');

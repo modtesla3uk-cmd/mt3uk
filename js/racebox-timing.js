@@ -55,15 +55,17 @@
     // The same needle reads km/h on the inside, with the same increments as the mph scale: a tick every 5 km/h, a medium
     // one every 10, and a long one with its number every 20.
     var KPH_FULL = MAX_MPH * 1.60934;
-    var kphTicks = svgEl('g', { stroke: '#6b7790', 'stroke-linecap': 'round' }, s);
+    var kphTicks = svgEl('g', { stroke: '#8f9bb3', 'stroke-linecap': 'butt' }, s);
     var kphLabels = svgEl('g', { fill: '#6b7790', 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle' }, s);
     for (var k = 0; k <= KPH_FULL; k += 5) {
       var ka = (-135 + 270 * k / KPH_FULL) * Math.PI / 180, kmajor = k % 20 === 0, kmed = k % 10 === 0;
       var kr1 = kmajor ? 84 : kmed ? 86 : 87;
-      svgEl('line', { x1: 150 + Math.sin(ka) * kr1, y1: 150 - Math.cos(ka) * kr1, x2: 150 + Math.sin(ka) * 90, y2: 150 - Math.cos(ka) * 90, 'stroke-width': kmajor ? 1.6 : kmed ? 1.2 : 0.8 }, kphTicks);
+      svgEl('line', { x1: 150 + Math.sin(ka) * kr1, y1: 150 - Math.cos(ka) * kr1, x2: 150 + Math.sin(ka) * 90, y2: 150 - Math.cos(ka) * 90, 'stroke-width': kmajor ? 1.8 : kmed ? 1.5 : 1.2 }, kphTicks);
       if (kmajor) {
         // Each number sits clear of the G ring (radius 70), outside it, between the rings.
-        var kt = svgEl('text', { x: 150 + Math.sin(ka) * 77, y: 150 - Math.cos(ka) * 77 + 3 }, kphLabels);
+        // Labels that sit near the horizontal (near 180 km/h, say) move up a little, to clear the G values on their row.
+        var nudge = Math.abs(Math.cos(ka)) < 0.3 ? -10 : 0;
+        var kt = svgEl('text', { x: 150 + Math.sin(ka) * 77, y: 150 - Math.cos(ka) * 77 + 3 + nudge }, kphLabels);
         kt.textContent = String(k);
       }
     }
@@ -75,9 +77,8 @@
     svgEl('line', { x1: 75, y1: 150, x2: 225, y2: 150, stroke: '#9aa1ad', 'stroke-width': 1.5 }, s);
     svgEl('line', { x1: 150, y1: 75, x2: 150, y2: 225, stroke: '#9aa1ad', 'stroke-width': 1.5 }, s);
     var g = svgEl('g', { fill: '#5b6475', 'font-size': 11, 'font-weight': 700 }, s);
-    svgEl('text', { x: 175, y: 145 }, g).textContent = '0.5g';
-    svgEl('text', { x: 199, y: 145 }, g).textContent = '1.0g';
-    svgEl('text', { x: 222, y: 145 }, g).textContent = '1.5g';
+    // The values sit together on one line just right of the centre dot, with commas between them.
+    svgEl('text', { x: 164, y: 145, 'font-size': 9.5 }, g).textContent = '0.5, 1.0, 1.5';
     svgEl('line', { id: 'rbt-tm-needle', x1: 150, y1: 150, x2: 150, y2: 44, stroke: '#e8542a', 'stroke-width': 5, 'stroke-linecap': 'round' }, s);
     var lab = svgEl('g', { id: 'rbt-tm-glabel' }, s);
     // The G Forces label, straight, under the inner G rings.

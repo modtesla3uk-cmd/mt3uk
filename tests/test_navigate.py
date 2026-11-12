@@ -1359,6 +1359,33 @@ def test_a_no_match_in_british_english_is_retried_once_with_the_phones_language(
     assert page.evaluate("() => window.__micCalls") == ["en-GB", "default"]
 
 
+NATIVE_MIC_HOLD = """
+window.Capacitor = { isNativePlatform: function () { return true; }, Plugins: { SpeechRecognition: {
+  requestPermissions: function () { return Promise.resolve({ speechRecognition: 'granted' }); },
+  start: function () { return new Promise(function (res) { window.__micFinish = function () { res({ matches: ['Church Road'] }); }; }); },
+  stop: function () { return Promise.resolve(); } } } };
+"""
+
+
+def test_the_microphone_stays_orange_while_listening_in_dark_mode(page):
+    _approve(page, True)
+    page.add_init_script(NATIVE_MIC_HOLD)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.goto("/navigate.html")
+    expect(page.locator("html")).to_have_attribute("data-mode", "dark")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    mic = page.locator("#nav-stops .nav-mic").last
+    mic.click()
+    expect(mic).to_have_class(re.compile(r"is-listening"))
+    page.wait_for_timeout(1500)  # the recogniser is still listening
+    expect(mic).to_have_class(re.compile(r"is-listening"))
+    assert mic.evaluate("el => getComputedStyle(el).backgroundColor") == "rgb(232, 84, 42)"
+    page.evaluate("() => window.__micFinish()")
+    expect(page.locator("#nav-to-q")).to_have_value("Church Road", timeout=5000)
+    expect(mic).not_to_have_class(re.compile(r"is-listening"))
+
+
 def test_ending_navigation_takes_the_turn_bar_away(page):
     _approve(page, True)
     page.add_init_script(GEO_HEADING_EAST)

@@ -80,6 +80,8 @@ html[data-mode="dark"] .nav-stop, html[data-mode="dark"] .nav-add-stop, html[dat
 html[data-mode="dark"] .recentre, html[data-mode="dark"] .nav-theme, html[data-mode="dark"] .nav-compass, html[data-mode="dark"] .nav-source-toggle {
   background-color: #000000 !important; color: #eef2f7 !important; border: 1px solid #5b6475 !important;
 }
+/* The microphone stays orange while it is listening, in dark mode too (the black rule above would otherwise win). */
+html[data-mode="dark"] .nav-mic.is-listening { background-color: #e8542a !important; border-color: #e8542a !important; color: #fff !important; }
 html[data-mode="dark"] .leaflet-control-attribution { background: rgba(0,0,0,.7) !important; color: #c9d3e2 !important; }
 html[data-mode="dark"] .rbt-track { background-color: #3c4658 !important; }
 /* Navigate: the search card, the speed and position sheet, the route panel and its steps were still white or had dark text. */

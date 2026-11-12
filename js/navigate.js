@@ -357,6 +357,8 @@
   }
   function stopDrive() {
     driving = false;
+    // Ending the navigation folds the directions back to the drive summary, as they start.
+    setRouteFolded(true);
     if (frame) cancelAnimationFrame(frame);
     frame = null; shownPos = null; targetPos = null; drawHeading = null; fixPos = null; velMs = 0;
     if (trail) trail.setStyle({ opacity: 1 });

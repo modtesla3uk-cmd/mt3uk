@@ -680,8 +680,8 @@
         trail.setLatLngs(pts);
         marker.setLatLng(here);
         setDot(true);
-        // Pan to the car about twice a second, not on every reading: panning on each one makes the map judder at low speed.
-        if (Date.now() - lastPanAt > 450) { lastPanAt = Date.now(); map.panTo(here, { animate: false }); }
+        // The map glides after the car, a part of the way each frame, rather than jumping to it.
+        follow(here);
       }
     });
   }
@@ -853,12 +853,22 @@
   }
   // Heading up: the map turns so the way the car is going points up the screen. Leaflet's panes sit in a wrapper that turns
   // about the centre (where the car is), and the controls stay upright. The map does not drag while it is turned.
-  var rotWrap = null, headingUp = true, lastHeading = null, appliedDeg = null, lastRotAt = 0, lastPanAt = 0;
+  var rotWrap = null, headingUp = true, lastHeading = null, curDeg = 0, rotRaf = null;
+  // The map follows the car smoothly: each frame it moves a fifth of the way to the car, so it does not jump every half second.
+  var followRaf = null, followAt = null;
+  function follow(here) { followAt = here; if (!followRaf) followRaf = requestAnimationFrame(stepFollow); }
+  function stepFollow() {
+    followRaf = null;
+    if (!map || !followAt) return;
+    var d = map.latLngToContainerPoint(followAt).subtract(map.latLngToContainerPoint(map.getCenter()));
+    if (Math.abs(d.x) < 0.5 && Math.abs(d.y) < 0.5) return;
+    map.panBy(d.multiplyBy(0.2), { animate: false });
+    followRaf = requestAnimationFrame(stepFollow);
+  }
   function wrapPanes(m) {
     var pane = m.getPanes().mapPane;
     rotWrap = document.createElement('div');
     rotWrap.className = 'rbt-rot';
-    rotWrap.style.transition = 'transform .5s linear';
     rotWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;';
     pane.parentNode.insertBefore(rotWrap, pane);
     rotWrap.appendChild(pane);
@@ -869,13 +879,19 @@
     var on = headingUp && lastHeading !== null;
     if (map) { if (on) map.dragging.disable(); else map.dragging.enable(); }
     if (!rotWrap) return;
-    if (!on) { rotWrap.style.transform = ''; return; }
-    // Leaflet keeps tiles beyond the screen edge, so the turned map covers the corners without scaling up.
-    // Turn only when the heading has moved by at least 2 degrees, or every second at most, so GPS jitter does not shake the map.
-    var now = Date.now();
-    if (appliedDeg !== null && Math.abs(lastHeading - appliedDeg) < 2 && now - lastRotAt < 1000) return;
-    appliedDeg = lastHeading; lastRotAt = now;
-    rotWrap.style.transform = 'rotate(' + (-lastHeading) + 'deg)';
+    if (!on) { if (rotRaf) cancelAnimationFrame(rotRaf); rotRaf = null; rotWrap.style.transform = ''; return; }
+    if (!rotRaf) rotRaf = requestAnimationFrame(stepRotation);
+  }
+  // The turn eases to the heading a fraction each frame, so it moves smoothly. Leaflet keeps tiles beyond the screen edge, so
+  // the turned map covers the corners without scaling up. GPS jitter is smoothed by the easing, so the map does not shake.
+  function stepRotation() {
+    rotRaf = null;
+    if (!rotWrap || !headingUp || lastHeading === null) return;
+    var target = -lastHeading;
+    var diff = ((target - curDeg) % 360 + 540) % 360 - 180;
+    curDeg = Math.abs(diff) < 0.2 ? target : curDeg + diff * 0.15;
+    rotWrap.style.transform = 'rotate(' + curDeg + 'deg)';
+    if (curDeg !== target) rotRaf = requestAnimationFrame(stepRotation);
   }
   // The map buttons sit just above the readings band, whatever height the band is with its text.
   function fitBand() {

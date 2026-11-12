@@ -489,7 +489,7 @@
       <ul class="rbt-picker-list" id="rbt-picker-results"></ul>
     </div>
     <div id="rbt-start-home" hidden></div>
-    <div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><button type="button" class="rbt-rec-float" id="rbt-rec-float" aria-pressed="false" disabled>Record</button><div class="rbt-speed-float" id="rbt-speed-float" aria-hidden="true"><span id="rbt-speed-big">&ndash;</span> <span id="rbt-speed-big-unit">km/h</span></div>
+    <div class="rbt-map-wrap"><button type="button" class="btn btn-secondary rbt-menu-btn" id="rbt-menu" aria-expanded="false" aria-controls="rbt-flyout">Controls</button><p id="rbt-prompt" class="rbt-prompt" role="status" hidden></p><button type="button" class="rbt-rec-float" id="rbt-rec-float" aria-pressed="false" disabled>Record</button><div class="rbt-speed-float" id="rbt-speed-float" aria-hidden="true"><span id="rbt-speed-big">&ndash;</span> <span id="rbt-speed-big-unit">km/h</span></div>
     <div class="rbt-drives" id="rbt-drives">
       <h3 class="rbt-drives-title">Saved drives</h3>
       <p class="rbt-stage-msg" id="rbt-stage-msg" role="status" hidden></p>
@@ -503,7 +503,7 @@
         <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
       </div>
     </div>
-<div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="recentre" id="rbt-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
+<div class="rbt-map-frame"><div id="rbt-map" class="rbt-map" hidden></div><button type="button" class="btn btn-secondary rbt-fs-btn" id="rbt-full" aria-pressed="false" hidden>Go full screen</button><button type="button" class="recentre" id="rbt-recentre" aria-label="Centre the map on my position" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><button type="button" class="btn btn-secondary rbt-clear" id="rbt-clear" hidden>Clear the trail</button></div>
   </div>
 </div>
 <style>
@@ -551,6 +551,8 @@
   .rbt-map { height: 320px; margin-top: 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); }
   .rbt-clear { margin-top: 10px; min-height: 44px; }
   .rbt-map-wrap { position: relative; }
+  /* The map and the buttons on it (Go full screen, recentre) share one box, so the buttons sit on the map and not over the saved drives above it. */
+  .rbt-map-frame { position: relative; }
   .rbt-fs-btn { position: absolute; top: 10px; right: 10px; z-index: 1001; min-height: 44px; background: #fff; }
   .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
   .rbt-prompt { margin: 0 0 10px; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
@@ -773,7 +775,7 @@
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/racebox-stage.js?v=4"></script>
 <script src="js/racebox-timing.js?v=7"></script>
-<script src="js/racebox-test.js?v=76"></script>
+<script src="js/racebox-test.js?v=77"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

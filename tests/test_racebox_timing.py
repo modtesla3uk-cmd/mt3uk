@@ -241,6 +241,8 @@ def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once
     saved = {"runs": []}
     _runs_route(page, saved)
     _open_drag(page, saved)
+    # The strip is chosen before the timer goes full screen: the picker is not shown in full screen.
+    page.locator("#rbt-tm-fs").click()
     page.locator("#rbt-picker-q").fill("Santa Pod")
     page.locator("#rbt-picker-results button", has_text="Santa Pod Raceway").first.click()
     expect(page.locator("#rbt-mode-line")).to_contain_text("Santa Pod Raceway")

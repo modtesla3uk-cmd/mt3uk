@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=19"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=20"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -469,11 +469,6 @@
       <div class="rbt-tm-col rbt-tm-col-r">
       <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
       <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
-      <div class="rbt-timer-card" id="rbt-timer-card" aria-live="polite" hidden>
-        <p class="rbt-timer-label" id="rbt-timer-label"></p>
-        <p class="rbt-timer-time" id="rbt-timer-time">0.00</p>
-        <p class="rbt-timer-sub" id="rbt-timer-sub"></p>
-      </div>
       <div class="rbt-tm-sats"><span class="rbt-tm-bars" id="rbt-tm-bars" role="img" aria-label="GPS satellites"></span><span class="rbt-tm-text" id="rbt-tm-text"></span><span class="rbt-tm-wait-dots" id="rbt-tm-wait-dots" aria-hidden="true" hidden><i></i><i></i><i></i><i></i><i></i></span></div>
       <div class="rbt-tm-runs">
         <div class="rbt-tm-head"><b id="rbt-tm-best"></b><button type="button" class="rbt-tm-clear" id="rbt-tm-clear" hidden>Clear</button></div>
@@ -483,6 +478,11 @@
       <button type="button" class="rbt-tm-mode" id="rbt-tm-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
       </div>
       <div class="rbt-tm-col rbt-tm-col-l" id="rbt-tm-left">
+        <div class="rbt-timer-card" id="rbt-timer-card" aria-live="polite" hidden>
+          <p class="rbt-timer-label" id="rbt-timer-label"></p>
+          <p class="rbt-timer-time" id="rbt-timer-time">0.00</p>
+          <p class="rbt-timer-sub" id="rbt-timer-sub"></p>
+        </div>
       </div>
     </section>
     <p class="rbt-mode-line" id="rbt-mode-line" hidden></p>
@@ -612,7 +612,8 @@
   @media (orientation: portrait) {
     .rbt-timing .rbt-tm-speed { order: -3; }
     .rbt-timing .rbt-tm-go { order: -2; }
-    .rbt-timing .rbt-tm-sats { order: -1; }
+    .rbt-timing .rbt-timer-card { order: -1; }
+    .rbt-timing .rbt-tm-sats { order: 0; }
     .rbt-timing .rbt-tm-dial { margin: 16px auto; }
   }
   /* Side groups: they do not change the portrait layout. In landscape the dial sits in the middle of the screen, the left group
@@ -621,14 +622,13 @@
   .rbt-tm-col { display: contents; }
   @media (orientation: landscape) and (max-height: 600px) {
     .rbt-tm-full { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 16px; row-gap: 8px; align-items: start; align-content: stretch; min-height: calc(100vh - 20px); padding: 10px 16px; box-sizing: border-box; }
-    .rbt-tm-full .rbt-tm-dial { grid-column: 2; grid-row: 1 / span 12; position: sticky; top: 8px; align-self: start; justify-self: center; width: min(calc(100vh - 40px), 44vw); }
+    .rbt-tm-full .rbt-tm-dial { grid-column: 2; grid-row: 1 / span 12; position: sticky; top: 4px; align-self: start; justify-self: center; width: min(calc(100vh - 14px), 50vw); }
     .rbt-tm-full .rbt-tm-col { display: flex; flex-direction: column; justify-content: safe center; align-items: stretch; align-self: stretch; gap: 8px; grid-row: 1 / span 12; min-width: 0; }
     .rbt-tm-full .rbt-tm-col-l { grid-column: 1; }
     .rbt-tm-full .rbt-tm-col-r { grid-column: 3; }
     .rbt-tm-full .rbt-tm-speed { margin: 0; text-align: center; }
     .rbt-tm-full .rbt-tm-col > * { width: 100%; }
-    .rbt-tm-full .rbt-tm-mode { position: static; align-self: center; }
-    .rbt-tm-full .rbt-picker { max-height: calc(100vh - 120px); overflow-y: auto; }
+    .rbt-tm-full .rbt-tm-mode { position: fixed; top: 12px; left: 12px; width: auto; align-self: auto; z-index: 3; }
   }
   /* The readings fold away with Details (outside full screen). */
   html:not(.rbt-full-on) .rbt-band.is-folded { display: none; }
@@ -710,6 +710,8 @@
   .rbt-mode-line[hidden] { display: none; }
   .rbt-picker { margin: 10px 0 0; padding: 12px; border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); background: #fff; }
   .rbt-picker[hidden] { display: none; }
+  /* Full screen: the strip list is not shown; the strip is chosen before the timer goes full screen. */
+  .rbt-tm-full .rbt-picker { display: none; }
   .rbt-picker-title { margin: 0 0 4px; font-weight: 700; }
   .rbt-picker-now { margin: 0 0 8px; color: #5b6475; font-size: 0.9rem; }
   .rbt-picker-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
@@ -850,8 +852,8 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-timing.js?v=18"></script>
-<script src="js/racebox-test.js?v=82"></script>
+<script src="js/racebox-timing.js?v=19"></script>
+<script src="js/racebox-test.js?v=83"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

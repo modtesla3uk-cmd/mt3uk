@@ -99,9 +99,9 @@ def _start_drive(page, mode_label):
 
 def test_a_drive_recorded_as_a_drag_run_is_staged_as_one(page):
     _start_drive(page, "Drag run")
-    page.locator("#rbt-picker-results button", has_text="Without a strip").click()
-    # Drag run opens full screen on the timer, which covers the page's Record switch: leave full screen first.
+    # Drag run opens full screen on the timer, which covers the page's Record switch and the strip list: leave full screen first.
     page.locator("#rbt-tm-fs").click()
+    page.locator("#rbt-picker-results button", has_text="Without a strip").click()
     page.locator("#rbt-record").click()
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
@@ -132,6 +132,7 @@ def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
 def test_a_drag_run_has_no_start_recording_button_because_a_timed_run_records_itself(page):
     _start_drive(page, "Drag run")
     expect(page.locator("#rbt-timing")).to_be_visible()
+    page.locator("#rbt-tm-fs").click()
     page.locator("#rbt-picker-results button", has_text="Without a strip").click()
     expect(page.locator("#rbt-startstop")).to_be_hidden()
 

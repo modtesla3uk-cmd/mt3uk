@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=18"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=19"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -408,7 +408,7 @@
 <main data-no-share>
 <section class="page-hero rbt-hero lh-hero">
   <div class="wrap">
-    <div class="tp-hero-top lh-hero-top"><a href="laps.html" class="back-link lh-back" aria-label="Back to Laps"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
+    <div class="tp-hero-top lh-hero-top"><a href="laps.html" class="back-link lh-back" aria-label="Back to Laps"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><button type="button" class="btn btn-secondary rbt-mode-toggle" id="rbt-mode-toggle" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button></div>
     <h1 class="lh-title">RaceBox test</h1>
     <p class="rbt-lead">Connect to a RaceBox Mini, Mini S or Micro and see its live readings. The RaceBox must be switched on and close by.</p>
   </div>
@@ -419,7 +419,6 @@
     <p class="rbt-phone-note" id="rbt-phone-note" hidden>To connect a RaceBox and get its GPS, open this page on your phone in the Laps app. On a computer you can look around the page, but nothing comes from a RaceBox.</p>
     <div class="rbt-flyout" id="rbt-flyout">
     <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
-    <button type="button" class="btn btn-secondary rbt-mode-toggle" id="rbt-mode-toggle" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
@@ -470,7 +469,12 @@
       <div class="rbt-tm-col rbt-tm-col-r">
       <p class="rbt-tm-speed"><b id="rbt-tm-speed">0</b> <span id="rbt-tm-unit">mph</span></p>
       <button type="button" class="rbt-tm-go" id="rbt-tm-go">Acquiring GPS fix</button>
-      <div class="rbt-tm-sats"><span class="rbt-tm-bars" id="rbt-tm-bars" role="img" aria-label="GPS satellites"></span><span class="rbt-tm-text" id="rbt-tm-text">Waiting for a GPS fix</span></div>
+      <div class="rbt-timer-card" id="rbt-timer-card" aria-live="polite" hidden>
+        <p class="rbt-timer-label" id="rbt-timer-label"></p>
+        <p class="rbt-timer-time" id="rbt-timer-time">0.00</p>
+        <p class="rbt-timer-sub" id="rbt-timer-sub"></p>
+      </div>
+      <div class="rbt-tm-sats"><span class="rbt-tm-bars" id="rbt-tm-bars" role="img" aria-label="GPS satellites"></span><span class="rbt-tm-text" id="rbt-tm-text"></span><span class="rbt-tm-wait-dots" id="rbt-tm-wait-dots" aria-hidden="true" hidden><i></i><i></i><i></i><i></i><i></i></span></div>
       <div class="rbt-tm-runs">
         <div class="rbt-tm-head"><b id="rbt-tm-best"></b><button type="button" class="rbt-tm-clear" id="rbt-tm-clear" hidden>Clear</button></div>
         <p class="rbt-tm-none" id="rbt-tm-none">No runs yet. Stop, tap Time a run, then go.</p>
@@ -524,6 +528,9 @@
   .rbt-phone-note[hidden] { display: none; }
   .rbt-status { font-weight: 600; margin: 0 0 14px; }
   .rbt-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
+  /* The Light mode button on the main page sits at the top right, on the same row as Back. */
+  .rbt-hero .lh-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  #rbt-mode-toggle { margin: 0; position: relative; z-index: 2; }
   .rbt-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 600 0.95rem/1 var(--font-body, sans-serif); cursor: pointer; }
   .rbt-switch:disabled { opacity: .6; cursor: progress; }
   .rbt-track { width: 40px; height: 22px; border-radius: 999px; background: #b8bec9; position: relative; flex: none; }
@@ -641,9 +648,19 @@
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
   .rbt-tm-go { min-width: 200px; min-height: 56px; padding: 8px 20px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 1.35rem/1.2 var(--font-body, sans-serif); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.14); cursor: pointer; }
   /* The Go button under the speedometer (Connect to RaceBox, Time a run) is smaller, so the dial and the readings have room. */
+  /* The timer card: shows the run from the moment the car moves, large and easy to read. */
+  .rbt-timer-card { order: -2; display: grid; justify-items: center; gap: 2px; width: min(340px, 92vw); padding: 10px 14px; border-radius: 16px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); text-align: center; }
+  .rbt-timer-card[hidden] { display: none; }
+  .rbt-timer-label { margin: 0; font-size: 0.8rem; font-weight: 700; color: #5b6475; }
+  .rbt-timer-time { margin: 0; font-size: 2.6rem; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .rbt-timer-sub { margin: 0; font-size: 0.9rem; font-weight: 600; color: #5b6475; }
   .rbt-tm-go { font-size: 1.05rem; min-height: 48px; min-width: 0; padding: 8px 18px; }
   /* In full screen the Connect to RaceBox (Go) button is smaller, so the dial has more room. */
   .rbt-tm-full-on .rbt-tm-go { font-size: 1.05rem; min-height: 46px; min-width: 0; padding: 6px 18px; }
+  /* In portrait the Go pill is bigger, in and out of full screen, so it is easy to press. */
+  @media (orientation: portrait) {
+    .rbt-tm-go, .rbt-tm-full-on .rbt-tm-go { font-size: 1.3rem; min-height: 60px; min-width: 240px; padding: 10px 26px; }
+  }
   .rbt-tm-go.is-go { background: #b3261e; color: #fff; border-color: #b3261e; }
   .rbt-tm-go.is-busy { background: #e6e8ec; color: #7a8190; border-color: #c9ced8; cursor: progress; box-shadow: none; }
   .rbt-tm-sats { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -651,6 +668,20 @@
   .rbt-tm-seg { width: 6px; height: 12px; border-radius: 1px; background: #dfe3ea; }
   .rbt-tm-seg.is-on { background: #9fd8b4; }
   .rbt-tm-text { font-size: 0.75rem; font-weight: 700; color: #5b6475; white-space: nowrap; }
+  /* Waiting for a GPS fix: five dots light up across and reset, under Acquiring GPS fix, until the fix comes. */
+  .rbt-tm-wait-dots { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+  .rbt-tm-wait-dots[hidden] { display: none; }
+  .rbt-tm-wait-dots i { width: 9px; height: 9px; border-radius: 50%; background: currentColor; opacity: .2; animation-duration: 2.4s; animation-timing-function: steps(1, end); animation-iteration-count: infinite; }
+  .rbt-tm-wait-dots i:nth-child(1) { animation-name: rbtDot1; }
+  .rbt-tm-wait-dots i:nth-child(2) { animation-name: rbtDot2; }
+  .rbt-tm-wait-dots i:nth-child(3) { animation-name: rbtDot3; }
+  .rbt-tm-wait-dots i:nth-child(4) { animation-name: rbtDot4; }
+  .rbt-tm-wait-dots i:nth-child(5) { animation-name: rbtDot5; }
+  @keyframes rbtDot1 { 0% { opacity: .2; } 0.1% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes rbtDot2 { 0% { opacity: .2; } 20% { opacity: .2; } 20.1% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes rbtDot3 { 0% { opacity: .2; } 40% { opacity: .2; } 40.1% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes rbtDot4 { 0% { opacity: .2; } 60% { opacity: .2; } 60.1% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes rbtDot5 { 0% { opacity: .2; } 80% { opacity: .2; } 80.1% { opacity: 1; } 100% { opacity: 1; } }
   /* The message to turn Bluetooth on is larger, so it is read at a glance. */
   .rbt-tm-text.rbt-tm-bt { font-size: 1rem; line-height: 1.3; white-space: normal; text-align: center; }
   .rbt-tm-runs { width: min(360px, 92vw); padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); color: var(--ink, #16233d); }
@@ -819,7 +850,7 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=4"></script>
-<script src="js/racebox-timing.js?v=14"></script>
+<script src="js/racebox-timing.js?v=17"></script>
 <script src="js/racebox-test.js?v=82"></script>
 <script>
   (function () {

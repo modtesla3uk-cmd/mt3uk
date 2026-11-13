@@ -124,8 +124,12 @@
     var on = rbFix ? Math.min(rbSats, SEGS) : 0;
     var segs = bars.children;
     for (var k = 0; k < segs.length; k++) segs[k].classList.toggle('is-on', k < on);
-    set('rbt-tm-text', !rbConnected ? (btOff ? 'Bluetooth is off. Turn it on, then tap Connect to RaceBox.' : 'Not connected') : rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : 'Waiting for a GPS fix');
+    set('rbt-tm-text', !rbConnected ? (btOff ? 'Bluetooth is off. Turn it on, then tap Connect to RaceBox.' : 'Not connected') : rbFix ? rbSats + (rbSats === 1 ? ' satellite' : ' satellites') : '');
     var tmText = document.getElementById('rbt-tm-text'); if (tmText) tmText.classList.toggle('rbt-tm-bt', !!(btOff && !rbConnected));
+    // While waiting for a GPS fix, five dots light up across and then reset, until the fix comes.
+    var waitingFix = rbConnected && !rbFix;
+    if (tmText) tmText.classList.toggle('rbt-tm-wait', waitingFix);
+    var dots = document.getElementById('rbt-tm-wait-dots'); if (dots) dots.hidden = !waitingFix;
   }
 
   function setGo(text, go) {
@@ -241,6 +245,16 @@
 
   // The 0 to 60 timer: it arms on Go only from a standstill (under 1 mph), starts when the car moves off, and stops
   // at 60 mph. A car already moving when armed is not timed.
+  // The timer card shows the run: "Move off to start" when armed, the live time while running, and the final time when done.
+  function timerCard(kind, sec, mph, t30, label) {
+    var c = $('rbt-timer-card'); if (!c) return;
+    if (kind === 'hidden') { c.hidden = true; return; }
+    c.hidden = false;
+    set('rbt-timer-label', label);
+    set('rbt-timer-time', (sec || 0).toFixed(2));
+    var sub = (t30 !== null && t30 !== undefined ? '0\u201330 ' + t30.toFixed(2) + ' s · ' : '') + Math.round(mph || 0) + ' mph';
+    set('rbt-timer-sub', kind === 'armed' ? '' : sub);
+  }
   function tap() {
     // Not connected yet: the button connects to the RaceBox, through the page's own connect switch.
     if (!rbConnected && launch.state !== 'armed') {
@@ -251,7 +265,7 @@
       setGo('Connecting to RaceBox', false);
       return;
     }
-    if (launch.state === 'armed') { launch.state = 'idle'; endRecord(); setGo(idleLabel(), false); return; }
+    if (launch.state === 'armed') { launch.state = 'idle'; endRecord(); timerCard('hidden'); setGo(idleLabel(), false); return; }
     if (launch.stopped !== true) {
       setGo(launch.stopped === null ? 'Acquiring GPS fix' : 'Stop first, then tap Time a run', false);
       setTimeout(function () { if (launch.state === 'idle') setGo(idleLabel(), false); }, 2500);
@@ -259,6 +273,7 @@
     }
     launch.state = 'armed';
     launch.t30 = null;
+    timerCard('armed', 0, 0, null, 'Move off to start');
     recordRun();
     setGo('Go', true);
   }
@@ -268,7 +283,7 @@
     launch.stopped = speedMph < STOP_MPH;
     if (launch.state === 'armed' && speedMph > STOP_MPH) {
       if (wasStopped) { launch.state = 'running'; launch.t0 = ts; }
-      else { launch.state = 'idle'; endRecord(); setGo('Not from a stop, not saved. Stop, then tap Time a run.', false); return; }
+      else { launch.state = 'idle'; endRecord(); timerCard('hidden'); setGo('Not from a stop, not saved. Stop, then tap Time a run.', false); return; }
     }
     if (launch.state !== 'running') return;
     var now = (ts - launch.t0) / 1000;
@@ -278,9 +293,11 @@
       addRun(now, launch.t30);
       endRecord();
       setGo('Run ' + runs.length + ': ' + (launch.t30 !== null ? '0–30 ' + launch.t30.toFixed(2) + ' s · ' : '') + '0–60 ' + now.toFixed(2) + ' s', false);
+      timerCard('done', now, speedMph, launch.t30, 'Run ' + runs.length + ' · 0–60');
     } else {
       var shown = useMph() ? speedMph : speedMs * 3.6;
       setGo(now.toFixed(2) + ' s · ' + Math.round(shown) + (useMph() ? ' mph' : ' km/h'), false);
+      timerCard('running', now, speedMph, launch.t30, 'Running');
     }
   }
 

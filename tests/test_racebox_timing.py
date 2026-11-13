@@ -90,7 +90,7 @@ def test_drag_run_mode_shows_the_timing_and_the_other_modes_hide_it(page):
 def test_the_satellite_bar_is_empty_until_a_fix_then_shows_the_satellites(page):
     _open_drag(page)
     expect(page.locator("#rbt-tm-bars .is-on")).to_have_count(0)
-    expect(page.locator("#rbt-tm-text")).to_have_text("Waiting for a GPS fix")
+    expect(page.locator("#rbt-tm-text")).to_have_text("")
     _emit(page, live(fix=True, sats=9))
     expect(page.locator("#rbt-tm-bars .is-on")).to_have_count(9, timeout=5000)
     expect(page.locator("#rbt-tm-text")).to_have_text("9 satellites")
@@ -186,7 +186,7 @@ def test_the_timer_asks_for_the_racebox_until_it_is_connected(page):
     page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
     _emit(page, live(fix=False, sats=4))
     expect(page.locator("#rbt-tm-go")).to_have_text("Acquiring GPS fix", timeout=5000)
-    expect(page.locator("#rbt-tm-text")).to_have_text("Waiting for a GPS fix")
+    expect(page.locator("#rbt-tm-text")).to_have_text("")
     # Dropped again: back to asking for the RaceBox.
     page.evaluate("(b) => window.__rbEmit('status', { state: 'disconnected' })", None)
     expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
@@ -309,3 +309,18 @@ def test_the_dial_glows_red_while_the_car_is_moving(page):
     expect(page.locator("#rbt-tm-dial")).to_have_class(__import__("re").compile("rbt-tm-moving"), timeout=5000)
     _emit(page, live(speed_ms=0.0, at_ms=1000))
     expect(page.locator("#rbt-tm-dial")).not_to_have_class(__import__("re").compile("rbt-tm-moving"), timeout=5000)
+
+
+def test_the_timer_card_waits_to_move_off_then_counts_the_run_live(page):
+    # Time a run arms the timer and shows the card; the clock starts when the car moves off from a stop, and the card
+    # shows the time as the run goes on.
+    _open_drag(page)
+    _emit(page, live(speed_ms=0.0, fix=True, sats=12, at_ms=0))
+    page.locator("#rbt-tm-go").click()
+    card = page.locator("#rbt-timer-card")
+    expect(card).to_be_visible(timeout=5000)
+    expect(page.locator("#rbt-timer-label")).to_have_text("Move off to start")
+    _emit(page, live(speed_ms=5.0, fix=True, sats=12, at_ms=1000))
+    expect(page.locator("#rbt-timer-label")).to_have_text("Running")
+    _emit(page, live(speed_ms=8.0, fix=True, sats=12, at_ms=2000))
+    expect(page.locator("#rbt-timer-time")).to_have_text("1.00")

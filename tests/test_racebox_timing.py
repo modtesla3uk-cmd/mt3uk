@@ -110,8 +110,11 @@ def test_a_run_from_a_standstill_is_timed_and_saved_with_its_0_30(page):
         t = i / 25
         speed = 0.0 if t < 0.5 else min(30.0, 7.5 * (t - 0.5))
         _emit(page, live(speed_ms=speed, at_ms=i * 40))
-    expect(page.locator("#rbt-tm-go")).to_contain_text("Run 1: 0–30", timeout=5000)
-    expect(page.locator("#rbt-tm-go")).to_contain_text("0–60 3.")
+    expect(page.locator("#rbt-timer-label")).to_have_text("Run 1 · 0–60", timeout=5000)
+    expect(page.locator("#rbt-timer-sub")).to_contain_text("0–30 ")
+    # Between runs the Go pill reads Go, not the run's result, which the card shows.
+    expect(page.locator("#rbt-tm-go")).to_have_text("Go")
+    expect(page.locator("#rbt-tm-go")).not_to_have_class(__import__("re").compile("is-go"))
     expect(page.locator("#rbt-tm-list .rbt-tm-half").first).to_have_text(__import__("re").compile(r"0–30 \d\.\d\d s"))
     assert saved["runs"] and saved["runs"][0]["t30"] is not None
 
@@ -252,7 +255,8 @@ def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once
         t = i / 25
         speed = 0.0 if t < 0.5 else min(30.0, 7.5 * (t - 0.5))
         _emit(page, live(speed_ms=speed, at_ms=i * 40))
-    expect(page.locator("#rbt-tm-go")).to_contain_text("Run 1: 0–30", timeout=5000)
+    expect(page.locator("#rbt-timer-label")).to_have_text("Run 1 · 0–60", timeout=5000)
+    expect(page.locator("#rbt-tm-go")).to_have_text("Go")
     # At 60 mph the drive stops, is saved as a drag run at the strip, and its run is listed once, not twice.
     expect(page.locator("#rbt-drives-list li").first).to_contain_text("Santa Pod Raceway", timeout=10000)
     expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")

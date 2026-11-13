@@ -292,7 +292,7 @@
       launch.state = 'done';
       addRun(now, launch.t30);
       endRecord();
-      setGo('Run ' + runs.length + ': ' + (launch.t30 !== null ? '0–30 ' + launch.t30.toFixed(2) + ' s · ' : '') + '0–60 ' + now.toFixed(2) + ' s', false);
+      setGo('Go', false);
       timerCard('done', now, speedMph, launch.t30, 'Run ' + runs.length + ' · 0–60');
     } else {
       var shown = useMph() ? speedMph : speedMs * 3.6;

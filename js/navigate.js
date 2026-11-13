@@ -508,7 +508,7 @@
     if (ids.length === 1) gesture = { mode: 'pan', last: { x: e.clientX, y: e.clientY } };
     else if (ids.length === 2) {
       var pts = ids.map(function (id) { return touches[id]; });
-      gesture = { mode: 'pinch', d0: dist2(pts[0], pts[1]), a0: angle2(pts[0], pts[1]), z0: map.getZoom(), t0: viewTurn };
+      gesture = { mode: 'pinch', d0: dist2(pts[0], pts[1]), a0: angle2(pts[0], pts[1]), z0: map.getZoom(), t0: viewTurn, s: 1 };
     }
   }
   // Pointer moves are collected and applied once per animation frame, so the map redraws at the screen's rate rather than
@@ -534,16 +534,37 @@
     } else if (gesture.mode === 'pinch') {
       var pts = Object.keys(touches).map(function (id) { return touches[id]; });
       if (pts.length < 2) return;
-      quietly(function () { map.setZoom(gesture.z0 + Math.log(dist2(pts[0], pts[1]) / gesture.d0) / Math.LN2, { animate: false }); });
+      // The map is stretched while the fingers move (no tiles are reloaded), and the real zoom is set when they lift.
+      gesture.s = dist2(pts[0], pts[1]) / gesture.d0;
+      pinchPreview(gesture.s);
       viewTurn = gesture.t0 + (angle2(pts[0], pts[1]) - gesture.a0);
       applyRotation();
     }
+  }
+  // A pinch stretches the whole map (tiles, route and car together) about the middle of the screen. The zoom is only
+  // changed once, when the fingers lift, so the map does not go blank while each new zoom level's tiles load.
+  function pinchPreview(s) {
+    var pane = map && map.getPane('mapPane');
+    if (!pane) return;
+    var c = map.containerPointToLayerPoint(map.getSize().divideBy(2));
+    var pos = L.DomUtil.getPosition(pane);
+    pane.style.transformOrigin = c.x + 'px ' + c.y + 'px';
+    pane.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0) scale(' + s + ')';
+  }
+  function pinchDone() {
+    var pane = map && map.getPane('mapPane');
+    if (!pane || !gesture) return;
+    var s = gesture.s || 1;
+    if (Math.abs(s - 1) > 0.001) quietly(function () { map.setZoomAround(map.getSize().divideBy(2), gesture.z0 + Math.log(s) / Math.LN2, { animate: false }); });
+    pane.style.transformOrigin = '';
+    L.DomUtil.setPosition(pane, L.DomUtil.getPosition(pane));
   }
   function gestureUp(e) {
     // Any move not yet applied is applied before the finger lifts, so the last movement is not lost.
     if (gestureFrame) { cancelAnimationFrame(gestureFrame); applyGesture(); }
     delete touches[e.pointerId];
-    if (Object.keys(touches).length === 0) gesture = null;
+    if (gesture && gesture.mode === 'pinch' && Object.keys(touches).length < 2) { pinchDone(); gesture = null; }
+    else if (Object.keys(touches).length === 0) gesture = null;
   }
   function showSpeed() {
     if (lastKph === null) return;

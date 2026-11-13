@@ -1681,3 +1681,43 @@ def test_the_navigate_page_is_dark_black_and_the_toggle_switches_to_light_and_ke
     page.reload()
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
+
+
+def test_a_pinch_stretches_the_map_and_sets_the_zoom_when_the_fingers_lift(page):
+    # Driving: a pinch stretches the map while the fingers move (the zoom is not changed, so no tiles are reloaded),
+    # and the zoom is set once, when the fingers lift.
+    _approve(page, True)
+    page.add_init_script(GEO_HEADING_EAST)
+    page.route("**/navigate/route", lambda r: r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"}))
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-acc")).to_contain_text("within", timeout=10000)
+    page.locator("#nav-to-q").fill("52.13, -0.98")
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    page.locator("#nav-route-handle").click()
+    expect(page.locator("#nav-steps")).to_be_visible()
+    page.wait_for_timeout(400)
+    page.locator("#nav-start").click()
+    expect(page.locator(".nav-map-wrap")).to_have_class(re.compile(r"is-driving"))
+    zoom0 = page.evaluate("() => window.MT3UKNavigate.map().getZoom()")
+    assert zoom0 == 19
+    # Two fingers move apart and then pinch in (half the distance): the map shows a stretch, and the zoom is unchanged.
+    page.evaluate("""() => {
+      var m = document.getElementById('nav-map');
+      function ev(type, id, x, y) { m.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 })); }
+      ev('pointerdown', 1, 150, 500); ev('pointerdown', 2, 250, 500);
+      ev('pointermove', 2, 200, 500);
+    }""")
+    page.wait_for_function("() => /scale\\(0\\.5/.test(document.querySelector('.leaflet-map-pane').style.transform)", timeout=5000)
+    assert page.evaluate("() => window.MT3UKNavigate.map().getZoom()") == zoom0
+    page.evaluate("""() => {
+      var m = document.getElementById('nav-map');
+      function ev(type, id, x, y) { m.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 })); }
+      ev('pointerup', 2, 200, 500); ev('pointerup', 1, 150, 500);
+    }""")
+    # Released: the zoom is set once (half the distance is one zoom level out) and the stretch is gone.
+    page.wait_for_function("() => Math.abs(window.MT3UKNavigate.map().getZoom() - 18) < 0.05", timeout=5000)
+    assert "scale(" not in page.evaluate("() => document.querySelector('.leaflet-map-pane').style.transform")
+    expect(page.locator("#nav-exit")).to_have_text("End navigation")
+    page.locator("#nav-exit").click()

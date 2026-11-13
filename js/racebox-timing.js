@@ -90,9 +90,6 @@
   // The needle and the speed; the dot is the G forces, zeroed while the car is still.
   function drawDial(speedMs, g) {
     var mphNow = (speedMs || 0) * 2.23694;
-    // The dial glows red while the car is moving.
-    var dialHost = $('rbt-tm-dial');
-    if (dialHost) dialHost.classList.toggle('rbt-tm-moving', mphNow >= STOP_MPH);
     var frac = Math.max(0, Math.min(1, mphNow / MAX_MPH));
     var needle = $('rbt-tm-needle');
     if (needle) needle.setAttribute('transform', 'rotate(' + (-135 + 270 * frac) + ' 150 150)');
@@ -111,6 +108,9 @@
   // The satellites: empty until the RaceBox has a fix, then a segment for each satellite (up to 12).
   var segsBuilt = false;
   function drawSats() {
+    // The dial glows red from the GPS fix on, and stays red (no pulse).
+    var dial = $('rbt-tm-dial');
+    if (dial) dial.classList.toggle('rbt-tm-fixed', !!rbFix);
     var bars = $('rbt-tm-bars');
     if (!bars) return;
     if (!segsBuilt) {
@@ -301,18 +301,6 @@
     }
   }
 
-  // The dial pulses three times when the RaceBox first gets a GPS fix, so the member can see it has one.
-  var pulseTimer = null;
-  function pulseDial() {
-    var host = $('rbt-tm-dial');
-    if (!host) return;
-    host.classList.remove('rbt-tm-pulse');
-    void host.offsetWidth; // restart the animation
-    host.classList.add('rbt-tm-pulse');
-    clearTimeout(pulseTimer);
-    pulseTimer = setTimeout(function () { host.classList.remove('rbt-tm-pulse'); }, 2600);
-  }
-
   // Every reading from the RaceBox: the satellites, the dial and the G meter, and the timer on a fix.
   // The RaceBox's connection, from its status: connected, or not (searching, not found, dropped).
   function refresh() {
@@ -336,7 +324,6 @@
     rbConnected = true;
     rbSats = r.satellites || 0;
     var fixNow = !!(r.fixOk && r.coordinatesValid);
-    if (fixNow && !rbFix) pulseDial();
     rbFix = fixNow;
     drawSats();
     if (launch.state === 'idle') setGo(idleLabel(), false);
@@ -384,5 +371,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
   // For the page's own checks.
-  window.MT3UKRaceBoxTiming = { full: setFull, refreshDrives: refreshDrives, pulseIfFix: function () { if (rbFix) pulseDial(); }, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
+  window.MT3UKRaceBoxTiming = { full: setFull, refreshDrives: refreshDrives, state: function () { return { state: launch.state, runs: runs.length, fix: rbFix, sats: rbSats }; } };
 })();

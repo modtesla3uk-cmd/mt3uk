@@ -61,7 +61,8 @@
     if (!el) return;
     el.hidden = false;
     // Lines drawn on a canvas, not as SVG: the map is tilted and turned while driving, and SVG lines flicker in that.
-    map = L.map(el, { preferCanvas: true }).setView([lat, lng], 17);
+    // zoomSnap 0: a pinch follows the fingers continuously instead of jumping a whole zoom level at a time.
+    map = L.map(el, { preferCanvas: true, zoomSnap: 0 }).setView([lat, lng], 17);
     map.on('dragstart', userMoved);
     map.on('zoomstart', userMoved);
     L.tileLayer(MAP_BASE, { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);

@@ -3,7 +3,7 @@
    is kept in the browser. Everything here is limited to html[data-mode="dark"]. */
 html[data-mode="dark"] { color-scheme: dark; }
 html[data-mode="dark"] body { background: #000000; color: #ffffff; }
-html[data-mode="dark"] header { background: #000000 !important; border-bottom-color: #2b2b2b !important; }
+html[data-mode="dark"] header { background: #1c1c1c !important; border-bottom-color: #ffffff !important; }
 html[data-mode="dark"] header a, html[data-mode="dark"] header .icon, html[data-mode="dark"] header svg { color: #ffffff; }
 html[data-mode="dark"] header .laps-logo-by, html[data-mode="dark"] header .laps-logo-name { color: #ffffff !important; }
 html[data-mode="dark"] footer { background: #000000 !important; color: #ffffff; border-top-color: #2b2b2b; }
@@ -35,7 +35,9 @@ html[data-mode="dark"] .lb-hero h1 .lb-trophy, html[data-mode="dark"] .tp-lb-pil
 .lh-mode { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #c9d3cd;
   background: #ffffff; color: #16233d; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; white-space: nowrap; }
 html[data-mode="dark"] .lh-mode { background: #000000; color: #f5c542; border-color: #f5c542; }
-.lh-mode-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.lh-mode-row { display: flex; justify-content: flex-end; margin: 0; }
+/* The intro bar: Skip intro on the left, Light mode on the right, on one line. */
+.lh-reel-bar { justify-content: space-between !important; align-items: center; gap: 12px; width: 100%; justify-self: stretch !important; }
 /* Text that was navy is white in dark mode (headings, labels, the vehicle name). */
 html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4,
 html[data-mode="dark"] label, html[data-mode="dark"] p, html[data-mode="dark"] li, html[data-mode="dark"] summary,
@@ -137,3 +139,6 @@ html[data-mode="dark"] .lb-cta *:not(.btn-accent), html[data-mode="dark"] .lb-no
   color: #ffffff !important;
 }
 html[data-mode="dark"] .btn-accent, html[data-mode="dark"] .btn-accent * { color: #111111 !important; }
+
+/* The intro video is greyscale and darker in dark mode, so its green frame reads as black. */
+html[data-mode="dark"] .lh-reel-video { filter: grayscale(1) brightness(0.6); }

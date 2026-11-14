@@ -66,7 +66,7 @@
      words, so it is always on the screen (it is never pushed off the edge). */
   @media (orientation: landscape) and (max-height: 500px) {
     body.laps-tabbed .page-hero .wrap { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; column-gap: 12px; max-width: 100%; box-sizing: border-box; }
-    body.laps-tabbed .page-hero h1 { flex: 1 1 auto; min-width: 0; font-size: 1.35rem !important; }
+    body.laps-tabbed .page-hero h1 { flex: 1 1 0; min-width: 0; font-size: 1.35rem !important; display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; }
     body.laps-tabbed .page-hero .tp-hero-actions, body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { flex: 0 0 auto !important; margin-left: auto; grid-column: auto !important; grid-row: auto !important; justify-self: auto !important; }
     body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; max-width: none !important; padding: 0 14px !important; font-size: 0.9rem !important; white-space: nowrap; }
   }

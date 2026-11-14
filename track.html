@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-default-mode="light">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=40">
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=41">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Track sessions: map and compare every lap - Laps by MT3UK</title>
@@ -272,6 +272,15 @@
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
   .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
+  /* The filters are one fold: a single button with the count of filters on, and the drop-downs inside it. */
+  .tp-filter-fold { min-width: 0; }
+  .tp-filter-fold > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font: 700 0.92rem/1 var(--font-body); color: var(--ink); background: transparent; }
+  .tp-filter-fold > summary::-webkit-details-marker { display: none; }
+  .tp-filter-fold > summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); margin-left: 2px; }
+  .tp-filter-fold[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+  .tp-filter-fold > summary:focus-visible { outline: 3px solid var(--c-orange, #e8542a); outline-offset: 2px; }
+  .tp-filter-count { font-weight: 600; color: var(--steel); }
+  .tp-filter-fold > .tp-filters { margin-top: 10px; }
   /* The vehicle box is one slim row at every width: the name and its session count together. */
   .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
   .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -293,7 +302,8 @@
     .tp-list-head .tp-refresh, .tp-list-head .tp-find-toggle, .tp-list-head .tp-others { width: 40px; }
     .tp-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 0; }
     .tp-tools .tp-sort { width: auto; }
-    .tp-tools .tp-filters { display: contents; }
+    .tp-tools .tp-filter-fold { grid-column: 1 / -1; }
+    .tp-tools .tp-filter-fold > .tp-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tp-tools .tp-field, .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
     .tp-tools { align-items: start; }
     .tp-tools .tp-field label { font-size: 0.72rem; margin-bottom: 2px; }
@@ -1432,7 +1442,9 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row > .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: stretch; margin-top: 0; width: 100%; min-width: 0; height: 48px; min-height: 48px; padding: 0 10px; justify-content: center; font-size: 1rem; white-space: nowrap; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions:not([hidden]) { display: contents; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row .tp-hero-actions > .tp-lb-pill { grid-column: 2; grid-row: 3; justify-self: stretch; width: 100%; min-width: 0; height: 48px; min-height: 48px; margin-top: 0; padding: 0 10px; justify-content: center; font-size: 1rem; white-space: nowrap; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 2; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 36px; height: 36px; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-actions .laps-tip-bulbbtn { grid-column: 2; grid-row: 4; justify-self: end; align-self: center; margin: 0; width: 44px; height: 44px; }
+    /* The bulb beside the title is a 44px touch target on a phone too (Fitts's Law). */
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .laps-tip-titlebulb { width: 44px; height: 44px; margin-left: 10px; }
     .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn .laps-tip-bulb { width: 18px; height: 18px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: start; text-align: left; width: auto; max-width: none; margin-top: -4px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) > .tp-what p { margin: 0; max-width: none; }
@@ -1451,7 +1463,7 @@
   .tp-what-q { display: none; }
   @media (max-width: 900px) {
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) { position: relative; }
-    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 0 14px; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
+    .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q { display: inline-flex; align-items: center; justify-content: center; margin: 0 0 0 14px; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-row h1 .mt3uk-share-dot { margin: 0 0 0 8px; }
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-what > summary { display: none; }
@@ -1567,7 +1579,7 @@
      words, so it is always on the screen (it is never pushed off the edge). */
   @media (orientation: landscape) and (max-height: 500px) {
     body.laps-tabbed .page-hero .wrap { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; column-gap: 12px; max-width: 100%; box-sizing: border-box; }
-    body.laps-tabbed .page-hero h1 { flex: 1 1 auto; min-width: 0; font-size: 1.35rem !important; }
+    body.laps-tabbed .page-hero h1 { flex: 1 1 0; min-width: 0; font-size: 1.35rem !important; display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; }
     body.laps-tabbed .page-hero .tp-hero-actions, body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { flex: 0 0 auto !important; margin-left: auto; grid-column: auto !important; grid-row: auto !important; justify-self: auto !important; }
     body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; max-width: none !important; padding: 0 14px !important; font-size: 0.9rem !important; white-space: nowrap; }
   }
@@ -1889,7 +1901,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script src="js/quota-ring.js?v=18" defer></script>
 <script src="js/car-pick.js?v=5" defer></script>
 <script src="js/racebox-stage.js?v=2" defer></script>
-<script src="js/track-page.js?v=20271170" defer></script>
+<script src="js/track-page.js?v=20271171" defer></script>
 <script src="js/laps-panels.js?v=20271300" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

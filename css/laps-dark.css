@@ -2,28 +2,28 @@
    Light is the default on these pages; the Light mode / Dark mode button (data-mode-toggle, js/colour-mode.js) switches, and the choice
    is kept in the browser. Everything here is limited to html[data-mode="dark"]. */
 html[data-mode="dark"] { color-scheme: dark; }
-html[data-mode="dark"] body { background: #000000; color: #ffffff; }
-html[data-mode="dark"] header { background: #1c1c1c !important; border-bottom-color: #ffffff !important; }
-html[data-mode="dark"] header a, html[data-mode="dark"] header .icon, html[data-mode="dark"] header svg { color: #ffffff; }
-html[data-mode="dark"] header .laps-logo-by, html[data-mode="dark"] header .laps-logo-name { color: #ffffff !important; }
-html[data-mode="dark"] footer { background: #000000 !important; color: #ffffff; border-top-color: #2b2b2b; }
-html[data-mode="dark"] footer a { color: #ffffff; }
-html[data-mode="dark"] .lh-hero, html[data-mode="dark"] .lb-hero, html[data-mode="dark"] .tp-dark-hero, html[data-mode="dark"] .page-hero { background: #000000 !important; }
+html[data-mode="dark"] body { background: #141618; color: #dfe3e8; }
+html[data-mode="dark"] header { background: #1e2124 !important; border-bottom-color: #7d848e !important; }
+html[data-mode="dark"] header a, html[data-mode="dark"] header .icon, html[data-mode="dark"] header svg { color: #dfe3e8; }
+html[data-mode="dark"] header .laps-logo-by, html[data-mode="dark"] header .laps-logo-name { color: #dfe3e8 !important; }
+html[data-mode="dark"] footer { background: #141618 !important; color: #dfe3e8; border-top-color: #2c3036; }
+html[data-mode="dark"] footer a { color: #dfe3e8; }
+html[data-mode="dark"] .lh-hero, html[data-mode="dark"] .lb-hero, html[data-mode="dark"] .tp-dark-hero, html[data-mode="dark"] .page-hero { background: #141618 !important; }
 html[data-mode="dark"] .card, html[data-mode="dark"] .lb-row, html[data-mode="dark"] .tp-row, html[data-mode="dark"] .tp-day-tile,
 html[data-mode="dark"] .tp-daygroup, html[data-mode="dark"] .tp-board-card, html[data-mode="dark"] .lb-cta, html[data-mode="dark"] .lb-cmp,
 html[data-mode="dark"] .lb-fold-btn, html[data-mode="dark"] .tp-tile, html[data-mode="dark"] .lh-sec .card {
-  background-color: #000000 !important; border-color: #2b2b2b !important; color: #ffffff;
+  background-color: #141618 !important; border-color: #2c3036 !important; color: #dfe3e8;
 }
 html[data-mode="dark"] .chip, html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode,
 html[data-mode="dark"] a.back-link, html[data-mode="dark"] .tp-what, html[data-mode="dark"] select, html[data-mode="dark"] input,
 html[data-mode="dark"] .field, html[data-mode="dark"] .tp-iconbtn, html[data-mode="dark"] .lb-keep {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #4a5058 !important;
 }
 /* Grey text is white. */
 html[data-mode="dark"] .tp-small, html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-date, html[data-mode="dark"] .lb-brakes,
 html[data-mode="dark"] .lb-tyre, html[data-mode="dark"] .lb-car small, html[data-mode="dark"] .tp-muted, html[data-mode="dark"] .tp-day-sub,
 html[data-mode="dark"] .lb-hero p, html[data-mode="dark"] .lh-lead, html[data-mode="dark"] .lb-hero .back-link, html[data-mode="dark"] .tp-what summary {
-  color: #ffffff !important;
+  color: #dfe3e8 !important;
 }
 /* Highlights are gold, as on the RaceBox test page. */
 html[data-mode="dark"] .lb-drive, html[data-mode="dark"] .lb-tm, html[data-mode="dark"] .lb-few, html[data-mode="dark"] .lh-new,
@@ -34,7 +34,7 @@ html[data-mode="dark"] .lb-hero h1 .lb-trophy, html[data-mode="dark"] .tp-lb-pil
 /* The Light mode / Dark mode button in the heading (and on the Laps home hero). */
 .lh-mode { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #c9d3cd;
   background: #ffffff; color: #16233d; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; white-space: nowrap; }
-html[data-mode="dark"] .lh-mode { background: #000000; color: #f5c542; border-color: #f5c542; }
+html[data-mode="dark"] .lh-mode { background: #141618; color: #f5c542; border-color: #f5c542; }
 .lh-mode-row { display: flex; justify-content: flex-end; margin: 0; }
 /* The intro bar: Skip intro on the left, Light mode on the right, on one line. */
 .lh-reel-bar { justify-content: space-between !important; align-items: center; gap: 12px; width: 100%; justify-self: stretch !important; }
@@ -43,33 +43,33 @@ html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3,
 html[data-mode="dark"] label, html[data-mode="dark"] p, html[data-mode="dark"] li, html[data-mode="dark"] summary,
 html[data-mode="dark"] .lh-title, html[data-mode="dark"] .tp-title, html[data-mode="dark"] .tp-veh-pick, html[data-mode="dark"] .tp-vehicle-name,
 html[data-mode="dark"] .tp-section-title, html[data-mode="dark"] .tp-head, html[data-mode="dark"] .laps-logo-name, html[data-mode="dark"] .laps-logo-by {
-  color: #ffffff;
+  color: #dfe3e8;
 }
 html[data-mode="dark"] select, html[data-mode="dark"] .tp-veh-pick, html[data-mode="dark"] .tp-veh-pick select, html[data-mode="dark"] [class*="pick"] select {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #4a5058 !important;
 }
 /* The Laps home panels: cards, the timers, the fastest tile and the band are black with white text in dark mode. */
 html[data-mode="dark"] .lh-card, html[data-mode="dark"] .lh-timers span, html[data-mode="dark"] .lh-fast a, html[data-mode="dark"] .lh-band {
-  background-color: #000000 !important; border-color: #2b2b2b !important; color: #ffffff !important;
+  background-color: #141618 !important; border-color: #2c3036 !important; color: #dfe3e8 !important;
 }
 html[data-mode="dark"] .lh-card svg, html[data-mode="dark"] .lh-card .icon { color: #f5c542; stroke: #f5c542; }
 html[data-mode="dark"] .laps-logo-early { color: #f5c542 !important; }
-html[data-mode="dark"] .lh-sec span:not(.lh-new):not(.laps-logo-early) { background-color: #000000 !important; color: #ffffff !important; border-color: #3a3a3a !important; }
-html[data-mode="dark"] .lh-free li, html[data-mode="dark"] .lh-free, html[data-mode="dark"] .lh-free li span, html[data-mode="dark"] .lh-free li svg { color: #ffffff !important; background-color: transparent !important; }
-html[data-mode="dark"] .footer-text, html[data-mode="dark"] footer span { color: #ffffff !important; }
+html[data-mode="dark"] .lh-sec span:not(.lh-new):not(.laps-logo-early) { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #3a3f46 !important; }
+html[data-mode="dark"] .lh-free li, html[data-mode="dark"] .lh-free, html[data-mode="dark"] .lh-free li span, html[data-mode="dark"] .lh-free li svg { color: #dfe3e8 !important; background-color: transparent !important; }
+html[data-mode="dark"] .footer-text, html[data-mode="dark"] footer span { color: #dfe3e8 !important; }
 /* The white outline the pages draw round buttons and pickers is dark grey in dark mode. */
-html[data-mode="dark"] button, html[data-mode="dark"] select, html[data-mode="dark"] a, html[data-mode="dark"] input { outline-color: #5a5a5a !important; }
+html[data-mode="dark"] button, html[data-mode="dark"] select, html[data-mode="dark"] a, html[data-mode="dark"] input { outline-color: #4a5058 !important; }
 /* The vehicle box (the car picked on My Sessions) is black with white text. */
 html[data-mode="dark"] .tp-car, html[data-mode="dark"] .tp-car.is-on, html[data-mode="dark"] .tp-vcurrent, html[data-mode="dark"] .tp-vhead button {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #4a5058 !important;
 }
-html[data-mode="dark"] .tp-vtext, html[data-mode="dark"] .tp-car span, html[data-mode="dark"] .tp-car small { color: #ffffff !important; }
-html[data-mode="dark"] .lb-layout, html[data-mode="dark"] .lb-layout.is-busy { background-color: #000000 !important; color: #ffffff !important; }
+html[data-mode="dark"] .tp-vtext, html[data-mode="dark"] .tp-car span, html[data-mode="dark"] .tp-car small { color: #dfe3e8 !important; }
+html[data-mode="dark"] .lb-layout, html[data-mode="dark"] .lb-layout.is-busy { background-color: #141618 !important; color: #dfe3e8 !important; }
 /* Buttons have a visible outline in dark mode (on black they would disappear). */
 html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary,
 html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode, html[data-mode="dark"] .chip, html[data-mode="dark"] .tp-iconbtn,
 html[data-mode="dark"] .tp-car, html[data-mode="dark"] select {
-  border: 1px solid #ffffff !important;
+  border: 1px solid #7d848e !important;
 }
 html[data-mode="dark"] header button, html[data-mode="dark"] header select { border: 0 !important; }
 /* Lighter touch (Richard, too heavy): cards are a dark grey with fine borders, buttons have a grey outline, and the track names are white. */
@@ -81,11 +81,11 @@ html[data-mode="dark"] .tp-tile, html[data-mode="dark"] .lh-sec .card, html[data
 html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary,
 html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode, html[data-mode="dark"] .chip, html[data-mode="dark"] .tp-iconbtn,
 html[data-mode="dark"] .tp-car, html[data-mode="dark"] select {
-  border-color: #6b6b6b !important;
+  border-color: #5f666f !important;
 }
 html[data-mode="dark"] header button, html[data-mode="dark"] header select { border: 0 !important; }
 html[data-mode="dark"] [data-track-toggle], html[data-mode="dark"] [data-track-toggle] *, html[data-mode="dark"] .tp-trackrow, html[data-mode="dark"] .tp-trackrow * {
-  color: #ffffff !important;
+  color: #dfe3e8 !important;
 }
 html[data-mode="dark"] [data-track-toggle] small, html[data-mode="dark"] [data-track-toggle] span.tp-day-sub, html[data-mode="dark"] .tp-trackrow small { color: #bdbdbd !important; }
 /* The Leaderboard: the track headings, driver names, cars, times and dates are white (the medal numbers keep their colours). */
@@ -95,19 +95,19 @@ html[data-mode="dark"] .lb-row .lb-name, html[data-mode="dark"] .lb-row .lb-car,
 html[data-mode="dark"] .lb-row .lb-time, html[data-mode="dark"] .lb-row .lb-tm, html[data-mode="dark"] .lb-row .lb-date,
 html[data-mode="dark"] .lb-row .lb-tyre, html[data-mode="dark"] .lb-row .lb-brakes, html[data-mode="dark"] .lb-row small,
 html[data-mode="dark"] .lb-row .lb-gap, html[data-mode="dark"] .lb-row .lb-fast {
-  color: #ffffff !important;
+  color: #dfe3e8 !important;
 }
 html[data-mode="dark"] .tp-board-card a.btn, html[data-mode="dark"] .tp-board-card a.btn-secondary, html[data-mode="dark"] .tp-board-card a[class*="btn"] {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #6b6b6b !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #5f666f !important;
 }
 /* The menu icon is white on black. */
-html[data-mode="dark"] .hamburger-bar { background: #ffffff !important; }
+html[data-mode="dark"] .hamburger-bar { background: #dfe3e8 !important; }
 /* The Light mode button's words are centred. */
 .lh-mode { justify-content: center; text-align: center; }
 /* The Directions button on a Leaderboard track is black with white words, like the other buttons. */
-html[data-mode="dark"] .lb-dir { background-color: #000000 !important; color: #ffffff !important; border-color: #6b6b6b !important; }
+html[data-mode="dark"] .lb-dir { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #5f666f !important; }
 /* The lap times and gaps on a board are white. */
-html[data-mode="dark"] .lb-time, html[data-mode="dark"] .lb-time b, html[data-mode="dark"] .lb-time small, html[data-mode="dark"] .lb-head { color: #ffffff !important; }
+html[data-mode="dark"] .lb-time, html[data-mode="dark"] .lb-time b, html[data-mode="dark"] .lb-time small, html[data-mode="dark"] .lb-head { color: #dfe3e8 !important; }
 /* On a phone the Light mode button is smaller and sits on the right, under Add a session. */
 @media (max-width: 780px) {
   .lh-mode { min-height: 36px; padding: 0 12px; font-size: 0.8rem; justify-self: end; grid-column: 2; }
@@ -122,10 +122,10 @@ html[data-mode="dark"] .tp-row, html[data-mode="dark"] .tp-daygroup, html[data-m
 html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .chip,
 html[data-mode="dark"] select, html[data-mode="dark"] input, html[data-mode="dark"] .lb-dir, html[data-mode="dark"] .lh-mode,
 html[data-mode="dark"] .tp-iconbtn, html[data-mode="dark"] .tp-car, html[data-mode="dark"] .lb-hide {
-  border-color: #ffffff !important;
+  border-color: #7d848e !important;
 }
-html[data-mode="dark"] header { border-bottom-color: #ffffff !important; }
-html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-mode="dark"] .tp-iconbtn svg, html[data-mode="dark"] .tp-iconbtn { color: #ffffff !important; stroke: #ffffff !important; }
+html[data-mode="dark"] header { border-bottom-color: #7d848e !important; }
+html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-mode="dark"] .tp-iconbtn svg, html[data-mode="dark"] .tp-iconbtn { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }
 /* The Light mode / Dark mode button on the Track days / Drag row, on the right and a little smaller. */
 .lb-types .lh-mode { margin-left: auto; min-height: 36px; padding: 0 12px; font-size: 0.8rem; }
 /* Dark grey lines between the sessions on each card (dark mode only). */
@@ -136,7 +136,7 @@ html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-b
 html[data-mode="dark"] a:not(.btn-accent):not(.btn-primary), html[data-mode="dark"] b, html[data-mode="dark"] strong,
 html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4, html[data-mode="dark"] label,
 html[data-mode="dark"] .lb-cta *:not(.btn-accent), html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-note * {
-  color: #ffffff !important;
+  color: #dfe3e8 !important;
 }
 html[data-mode="dark"] .btn-accent, html[data-mode="dark"] .btn-accent * { color: #111111 !important; }
 
@@ -147,129 +147,140 @@ html[data-mode="dark"] .lh-reel-video:not(.lh-reel-dark) { filter: grayscale(1) 
 html[data-mode="dark"] .lh-reel-video:not(.lh-reel-dark) { display: none !important; }
 html[data-mode="dark"] .lh-reel-video.lh-reel-dark { display: block !important; filter: none; }
 /* The menu drawer in dark mode: dark grey with white links (the gold Sign out and the message count keep their colours). */
-html[data-mode="dark"] .navlinks { background: #1c1c1c !important; border-color: #ffffff !important; }
-html[data-mode="dark"] .navlinks a:not([class*="sign"]):not(.nav-chat-count) { color: #ffffff !important; }
-html[data-mode="dark"] .navlinks a:not([class*="sign"]) .icon, html[data-mode="dark"] .navlinks a:not([class*="sign"]) svg { color: #ffffff !important; stroke: #ffffff !important; }
+html[data-mode="dark"] .navlinks { background: #1e2124 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] .navlinks a:not([class*="sign"]):not(.nav-chat-count) { color: #dfe3e8 !important; }
+html[data-mode="dark"] .navlinks a:not([class*="sign"]) .icon, html[data-mode="dark"] .navlinks a:not([class*="sign"]) svg { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }
 /* The intro keeps the recorded video in dark mode (greyscale, above). The live drawing stays hidden. */
 .lh-reel-live { display: none; }
 /* The sign-in style buttons (the Preferences button on Profile and Favourites) are black with white text. */
-html[data-mode="dark"] .si-btn, html[data-mode="dark"] .pf-prefs button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .si-btn, html[data-mode="dark"] .pf-prefs button { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 /* Profile in dark mode: the cards are black with fine white outlines, the words are white, and the tabs are black with white text. */
 html[data-mode="dark"] .pf-card, html[data-mode="dark"] .pf-sec, html[data-mode="dark"] .pf-warning, html[data-mode="dark"] .pf-row {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important;
 }
 html[data-mode="dark"] .pf-view dt, html[data-mode="dark"] .pf-view dd, html[data-mode="dark"] .pf-hint, html[data-mode="dark"] .pf-muted,
 html[data-mode="dark"] .pf-who, html[data-mode="dark"] .pf-check, html[data-mode="dark"] .pf-view {
-  color: #ffffff !important;
+  color: #dfe3e8 !important;
 }
 html[data-mode="dark"] .pf-tabs a, html[data-mode="dark"] .pf-tabs button, html[data-mode="dark"] .pf-tabs a *, html[data-mode="dark"] .pf-tabs button * {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important;
 }
 /* The signed-out box and the signed-in cards on Profile and Favourites follow the same dark style. */
 html[data-mode="dark"] .pf-signed-out, html[data-mode="dark"] .pf-left, html[data-mode="dark"] .si-card,
 html[data-mode="dark"] .si-signed-in, html[data-mode="dark"] .si-card-join {
-  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important;
 }
-html[data-mode="dark"] .pf-signed-out h2, html[data-mode="dark"] .pf-signed-out p, html[data-mode="dark"] .pf-left p { color: #ffffff !important; }
+html[data-mode="dark"] .pf-signed-out h2, html[data-mode="dark"] .pf-signed-out p, html[data-mode="dark"] .pf-left p { color: #dfe3e8 !important; }
 /* Dark mode: the Early preview badge is black with gold words (it was light peach with white words). */
-html[data-mode="dark"] .early-badge { background-color: #000000 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
+html[data-mode="dark"] .early-badge { background-color: #141618 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
 /* The bell and search panels are black with white words and white outlines, and their buttons match. */
-html[data-mode="dark"] #nav-bell-panel, html[data-mode="dark"] #nav-search-panel { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
-html[data-mode="dark"] #nav-bell-panel *, html[data-mode="dark"] #nav-search-panel * { color: #ffffff !important; }
+html[data-mode="dark"] #nav-bell-panel, html[data-mode="dark"] #nav-search-panel { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] #nav-bell-panel *, html[data-mode="dark"] #nav-search-panel * { color: #dfe3e8 !important; }
 html[data-mode="dark"] #nav-bell-panel button, html[data-mode="dark"] #nav-bell-panel a, html[data-mode="dark"] #nav-search-panel button, html[data-mode="dark"] #nav-search-panel a, html[data-mode="dark"] #nav-search-panel input {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 /* The Leaderboard's Early preview note: black with white words, the lead words in gold. */
-html[data-mode="dark"] #lb-preview { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] #lb-preview { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 html[data-mode="dark"] #lb-preview b { color: #f5c542 !important; }
 /* Dark mode, signed in (Sessions and the Leaderboard): the grey text is white, and the light tags, buttons and
    result times are black with white or gold words, so nothing sits light on light or dark on black. */
-html[data-mode="dark"] { --steel: #ffffff; }
+html[data-mode="dark"] { --steel: #dfe3e8; }
 html[data-mode="dark"] .tp-pill, html[data-mode="dark"] .tp-favrow {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
-html[data-mode="dark"] .tp-favrow svg, html[data-mode="dark"] .tp-favrow .icon { color: #ffffff !important; stroke: #ffffff !important; }
-html[data-mode="dark"] .tp-fastest { background-color: #000000 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
-html[data-mode="dark"] .tp-row-res { color: #ffffff !important; }
-html[data-mode="dark"] .btn-danger { background-color: #000000 !important; color: #ff7a7a !important; border: 1px solid #ff7a7a !important; }
+html[data-mode="dark"] .tp-favrow svg, html[data-mode="dark"] .tp-favrow .icon { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }
+html[data-mode="dark"] .tp-fastest { background-color: #141618 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
+html[data-mode="dark"] .tp-row-res { color: #dfe3e8 !important; }
+html[data-mode="dark"] .btn-danger { background-color: #141618 !important; color: #ff7a7a !important; border: 1px solid #ff7a7a !important; }
 html[data-mode="dark"] .btn-danger * { color: #ff7a7a !important; }
 /* Dark mode, a session's own page: the notes and the Only me / Shared choices are black with white words (they were white
    on white), the session id and the figures are white, and the Laps Pro link is black with an orange edge. */
 html[data-mode="dark"] .tp-note, html[data-mode="dark"] .tp-opt {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 html[data-mode="dark"] .tp-opt.is-on { border: 2px solid #f5c542 !important; }
-html[data-mode="dark"] .tp-opt *, html[data-mode="dark"] .tp-note * { color: #ffffff !important; }
-html[data-mode="dark"] code { color: #ffffff !important; }
-html[data-mode="dark"] .v { color: #ffffff !important; }
-html[data-mode="dark"] .tp-laps-jump { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #e8542a !important; }
+html[data-mode="dark"] .tp-opt *, html[data-mode="dark"] .tp-note * { color: #dfe3e8 !important; }
+html[data-mode="dark"] code { color: #dfe3e8 !important; }
+html[data-mode="dark"] .v { color: #dfe3e8 !important; }
+html[data-mode="dark"] .tp-laps-jump { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #e8542a !important; }
 /* On/off switches in dark mode: the off switch is black with a white edge, the on switch gold. */
-html[data-mode="dark"] .lo-switch { background-color: #000000 !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .lo-switch { background-color: #141618 !important; border: 1px solid #7d848e !important; }
 html[data-mode="dark"] .lo-switch[aria-checked="true"] { background-color: #f5c542 !important; border-color: #f5c542 !important; }
 /* My Analysis in dark mode: the pills are black with white words, the accent button is gold with black words, and the
    control strip is black. */
-html[data-mode="dark"] .tm-pill { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .tm-pill { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 html[data-mode="dark"] .tm-pill-accent { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
 html[data-mode="dark"] .tm-pill-accent * { color: #111111 !important; }
-html[data-mode="dark"] .tm-controls, html[data-mode="dark"] .ma-controls { background-color: #000000 !important; }
+html[data-mode="dark"] .tm-controls, html[data-mode="dark"] .ma-controls { background-color: #141618 !important; }
 html[data-mode="dark"] a.tm-pill.tm-pill-accent { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
-html[data-mode="dark"] .tm-card { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
-html[data-mode="dark"] .tm-card p, html[data-mode="dark"] .tm-card * { color: #ffffff !important; }
+html[data-mode="dark"] .tm-card { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
+html[data-mode="dark"] .tm-card p, html[data-mode="dark"] .tm-card * { color: #dfe3e8 !important; }
 /* My Analysis with data in dark mode: the section links and the filter chips are black with white words, and the chip
    that is on is gold with black words. */
-html[data-mode="dark"] .ma-jump a, html[data-mode="dark"] .tm-chips .chip { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .ma-jump a, html[data-mode="dark"] .tm-chips .chip { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 html[data-mode="dark"] .tm-chips button.chip.is-on.is-on { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
-html[data-mode="dark"] .ma-grp { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .ma-grp { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 /* My Analysis tables in dark mode: the header row and the cells are black with white words and white rules. */
-html[data-mode="dark"] .ma-table th, html[data-mode="dark"] .ma-table td { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
-html[data-mode="dark"] .ma-table th { color: #ffffff !important; }
+html[data-mode="dark"] .ma-table th, html[data-mode="dark"] .ma-table td { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] .ma-table th { color: #dfe3e8 !important; }
 /* The Signed in as band (Profile and the other member pages) is black with white words; its buttons are black with white edges,
    and the current page is gold. */
-html[data-mode="dark"] .mt3uk-account-bar { background-color: #000000 !important; border-bottom: 1px solid #ffffff !important; }
-html[data-mode="dark"] .mt3uk-account-bar p, html[data-mode="dark"] .mt3uk-account-bar .mt3uk-account-email { color: #ffffff !important; }
-html[data-mode="dark"] .mt3uk-account-bar a, html[data-mode="dark"] .mt3uk-account-bar button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .mt3uk-account-bar { background-color: #141618 !important; border-bottom: 1px solid #7d848e !important; }
+html[data-mode="dark"] .mt3uk-account-bar p, html[data-mode="dark"] .mt3uk-account-bar .mt3uk-account-email { color: #dfe3e8 !important; }
+html[data-mode="dark"] .mt3uk-account-bar a, html[data-mode="dark"] .mt3uk-account-bar button { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
 html[data-mode="dark"] .mt3uk-account-bar a[aria-current="page"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
 /* Buttons and bars that were white with grey words (the grey is white in dark mode): the free days Hide/Show button, the
    public-note bar on a session and the Leaderboard favourite star are black with white words. */
 html[data-mode="dark"] .tp-quota-toggle, html[data-mode="dark"] .tp-publicbar, html[data-mode="dark"] .tp-favrow, html[data-mode="dark"] .lb-fav {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 /* The file drop zone on Add a session is black with a white dashed edge and white words (it was light with grey words). */
-html[data-mode="dark"] .tp-drop { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
-html[data-mode="dark"] .tp-drop small, html[data-mode="dark"] .tp-drop b, html[data-mode="dark"] .tp-drop > .icon { color: #ffffff !important; }
+html[data-mode="dark"] .tp-drop { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] .tp-drop small, html[data-mode="dark"] .tp-drop b, html[data-mode="dark"] .tp-drop > .icon { color: #dfe3e8 !important; }
 html[data-mode="dark"] .tp-drop.is-over { border-color: #f5c542 !important; background-color: #111111 !important; }
 /* Favourites in dark mode: the filter chips and the starred session rows are black with white words and white edges (the
    chip that is on is gold with black words), the stars are gold on black, and the results are white. */
 html[data-mode="dark"] .fav-chip, html[data-mode="dark"] .fav-row, html[data-mode="dark"] .fav-star {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 html[data-mode="dark"][data-mode="dark"] button.fav-chip.is-on.is-on.is-on, html[data-mode="dark"][data-mode="dark"] button.fav-chip[aria-pressed="true"][aria-pressed="true"][aria-pressed="true"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
 html[data-mode="dark"] .fav-star { color: #f5c542 !important; }
 html[data-mode="dark"] .fav-star svg { color: #f5c542 !important; stroke: #f5c542 !important; }
-html[data-mode="dark"] .fav-res, html[data-mode="dark"] .fav-row b, html[data-mode="dark"] .fav-row span, html[data-mode="dark"] .fav-row small { color: #ffffff !important; }
+html[data-mode="dark"] .fav-res, html[data-mode="dark"] .fav-row b, html[data-mode="dark"] .fav-row span, html[data-mode="dark"] .fav-row small { color: #dfe3e8 !important; }
 /* The messenger window in dark mode (js/messenger.js): black, with white words everywhere. Messages from others are black
    bubbles with white edges; your own are gold with black words; the send button stays orange. */
 html[data-mode="dark"] #mt3uk-chat, html[data-mode="dark"] #mt3uk-chat * { background-color: transparent !important; }
-html[data-mode="dark"] #mt3uk-chat { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
-html[data-mode="dark"] #mt3uk-chat [class*="mc-"] { color: #ffffff !important; }
-html[data-mode="dark"] #mt3uk-chat .mc-head, html[data-mode="dark"] #mt3uk-chat .mc-tabs, html[data-mode="dark"] #mt3uk-chat .mc-row { border-color: #ffffff !important; }
+html[data-mode="dark"] #mt3uk-chat { background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important; }
+html[data-mode="dark"] #mt3uk-chat [class*="mc-"] { color: #dfe3e8 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-head, html[data-mode="dark"] #mt3uk-chat .mc-tabs, html[data-mode="dark"] #mt3uk-chat .mc-row { border-color: #7d848e !important; }
 html[data-mode="dark"] #mt3uk-chat .mc-bubble, html[data-mode="dark"] #mt3uk-chat .mc-btn, html[data-mode="dark"] #mt3uk-chat .mc-icon-btn, html[data-mode="dark"] #mt3uk-chat .mc-tab, html[data-mode="dark"] #mt3uk-chat .mc-text, html[data-mode="dark"] #mt3uk-chat .mc-search, html[data-mode="dark"] #mt3uk-chat .mc-quote, html[data-mode="dark"] #mt3uk-chat .mc-photo {
-  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
 html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble * { color: #111111 !important; }
 html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble a { color: #111111 !important; text-decoration: underline; }
 html[data-mode="dark"] #mt3uk-chat .mc-tab[aria-selected="true"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
-html[data-mode="dark"] #mt3uk-chat .mc-send { background-color: #e8542a !important; color: #ffffff !important; border: 0 !important; }
-html[data-mode="dark"] #mt3uk-chat .mc-report, html[data-mode="dark"] #mt3uk-chat .mc-msg-meta, html[data-mode="dark"] #mt3uk-chat .mc-meta { color: #ffffff !important; border: 0 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-send { background-color: #e8542a !important; color: #dfe3e8 !important; border: 0 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-report, html[data-mode="dark"] #mt3uk-chat .mc-msg-meta, html[data-mode="dark"] #mt3uk-chat .mc-meta { color: #dfe3e8 !important; border: 0 !important; }
 /* The reply box in the messenger: white words you type on black, with a readable placeholder. */
 html[data-mode="dark"] #mt3uk-chat textarea, html[data-mode="dark"] #mt3uk-chat input:not([type="checkbox"]):not([type="radio"]) {
-  background-color: #000000 !important; color: #ffffff !important; caret-color: #ffffff !important; border: 1px solid #ffffff !important;
+  background-color: #141618 !important; color: #dfe3e8 !important; caret-color: #dfe3e8 !important; border: 1px solid #7d848e !important;
 }
 html[data-mode="dark"] #mt3uk-chat textarea::placeholder, html[data-mode="dark"] #mt3uk-chat input::placeholder { color: #bdbdbd !important; opacity: 1 !important; }
 /* Every word in the messenger is white in dark mode, including the previews and the request text that have no class of their
    own. The exceptions keep their colours: your own messages (black on gold), the selected tab (black on gold) and the send button. */
-html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mine .mc-bubble *):not(.mc-tab[aria-selected="true"]):not(.mc-send):not(.mc-send *) { color: #ffffff !important; }
+html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mine .mc-bubble *):not(.mc-tab[aria-selected="true"]):not(.mc-send):not(.mc-send *) { color: #dfe3e8 !important; }
 /* The example analysis (My Analysis, for members without Laps Pro) in dark mode: the light picture is inverted to a dark one,
    kept a little dimmer so it is clearly an example and not the member's own data. */
 html[data-mode="dark"] .ma-example { filter: invert(1) hue-rotate(180deg) brightness(0.85); opacity: 0.8; }
+/* Von Restorff: gold is kept for the one thing that needs attention (a lit tip bulb, a new fastest lap) and the current place
+   (the selected tab, the Early preview tag). The tip bulb and the clock beside a page title are light grey until lit. */
+html[data-mode="dark"] .page-hero .laps-tip-titlebulb:not(.is-lit) { color: #dfe3e8; }
+html[data-mode="dark"] .page-hero h1 > svg.tp-title-icon { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }
+/* The main call to action, Add a session, is the one solid highlight in dark mode: gold with dark words. */
+html[data-mode="dark"] #tp-hero-add, html[data-mode="dark"] #lb-add-session, html[data-mode="dark"] .tm-pill-accent {
+  background-color: #f5c542 !important; color: #141618 !important; border-color: #f5c542 !important;
+}
+html[data-mode="dark"] #tp-hero-add .icon, html[data-mode="dark"] #lb-add-session .icon, html[data-mode="dark"] .tm-pill-accent .icon { color: #141618 !important; stroke: #141618 !important; }
+/* The secondary heading buttons (My Analysis, Leaderboards) keep light grey icons, so only the main action is gold. */
+html[data-mode="dark"] .page-hero .tp-lb-pill:not(.tm-pill-accent):not(#tp-hero-add):not(#lb-add-session) .icon { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }

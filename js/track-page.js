@@ -1362,6 +1362,8 @@
   // so the matching sessions are in view, with a line saying how many of the sessions match and a Clear chip.
   var FILTERS = [['logger', 'Logger', 'All loggers'], ['tyres', 'Tyres', 'All tyres'], ['pads', 'Pads', 'All pads']];
   var listFilters = { logger: '', tyres: '', pads: '' }, filterOpenAll = false;
+  // The filters sit in one fold, shut until the member opens it (or a filter is on): fewer choices in view at once (Hick's Law).
+  var filtersOpen = false;
   function filtersOn() { return FILTERS.some(function (f) { return !!listFilters[f[0]]; }); }
   var NOT_SET = '__none';
   function filteredList(list) {
@@ -1385,9 +1387,12 @@
   function trackToolsHtml(list) {
     var filters = list.length ? FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('') : '';
     if (trackEntries(list).length < 2 && !filters) return '';
+    var nOn = FILTERS.filter(function (f) { return !!listFilters[f[0]]; }).length;
+    var fold = filters ? '<details class="tp-filter-fold" id="tp-filter-fold"' + (filtersOpen || nOn ? ' open' : '') + '><summary>Filters' +
+      (nOn ? ' <span class="tp-filter-count">' + nOn + ' on</span>' : '') + '</summary><div class="tp-filters">' + filters + '</div></details>' : '';
     return '<div class="tp-tools">' + (trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '') +
-      (filters ? '<div class="tp-filters">' + filters + '</div>' : '') + '</div>' + filterNoteHtml(list);
+      fold + '</div>' + filterNoteHtml(list);
   }
   // The layouts and events at one track: each layout (or a sprint's organiser, or the kind of session when there is
   // neither) once, with its count and last day. The track line's chevron drops them down (openTracks keeps them open
@@ -1583,6 +1588,8 @@
       wireTools();
     }
     function wireTools() {
+      var filterFold = document.getElementById('tp-filter-fold');
+      if (filterFold) filterFold.addEventListener('toggle', function () { filtersOpen = filterFold.open; });
       var sortSel = document.getElementById('tp-sort');
       if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redrawList(); });
       [].forEach.call(document.querySelectorAll('#tp-tracks [data-filter]'), function (sel) {

@@ -1163,6 +1163,9 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
         fake.sessions[sid] = dict(r)
         fake.index.append(summary(r))
     open_page(page, fake)
+    # The filters are one fold, shut until opened (Hick's Law): open it, then use the drop-downs.
+    expect(page.locator("#tp-filter-fold")).not_to_have_attribute("open", "")
+    page.locator("#tp-filter-fold > summary").click()
     logger = page.locator("#tp-filter-logger")
     # Always shown, even with one value or none, and sessions without one are a choice of their own.
     expect(logger.locator("option")).to_have_text(["All loggers", "RaceBox (2)", "VBOX (1)"])
@@ -1200,6 +1203,7 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
     page.locator("#tp-filter-clear").click()
     fake.sessions["f3"].pop("logger"); fake.index = [dict(x, logger=None) if x["id"] == "f3" else x for x in fake.index]
     page.reload()
+    page.locator("#tp-filter-fold > summary").click()
     expect(page.locator("#tp-filter-logger option")).to_have_text(["All loggers", "RaceBox (1)", "VBOX (1)", "Not set (1)"])
     page.locator("#tp-filter-logger").select_option("__none")
     expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
@@ -5843,6 +5847,24 @@ def test_on_a_landscape_phone_add_a_session_stays_on_the_title_row(page):
         assert add["x"] >= 0 and add["x"] + add["width"] <= width, (width, add)
         assert add["y"] < h1["y"] + h1["height"] and add["y"] + add["height"] > h1["y"], (width, h1, add)
         assert add["height"] >= 36 and add["width"] > 90, (width, add)
+
+
+def test_on_a_landscape_phone_the_list_keeps_add_a_session_on_the_title_row_with_bigger_text(page):
+    """The list of sessions on a landscape phone has the title, its icons and the free days ring, then Add a session.
+    Phones with larger text (the app's text is bigger than Chrome's) must keep Add a session on the title line and on
+    the screen: the title wraps its own icons rather than pushing the button off the edge."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 8, "nextTopUp": "2026-11-01T00:00:00.000Z"}
+    open_page(page, fake)
+    for width, height in ((874, 405), (740, 360), (667, 375)):
+        set_window(page, {"width": width, "height": height})
+        page.wait_for_timeout(250)
+        page.evaluate("() => document.querySelectorAll('.page-hero h1').forEach(h => h.style.setProperty('font-size', '1.9rem', 'important'))")
+        h1 = page.locator(".page-hero h1").first.bounding_box()
+        add = page.locator("#tp-hero-add").bounding_box()
+        assert add["x"] >= 0 and add["x"] + add["width"] <= width, (width, add)
+        assert add["y"] < h1["y"] + h1["height"] and add["y"] + add["height"] > h1["y"], (width, h1, add)
 
 
 def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_round(page):

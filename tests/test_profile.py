@@ -565,7 +565,7 @@ def test_profile_has_notifications_app_email_alerts_and_unsubscribe(device_page)
     order = page.evaluate("[...document.querySelectorAll('#pf-app > .pf-card')].map(e => e.id)")
     assert order.index("email-alerts") == order.index("visibility") + 1, order
     tabs = page.locator(".pf-tabs a").all_inner_texts()
-    assert tabs == ["Details", "Visibility", "Security"], tabs
+    assert tabs == ["Details", "Visibility", "Security", "Preferences"], tabs
     # My Garage is a button in the signed-in bar beside Sign out, with no card of its own.
     assert page.locator(".mt3uk-account-bar a[href='my-builds.html']").count() == 1
     assert page.locator(".pf-garage").count() == 0

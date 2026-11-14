@@ -33,6 +33,22 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 - **App builds (Laps Android app, `capacitor-app/`).** When a change needs the app rebuilding (a plugin, a permission, a version bump), give the full steps every time: in the `capacitor-app` folder run `npm install` and `npx cap sync android`; then in Android Studio (already open) choose **File, Sync Project with Gradle Files** (or **Sync Now**); then **Build, Generate Signed App Bundle / APK**, **Android App Bundle**, the upload keystore and the **release** variant; then upload the bundle to Play Console's internal testing track with a higher version code than the last release. Keep the version code and name in `capacitor-app/android/app/build.gradle` up to date. **Remind Richard after every Play release** to check the app's links: install the new build, tap a `laps.mt3uk.com` link (a sign-in email link will do) and confirm it opens in the Laps app, not the browser. The app's App Link depends on the signing key matching `.well-known/assetlinks.json`, so a release signed with a different key breaks it without any visible error. Keep both fingerprints in that file until told otherwise.
 
+## Design principles (Laws of UX)
+
+Every visual, layout or wording change follows these laws. The mock-up shows which laws it uses, and the reply to Richard says so in one line.
+
+- **Fitts's Law:** primary buttons are large and close to the thumb. Touch targets are at least 44px.
+- **Hick's Law:** limit the choices. Group them, and hide advanced settings behind a fold until they are needed (progressive disclosure).
+- **Jakob's Law:** use standard patterns (menu top right, the bottom tab bar on a phone, Back at the top left), so nobody has to relearn them.
+- **Miller's Law:** chunk information into groups of about 7 items or fewer, with headings, folds and steps.
+- **Aesthetic-Usability Effect:** polish builds trust, but it cannot fix broken functionality.
+- **Von Restorff Effect:** one highlight (the gold or orange) marks the key call to action. Use contrast sparingly.
+- **Gestalt laws:** group by proximity, similarity and common region (cards and borders), and keep it simple.
+- **Doherty Threshold:** responses under 400 ms. Use a skeleton, a spinner or a progress line when a wait cannot be avoided.
+- **Tesler's Law:** the system carries the complexity (sensible defaults, autofill), not the member.
+- **Peak-End Rule:** polish the confirmation and completion screens (Saved, Done), as they are what people remember.
+- **Goal-Gradient Effect:** show progress and the steps left on anything with several steps.
+
 ## Worker
 
 - `workers/vote-worker.js` deploys automatically through GitHub Actions on push to `main`, so there is no manual `wrangler deploy`.

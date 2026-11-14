@@ -166,3 +166,8 @@
   body.laps-tabbed .page-hero { padding-top: 16px !important; padding-bottom: 8px !important; }
   body.laps-tabbed main.tp-main { padding-top: 10px !important; }
 }
+
+/* Landscape phones: the loading line sits closer to the heading, so the space under it is not large while a list loads. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.laps-tabbed .tp-loading { padding: 16px 0 !important; }
+}

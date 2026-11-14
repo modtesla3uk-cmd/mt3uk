@@ -601,8 +601,8 @@
     var who = [e.owner ? e.car : '', [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
     var drive = b.drive || e.drive;
     // One line on a desktop: tyres, brakes and date each in their own column (see the board's styles).
-    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : 'Tyres not given') + '</span>' +
-      '<span class="lb-brakes' + (b.pads ? '' : ' is-none') + '">' + (b.pads ? esc(b.pads) : 'Brakes not given') + '</span>' +
+    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : '') + '</span>' +
+      '<span class="lb-brakes' + (b.pads ? '' : ' is-none') + '">' + (b.pads ? esc(b.pads) : '') + '</span>' +
       '<span class="lb-date">' + esc(T.niceDate(b.date)) + (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + '</span>';
     // A signed-in member gets a star on the row, outside the name's link (it is shown once the list has loaded).
     var fav = signedInToken() ? ' lb-can-fav' : '';
@@ -834,9 +834,8 @@
               if (i >= FOLD) row = row.replace('<li class="lb-row', '<li class="lb-row lb-extra');
               return (i === FOLD ? '<li class="lb-fold"><button type="button" class="lb-fold-btn" data-fold aria-expanded="' + foldOpen + '">' + icon('chev') + '<span>' + foldLabel(shown.length, foldOpen) + '</span></button></li>' : '') + row;
             }).join('') + '</ol></div>' +
-            '<p class="tp-small lb-note">Each row shows the tyres the time was set on. Open a car to see its mods. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
+            '';
         }
-        h += ctaHtml();
         app.innerHTML = keptNote() + h;
         placeTip();
         syncPageBack();

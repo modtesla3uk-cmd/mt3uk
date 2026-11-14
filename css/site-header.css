@@ -589,4 +589,6 @@ html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
    the device's insets from env(); everywhere else they are 0, so these rules change nothing on mt3uk.com. */
 header { padding-top: env(safe-area-inset-top, 0px); }
 footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
-body { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+/* Sideways (landscape): the coloured bands run to the screen's edges; only the content is kept clear of the notch and bars. */
+.wrap { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
+nav { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }

@@ -49,7 +49,7 @@
 /* Laps pages with the bottom bar (Sessions, Leaderboard, Favourites, My Analysis): the header keeps the bell and the menu,
    the four sections move to the bar, which can also be swiped between on a phone. Other Laps-header pages are unchanged. */
 .laps-tabs { display: none; }
-@media (max-width: 780px) {
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
   header.laps-tabbed .nav-sessions, header.laps-tabbed .nav-leaders, header.laps-tabbed .nav-favs, header.laps-tabbed .nav-analysis, header.laps-tabbed .nav-home { display: none !important; }
   body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 49; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
   body.laps-tabbed { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
@@ -122,7 +122,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     ind.style.transform = 'translateX(' + (Math.max(0, barPos(here)) * 100) + '%)';
     bar.appendChild(ind);
   });
-  var phone = window.matchMedia('(max-width: 780px)');
+  var phone = window.matchMedia('(max-width: 780px), (orientation: landscape) and (max-height: 500px)');
   var sx = 0, sy = 0, st = 0, skip = false, drag = false, dx = 0;
   // Only real controls that need the finger (typing, sliders, maps, video, scrolling tables) keep their own gestures.
   var NO_SWIPE = 'input,select,textarea,video,canvas,[data-no-swipe],.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,.leaflet-container,.nav-body,.ma-scroll,.ma-table,.tp-chips,.lb-types';

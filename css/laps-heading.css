@@ -166,3 +166,10 @@
     margin-top: 14px !important;
   }
 }
+
+/* Landscape phones (short and wide): the heading and the page below it sit closer together, so the space does not take up
+   the screen. Only the Laps pages with the bottom bar are affected. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.laps-tabbed .page-hero { padding-top: 16px !important; padding-bottom: 8px !important; }
+  body.laps-tabbed main.tp-main { padding-top: 10px !important; }
+}

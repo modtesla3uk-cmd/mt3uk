@@ -21,11 +21,15 @@
   var RGB_CURRENT = { navy: '20,33,61', cream: '244,241,234', orange: '232,87,42', blue: '90,169,230' };
   var RGB_JADE = { navy: '13,59,51', cream: '241,246,243', orange: '245,138,104', blue: '127,184,240' };
   var RGB = RGB_CURRENT;
+  // Dark mode (the Laps Light mode / Dark mode choice): black, white text, and bright accents that stand out on black.
+  var DARK = { navy: '#000000', navy2: '#1b1b1b', orange: '#ff7a4f', cream: '#ffffff', muted: '#c4c4c4', blue: '#5aa9e6' };
+  var RGB_DARK = { navy: '0,0,0', cream: '255,255,255', orange: '255,122,79', blue: '90,169,230' };
   function rgba(name, a) { return 'rgba(' + RGB[name] + ',' + a + ')'; }
   function setPalette() {
     var theme = document.documentElement.getAttribute('data-theme'), jade = theme === 'jade' || theme === 'gold';
-    var p = jade ? JADE : CURRENT;
-    RGB = jade ? RGB_JADE : RGB_CURRENT;
+    var dark = document.documentElement.getAttribute('data-mode') === 'dark';
+    var p = dark ? DARK : (jade ? JADE : CURRENT);
+    RGB = dark ? RGB_DARK : (jade ? RGB_JADE : RGB_CURRENT);
     NAVY = p.navy; NAVY2 = p.navy2; ORANGE = p.orange; CREAM = p.cream; MUTED = p.muted; BLUE = p.blue;
     LINE = rgba('cream', 0.14);
   }
@@ -476,6 +480,7 @@
     }
     function frame(now) {
       st.raf = requestAnimationFrame(frame);
+      setPalette();
       var dt = st.last ? Math.min(0.1, (now - st.last) / 1000) : 0;
       st.last = now;
       if (st.playing) {

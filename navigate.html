@@ -574,7 +574,7 @@
     /* Driving: the Laps header goes, and the map takes the whole screen. */
     body:has(.nav-map-wrap.is-driving) > header { display: none; }
     body:has(.nav-map-wrap.is-driving) .nav-body { inset: 0; }
-    .nav-body { position: fixed; inset: 76px 0 0 0; padding: 0; overflow: hidden; z-index: 40; --stack: 0px; }
+    .nav-body { position: fixed; inset: calc(62px + max(16px, env(safe-area-inset-top, 0px))) 0 0 0; padding: 0; overflow: hidden; z-index: 40; --stack: 0px; }
     /* The turn stepper sits above the bottom sheet; the GPS row, status and map buttons lift by its height while it shows. */
     .nav-body:has(.nav-stepper:not([hidden])) { --stack: 80px; }
     .nav-map-wrap:not(.is-driving) .nav-stepper { left: 12px; right: 12px; bottom: calc(var(--sheet, 230px) + 12px); }
@@ -880,5 +880,6 @@
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=3"></script>
 <script src="js/navigate.js?v=114" defer></script>
+<script src="js/laps-logo.js?v=2" defer></script>
 </body>
 </html>

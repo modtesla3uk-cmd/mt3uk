@@ -796,6 +796,21 @@
   </div>
 </section>
 
+<section class="card pf-prefs" id="pf-prefs" data-no-share aria-labelledby="pf-prefs-title" style="margin:28px auto;width:calc(100% - 32px);max-width:720px;padding:20px 22px;box-sizing:border-box;">
+  <h2 id="pf-prefs-title" style="font-family:var(--font-head);font-size:1.25rem;margin:0 0 8px;">Preferences</h2>
+  <p style="margin:0 0 14px;">Choose how the Laps pages look on this device. Light is the default. Dark mode uses black with white text and gold highlights. The choice is kept in this browser and does not change your account.</p>
+  <button type="button" class="si-btn" id="pf-mode" aria-pressed="false">Dark mode: off</button>
+</section>
+<script>
+(function () {
+  var KEY = 'mt3ukColourMode', btn = document.getElementById('pf-mode');
+  if (!btn) return;
+  function read() { try { return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'; } catch (e) { return 'light'; } }
+  function show(mode) { var dark = mode === 'dark'; btn.setAttribute('aria-pressed', dark ? 'true' : 'false'); btn.textContent = 'Dark mode: ' + (dark ? 'on' : 'off'); }
+  show(read());
+  btn.addEventListener('click', function () { var next = read() === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(KEY, next); } catch (e) { /* storage blocked */ } show(next); });
+})();
+</script>
 <footer>
   <div class="wrap footer-row">
     <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>

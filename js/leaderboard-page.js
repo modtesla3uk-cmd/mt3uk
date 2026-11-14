@@ -523,14 +523,7 @@
   }
 
   // The tip (js/laps-tip.js) is a light bulb in the blue heading (leaderboards.html); the page fills it after drawing.
-  function placeTip() { if (window.MT3UKLapsTip) window.MT3UKLapsTip.place(); placeMode(); }
-  // The Light mode / Dark mode button sits on the same row as the Track days and Drag buttons (it is moved there after each draw).
-  function placeMode() {
-    var m = window.__lhMode || document.querySelector('.lh-mode'), row = document.querySelector('.lb-types');
-    if (!m) return;
-    window.__lhMode = m;
-    if (row && m.parentNode !== row) row.appendChild(m);
-  }
+  function placeTip() { if (window.MT3UKLapsTip) window.MT3UKLapsTip.place(); }
   function ctaHtml() {
     return '<div class="card lb-cta"><div><b>Get your car on the board</b><p>Upload your lap timer file in Track Sessions and share it. Your fastest goes straight on, with your car and mods.</p></div><a class="btn btn-accent" href="track.html">' + icon('upload') + 'Add a session</a></div>';
   }

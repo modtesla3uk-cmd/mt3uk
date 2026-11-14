@@ -171,3 +171,14 @@ html[data-mode="dark"] .si-signed-in, html[data-mode="dark"] .si-card-join {
   background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
 }
 html[data-mode="dark"] .pf-signed-out h2, html[data-mode="dark"] .pf-signed-out p, html[data-mode="dark"] .pf-left p { color: #ffffff !important; }
+/* Dark mode: the Early preview badge is black with gold words (it was light peach with white words). */
+html[data-mode="dark"] .early-badge { background-color: #000000 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
+/* The bell and search panels are black with white words and white outlines, and their buttons match. */
+html[data-mode="dark"] #nav-bell-panel, html[data-mode="dark"] #nav-search-panel { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
+html[data-mode="dark"] #nav-bell-panel *, html[data-mode="dark"] #nav-search-panel * { color: #ffffff !important; }
+html[data-mode="dark"] #nav-bell-panel button, html[data-mode="dark"] #nav-bell-panel a, html[data-mode="dark"] #nav-search-panel button, html[data-mode="dark"] #nav-search-panel a, html[data-mode="dark"] #nav-search-panel input {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+/* The Leaderboard's Early preview note: black with white words, the lead words in gold. */
+html[data-mode="dark"] #lb-preview { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] #lb-preview b { color: #f5c542 !important; }

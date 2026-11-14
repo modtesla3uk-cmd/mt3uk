@@ -223,3 +223,9 @@ html[data-mode="dark"] .ma-grp { background-color: #000000 !important; color: #f
 /* My Analysis tables in dark mode: the header row and the cells are black with white words and white rules. */
 html[data-mode="dark"] .ma-table th, html[data-mode="dark"] .ma-table td { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
 html[data-mode="dark"] .ma-table th { color: #ffffff !important; }
+/* The Signed in as band (Profile and the other member pages) is black with white words; its buttons are black with white edges,
+   and the current page is gold. */
+html[data-mode="dark"] .mt3uk-account-bar { background-color: #000000 !important; border-bottom: 1px solid #ffffff !important; }
+html[data-mode="dark"] .mt3uk-account-bar p, html[data-mode="dark"] .mt3uk-account-bar .mt3uk-account-email { color: #ffffff !important; }
+html[data-mode="dark"] .mt3uk-account-bar a, html[data-mode="dark"] .mt3uk-account-bar button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .mt3uk-account-bar a[aria-current="page"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }

@@ -507,6 +507,18 @@
 <script>(function(){try{var s=localStorage.getItem('mt3ukMyBuildsSession');if(!s)return;var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access',{cache:'no-store',headers:{'X-Session-Token':s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.querySelectorAll('[data-navigate-link]').forEach(function(el){el.hidden=false;});if(app)document.querySelectorAll('[data-racebox-link]').forEach(function(el){el.hidden=false;});}).catch(function(){});}catch(e){}})();</script>
 <script>(function(){function go(){try{if(localStorage.getItem('mt3ukLapsSkipIntro')==='1'){document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href','track.html');});}}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
 <script>(function(){document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-feedback-open]');if(!b)return;e.preventDefault();if(window.MT3UKFeedback){window.MT3UKFeedback.open();return;}if(window.MT3UKFeedbackLoading)return;window.MT3UKFeedbackLoading=true;var s=document.createElement('script');s.src='js/feedback.js?v=1';s.onload=function(){window.MT3UKFeedback&&window.MT3UKFeedback.open();};document.head.appendChild(s);});})();</script>
+<script>
+// In the Laps app, set the phone's status bar icons (clock, battery) to suit the header colour: dark on the light header.
+// Does nothing in a normal browser.
+(function () {
+  var sb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SystemBars;
+  if (!sb || !sb.setStyle) return;
+  var hdr = document.querySelector('header');
+  var m = hdr ? getComputedStyle(hdr).backgroundColor.match(/[\d.]+/g) : null;
+  var light = !m || (m[0] * 299 + m[1] * 587 + m[2] * 114) / 1000 > 140;
+  sb.setStyle({ style: light ? 'LIGHT' : 'DARK', bar: 'StatusBar' }).catch(function () {});
+})();
+</script>
 </header>
 
 <section class="lh-hero">

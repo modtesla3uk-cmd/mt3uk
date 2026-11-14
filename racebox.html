@@ -406,17 +406,29 @@
 .laps-tabs { display: none; }
 @media (max-width: 780px) {
   header.laps-tabbed .nav-sessions, header.laps-tabbed .nav-leaders, header.laps-tabbed .nav-favs, header.laps-tabbed .nav-analysis, header.laps-tabbed .nav-home { display: none !important; }
-  body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
+  body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 49; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
   body.laps-tabbed { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
   .laps-tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; border-radius: 10px; color: var(--ink, #111); text-decoration: none; font: 600 11px/1.1 var(--font-body, sans-serif); }
   .laps-tabs a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
   .laps-tabs a.on svg { stroke-width: 2.4; }
+  /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
+  body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
+  body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,
+  body.laps-tabbed .lh-hero a[href="leaderboards.html"], body.laps-tabbed .back-link { display: none !important; }
+  /* The line over the bar shows the section you are on, and slides as you swipe. */
+  .laps-ind { position: absolute; top: 0; left: 6px; height: 3px; width: calc((100% - 12px) / 4); background: var(--orange, #e8542a); border-radius: 2px; transition: transform .25s ease; pointer-events: none; }
+  /* While a swipe is dragged, the next section waits under the page and shows its name. */
+  .laps-peek { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; background: var(--paper, #f4f1ea); color: var(--ink, #111); font: 700 1.6rem/1.2 var(--font-head, sans-serif); text-align: center; padding: 24px; }
+  .laps-peek small { display: block; font: 600 0.9rem/1.4 var(--font-body, sans-serif); color: var(--steel, #555); margin-top: 8px; }
+  body.laps-swiping main { position: relative; z-index: 41; }
 }
 /* The bar is black with white words where the page is dark (Laps in dark mode, RaceBox and Navigate). */
 html[data-mode="dark"] .laps-tabs { background: #000000 !important; border-top-color: #ffffff !important; }
 html[data-mode="dark"] .laps-tabs a { color: #ffffff !important; }
 html[data-mode="dark"] .laps-tabs a.on { color: #f5c542 !important; }
+html[data-mode="dark"] .laps-ind { background: #f5c542 !important; }
+html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 </style>
 <style>[data-racebox-link][hidden],[data-navigate-link][hidden]{display:none!important}</style>
 <script>(function(){try{var s=localStorage.getItem('mt3ukMyBuildsSession');if(!s)return;var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access',{cache:'no-store',headers:{'X-Session-Token':s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.querySelectorAll('[data-navigate-link]').forEach(function(el){el.hidden=false;});if(app)document.querySelectorAll('[data-racebox-link]').forEach(function(el){el.hidden=false;});}).catch(function(){});}catch(e){}})();</script>
@@ -435,39 +447,102 @@ html[data-mode="dark"] .laps-tabs a.on { color: #f5c542 !important; }
 })();
 </script>
 <script>
-// Laps pages with the bottom bar: mark the current section, and swipe left or right between the four sections on a phone.
+// Laps pages with the bottom bar. The current section is marked and a line over the bar shows it. On a phone a swipe
+// left or right moves the page with your finger, with the next section's name waiting under it, and opens that section
+// when you lift your finger past halfway (or with a quick flick). RaceBox and Navigate get the bar but not the swipe.
 (function () {
   var header = document.querySelector('header');
   var page = location.pathname.split('/').pop() || 'laps.html';
   var TABBED = ['laps.html', 'track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html', 'racebox.html', 'navigate.html'];
   var ORDER = ['track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html'];
+  var NAMES = { 'track.html': 'Sessions', 'leaderboards.html': 'Leaderboard', 'favourites.html': 'Favourites', 'my-analysis.html': 'My Analysis' };
   if (!header || TABBED.indexOf(page) < 0) return;
   header.classList.add('laps-tabbed');
   document.body.classList.add('laps-tabbed');
-  document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('.laps-tabs a').forEach(function (a) { if (a.getAttribute('data-tab') === page) a.classList.add('on'); }); });
-  // RaceBox and Navigate get the bar but not the swipe (a swipe on the Navigate map or the RaceBox dial must not change page).
-  if (ORDER.indexOf(page) < 0) return;
+  var here = ORDER.indexOf(page), ind = null, peek = null, main = null;
+  document.addEventListener('DOMContentLoaded', function () {
+    var bar = document.querySelector('.laps-tabs');
+    if (!bar) return;
+    bar.querySelectorAll('a').forEach(function (a) { if (a.getAttribute('data-tab') === page) a.classList.add('on'); });
+    if (here >= 0) {
+      ind = document.createElement('span'); ind.className = 'laps-ind';
+      ind.style.transform = 'translateX(' + (here * 100) + '%)';
+      bar.appendChild(ind);
+    }
+  });
   var phone = window.matchMedia('(max-width: 780px)');
-  var sx = 0, sy = 0, st = 0, skip = false;
-  var NO_SWIPE = 'input,select,textarea,video,canvas,button,[data-no-swipe],.tp-chips,.lb-types,.lb-list,.lb-row,.lh-reel,.tp-board,.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,[data-tile],.tp-session-bar,.lb-mine,.lb-preview';
+  var sx = 0, sy = 0, st = 0, skip = false, drag = false, dx = 0;
+  var NO_SWIPE = 'input,select,textarea,video,canvas,button,[data-no-swipe],.tp-chips,.lb-types,.lb-list,.lb-row,.lh-reel,.tp-board,.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,[data-tile],.tp-session-bar,.lb-mine,.lb-preview,.leaflet-container,.nav-body,.ma-scroll,.ma-table';
   function scrolls(el) {
     for (var e = el; e && e !== document.body; e = e.parentElement) {
       if (e.scrollWidth > e.clientWidth + 2) { var o = getComputedStyle(e).overflowX; if (o === 'auto' || o === 'scroll') return true; }
     }
     return false;
   }
+  function target(d) { if (here < 0) return -1; var j = d < 0 ? here + 1 : here - 1; return (j >= 0 && j < ORDER.length) ? j : -1; }
+  function setInd(pos, animate) { if (!ind) return; ind.style.transition = animate ? 'transform .25s ease' : 'none'; ind.style.transform = 'translateX(' + (pos * 100) + '%)'; }
+  function ensure() {
+    if (main) return true;
+    main = document.querySelector('main');
+    if (!main) return false;
+    peek = document.createElement('div'); peek.className = 'laps-peek'; peek.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(peek);
+    return true;
+  }
+  function move(off, animate) {
+    main.style.transition = animate ? 'transform .22s ease' : 'none';
+    main.style.transform = off ? 'translate3d(' + off + 'px,0,0)' : '';
+  }
+  function reset() {
+    if (main) { move(0, true); }
+    if (peek) peek.style.display = 'none';
+    document.body.classList.remove('laps-swiping');
+    setInd(here, true);
+    setTimeout(function () { if (main) { main.style.transition = ''; main.style.transform = ''; } }, 240);
+  }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0];
-    sx = t.clientX; sy = t.clientY; st = Date.now();
+    sx = t.clientX; sy = t.clientY; st = Date.now(); drag = false; dx = 0;
     skip = !phone.matches || !!(e.target.closest && e.target.closest(NO_SWIPE)) || scrolls(e.target);
   }, { passive: true });
-  document.addEventListener('touchend', function (e) {
-    if (skip || !e.changedTouches.length) return;
-    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Date.now() - st > 700 || Math.abs(dx) < 70 || Math.abs(dy) > 60) return;
-    var i = ORDER.indexOf(page), j = dx < 0 ? i + 1 : i - 1;
-    if (j >= 0 && j < ORDER.length) location.href = ORDER[j];
+  document.addEventListener('touchmove', function (e) {
+    if (skip || !e.touches.length) return;
+    var t = e.touches[0], x = t.clientX - sx, y = t.clientY - sy;
+    if (!drag) {
+      if (Math.abs(x) < 10 && Math.abs(y) < 10) return;
+      if (Math.abs(y) > Math.abs(x)) { skip = true; return; }
+      drag = true;
+      if (!ensure()) { skip = true; return; }
+      document.body.classList.add('laps-swiping');
+    }
+    dx = x;
+    var n = target(dx), w = window.innerWidth;
+    if (n >= 0) {
+      peek.innerHTML = NAMES[ORDER[n]] + '<small>Let go to open</small>';
+      peek.style.display = 'flex';
+      peek.style.transform = 'translate3d(' + (dx < 0 ? w + dx : -w + dx) + 'px,0,0)';
+      move(dx, false);
+      setInd(here + (dx < 0 ? 1 : -1) * Math.min(1, Math.abs(dx) / w), false);
+    } else {
+      move(dx * 0.3, false);
+    }
   }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (skip || !drag || !e.changedTouches.length) { drag = false; return; }
+    drag = false;
+    var w = window.innerWidth, n = target(dx), quick = Date.now() - st < 400 && Math.abs(dx) > 50;
+    if (n >= 0 && (Math.abs(dx) > w * 0.5 || quick)) {
+      var to = dx < 0 ? -w : w;
+      main.style.transition = 'transform .22s ease';
+      main.style.transform = 'translate3d(' + to + 'px,0,0)';
+      if (peek) peek.style.transform = 'translate3d(0,0,0)';
+      setInd(n, true);
+      setTimeout(function () { location.href = ORDER[n]; }, 230);
+    } else {
+      reset();
+    }
+  }, { passive: true });
+  document.addEventListener('touchcancel', function () { if (drag) { drag = false; reset(); } }, { passive: true });
 })();
 </script>
 </header>

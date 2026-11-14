@@ -182,3 +182,44 @@ html[data-mode="dark"] #nav-bell-panel button, html[data-mode="dark"] #nav-bell-
 /* The Leaderboard's Early preview note: black with white words, the lead words in gold. */
 html[data-mode="dark"] #lb-preview { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
 html[data-mode="dark"] #lb-preview b { color: #f5c542 !important; }
+/* Dark mode, signed in (Sessions and the Leaderboard): the grey text is white, and the light tags, buttons and
+   result times are black with white or gold words, so nothing sits light on light or dark on black. */
+html[data-mode="dark"] { --steel: #ffffff; }
+html[data-mode="dark"] .tp-pill, html[data-mode="dark"] .tp-favrow {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] .tp-favrow svg, html[data-mode="dark"] .tp-favrow .icon { color: #ffffff !important; stroke: #ffffff !important; }
+html[data-mode="dark"] .tp-fastest { background-color: #000000 !important; color: #f5c542 !important; border: 1px solid #f5c542 !important; }
+html[data-mode="dark"] .tp-row-res { color: #ffffff !important; }
+html[data-mode="dark"] .btn-danger { background-color: #000000 !important; color: #ff7a7a !important; border: 1px solid #ff7a7a !important; }
+html[data-mode="dark"] .btn-danger * { color: #ff7a7a !important; }
+/* Dark mode, a session's own page: the notes and the Only me / Shared choices are black with white words (they were white
+   on white), the session id and the figures are white, and the Laps Pro link is black with an orange edge. */
+html[data-mode="dark"] .tp-note, html[data-mode="dark"] .tp-opt {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] .tp-opt.is-on { border: 2px solid #f5c542 !important; }
+html[data-mode="dark"] .tp-opt *, html[data-mode="dark"] .tp-note * { color: #ffffff !important; }
+html[data-mode="dark"] code { color: #ffffff !important; }
+html[data-mode="dark"] .v { color: #ffffff !important; }
+html[data-mode="dark"] .tp-laps-jump { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #e8542a !important; }
+/* On/off switches in dark mode: the off switch is black with a white edge, the on switch gold. */
+html[data-mode="dark"] .lo-switch { background-color: #000000 !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .lo-switch[aria-checked="true"] { background-color: #f5c542 !important; border-color: #f5c542 !important; }
+/* My Analysis in dark mode: the pills are black with white words, the accent button is gold with black words, and the
+   control strip is black. */
+html[data-mode="dark"] .tm-pill { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .tm-pill-accent { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] .tm-pill-accent * { color: #111111 !important; }
+html[data-mode="dark"] .tm-controls, html[data-mode="dark"] .ma-controls { background-color: #000000 !important; }
+html[data-mode="dark"] a.tm-pill.tm-pill-accent { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] .tm-card { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .tm-card p, html[data-mode="dark"] .tm-card * { color: #ffffff !important; }
+/* My Analysis with data in dark mode: the section links and the filter chips are black with white words, and the chip
+   that is on is gold with black words. */
+html[data-mode="dark"] .ma-jump a, html[data-mode="dark"] .tm-chips .chip { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] .tm-chips button.chip.is-on.is-on { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] .ma-grp { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+/* My Analysis tables in dark mode: the header row and the cells are black with white words and white rules. */
+html[data-mode="dark"] .ma-table th, html[data-mode="dark"] .ma-table td { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
+html[data-mode="dark"] .ma-table th { color: #ffffff !important; }

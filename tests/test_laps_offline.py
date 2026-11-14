@@ -54,7 +54,8 @@ def open_signed_in(page, fake, admin=False):
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
     open_page(page, fake, admin=admin)
     link = with_link(page, fake)
-    expect(page.locator("#tp-lb-pill")).to_be_visible()
+    # On a phone the Leaderboards button is in the bottom bar, so the heading button only has to be on the page.
+    expect(page.locator("#tp-lb-pill")).to_have_count(1)
     return link
 
 
@@ -93,7 +94,7 @@ def test_a_session_added_offline_is_kept_on_the_device_and_sent_when_the_connect
     assert fake.saved == [], "nothing reaches the worker while it is offline"
     # Still waiting after the page is drawn again (the list is read from the device).
     page.reload()
-    page.wait_for_selector("#tp-lb-pill")
+    page.wait_for_selector("#tp-lb-pill", state="attached")
     expect(page.locator("#lo-pending")).to_contain_text("1 session waiting to be sent")
 
     go_online(page, link)
@@ -168,7 +169,7 @@ def test_a_session_the_worker_refuses_stays_listed_with_the_reason_and_can_be_re
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s="))
     page.goto("/track.html")
-    page.wait_for_selector("#tp-lb-pill")
+    page.wait_for_selector("#tp-lb-pill", state="attached")
     go_offline(page, link)
     add_thruxton(page)
     page.get_by_role("button", name="Save session").click()
@@ -189,7 +190,7 @@ def test_the_list_offline_comes_from_what_the_device_kept_and_says_so(page):
     # The page asks for its list again (as it does when the connection returns).
     page.evaluate("document.dispatchEvent(new CustomEvent('mt3uk-offline-end'))")
     expect(page.locator("#tp-old-note")).to_contain_text("You are offline, so this is what was on this device on")
-    expect(page.locator("#tp-lb-pill")).to_be_visible()
+    expect(page.locator("#tp-lb-pill")).to_have_count(1)
     # The real list is fetched again once the connection is back, and the note goes.
     go_online(page, link)
     expect(page.locator("#tp-old-note")).to_have_count(0, timeout=15000)
@@ -231,7 +232,7 @@ def test_a_slow_read_with_no_copy_is_not_cut_short(page):
 
     fake.reply = slow
     open_page(page, fake)
-    expect(page.locator("#tp-lb-pill")).to_be_visible(timeout=20000)
+    expect(page.locator("#tp-lb-pill")).to_have_count(1, timeout=20000)
     page.wait_for_timeout(600)
     expect(page.locator("#lo-bar")).to_be_hidden()
     expect(page.locator("#tp-old-note")).to_have_count(0)
@@ -286,7 +287,7 @@ def test_the_one_time_offer_is_made_once_and_not_now_is_remembered(page):
     offer.get_by_role("button", name="Not now").click()
     expect(offer).to_have_count(0)
     page.reload()
-    page.wait_for_selector("#tp-lb-pill")
+    page.wait_for_selector("#tp-lb-pill", state="attached")
     page.wait_for_timeout(600)
     expect(page.locator("#lo-offer")).to_have_count(0)
 
@@ -298,7 +299,7 @@ def test_offline_mode_is_held_back_from_members_the_admin_has_not_approved(page)
     fake.offline_access = False
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 300;")
     open_page(page, fake)
-    page.wait_for_selector("#tp-lb-pill")
+    page.wait_for_selector("#tp-lb-pill", state="attached")
     page.wait_for_timeout(900)
     expect(page.locator("#nav-offline")).to_have_count(0)
     expect(page.locator("#tp-offline")).to_be_hidden()
@@ -773,7 +774,7 @@ def test_the_header_icon_is_the_size_of_its_neighbours_on_a_phone(page):
     page.set_viewport_size({"width": 390, "height": 800})
     open_signed_in(page, fake, admin=True)
     box = page.locator("#nav-offline").bounding_box()
-    chat = page.locator("#nav-favs").bounding_box()
+    chat = page.locator("#nav-bell-btn").bounding_box()
     assert abs(box["height"] - chat["height"]) < 1 and box["width"] <= chat["width"] + 4, (box, chat)
     # Nothing in the header runs off the side of the phone.
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
@@ -875,12 +876,12 @@ def test_laps_opens_with_no_network_once_offline_mode_is_on(browser):
     page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');localStorage.setItem('mt3ukVisitCount','0');window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
     try:
         page.goto("/track.html")
-        expect(page.locator("#tp-lb-pill")).to_be_visible()
+        expect(page.locator("#tp-lb-pill")).to_have_count(1)
         add_thruxton(page)
         page.get_by_role("button", name="Save session").click()
         expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
         page.goto("/track.html")
-        expect(page.locator("#tp-lb-pill")).to_be_visible()
+        expect(page.locator("#tp-lb-pill")).to_have_count(1)
         page.locator("#tp-offline").click()
         page.locator("#lo-confirm").get_by_role("button", name="Turn on offline mode").click()
         expect(page.locator("#lo-bar")).to_contain_text("Offline mode is on.", timeout=60000)
@@ -1022,7 +1023,7 @@ def test_on_a_car_browser_offline_the_laps_pages_load_inside_the_open_tab(page):
     r = page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
     assert r["ok"] and r["boards"] == 1, r
     page.goto("/track.html")
-    expect(page.locator("#tp-lb-pill")).to_be_visible()
+    expect(page.locator("#tp-lb-pill")).to_have_count(1)
     page.evaluate("window.__sameWindow = 'yes'")
     go_offline(page, link)
     page.locator("#tp-lb-pill").click()

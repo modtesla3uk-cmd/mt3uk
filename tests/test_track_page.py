@@ -1666,19 +1666,15 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     # sits at the right of the What is the Leaderboard? line.
     set_window(page, {"width": 390, "height": 844})
     page.goto("/leaderboards.html")
-    mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
-    expect(mine).to_be_visible()
-    b, k, h, a = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
-    # On a phone Back is the same width as My Sessions beside it (the two halves of the row), 44px tall.
-    assert abs(k["width"] - b["width"]) < 2 and k["height"] >= 44, (k, b)
-    assert b["width"] > 90 and a["width"] > 90, (b, a)
-    expect(mine).to_have_attribute("aria-label", "My Sessions")
+    mine, add = page.locator("#lb-my-sessions"), page.locator("#lb-add-session")
+    # On a phone My Sessions and Back are in the bottom bar and the swipe, so the heading keeps only Add a session.
+    expect(mine).to_be_hidden()
+    expect(page.locator("#lb-page-back")).to_be_hidden()
+    expect(add).to_be_visible()
+    h, a = page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
     centre = lambda r: r["y"] + r["height"] / 2
-    # On a phone Back and My Sessions share a row, and Add a session sits under My Sessions with the same right edge.
-    assert abs(centre(b) - centre(k)) < 4 and a["y"] >= b["y"] + b["height"] - 2, (b, k, a)
-    assert abs((a["x"] + a["width"]) - (b["x"] + b["width"])) < 2 and k["x"] + k["width"] < b["x"], (b, k, a)
-    assert a["x"] + a["width"] <= 375
-    assert h["y"] + h["height"] <= k["y"] + 2, "The title is above the buttons"
+    assert abs(a["height"] - 48) < 2 and a["width"] > 90 and a["x"] + a["width"] <= 375, a
+    assert h["y"] + h["height"] <= a["y"] + 2, "The title is above Add a session"
     assert h["x"] < 24, h
     trophy, d = page.locator(".lb-hero h1 svg.lb-trophy").bounding_box(), page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
     word = page.evaluate("(() => { const r = document.createRange(); r.selectNodeContents(document.querySelector('.lb-hero h1')); const s = [...document.querySelector('.lb-hero h1').childNodes].find(n => n.nodeType === 3); const q = document.createRange(); q.selectNodeContents(s); return q.getBoundingClientRect().right; })()")
@@ -1691,7 +1687,7 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     assert abs(centre(bulb) - centre(h)) < 12 and bulb["x"] > h["x"] + 100, (bulb, h)
     # On a phone What is...? opens from the ? button in the title row, beside the share button.
     q = page.locator(".lb-hero .tp-what-q").bounding_box()
-    assert q is not None and abs(centre(q) - centre(h)) < 12 and q["x"] > b["x"], (q, h)
+    assert q is not None and abs(centre(q) - centre(h)) < 12 and q["x"] > h["x"] + 100, (q, h)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
@@ -5817,27 +5813,20 @@ def save_fixture_session(page, fake):
 
 
 def test_the_heading_buttons_on_a_session_never_overlap_on_a_phone(page):
-    """On a session the heading holds Back, My Sessions, Leaderboards and Add a session, each with its words: Back and My
-    Sessions on one row, Leaderboards and Add a session on the next. At phone widths none may overlap another or run off
-    the screen."""
+    """On a phone the bottom bar and the swipe do the job of the heading's Back, My Sessions and Leaderboards buttons, so
+    they are not shown. Add a session keeps its words and stays on the screen at every phone width."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
     for width in (560, 412, 390, 360, 340, 320):
         set_window(page, {"width": width, "height": 900})
         page.wait_for_timeout(250)
-        boxes = {}
-        for name, sel in (("back", ".page-hero .tp-hero-top .back-link:not(.tp-home)"), ("home", ".page-hero .tp-hero-top .tp-home"),
-                          ("lb", "#tp-lb-pill"), ("add", "#tp-hero-add")):
-            loc = page.locator(sel).first
-            expect(loc).to_be_visible()
-            boxes[name] = loc.bounding_box()
-        names = list(boxes)
-        for i, a_ in enumerate(names):
-            assert boxes[a_]["x"] >= 0 and boxes[a_]["x"] + boxes[a_]["width"] <= width + 1, (width, a_, boxes[a_])
-            for b_ in names[i + 1:]:
-                A, B = boxes[a_], boxes[b_]
-                overlap = A["x"] < B["x"] + B["width"] - 1 and B["x"] < A["x"] + A["width"] - 1 and A["y"] < B["y"] + B["height"] - 1 and B["y"] < A["y"] + A["height"] - 1
-                assert not overlap, (width, a_, b_, A, B)
+        for sel in (".page-hero .tp-hero-top .back-link:not(.tp-home)", ".page-hero .tp-hero-top .tp-home", "#tp-lb-pill"):
+            expect(page.locator(sel).first).to_be_hidden()
+        add = page.locator("#tp-hero-add")
+        expect(add).to_be_visible()
+        box = add.bounding_box()
+        assert box["x"] >= 0 and box["x"] + box["width"] <= width + 1, (width, box)
+        assert box["width"] > 90, (width, box)
 
 
 def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_round(page):

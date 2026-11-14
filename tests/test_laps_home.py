@@ -194,11 +194,11 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.set_viewport_size({"width": 390, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
     assert abs(b["height"] - 48) < 2 and b["width"] > 90, b
-    # At 320px it keeps its words too, the same width as My Sessions above it (half the row each).
+    # At 320px it keeps its words too.
     page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
-    m = page.locator("#lb-my-sessions").bounding_box()
-    assert abs(b["width"] - m["width"]) < 2 and abs(b["height"] - 48) < 2 and b["width"] > 120, (b, m)
+    # My Sessions is in the bottom bar on a phone, so Add a session only has to keep its words and fit the screen.
+    assert abs(b["height"] - 48) < 2 and b["width"] > 120 and b["x"] >= 0 and b["x"] + b["width"] <= 320 + 1, b
 
 
 def test_members_waiting_for_early_access_are_told_they_are_on_the_list(page):

@@ -1673,7 +1673,8 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(add).to_be_visible()
     h, a = page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
     centre = lambda r: r["y"] + r["height"] / 2
-    assert abs(a["height"] - 48) < 2 and a["width"] > 90 and a["x"] + a["width"] <= 375, a
+    # On a phone Add a session is full width and 40 px tall, the same on every page.
+    assert abs(a["height"] - 40) < 2 and a["width"] > 250 and a["x"] + a["width"] <= 375, a
     assert h["y"] + h["height"] <= a["y"] + 2, "The title is above Add a session"
     assert h["x"] < 24, h
     trophy, d = page.locator(".lb-hero h1 svg.lb-trophy").bounding_box(), page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
@@ -1863,16 +1864,16 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
     set_window(page, {"width": 390, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert b["height"] >= 44 and b["width"] > 90, b
+    assert b["height"] >= 40 and b["width"] > 250, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
     set_window(page, {"width": 700, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert b["height"] >= 44 and b["width"] > 90, b
+    assert b["height"] >= 40 and b["width"] > 250, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
     # The narrowest phone keeps its words too, as the other heading buttons do.
     set_window(page, {"width": 320, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
-    assert b["height"] >= 44 and b["width"] > 90, b
+    assert b["height"] >= 40 and b["width"] > 250, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
 
 

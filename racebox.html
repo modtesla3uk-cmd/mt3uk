@@ -412,6 +412,8 @@
   .laps-tabs a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
   .laps-tabs a.on svg { stroke-width: 2.4; }
+  /* Add a session is the same on every page: full width, 40 px tall, centred, on a phone. */
+  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
   /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
   body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
   body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,

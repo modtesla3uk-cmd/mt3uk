@@ -169,5 +169,8 @@
 
 /* Landscape phones: the loading line sits closer to the heading, so the space under it is not large while a list loads. */
 @media (orientation: landscape) and (max-height: 500px) {
-  body.laps-tabbed .tp-loading { padding: 16px 0 !important; }
+  body.laps-tabbed .tp-loading { padding: 8px 0 !important; display: flex !important; align-items: center; justify-content: center; gap: 10px !important; }
+  body.laps-tabbed .tp-loading p { margin: 0; }
+  /* Keep the page clear of the phone's side cut-outs and bars (the header already does this). */
+  body.laps-tabbed .wrap { padding-right: calc(16px + env(safe-area-inset-right, 0px)) !important; padding-left: calc(16px + env(safe-area-inset-left, 0px)) !important; }
 }

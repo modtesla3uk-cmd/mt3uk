@@ -235,6 +235,11 @@
   .pf-signed-out p { color: var(--steel); margin-bottom: 18px; }
   .pf-loading { text-align: center; color: var(--steel); }
   .pf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  /* The band at the top does not need a Profile button while you are on Profile itself. */
+  .mt3uk-account-bar .mt3uk-account-actions a[aria-current="page"] { display: none !important; }
+  /* On a phone the four tabs (Details, Visibility, Security and Preferences) stay in one row. */
+  @media (max-width: 560px) { .pf-tabs { gap: 6px !important; } .pf-tabs a { font-size: 0.78rem !important; padding: 6px 9px !important; } }
+
   .pf-tabs a { font-family: var(--font-body); font-size: 0.86rem; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
   .pf-tabs a:hover { border-color: var(--orange, #e8542a); color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .pf-badge { background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); border-radius: 999px; font-size: 0.68rem; min-width: 18px; height: 18px; padding: 0 5px; display: inline-flex; align-items: center; justify-content: center; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; letter-spacing: 0; }

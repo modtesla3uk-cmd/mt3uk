@@ -584,3 +584,9 @@ html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
   header:has(.laps-logo) .logo.laps-logo .laps-logo-name { font-size: 1.9rem; }
   header:has(.laps-logo) .logo.laps-logo .laps-logo-by { font-size: 0.92rem; }
 }
+
+/* Draw under the system bars (the Laps app, and phones with a notch). The pages that opt in with viewport-fit=cover get
+   the device's insets from env(); everywhere else they are 0, so these rules change nothing on mt3uk.com. */
+header { padding-top: env(safe-area-inset-top, 0px); }
+footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=20"><script src="js/colour-mode.js?v=1"></script><script src="js/site-theme.js?v=1"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>RaceBox test - Laps by MT3UK</title>
 <meta name="description" content="A test page for the RaceBox connection in the Laps app.">
@@ -28,7 +28,7 @@
 <meta name="twitter:description" content="A test page for the RaceBox connection in the Laps app.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
-<link rel="stylesheet" href="css/site-header.css?v=20271034">
+<link rel="stylesheet" href="css/site-header.css?v=20271035">
 <script src="js/site-look.js?v=3"></script>
 <link rel="stylesheet" href="css/laps-heading.css?v=20">
 <script src="js/laps-heading-layout.js?v=1"></script>
@@ -601,13 +601,13 @@
   .rbt-timing { position: relative; }
   .rbt-tm-fs { position: absolute; top: 4px; right: 0; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); display: grid; place-items: center; padding: 0; cursor: pointer; }
   .rbt-tm-mode { position: absolute; top: 4px; left: 0; z-index: 2; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline-strong, #c9ced8); background: #fff; color: var(--ink, #16233d); font: 700 0.85rem/1 var(--font-body, sans-serif); cursor: pointer; }
-  .rbt-tm-full .rbt-tm-mode { position: fixed; top: 12px; left: 12px; }
+  .rbt-tm-full .rbt-tm-mode { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); }
   .rbt-tm-fs svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   /* Full screen: the Drag run timing fills the screen, with its full-screen button to come back. */
   html.rbt-tm-full-on { overflow: hidden; }
-  .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: 14px 16px 24px; width: auto; background: #ececec; overflow-y: auto; align-content: start; }
+  .rbt-tm-full { position: fixed; inset: 0; z-index: 99990; margin: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px)); width: auto; background: #ececec; overflow-y: auto; align-content: start; }
   .rbt-tm-full .rbt-tm-dial { width: min(400px, 92vw); }
-  .rbt-tm-full .rbt-tm-fs { position: fixed; top: 12px; right: 12px; }
+  .rbt-tm-full .rbt-tm-fs { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
   /* Portrait, in and out of full screen: the speed, the GPS button and the satellites sit above the speedometer. */
   @media (orientation: portrait) {
     .rbt-timing .rbt-tm-speed { order: -3; }
@@ -621,14 +621,14 @@
      centred vertically beside it. The picker scrolls if it is taller than the screen. */
   .rbt-tm-col { display: contents; }
   @media (orientation: landscape) and (max-height: 600px) {
-    .rbt-tm-full { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 16px; row-gap: 8px; align-items: start; align-content: stretch; min-height: calc(100vh - 20px); padding: 10px 16px; box-sizing: border-box; }
+    .rbt-tm-full { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 16px; row-gap: 8px; align-items: start; align-content: stretch; min-height: calc(100vh - 20px); padding: calc(10px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px)); box-sizing: border-box; }
     .rbt-tm-full .rbt-tm-dial { grid-column: 2; grid-row: 1 / span 12; position: sticky; top: 4px; align-self: start; justify-self: center; width: min(calc(100vh - 14px), 50vw); }
     .rbt-tm-full .rbt-tm-col { display: flex; flex-direction: column; justify-content: safe center; align-items: stretch; align-self: stretch; gap: 8px; grid-row: 1 / span 12; min-width: 0; }
     .rbt-tm-full .rbt-tm-col-l { grid-column: 1; }
     .rbt-tm-full .rbt-tm-col-r { grid-column: 3; }
     .rbt-tm-full .rbt-tm-speed { margin: 0; text-align: center; }
     .rbt-tm-full .rbt-tm-col > * { width: 100%; }
-    .rbt-tm-full .rbt-tm-mode { position: fixed; top: 12px; left: 12px; width: auto; align-self: auto; z-index: 3; }
+    .rbt-tm-full .rbt-tm-mode { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); width: auto; align-self: auto; z-index: 3; }
   }
   /* The readings fold away with Details (outside full screen). */
   html:not(.rbt-full-on) .rbt-band.is-folded { display: none; }

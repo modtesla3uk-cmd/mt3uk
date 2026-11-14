@@ -9,6 +9,9 @@
 (function () {
   var SITES = window.MT3UK_SITES || { laps: ['laps.mt3uk.com'] };
   if (SITES.laps.indexOf(location.hostname) === -1) return;
+  // Draw under the system bars in the Laps app and on phones with a notch (see css/site-header.css).
+  var vp = document.querySelector('meta[name="viewport"]');
+  if (vp && vp.content.indexOf('viewport-fit') === -1) vp.content += ', viewport-fit=cover';
   function swap(id, tag) {
     var tpl = document.getElementById(id), el = document.querySelector(tag);
     if (tpl && el) el.parentNode.replaceChild(tpl.content.cloneNode(true), el);

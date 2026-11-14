@@ -154,3 +154,15 @@
   body[data-tp-view="session"] .lh-hero .lh-fold[open] p { margin: 0 0 8px; }
   body[data-tp-view="session"] .lh-hero .lh-fold[open] b, body[data-tp-view="session"] .lh-hero .lh-fold[open] strong { color: var(--c-navy, #14213d) !important; }
 }
+
+/* Landscape phones: the desktop heading is laid out for a 1000 px width, which is wider than the screen once the phone's
+   side bars are allowed for. It is scaled to fit inside the bars, with its buttons close to each edge (0 on a desktop, where
+   this rule only matters for a short window). */
+@media (min-width: 901px) and (orientation: landscape) and (max-height: 500px) {
+  body:not([data-tp-view="session"]) .lh-hero > .wrap {
+    transform: scale(0.86); transform-origin: 0 0;
+    width: calc((100% - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) / 0.86) !important;
+    margin-left: calc(8px + env(safe-area-inset-left, 0px)) !important;
+    margin-top: 14px !important;
+  }
+}

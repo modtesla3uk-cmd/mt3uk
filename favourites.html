@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script>
+<html lang="en" data-default-mode="light">
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=17">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -526,6 +526,21 @@
 </div>
 </main>
 
+<section class="card pf-prefs" id="pf-prefs" data-no-share aria-labelledby="pf-prefs-title" style="margin:28px auto;width:calc(100% - 32px);max-width:720px;padding:20px 22px;box-sizing:border-box;">
+  <h2 id="pf-prefs-title" style="font-family:var(--font-head);font-size:1.25rem;margin:0 0 8px;">Preferences</h2>
+  <p style="margin:0 0 14px;">Choose how the Laps pages look on this device. Light is the default. Dark mode uses black with white text and gold highlights. The choice is kept in this browser and does not change your account.</p>
+  <button type="button" class="si-btn" id="pf-mode" aria-pressed="false">Dark mode: off</button>
+</section>
+<script>
+(function () {
+  var KEY = 'mt3ukColourMode', btn = document.getElementById('pf-mode');
+  if (!btn) return;
+  function read() { try { return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'; } catch (e) { return 'light'; } }
+  function show(mode) { var dark = mode === 'dark'; btn.setAttribute('aria-pressed', dark ? 'true' : 'false'); btn.textContent = 'Dark mode: ' + (dark ? 'on' : 'off'); }
+  show(read());
+  btn.addEventListener('click', function () { var next = read() === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(KEY, next); } catch (e) { /* storage blocked */ } show(next); });
+})();
+</script>
 <footer>
   <div class="wrap footer-row">
     <a href="laps.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>

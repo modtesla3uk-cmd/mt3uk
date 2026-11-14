@@ -146,3 +146,15 @@ html[data-mode="dark"] .lh-reel-video { filter: grayscale(1) brightness(0.6); }
 html[data-mode="dark"] .navlinks { background: #1c1c1c !important; border-color: #ffffff !important; }
 html[data-mode="dark"] .navlinks a:not([class*="sign"]):not(.nav-chat-count) { color: #ffffff !important; }
 html[data-mode="dark"] .navlinks a:not([class*="sign"]) .icon, html[data-mode="dark"] .navlinks a:not([class*="sign"]) svg { color: #ffffff !important; stroke: #ffffff !important; }
+/* The intro: in dark mode the live drawn explainer (in the dark palette) replaces the recorded video. */
+.lh-reel-live { display: none; }
+html[data-mode="dark"] .lh-reel-video { display: none !important; }
+html[data-mode="dark"] .lh-reel-live { display: block; width: 100%; aspect-ratio: 1520 / 1920; background: #000000; }
+/* The live explainer's own controls are black with white words in dark mode (not green). */
+html[data-mode="dark"] .lh-reel-live .lxe, html[data-mode="dark"] .lh-reel-live .lxe-bar { background: #000000 !important; }
+html[data-mode="dark"] .lh-reel-live .lxe-btn, html[data-mode="dark"] .lh-reel-live .lxe-sound {
+  background: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] .lh-reel-live .lxe-btn svg, html[data-mode="dark"] .lh-reel-live .lxe-sound svg { stroke: #ffffff; color: #ffffff; }
+/* The sign-in style buttons (the Preferences button on Profile and Favourites) are black with white text. */
+html[data-mode="dark"] .si-btn, html[data-mode="dark"] .pf-prefs button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }

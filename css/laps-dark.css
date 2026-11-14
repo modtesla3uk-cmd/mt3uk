@@ -124,3 +124,16 @@ html[data-mode="dark"] .tp-iconbtn, html[data-mode="dark"] .tp-car, html[data-mo
 }
 html[data-mode="dark"] header { border-bottom-color: #ffffff !important; }
 html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-mode="dark"] .tp-iconbtn svg, html[data-mode="dark"] .tp-iconbtn { color: #ffffff !important; stroke: #ffffff !important; }
+/* The Light mode / Dark mode button on the Track days / Drag row, on the right and a little smaller. */
+.lb-types .lh-mode { margin-left: auto; min-height: 36px; padding: 0 12px; font-size: 0.8rem; }
+/* Dark grey lines between the sessions on each card (dark mode only). */
+html[data-mode="dark"] .lb-list > .lb-row { border-width: 0 0 1px 0 !important; border-style: solid; border-color: #444444 !important; }
+html[data-mode="dark"] .lb-list > .lb-row:last-child { border-bottom-color: #444444 !important; }
+/* Any green (or other dark) text in dark mode is white. Gold buttons keep their dark words. */
+html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-bulbbtn):not(.lb-fav),
+html[data-mode="dark"] a:not(.btn-accent):not(.btn-primary), html[data-mode="dark"] b, html[data-mode="dark"] strong,
+html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4, html[data-mode="dark"] label,
+html[data-mode="dark"] .lb-cta *:not(.btn-accent), html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-note * {
+  color: #ffffff !important;
+}
+html[data-mode="dark"] .btn-accent, html[data-mode="dark"] .btn-accent * { color: #111111 !important; }

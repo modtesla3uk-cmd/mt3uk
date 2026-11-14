@@ -111,7 +111,7 @@
   a { color: inherit; text-decoration: none; }
   img { max-width: 100%; display: block; }
   .wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 28px; }
-  @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .wrap { padding: 0 16px; } }
 
   /* ---------- NAV: shared, see css/site-header.css ---------- */
 
@@ -122,7 +122,7 @@
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
-  @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
   @media (min-width: 901px) {
     .page-hero .wrap { text-align: center; }
     .page-hero p { margin-left: auto; margin-right: auto; }
@@ -293,7 +293,7 @@
   .lb-bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; }
   .lb-sort { display: grid; gap: 4px; width: 180px; font-size: 0.8rem; color: var(--steel); }
   .lb-sort .field { min-height: 44px; }
-  @media (max-width: 780px) { .lb-sort { width: 100%; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lb-sort { width: 100%; } }
   .lb-strip { text-decoration: none; color: inherit; }
   .lb-strip:hover { border-color: var(--hairline-strong); }
   .lb-note { margin: 12px 0 0; }
@@ -405,7 +405,7 @@
   .lh-how ol { margin: 0; padding-left: 1.3em; color: #d3d8e2; font-size: 0.95rem; }
   .lh-how li { margin: 0 0 6px; }
   .lh-how b { color: #fff; }
-  @media (max-width: 780px) { .lh-hero { padding: 40px 0 28px; }  }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lh-hero { padding: 40px 0 28px; }  }
   /* The Laps reel: the vertical video in the right column, beside the words. On a phone it comes after the buttons and the
      notes, and before the Free to access panel. The copy column is laid out as its own items on a phone. */
   .lh-reel { margin: 0; justify-self: center; width: min(100%, 380px); }
@@ -424,7 +424,7 @@
   .lh-home [hidden] { display: none !important; }
   .lh-home-status { margin: 10px 0 0; font-size: 14px; color: #b9e7c8; }
   /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .lh-reel-bar { display: flex; order: 0; justify-self: start; }
     .lh-reel.is-skipped .lh-reel-box { display: none; }
     .lh-hero .wrap { gap: 14px; }
@@ -519,7 +519,11 @@
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
   .laps-tabs a.on svg { stroke-width: 2.4; }
   /* Add a session is the same on every page: full width, 40 px tall, centred, on a phone. */
-  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: auto !important; max-width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  /* In landscape Add a session sits on the same line as the title, on the right (portrait keeps it full width underneath). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed .page-hero .wrap { grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; column-gap: 16px; } body.laps-tabbed .page-hero h1 { grid-column: 1 !important; grid-row: 1 !important; } body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 2 !important; grid-row: 1 !important; justify-self: end !important; width: auto !important; padding: 0 20px !important; } }
+  /* In landscape Add a session keeps its normal width, under the title on the left (it stays full width in portrait). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; justify-self: start !important; padding: 0 22px !important; } }
   /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
   body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
   body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,

@@ -66,7 +66,7 @@
   a { color: inherit; text-decoration: none; }
   img { max-width: 100%; display: block; }
   .wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 28px; }
-  @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .wrap { padding: 0 16px; } }
 
   /* ---------- NAV: shared, see css/site-header.css ---------- */
 
@@ -97,11 +97,11 @@
   #lb-my-analysis { justify-content: center; }
   @media (min-width: 901px) { #lb-my-analysis { display: none !important; } }
   /* On a phone it is the same size as the other buttons in the 2x2 heading grid (Back, My Sessions, Add a session). */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) #lb-my-analysis:not([hidden]) { height: 48px; min-height: 48px; margin-top: 10px; padding: 0 10px; gap: 6px; border-radius: 24px; font-size: 1rem; white-space: nowrap; justify-content: center; }
     .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) #lb-my-analysis:not([hidden]) .icon { width: 20px; height: 20px; }
   }
-  @media (max-width: 780px) { .page-hero { padding: 26px 0 18px; } .page-hero .back-link { margin-bottom: 10px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .page-hero { padding: 26px 0 18px; } .page-hero .back-link { margin-bottom: 10px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } }
   /* The page's own button: bigger on desktop; on a phone it sits at the right of the Back row, above the title. */
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
@@ -137,7 +137,7 @@
   .tp-hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 16px; }
     /* The Sessions and Leaderboard headings (October 2026) use the same four equal buttons as a session: Back on the left,
        the other page on the right, Add a session under it, every button the width of Back. */
-    @media (max-width: 780px) {
+    @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top { display: contents; }
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
@@ -146,7 +146,7 @@
     }
   .page-hero .tp-hero-top .back-link { margin: 0; }
   .tp-hero-top:has(> .back-link[hidden]:only-child) { display: none; }
-  @media (max-width: 780px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
 
   /* ---------- TRACK SESSIONS ---------- */
   .tp-main { padding: 26px 0 64px; }
@@ -357,7 +357,7 @@
   /* Phones: the title first, at the left, with its icon straight after the word and the share button at the far right.
      Under it one row: Back, the other page as a labelled button (Leaderboards or My Sessions), and Add a session as a
      round orange plus at the right. The tip's bulb sits at the right of the What is...? line. Same on track.html. */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 0; position: relative; }
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; gap: 0; justify-self: stretch; text-align: left; }
     .page-hero .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
@@ -405,7 +405,7 @@
   .lb-sort { display: grid; gap: 4px; width: 180px; font-size: 0.8rem; color: var(--steel); }
   .lb-sort .field { min-height: 44px; }
   .lb-bar .tp-head-side { align-items: flex-end; }
-  @media (max-width: 780px) { .lb-bar .tp-head-side { width: 100%; } .lb-sort { flex: 1 1 auto; width: auto; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lb-bar .tp-head-side { width: 100%; } .lb-sort { flex: 1 1 auto; width: auto; } }
   .lb-strip { text-decoration: none; color: inherit; }
   .lb-strip:hover { border-color: var(--hairline-strong); }
   .lb-note { margin: 12px 0 0; }
@@ -518,7 +518,7 @@
   .lb-pair-who { display: grid; gap: 2px; min-width: 0; }
   .lb-pair-res { display: grid; text-align: right; }
   .lb-pair-res b { color: #1c8a4b; font-variant-numeric: tabular-nums; }
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .lb-cmp-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .lb-cmp-name { grid-column: 1 / -1; }
     .lb-cmp-n { grid-column: 1 / -1; color: var(--steel); font-size: 0.85rem; }
@@ -584,7 +584,7 @@
     .lb-head.lb-can-fav { grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr) 118px 60px 96px 18px; }
     .lb-head .lb-head-time, .lb-head .lb-head-fav { text-align: right; }
   }
-  @media (max-width: 780px) { .lb-head { display: none; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lb-head { display: none; } }
   /* Brakes: the pads on the session, in the same small type as the tyres (a board row shows what it was run on). */
   .lb-brakes { color: var(--ink); }
   /* A run with the car's own Track Mode figures (js/leaderboard-page.js rowHtml). */
@@ -654,7 +654,7 @@
     .page-hero .wrap:not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link .icon { width: 18px; height: 18px; }
   }
   /* On a phone the title sits closer to the Add a session button, and the filters closer to the button (the spacing where Back was). */
-  @media (max-width: 780px) { main.tp-main:has(#lb-app) { padding-top: 10px !important; } body.laps-tabbed .page-hero { padding-top: 18px !important; padding-bottom: 8px !important; } body.laps-tabbed .lb-types { margin-top: 0 !important; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { main.tp-main:has(#lb-app) { padding-top: 10px !important; } body.laps-tabbed .page-hero { padding-top: 18px !important; padding-bottom: 8px !important; } body.laps-tabbed .lb-types { margin-top: 0 !important; } }
 </style>
 
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
@@ -727,7 +727,11 @@
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
   .laps-tabs a.on svg { stroke-width: 2.4; }
   /* Add a session is the same on every page: full width, 40 px tall, centred, on a phone. */
-  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: auto !important; max-width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  /* In landscape Add a session sits on the same line as the title, on the right (portrait keeps it full width underneath). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed .page-hero .wrap { grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; column-gap: 16px; } body.laps-tabbed .page-hero h1 { grid-column: 1 !important; grid-row: 1 !important; } body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 2 !important; grid-row: 1 !important; justify-self: end !important; width: auto !important; padding: 0 20px !important; } }
+  /* In landscape Add a session keeps its normal width, under the title on the left (it stays full width in portrait). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; justify-self: start !important; padding: 0 22px !important; } }
   /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
   body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
   body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,

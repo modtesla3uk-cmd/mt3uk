@@ -40,7 +40,7 @@
 .lo-switch[aria-checked="true"] { background: #17663f; }
 .lo-switch[aria-checked="true"]::after { transform: translateX(20px); }
 .lo-switch:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-@media (max-width: 780px) { .lo-bar, .lo-offer { left: 8px; right: 8px; bottom: 8px; } }
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lo-bar, .lo-offer { left: 8px; right: 8px; bottom: 8px; } }
 
 /* The Offline mode button in the Laps header (js/laps-offline.js, drawHeaderIcon): a circle with two arrows, like the
    Windows "always available offline" badge. Green means Offline mode is on; grey means it is off (normal, online);
@@ -53,7 +53,7 @@
 .nav-offline.is-offline[aria-checked="false"] { color: var(--orange, var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000))); }
 .nav-offline:disabled { cursor: progress; opacity: 0.45; }
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
-@media (max-width: 780px) { .nav-offline { width: 28px; min-width: 0; padding: 0; } .nav-offline svg { width: 25px; height: 21px; } }
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .nav-offline { width: 28px; min-width: 0; padding: 0; } .nav-offline svg { width: 25px; height: 21px; } }
 .lo-bar.is-info { background: var(--ink, #16233d); }
 /* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
 [data-offline-toggle][hidden] { display: none !important; }

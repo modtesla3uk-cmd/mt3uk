@@ -30,7 +30,7 @@
   .lh-band .wrap { display: grid; gap: 14px; justify-items: start; }
   @media (min-width: 900px) { .lh-band .wrap { justify-items: center; text-align: center; } }
   .lh-band p { color: var(--ink-2); max-width: 60ch; }
-@media (max-width: 780px) { .lh-sec { padding-top: 32px; } }
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .lh-sec { padding-top: 32px; } }
 /* On Sessions and the Leaderboard: the chosen panels under the page, for signed-in members. */
 .laps-panels { padding-bottom: 36px; }
 .laps-panels[hidden] { display: none; }

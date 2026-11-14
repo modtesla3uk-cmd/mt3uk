@@ -65,7 +65,7 @@
   a { color: inherit; text-decoration: none; }
   img { max-width: 100%; display: block; }
   .wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 28px; }
-  @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .wrap { padding: 0 16px; } }
 
   /* ---------- NAV: shared, see css/site-header.css ---------- */
 
@@ -95,7 +95,7 @@
   .page-hero .tp-hero-top .tp-home .icon { color: var(--c-orange-light, #f58a68); }
   /* In Jade the clock is dark jade, like the Leaderboards and My Analysis icons beside it (the navy and orange theme keeps the pale orange). */
   :root:is([data-theme="jade"], [data-theme="gold"]) .page-hero .tp-hero-top .tp-home .icon { color: var(--orange-text, #14705c); }
-  @media (max-width: 780px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
   /* Phone: My Analysis sits under Back, in the left column with Add a session in the right. */
   @media (max-width: 900px) { #tp-analysis-pill { display: flex; grid-column: 1; grid-row: 3; justify-self: stretch; align-self: start; width: auto; min-width: 0; height: 48px; min-height: 48px; margin: 10px 0 0; padding: 0 10px; border-radius: 24px; justify-content: center; box-sizing: border-box; font-size: 1rem; gap: 6px; } #tp-analysis-pill .icon { width: 20px; height: 20px; } }
 
@@ -104,7 +104,7 @@
   /* Desktop: My Analysis sits on the left of Leaderboard, and Add a session under Leaderboard. */
   @media (min-width: 901px) { .page-hero .tp-hero-row > #tp-analysis-pill { grid-column: 4; grid-row: 2; justify-self: end; align-self: center; margin-right: 0; } .page-hero .tp-hero-row > #tp-lb-pill { margin-right: 200px; } .page-hero .wrap .tp-hero-actions { grid-column: 3; grid-row: 3; justify-self: end; align-self: start; margin-top: 8px; } .page-hero .wrap .tp-hero-actions #tp-hero-add { margin-right: 200px; } }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
-  @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
   /* The page's own button: bigger on desktop; on a phone it sits at the right of the Back row, above the title. */
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
@@ -285,7 +285,7 @@
   .tp-list-head .tp-head-title { flex: 1 1 auto; min-width: 0; }
   .tp-list-head .tp-sub { margin: 2px 0 0; }
   .tp-list-head .tp-head-side { flex: none; gap: 6px; flex-wrap: nowrap; }
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .tp-vhead h2 { font-size: 0.95rem; }
     .tp-list-head h2 { font-size: 1.15rem; }
     .tp-list-head .tp-sub { font-size: 0.8rem; }
@@ -320,7 +320,7 @@
   .tp-find-range .tp-field { width: 170px; }
   .tp-find-range[hidden], .tp-tools[hidden], .tp-find [hidden] { display: none; }
   .tp-find-count { margin: 0 0 6px; color: var(--steel); }
-  @media (max-width: 780px) { .tp-find-range .tp-field { flex: 1; width: auto; min-width: 140px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-find-range .tp-field { flex: 1; width: auto; min-width: 140px; } }
   /* A track's whole row is the toggle: it steps down to the layouts and never opens a page of its own. */
   .tp-trackrow { width: 100%; min-height: 52px; padding: 8px 14px; font: inherit; text-align: left; cursor: pointer; }
   .tp-trackwrap { position: relative; }
@@ -341,10 +341,10 @@
      tile under every layout starts in the same column. */
   .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px 14px; padding-left: 0; border-left: 0; }
   .tp-layout-sessions[hidden] { display: none; }
-  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { margin-left: 10px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { margin-left: 10px; } }
   .tp-tracklist { gap: 8px; }
   .tp-sort { width: 180px; }
-  @media (max-width: 780px) { .tp-sort { width: 100%; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-sort { width: 100%; } }
   .tp-rank { display: inline-flex; align-items: center; gap: 5px; justify-self: start; margin-top: 4px; padding: 2px 10px 2px 7px; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-style: normal; font-weight: 600; white-space: nowrap; }
   .tp-rank .icon { width: 14px; height: 14px; }
   .tp-rank-1 { background: #fbf1c4; border-color: #e8b923; color: #6a4b00; }
@@ -441,7 +441,7 @@
   /* Phones: the title first, at the left, with its icon straight after the word and the share button at the far right.
      Under it one row: Back, the other page as a labelled button (Leaderboards or My Sessions), and Add a session as a
      round orange plus at the right. The tip's bulb sits at the right of the What is...? line. Same on track.html. */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 0; position: relative; }
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; gap: 0; justify-self: stretch; text-align: left; }
     .page-hero .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
@@ -456,7 +456,7 @@
     .page-hero .tp-hero-top .back-link.tp-home .icon { width: 16px; height: 16px; }
     /* The Sessions and Leaderboard headings (October 2026) use the same four equal buttons as a session: Back on the left,
        the other page on the right, Add a session under it, every button the width of Back. */
-    @media (max-width: 780px) {
+    @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top { display: contents; }
       .page-hero .wrap:has(.tp-hero-row):not(:has(.tp-home:not([hidden]))) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
@@ -465,7 +465,7 @@
     }
     /* On a session the heading (option C, revised October 2026): a two-column grid of four equal buttons with their words.
        Row 1: Back, Leaderboards. Row 2: Add a session, My Sessions. Every button is the same width as Back. */
-    @media (max-width: 780px) {
+    @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
       .page-hero .wrap:has(.tp-home:not([hidden])) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; row-gap: 0; }
       .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top { display: contents; }
       .page-hero .wrap:has(.tp-home:not([hidden])) .tp-hero-top .back-link { grid-column: 1; grid-row: 2; justify-self: stretch; align-self: center; margin: 14px 0 0; width: 100%; height: 48px; min-height: 48px; padding: 0 10px; gap: 6px; border-radius: 22px; font-size: 1rem; white-space: nowrap; justify-content: center; }
@@ -592,7 +592,7 @@
   .tp-pro-cards { flex-basis: 100%; margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; color: var(--c-navy, #14213d); }
   .tp-pro-cards > [data-tile] { min-width: 0; box-sizing: border-box; margin: 0; padding: 16px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
   .tp-pro-cards > [data-tile] > .tp-chart-head h3 { margin: 0 0 8px; color: var(--c-navy, #14213d); font-size: 1.1rem; } .tp-free-fold > summary .tp-free-chev { transition: transform .15s; } .tp-free-fold[open] > summary .tp-free-chev { transform: rotate(180deg); }
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .tp-prohead { padding: 14px; }
     .tp-prohead-top > h3 { font-size: 1.1rem; padding: 4px 14px; }
     .tp-prohead-link { font-size: .8rem; }
@@ -639,7 +639,7 @@
   .tp-board > [data-tile="lineedit"] { order: 11; }
   /* Layout name and Session settings go last, after Start and finish lines. */
   .tp-board > [data-tile="rename"], .tp-board > [data-tile="settings"] { order: 12; }
-  @media (max-width: 780px) { .tp-board > [data-tile] { grid-column: span 12 !important; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-board > [data-tile] { grid-column: span 12 !important; } }
   .tp-board > .tp-section .tp-head { margin-bottom: 6px; }
   .tp-field[hidden] { display: none; }
   .tp-f3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -665,7 +665,7 @@
   .tp-gbox .tp-chart-head { flex-wrap: wrap; align-items: center; column-gap: 10px; }
   .tp-gbox .tp-chart-head h3 { order: 1; }
   .tp-gbox #tp-gtoggles { order: 2; }
-  @media (max-width: 780px) { .tp-gbox .tp-gswitch { order: 2; } .tp-gbox #tp-gtoggles { order: 3; flex-basis: 100%; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-gbox .tp-gswitch { order: 2; } .tp-gbox #tp-gtoggles { order: 3; flex-basis: 100%; } }
   .tp-gbox.is-off #tp-gtoggles, .tp-gbox.is-off #tp-gforce, .tp-gbox.is-off #tp-gnote, .tp-gbox.is-off #tp-gpeaks { display: none; }
   .tp-gpeaks { margin: 6px 0 0; line-height: 1.5; }
   .tp-gpeaks .tp-gmax { white-space: nowrap; }
@@ -694,7 +694,7 @@
      where the controls are not. It does not take the touches (the map under it can still be held). */
   .tp-mapwrap { position: relative; }
   .tp-gmeter { position: absolute; left: 10px; bottom: 44px; width: 112px; padding: 4px 6px; border-radius: var(--radius-sm); background: rgba(13, 59, 51, .92); pointer-events: none; z-index: 3; }
-  @media (max-width: 780px) { .tp-gmeter { width: 100px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-gmeter { width: 100px; } }
   /* The labels round the meter: the scale (2 g at the outer ring) at the top, bottom, left and right. The changing figures are gone. */
   .tp-gm-scale { fill: #ffffff; font-size: 10px; font-weight: 700; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
   .tp-gm-read, .tp-gm-toggle { display: none !important; }
@@ -858,7 +858,7 @@
   .tp-mapcard.is-full .tp-mgap { min-height: 0; }
   /* On a phone, full screen keeps the heading to one line (just the switch) and drops the note under the chart, so
      the map and the chart share the screen. */
-  @media (max-width: 780px) {
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .tp-mapcard.is-full .tp-map-head { flex-wrap: nowrap; gap: 6px; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-map-head .tp-rotate-hint { margin-left: auto; }
@@ -1144,7 +1144,7 @@
   .tp-lb-btn { display: flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: #fff; cursor: pointer; }
   .tp-lb-btn:hover, .tp-lb-btn:focus-visible { background: rgba(255, 255, 255, 0.25); }
   .tp-lb-btn .icon { width: 20px; height: 20px; }
-  @media (max-width: 780px) { .tp-lb-prev, .tp-lb-next { position: absolute; bottom: 14px; } .tp-lb-prev { left: 14px; } .tp-lb-next { right: 14px; } .tp-lb-fig img { max-height: calc(100vh - 230px); } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-lb-prev, .tp-lb-next { position: absolute; bottom: 14px; } .tp-lb-prev { left: 14px; } .tp-lb-next { right: 14px; } .tp-lb-fig img { max-height: calc(100vh - 230px); } }
   /* One map: Colour by speed switch and the speed key under it */
   .tp-map-head { flex-wrap: wrap; align-items: center; gap: 8px; }
   .tp-map-head .tp-speedsw { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; }
@@ -1191,7 +1191,7 @@
   .tp-cardata[open] .tp-open .icon { transform: rotate(90deg); }
   .tp-cardata[open] summary { margin-bottom: 8px; }
   .tp-cardata:not([open]) summary:hover .tp-open { filter: brightness(1.08); }
-  @media (max-width: 780px) { .tp-cardata summary { flex-wrap: wrap; } .tp-cardata summary .tp-small { order: 3; flex-basis: 100%; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-cardata summary { flex-wrap: wrap; } .tp-cardata summary .tp-small { order: 3; flex-basis: 100%; } }
   /* Lap times, folded away */
   .tp-laps { align-self: start; }
   .tp-laps summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
@@ -1351,7 +1351,7 @@
   .tp-addcar-missing { margin: 0; }
   .tp-addcar-missing a { color: var(--ink); text-decoration: underline; font-weight: 600; }
   .tp-addcar select.field:disabled { opacity: 0.6; }
-  @media (max-width: 780px) { .tp-addcar-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-addcar-grid { grid-template-columns: 1fr; } }
   .tp-cars { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
   .tp-car { display: grid; gap: 2px; min-height: 64px; padding: 10px 14px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: var(--ink); cursor: pointer; }
   .tp-car b { font-size: 0.95rem; overflow-wrap: anywhere; }
@@ -1406,7 +1406,7 @@
   .a2hs-banner .a2hs-close { padding: 0 4px; }
   .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
   @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
-  @media (max-width: 780px) { .page-hero { padding: 14px 0 18px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } .tp-section { margin-top: 14px; } .tp-head { margin-bottom: 6px; } .tp-actions { margin: 8px 0; } .tp-tools { margin: 8px 0 0; } .tp-vbox .tp-vcurrent { min-height: 44px; padding: 4px 12px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .page-hero { padding: 14px 0 18px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } .tp-section { margin-top: 14px; } .tp-head { margin-bottom: 6px; } .tp-actions { margin: 8px 0; } .tp-tools { margin: 8px 0 0; } .tp-vbox .tp-vcurrent { min-height: 44px; padding: 4px 12px; } }
   /* Desktop hero: the title with its share button (next to the trophy or clock) on the top row; Back and the What is...? fold
      on the second row at the left; the page's own button sits above Add a session at the right, with the bulb beside Add. */
   @media (min-width: 901px) {
@@ -1482,13 +1482,13 @@
   .tp-title-link:hover, .tp-title-link:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
   .tp-title-trophy { display: inline-block; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: var(--c-orange-light, #f58a68); stroke-width: 2.2; }
   .tp-fav-note { margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: #fff; border: 1px solid var(--hairline); color: var(--ink); font-size: 0.92rem; }
-  @media (max-width: 780px) { .tp-rowwrap { gap: 6px; } .tp-favrow { flex-basis: 36px; width: 36px; min-width: 36px; height: 36px; min-height: 36px; } .tp-favrow .icon { width: 18px; height: 18px; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-rowwrap { gap: 6px; } .tp-favrow { flex-basis: 36px; width: 36px; min-width: 36px; height: 36px; min-height: 36px; } .tp-favrow .icon { width: 18px; height: 18px; } }
   /* Favourites (js/track-page.js): the star on a session's page. The list is on favourites.html. */
   .tp-fav { gap: 6px; }
   .tp-fav .icon { width: 16px; height: 16px; }
   .tp-fav.is-fav .icon { fill: var(--orange, #e8542a); stroke: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
   .tp-fav.is-fav { border-color: var(--orange, #e8542a); color: var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); }
-  @media (max-width: 780px) { .tp-fav span { display: none; } .tp-fav { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; } }
+  @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .tp-fav span { display: none; } .tp-fav { flex: 0 0 44px; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; } }
 </style>
 
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
@@ -1562,7 +1562,11 @@
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
   .laps-tabs a.on svg { stroke-width: 2.4; }
   /* Add a session is the same on every page: full width, 40 px tall, centred, on a phone. */
-  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: auto !important; max-width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
+  /* In landscape Add a session sits on the same line as the title, on the right (portrait keeps it full width underneath). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed .page-hero .wrap { grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; column-gap: 16px; } body.laps-tabbed .page-hero h1 { grid-column: 1 !important; grid-row: 1 !important; } body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 2 !important; grid-row: 1 !important; justify-self: end !important; width: auto !important; padding: 0 20px !important; } }
+  /* In landscape Add a session keeps its normal width, under the title on the left (it stays full width in portrait). */
+  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; justify-self: start !important; padding: 0 22px !important; } }
   /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
   body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
   body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,

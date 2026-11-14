@@ -102,11 +102,15 @@ html[data-mode="dark"] .tp-board-card a.btn, html[data-mode="dark"] .tp-board-ca
 html[data-mode="dark"] .hamburger-bar { background: #ffffff !important; }
 /* The Light mode button's words are centred. */
 .lh-mode { justify-content: center; text-align: center; }
-/* The Directions button on a Leaderboard track is white with black words. */
-html[data-mode="dark"] .lb-dir { background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important; }
+/* The Directions button on a Leaderboard track is black with white words, like the other buttons. */
+html[data-mode="dark"] .lb-dir { background-color: #000000 !important; color: #ffffff !important; border-color: #6b6b6b !important; }
 /* The lap times and gaps on a board are white. */
 html[data-mode="dark"] .lb-time, html[data-mode="dark"] .lb-time b, html[data-mode="dark"] .lb-time small, html[data-mode="dark"] .lb-head { color: #ffffff !important; }
 /* On a phone the Light mode button is smaller and sits on the right, under Add a session. */
 @media (max-width: 780px) {
   .lh-mode { min-height: 36px; padding: 0 12px; font-size: 0.8rem; justify-self: end; grid-column: 2; }
+  /* The Leaderboard heading on a phone: My Analysis sits under Back, and Light mode sits alone under Add a session on the right. */
+  .lb-hero #lb-my-analysis { order: 2; }
+  .lb-hero #lb-add-session { order: 2; }
+  .lb-hero .lh-mode { order: 3; grid-column: 2; justify-self: end; margin-left: auto; }
 }

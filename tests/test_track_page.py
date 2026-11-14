@@ -5830,6 +5830,21 @@ def test_the_heading_buttons_on_a_session_never_overlap_on_a_phone(page):
         assert box["width"] > 90, (width, box)
 
 
+def test_on_a_landscape_phone_add_a_session_stays_on_the_title_row(page):
+    """Landscape phones (Richard's is 919 by 405): the title and Add a session share one row, the button keeps its
+    words and stays on the screen. It never drops below the title or runs off the right edge."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    for width, height in ((919, 405), (844, 390), (740, 360), (667, 375)):
+        set_window(page, {"width": width, "height": height})
+        page.wait_for_timeout(250)
+        h1 = page.locator(".page-hero h1").first.bounding_box()
+        add = page.locator("#tp-hero-add").bounding_box()
+        assert add["x"] >= 0 and add["x"] + add["width"] <= width, (width, add)
+        assert add["y"] < h1["y"] + h1["height"] and add["y"] + add["height"] > h1["y"], (width, h1, add)
+        assert add["height"] >= 36 and add["width"] > 90, (width, add)
+
+
 def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_round(page):
     """If the drive back down was timed instead of the climb, the session says the start and finish may be the wrong
     way round. A session with no such note has no warning."""

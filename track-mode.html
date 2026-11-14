@@ -198,10 +198,14 @@
   .laps-tabs a.on svg { stroke-width: 2.4; }
   /* Add a session is the same on every page: full width, 40 px tall, centred, on a phone. */
   body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 1 / -1 !important; justify-self: stretch !important; width: auto !important; max-width: 100% !important; box-sizing: border-box; min-height: 40px !important; height: 40px !important; padding: 0 16px !important; font-size: 0.95rem !important; justify-content: center !important; }
-  /* In landscape Add a session sits on the same line as the title, on the right (portrait keeps it full width underneath). */
-  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed .page-hero .wrap { grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; column-gap: 16px; } body.laps-tabbed .page-hero h1 { grid-column: 1 !important; grid-row: 1 !important; } body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { grid-column: 2 !important; grid-row: 1 !important; justify-self: end !important; width: auto !important; padding: 0 20px !important; } }
-  /* In landscape Add a session keeps its normal width, under the title on the left (it stays full width in portrait). */
-  @media (orientation: landscape) and (max-height: 500px) { body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; justify-self: start !important; padding: 0 22px !important; } }
+  /* Landscape phones: the title and Add a session stay on one row. The title shrinks to make room and the button keeps its
+     words, so it is always on the screen (it is never pushed off the edge). */
+  @media (orientation: landscape) and (max-height: 500px) {
+    body.laps-tabbed .page-hero .wrap { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; column-gap: 12px; max-width: 100%; box-sizing: border-box; }
+    body.laps-tabbed .page-hero h1 { flex: 1 1 auto; min-width: 0; font-size: 1.35rem !important; }
+    body.laps-tabbed .page-hero .tp-hero-actions, body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { flex: 0 0 auto !important; margin-left: auto; grid-column: auto !important; grid-row: auto !important; justify-self: auto !important; }
+    body.laps-tabbed #tp-hero-add, body.laps-tabbed #lb-add-session, body.laps-tabbed .tm-pill-accent { width: auto !important; max-width: none !important; padding: 0 14px !important; font-size: 0.9rem !important; white-space: nowrap; }
+  }
   /* The bottom bar and the swipe do these jobs, so the Back buttons and the matching buttons in each page heading go on a phone. */
   body.laps-tabbed [data-btn="my-analysis"], body.laps-tabbed [data-btn="leaderboards"], body.laps-tabbed [data-btn="sessions"],
   body.laps-tabbed #lb-my-analysis, body.laps-tabbed #lb-my-sessions, body.laps-tabbed #tp-analysis-pill, body.laps-tabbed #tp-lb-pill,
@@ -250,26 +254,6 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   if (!header || TABBED.indexOf(page) < 0) return;
   header.classList.add('laps-tabbed');
   document.body.classList.add('laps-tabbed');
-  // TEMPORARY diagnostic readout (landscape only), to find why Add a session runs off the screen on one phone. Remove when fixed.
-  (function () {
-    var land = window.matchMedia('(orientation: landscape) and (max-height: 500px)');
-    function build() {
-      var d = document.getElementById('laps-diag');
-      if (!d) { d = document.createElement('div'); d.id = 'laps-diag'; d.setAttribute('aria-hidden', 'true');
-        d.style.cssText = 'position:fixed;left:0;top:0;z-index:9999;background:#000;color:#fff;font:11px/1.35 monospace;padding:4px 6px;pointer-events:none;max-width:60vw;border:1px solid #f5c542'; document.body.appendChild(d); }
-      var probe = document.createElement('div');
-      probe.style.cssText = 'position:fixed;visibility:hidden;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);';
-      document.body.appendChild(probe);
-      var ps = getComputedStyle(probe); var inL = ps.paddingLeft, inR = ps.paddingRight; probe.remove();
-      var add = document.querySelector('#tp-hero-add, #lb-add-session'); var a = add ? add.getBoundingClientRect() : null;
-      var wrap = document.querySelector('.page-hero > .wrap'); var wr = wrap ? wrap.getBoundingClientRect() : null;
-      var vv = window.visualViewport ? Math.round(window.visualViewport.width) : 'n/a';
-      d.textContent = 'screen ' + screen.width + ' | inner ' + innerWidth + ' | client ' + document.documentElement.clientWidth + ' | scroll ' + document.documentElement.scrollWidth + ' | visualVP ' + vv + ' | dpr ' + devicePixelRatio +
-        ' | inset L ' + inL + ' R ' + inR + ' | wrap R ' + (wr ? Math.round(wr.right) : 'n/a') + ' | add L ' + (a ? Math.round(a.left) : 'n/a') + ' R ' + (a ? Math.round(a.right) : 'n/a');
-    }
-    function update() { var d = document.getElementById('laps-diag'); if (land.matches) build(); else if (d) d.remove(); }
-    window.addEventListener('resize', update); window.addEventListener('load', update); update();
-  })();
   var here = SWIPE.indexOf(page), ind = null, peek = null, parts = [], dragging = false;
   // The line sits over the four sections of the bar; the intro is before them, so it has no line.
   function barPos(i) { return i - 1; }

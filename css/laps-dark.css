@@ -98,3 +98,15 @@ html[data-mode="dark"] .lb-row .lb-gap, html[data-mode="dark"] .lb-row .lb-fast 
 html[data-mode="dark"] .tp-board-card a.btn, html[data-mode="dark"] .tp-board-card a.btn-secondary, html[data-mode="dark"] .tp-board-card a[class*="btn"] {
   background-color: #000000 !important; color: #ffffff !important; border-color: #6b6b6b !important;
 }
+/* The menu icon is white on black. */
+html[data-mode="dark"] .hamburger-bar { background: #ffffff !important; }
+/* The Light mode button's words are centred. */
+.lh-mode { justify-content: center; text-align: center; }
+/* The Directions button on a Leaderboard track is white with black words. */
+html[data-mode="dark"] .lb-dir { background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important; }
+/* The lap times and gaps on a board are white. */
+html[data-mode="dark"] .lb-time, html[data-mode="dark"] .lb-time b, html[data-mode="dark"] .lb-time small, html[data-mode="dark"] .lb-head { color: #ffffff !important; }
+/* On a phone the Light mode button is smaller and sits on the right, under Add a session. */
+@media (max-width: 780px) {
+  .lh-mode { min-height: 36px; padding: 0 12px; font-size: 0.8rem; justify-self: end; grid-column: 2; }
+}

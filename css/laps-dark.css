@@ -70,3 +70,19 @@ html[data-mode="dark"] .tp-car, html[data-mode="dark"] select {
   border: 1px solid #ffffff !important;
 }
 html[data-mode="dark"] header button, html[data-mode="dark"] header select { border: 0 !important; }
+/* Lighter touch (Richard, too heavy): cards are a dark grey with fine borders, buttons have a grey outline, and the track names are white. */
+html[data-mode="dark"] .card, html[data-mode="dark"] .lb-row, html[data-mode="dark"] .tp-row, html[data-mode="dark"] .tp-day-tile,
+html[data-mode="dark"] .tp-daygroup, html[data-mode="dark"] .tp-board-card, html[data-mode="dark"] .lb-cta, html[data-mode="dark"] .lb-cmp,
+html[data-mode="dark"] .tp-tile, html[data-mode="dark"] .lh-sec .card, html[data-mode="dark"] .lh-card {
+  background-color: #141414 !important; border-color: #333333 !important;
+}
+html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary,
+html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode, html[data-mode="dark"] .chip, html[data-mode="dark"] .tp-iconbtn,
+html[data-mode="dark"] .tp-car, html[data-mode="dark"] select {
+  border-color: #6b6b6b !important;
+}
+html[data-mode="dark"] header button, html[data-mode="dark"] header select { border: 0 !important; }
+html[data-mode="dark"] [data-track-toggle], html[data-mode="dark"] [data-track-toggle] *, html[data-mode="dark"] .tp-trackrow, html[data-mode="dark"] .tp-trackrow * {
+  color: #ffffff !important;
+}
+html[data-mode="dark"] [data-track-toggle] small, html[data-mode="dark"] [data-track-toggle] span.tp-day-sub, html[data-mode="dark"] .tp-trackrow small { color: #bdbdbd !important; }

@@ -158,3 +158,20 @@ html[data-mode="dark"] .lh-reel-live .lxe-btn, html[data-mode="dark"] .lh-reel-l
 html[data-mode="dark"] .lh-reel-live .lxe-btn svg, html[data-mode="dark"] .lh-reel-live .lxe-sound svg { stroke: #ffffff; color: #ffffff; }
 /* The sign-in style buttons (the Preferences button on Profile and Favourites) are black with white text. */
 html[data-mode="dark"] .si-btn, html[data-mode="dark"] .pf-prefs button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+/* Profile in dark mode: the cards are black with fine white outlines, the words are white, and the tabs are black with white text. */
+html[data-mode="dark"] .pf-card, html[data-mode="dark"] .pf-sec, html[data-mode="dark"] .pf-warning, html[data-mode="dark"] .pf-row {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+}
+html[data-mode="dark"] .pf-view dt, html[data-mode="dark"] .pf-view dd, html[data-mode="dark"] .pf-hint, html[data-mode="dark"] .pf-muted,
+html[data-mode="dark"] .pf-who, html[data-mode="dark"] .pf-check, html[data-mode="dark"] .pf-view {
+  color: #ffffff !important;
+}
+html[data-mode="dark"] .pf-tabs a, html[data-mode="dark"] .pf-tabs button, html[data-mode="dark"] .pf-tabs a *, html[data-mode="dark"] .pf-tabs button * {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+}
+/* The signed-out box and the signed-in cards on Profile and Favourites follow the same dark style. */
+html[data-mode="dark"] .pf-signed-out, html[data-mode="dark"] .pf-left, html[data-mode="dark"] .si-card,
+html[data-mode="dark"] .si-signed-in, html[data-mode="dark"] .si-card-join {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+}
+html[data-mode="dark"] .pf-signed-out h2, html[data-mode="dark"] .pf-signed-out p, html[data-mode="dark"] .pf-left p { color: #ffffff !important; }

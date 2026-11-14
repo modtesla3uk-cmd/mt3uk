@@ -587,8 +587,7 @@ html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
 
 /* Draw under the system bars (the Laps app, and phones with a notch). The pages that opt in with viewport-fit=cover get
    the device's insets from env(); everywhere else they are 0, so these rules change nothing on mt3uk.com. */
-header { padding-top: env(safe-area-inset-top, 0px); }
 footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
 /* Sideways (landscape): the coloured bands run to the screen's edges; only the content is kept clear of the notch and bars. */
 .wrap { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
-nav { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
+nav { padding-top: max(16px, env(safe-area-inset-top, 0px)); padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }

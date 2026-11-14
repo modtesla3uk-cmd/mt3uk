@@ -591,3 +591,6 @@ footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
 /* Sideways (landscape): the coloured bands run to the screen's edges; only the content is kept clear of the notch and bars. */
 .wrap { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
 nav { padding-top: max(16px, env(safe-area-inset-top, 0px)); padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
+
+/* The Laps pages: the same space above each page's heading on a phone, under the shorter header. */
+@media (max-width: 780px) { body:has(header .laps-logo) .page-hero { padding-top: 26px !important; } }

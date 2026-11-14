@@ -114,3 +114,13 @@ html[data-mode="dark"] .lb-time, html[data-mode="dark"] .lb-time b, html[data-mo
   .lb-hero #lb-add-session { order: 2; }
   .lb-hero .lh-mode { order: 3; grid-column: 2; justify-self: end; margin-left: auto; }
 }
+/* Grey lines, outlines and icons are white in dark mode (the gold highlights keep their colour). */
+html[data-mode="dark"] header, html[data-mode="dark"] footer, html[data-mode="dark"] .card, html[data-mode="dark"] .lb-row,
+html[data-mode="dark"] .tp-row, html[data-mode="dark"] .tp-daygroup, html[data-mode="dark"] .tp-board-card, html[data-mode="dark"] .lh-card,
+html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .chip,
+html[data-mode="dark"] select, html[data-mode="dark"] input, html[data-mode="dark"] .lb-dir, html[data-mode="dark"] .lh-mode,
+html[data-mode="dark"] .tp-iconbtn, html[data-mode="dark"] .tp-car, html[data-mode="dark"] .lb-hide {
+  border-color: #ffffff !important;
+}
+html[data-mode="dark"] header { border-bottom-color: #ffffff !important; }
+html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-mode="dark"] .tp-iconbtn svg, html[data-mode="dark"] .tp-iconbtn { color: #ffffff !important; stroke: #ffffff !important; }

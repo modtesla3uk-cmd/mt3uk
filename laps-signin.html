@@ -416,6 +416,9 @@
   header.laps-tabbed .nav-sessions, header.laps-tabbed .nav-leaders, header.laps-tabbed .nav-favs, header.laps-tabbed .nav-analysis, header.laps-tabbed .nav-home { display: none !important; }
   body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 49; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
   body.laps-tabbed { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+  /* The page is at least a full screen tall, so the footer stays at the bottom while a short page loads, not in the middle. */
+  body.laps-tabbed { box-sizing: border-box; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+  body.laps-tabbed > footer { margin-top: auto; }
   .laps-tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; border-radius: 10px; color: var(--ink, #111); text-decoration: none; font: 600 11px/1.1 var(--font-body, sans-serif); }
   .laps-tabs a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }

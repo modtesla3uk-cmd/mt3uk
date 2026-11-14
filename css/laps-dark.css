@@ -247,3 +247,18 @@ html[data-mode="dark"][data-mode="dark"] button.fav-chip.is-on.is-on.is-on, html
 html[data-mode="dark"] .fav-star { color: #f5c542 !important; }
 html[data-mode="dark"] .fav-star svg { color: #f5c542 !important; stroke: #f5c542 !important; }
 html[data-mode="dark"] .fav-res, html[data-mode="dark"] .fav-row b, html[data-mode="dark"] .fav-row span, html[data-mode="dark"] .fav-row small { color: #ffffff !important; }
+/* The messenger window in dark mode (js/messenger.js): black, with white words everywhere. Messages from others are black
+   bubbles with white edges; your own are gold with black words; the send button stays orange. */
+html[data-mode="dark"] #mt3uk-chat, html[data-mode="dark"] #mt3uk-chat * { background-color: transparent !important; }
+html[data-mode="dark"] #mt3uk-chat { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+html[data-mode="dark"] #mt3uk-chat [class*="mc-"] { color: #ffffff !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-head, html[data-mode="dark"] #mt3uk-chat .mc-tabs, html[data-mode="dark"] #mt3uk-chat .mc-row { border-color: #ffffff !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-bubble, html[data-mode="dark"] #mt3uk-chat .mc-btn, html[data-mode="dark"] #mt3uk-chat .mc-icon-btn, html[data-mode="dark"] #mt3uk-chat .mc-tab, html[data-mode="dark"] #mt3uk-chat .mc-text, html[data-mode="dark"] #mt3uk-chat .mc-search, html[data-mode="dark"] #mt3uk-chat .mc-quote, html[data-mode="dark"] #mt3uk-chat .mc-photo {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble * { color: #111111 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble a { color: #111111 !important; text-decoration: underline; }
+html[data-mode="dark"] #mt3uk-chat .mc-tab[aria-selected="true"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-send { background-color: #e8542a !important; color: #ffffff !important; border: 0 !important; }
+html[data-mode="dark"] #mt3uk-chat .mc-report, html[data-mode="dark"] #mt3uk-chat .mc-msg-meta, html[data-mode="dark"] #mt3uk-chat .mc-meta { color: #ffffff !important; border: 0 !important; }

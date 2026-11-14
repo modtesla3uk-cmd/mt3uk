@@ -20,6 +20,23 @@
 <link rel="stylesheet" href="css/admin-page.css?v=20271060">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
+<style>
+  #laps-palette .pal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 16px; }
+  #laps-palette .pal-sw { border: 1px solid #2b2b2b; border-radius: 10px; padding: 8px; background: #141414; color: #fff; }
+  #laps-palette .pal-sw i { display: block; height: 36px; border-radius: 8px; border: 1px solid #2b2b2b; margin-bottom: 6px; }
+  #laps-palette .pal-sw b { display: block; font-size: 0.85rem; }
+  #laps-palette .pal-sw span { color: #c4c4c4; font-size: 0.78rem; }
+  #laps-palette .pal-sample { background: #000; border: 1px solid #fff; border-radius: 12px; padding: 12px; color: #fff; }
+  #laps-palette .pal-title { font-weight: 700; margin-bottom: 4px; }
+  #laps-palette .pal-title small, #laps-palette .pal-row small { color: #c4c4c4; font-weight: 400; }
+  #laps-palette .pal-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #333; flex-wrap: wrap; }
+  #laps-palette .pal-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  #laps-palette .pal-time { margin-left: auto; }
+  #laps-palette .pal-btns { margin-top: 8px; }
+  #laps-palette .pal-btn { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid #fff; background: #000; color: #fff; font-weight: 700; margin: 4px 6px 0 0; }
+  #laps-palette .pal-gold { background: #f5c542; color: #000; border-color: #f5c542; }
+  @media (max-width: 600px) { #laps-palette .pal-grid { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <header>
@@ -101,6 +118,31 @@
         </table>
       </div>
       <p class="iv-note" id="theme-status" role="status"></p>
+    </details>
+    <details class="collapsible" id="laps-palette">
+      <summary><h3 class="panel-title">Laps dark palette</h3></summary>
+      <p class="iv-note">The colours for the Laps pages in dark mode, on black. One set is used everywhere so the pages match. This panel is a reference: change the colours in css/laps-dark.css.</p>
+      <div class="pal-grid">
+        <div class="pal-sw"><i style="background:#000000"></i><b>Base</b><span>#000000</span></div>
+        <div class="pal-sw"><i style="background:#141414"></i><b>Surface (cards)</b><span>#141414</span></div>
+        <div class="pal-sw"><i style="background:#ffffff"></i><b>Text</b><span>#ffffff</span></div>
+        <div class="pal-sw"><i style="background:#c4c4c4"></i><b>Secondary text</b><span>#c4c4c4</span></div>
+        <div class="pal-sw"><i style="background:#f5c542"></i><b>Gold: best lap, highlights</b><span>#f5c542</span></div>
+        <div class="pal-sw"><i style="background:#ff7a4f"></i><b>Orange: your car, alerts</b><span>#ff7a4f</span></div>
+        <div class="pal-sw"><i style="background:#5aa9e6"></i><b>Sky blue: second car</b><span>#5aa9e6</span></div>
+        <div class="pal-sw"><i style="background:#7fd1ae"></i><b>Mint: third car, saved</b><span>#7fd1ae</span></div>
+        <div class="pal-sw"><i style="background:#b9a6f5"></i><b>Lilac: fourth car</b><span>#b9a6f5</span></div>
+        <div class="pal-sw"><i style="background:#ff5c5c"></i><b>Red: delete, warnings</b><span>#ff5c5c</span></div>
+      </div>
+      <div class="pal-sample">
+        <div class="pal-title">Castle Combe <small>6 sessions</small></div>
+        <div class="pal-row"><span class="pal-dot" style="background:#f5c542"></span><b>AndySV1K</b><small>14 Jul 2026</small><b class="pal-time" style="color:#f5c542">1:17.68</b></div>
+        <div class="pal-row"><span class="pal-dot" style="background:#ff7a4f"></span><b>Your car</b><small>Arctic Three</small><b class="pal-time">1:20.40</b></div>
+        <div class="pal-row"><span class="pal-dot" style="background:#5aa9e6"></span><b>RichardHC</b><small>PROJECTILE</small><b class="pal-time">1:21.75</b></div>
+        <div class="pal-row"><span class="pal-dot" style="background:#7fd1ae"></span><b>MDebbage</b><small>DEVIANT</small><b class="pal-time">1:22.71</b></div>
+        <div class="pal-row"><span class="pal-dot" style="background:#b9a6f5"></span><b>GWard</b><small>Trackspeeder</small><b class="pal-time">1:23.81</b></div>
+        <div class="pal-btns"><span class="pal-btn pal-gold">Add a session</span><span class="pal-btn">Directions</span></div>
+      </div>
     </details>
   </section>
   <section class="admin-group" id="grp-gallery" aria-labelledby="grp-gallery-h">

@@ -142,3 +142,7 @@ html[data-mode="dark"] .btn-accent, html[data-mode="dark"] .btn-accent * { color
 
 /* The intro video is greyscale and darker in dark mode, so its green frame reads as black. */
 html[data-mode="dark"] .lh-reel-video { filter: grayscale(1) brightness(0.6); }
+/* The menu drawer in dark mode: dark grey with white links (the gold Sign out and the message count keep their colours). */
+html[data-mode="dark"] .navlinks { background: #1c1c1c !important; border-color: #ffffff !important; }
+html[data-mode="dark"] .navlinks a:not([class*="sign"]):not(.nav-chat-count) { color: #ffffff !important; }
+html[data-mode="dark"] .navlinks a:not([class*="sign"]) .icon, html[data-mode="dark"] .navlinks a:not([class*="sign"]) svg { color: #ffffff !important; stroke: #ffffff !important; }

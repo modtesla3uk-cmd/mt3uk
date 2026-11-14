@@ -136,6 +136,10 @@
       ['Next to the Shop pill', 'An offer line shown beside the Shop pill on the homepage Shop card. Leave it blank to show the pill alone.'],
       ['Shop card highlights', 'One highlight per line, shown as text on the Shop card.'],
     ] },
+    'laps-palette': { t: 'Laps dark palette', p: 'The colours the Laps pages use in dark mode, on black. Every Laps page uses this one set.', i: [
+      ['Black and white', 'The base is black, the cards are near-black, and the text is white with light grey for secondary text.'],
+      ['Accents', 'Gold for the best lap and highlights, orange for your car and alerts, and sky blue, mint and lilac for other cars. Red is for warnings and delete.'],
+    ] },
     'theme-wrap': { t: 'Site theme', p: 'The colours of mt3uk.com and laps.mt3uk.com. Each site can be set on its own.', i: [
       ['Navy and orange', 'The navy and orange the sites have used so far.'],
       ['Jade and mist', 'The new theme: pale jade backgrounds, deep jade surfaces and jade buttons. Visitors see it when their next page loads.'],

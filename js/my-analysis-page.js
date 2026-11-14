@@ -660,22 +660,6 @@
         '<p class="tm-sub">If you add Tesla Track Mode data to a session, extra insights are available.</p>' +
         '<button type="button" class="tm-pill tm-pill-accent" data-ma-unlock>Unlock</button> <span class="tm-sub" data-ma-note hidden>Subscriptions are coming soon. Nothing is charged yet.</span></div>' +
         '<div class="ma-example" aria-label="Example, not your data"><img src="images/track-preview/analysis-example.png" alt="An example session analysis, not a member\'s own data" loading="lazy"></div>';
-      // The example can be opened full screen, where it can be pinched and zoomed (the example is not the member's own data).
-      var ex = app.querySelector('.ma-example');
-      if (ex) ex.addEventListener('click', function () {
-        var o = document.createElement('div');
-        o.className = 'ma-zoom'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Example analysis, zoomed');
-        o.innerHTML = '<button type="button" class="ma-zoom-close" aria-label="Close the example"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-          '<div class="ma-zoom-scroll"><img src="images/track-preview/analysis-example.png" alt="An example session analysis, not a member\'s own data"></div>';
-        document.body.appendChild(o);
-        function shut() { o.remove(); document.removeEventListener('keydown', onKey); }
-        function onKey(e) { if (e.key === 'Escape') shut(); }
-        o.querySelector('.ma-zoom-close').addEventListener('click', shut);
-        // A tap on the enlarged picture takes it back to normal (a pinch to zoom does not count as a tap).
-        o.querySelector('.ma-zoom-scroll').addEventListener('click', shut);
-        document.addEventListener('keydown', onKey);
-        o.querySelector('.ma-zoom-close').focus();
-      });
       app.querySelector('[data-ma-unlock]').addEventListener('click', function () {
         var n = app.querySelector('[data-ma-note]');
         if (!subscribeOpen) { if (n) n.hidden = false; return; }

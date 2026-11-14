@@ -28,7 +28,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271038">
 <script src="js/site-look.js?v=3"></script>
-<link rel="stylesheet" href="css/laps-heading.css?v=21"><link rel="stylesheet" href="css/laps-dark.css?v=40">
+<link rel="stylesheet" href="css/laps-heading.css?v=21"><link rel="stylesheet" href="css/laps-dark.css?v=39">
 <script src="js/laps-heading-layout.js?v=1"></script>
 <script src="js/laps-heading-what.js?v=1" defer></script>
 <style>
@@ -274,13 +274,7 @@
   #navlinks a { text-decoration: none; }
   .tm-pick span { font-size: 1rem; font-weight: 700; color: var(--ink); }
   /* The example for a free member: greyed out, so it is clear it is not their own analysis. */
-  .ma-example { margin-top: 14px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); overflow: hidden; opacity: .55; filter: grayscale(1); cursor: zoom-in; user-select: none; }
-  /* The example opens full screen on a tap, where it can be pinched and zoomed. */
-  .ma-zoom { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.94); display: flex; flex-direction: column; }
-  .ma-zoom-close { position: absolute; top: 12px; right: 12px; z-index: 1; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #fff; background: #000; color: #fff; display: grid; place-items: center; cursor: pointer; }
-  .ma-zoom-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-  .ma-zoom-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y pinch-zoom; padding: 64px 8px 16px; }
-  .ma-zoom img { display: block; width: 100%; height: auto; max-width: none; }
+  .ma-example { margin-top: 14px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); overflow: hidden; opacity: .55; filter: grayscale(1); pointer-events: none; user-select: none; }
   .ma-example img { display: block; width: 100%; height: auto; }
 </style>
 <style>html.laps-open .early-badge,html.laps-open .laps-logo-early{display:none!important}</style>
@@ -531,7 +525,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 
 <script src="js/track-view.js?v=20271300" defer></script>
 <script src="js/quota-ring.js?v=18" defer></script>
-<script src="js/my-analysis-page.js?v=49" defer></script>
+<script src="js/my-analysis-page.js?v=47" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

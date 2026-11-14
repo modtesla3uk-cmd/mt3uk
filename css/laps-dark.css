@@ -273,5 +273,3 @@ html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mi
 /* The example analysis (My Analysis, for members without Laps Pro) in dark mode: the light picture is inverted to a dark one,
    kept a little dimmer so it is clearly an example and not the member's own data. */
 html[data-mode="dark"] .ma-example { filter: invert(1) hue-rotate(180deg) brightness(0.85); opacity: 0.8; }
-/* The full-screen example (My Analysis) in dark mode is inverted to a dark picture, like the example on the page. */
-html[data-mode="dark"] .ma-zoom img { filter: invert(1) hue-rotate(180deg) brightness(0.9); }

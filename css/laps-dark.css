@@ -262,3 +262,11 @@ html[data-mode="dark"] #mt3uk-chat .mc-msg.mine .mc-bubble a { color: #111111 !i
 html[data-mode="dark"] #mt3uk-chat .mc-tab[aria-selected="true"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
 html[data-mode="dark"] #mt3uk-chat .mc-send { background-color: #e8542a !important; color: #ffffff !important; border: 0 !important; }
 html[data-mode="dark"] #mt3uk-chat .mc-report, html[data-mode="dark"] #mt3uk-chat .mc-msg-meta, html[data-mode="dark"] #mt3uk-chat .mc-meta { color: #ffffff !important; border: 0 !important; }
+/* The reply box in the messenger: white words you type on black, with a readable placeholder. */
+html[data-mode="dark"] #mt3uk-chat textarea, html[data-mode="dark"] #mt3uk-chat input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: #000000 !important; color: #ffffff !important; caret-color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] #mt3uk-chat textarea::placeholder, html[data-mode="dark"] #mt3uk-chat input::placeholder { color: #bdbdbd !important; opacity: 1 !important; }
+/* Every word in the messenger is white in dark mode, including the previews and the request text that have no class of their
+   own. The exceptions keep their colours: your own messages (black on gold), the selected tab (black on gold) and the send button. */
+html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mine .mc-bubble *):not(.mc-tab[aria-selected="true"]):not(.mc-send):not(.mc-send *) { color: #ffffff !important; }

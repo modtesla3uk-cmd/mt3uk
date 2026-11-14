@@ -86,3 +86,15 @@ html[data-mode="dark"] [data-track-toggle], html[data-mode="dark"] [data-track-t
   color: #ffffff !important;
 }
 html[data-mode="dark"] [data-track-toggle] small, html[data-mode="dark"] [data-track-toggle] span.tp-day-sub, html[data-mode="dark"] .tp-trackrow small { color: #bdbdbd !important; }
+/* The Leaderboard: the track headings, driver names, cars, times and dates are white (the medal numbers keep their colours). */
+html[data-mode="dark"] .tp-board-card h2, html[data-mode="dark"] .tp-board-card h3, html[data-mode="dark"] .tp-board-card b,
+html[data-mode="dark"] .tp-board-card .lb-layout, html[data-mode="dark"] .tp-board-card .lb-layout *,
+html[data-mode="dark"] .lb-row .lb-name, html[data-mode="dark"] .lb-row .lb-car, html[data-mode="dark"] .lb-row .lb-car *,
+html[data-mode="dark"] .lb-row .lb-time, html[data-mode="dark"] .lb-row .lb-tm, html[data-mode="dark"] .lb-row .lb-date,
+html[data-mode="dark"] .lb-row .lb-tyre, html[data-mode="dark"] .lb-row .lb-brakes, html[data-mode="dark"] .lb-row small,
+html[data-mode="dark"] .lb-row .lb-gap, html[data-mode="dark"] .lb-row .lb-fast {
+  color: #ffffff !important;
+}
+html[data-mode="dark"] .tp-board-card a.btn, html[data-mode="dark"] .tp-board-card a.btn-secondary, html[data-mode="dark"] .tp-board-card a[class*="btn"] {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #6b6b6b !important;
+}

@@ -270,3 +270,6 @@ html[data-mode="dark"] #mt3uk-chat textarea::placeholder, html[data-mode="dark"]
 /* Every word in the messenger is white in dark mode, including the previews and the request text that have no class of their
    own. The exceptions keep their colours: your own messages (black on gold), the selected tab (black on gold) and the send button. */
 html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mine .mc-bubble *):not(.mc-tab[aria-selected="true"]):not(.mc-send):not(.mc-send *) { color: #ffffff !important; }
+/* The example analysis (My Analysis, for members without Laps Pro) in dark mode: the light picture is inverted to a dark one,
+   kept a little dimmer so it is clearly an example and not the member's own data. */
+html[data-mode="dark"] .ma-example { filter: invert(1) hue-rotate(180deg) brightness(0.85); opacity: 0.8; }

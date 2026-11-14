@@ -229,3 +229,12 @@ html[data-mode="dark"] .mt3uk-account-bar { background-color: #000000 !important
 html[data-mode="dark"] .mt3uk-account-bar p, html[data-mode="dark"] .mt3uk-account-bar .mt3uk-account-email { color: #ffffff !important; }
 html[data-mode="dark"] .mt3uk-account-bar a, html[data-mode="dark"] .mt3uk-account-bar button { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
 html[data-mode="dark"] .mt3uk-account-bar a[aria-current="page"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+/* Buttons and bars that were white with grey words (the grey is white in dark mode): the free days Hide/Show button, the
+   public-note bar on a session and the Leaderboard favourite star are black with white words. */
+html[data-mode="dark"] .tp-quota-toggle, html[data-mode="dark"] .tp-publicbar, html[data-mode="dark"] .tp-favrow, html[data-mode="dark"] .lb-fav {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+/* The file drop zone on Add a session is black with a white dashed edge and white words (it was light with grey words). */
+html[data-mode="dark"] .tp-drop { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
+html[data-mode="dark"] .tp-drop small, html[data-mode="dark"] .tp-drop b, html[data-mode="dark"] .tp-drop > .icon { color: #ffffff !important; }
+html[data-mode="dark"] .tp-drop.is-over { border-color: #f5c542 !important; background-color: #111111 !important; }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-default-mode="light">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=30">
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=32">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Leaderboard: lap times by track and car - Laps by MT3UK</title>
@@ -730,7 +730,7 @@
   /* While a swipe is dragged, the next section waits under the page and shows its name. */
   .laps-peek { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; background: var(--paper, #f4f1ea); color: var(--ink, #111); font: 700 1.6rem/1.2 var(--font-head, sans-serif); text-align: center; padding: 24px; }
   .laps-peek small { display: block; font: 600 0.9rem/1.4 var(--font-body, sans-serif); color: var(--steel, #555); margin-top: 8px; }
-  body.laps-swiping main { position: relative; z-index: 41; }
+  body.laps-swiping header ~ *:not(.laps-peek):not(.laps-tabs):not(script) { position: relative; z-index: 41; }
 }
 /* The bar is black with white words where the page is dark (Laps in dark mode, RaceBox and Navigate). */
 html[data-mode="dark"] .laps-tabs { background: #000000 !important; border-top-color: #ffffff !important; }
@@ -757,57 +757,67 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 </script>
 <script>
 // Laps pages with the bottom bar. The current section is marked and a line over the bar shows it. On a phone a swipe
-// left or right moves the page with your finger, with the next section's name waiting under it, and opens that section
-// when you lift your finger past halfway (or with a quick flick). RaceBox and Navigate get the bar but not the swipe.
+// left or right moves the whole page (the heading, the content and the footer) with your finger, with the next page's
+// name waiting under it, and opens that page when you lift your finger past halfway (or with a quick flick). The
+// intro (laps.html) is the first page in the swipe. RaceBox and Navigate get the bar but not the swipe.
 (function () {
   var header = document.querySelector('header');
   var page = location.pathname.split('/').pop() || 'laps.html';
   var TABBED = ['laps.html', 'track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html', 'racebox.html', 'navigate.html'];
-  var ORDER = ['track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html'];
-  var NAMES = { 'track.html': 'Sessions', 'leaderboards.html': 'Leaderboard', 'favourites.html': 'Favourites', 'my-analysis.html': 'My Analysis' };
+  var SWIPE = ['laps.html', 'track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html'];
+  var NAMES = { 'laps.html': 'Laps', 'track.html': 'Sessions', 'leaderboards.html': 'Leaderboard', 'favourites.html': 'Favourites', 'my-analysis.html': 'My Analysis' };
   if (!header || TABBED.indexOf(page) < 0) return;
   header.classList.add('laps-tabbed');
   document.body.classList.add('laps-tabbed');
-  var here = ORDER.indexOf(page), ind = null, peek = null, main = null;
+  var here = SWIPE.indexOf(page), ind = null, peek = null, parts = [], dragging = false;
+  // The line sits over the four sections of the bar; the intro is before them, so it has no line.
+  function barPos(i) { return i - 1; }
   document.addEventListener('DOMContentLoaded', function () {
     var bar = document.querySelector('.laps-tabs');
     if (!bar) return;
     bar.querySelectorAll('a').forEach(function (a) { if (a.getAttribute('data-tab') === page) a.classList.add('on'); });
-    if (here >= 0) {
-      ind = document.createElement('span'); ind.className = 'laps-ind';
-      ind.style.transform = 'translateX(' + (here * 100) + '%)';
-      bar.appendChild(ind);
-    }
+    ind = document.createElement('span'); ind.className = 'laps-ind';
+    if (barPos(here) < 0) ind.style.display = 'none';
+    ind.style.transform = 'translateX(' + (Math.max(0, barPos(here)) * 100) + '%)';
+    bar.appendChild(ind);
   });
   var phone = window.matchMedia('(max-width: 780px)');
   var sx = 0, sy = 0, st = 0, skip = false, drag = false, dx = 0;
-  var NO_SWIPE = 'input,select,textarea,video,canvas,button,[data-no-swipe],.tp-chips,.lb-types,.lb-list,.lb-row,.lh-reel,.tp-board,.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,[data-tile],.tp-session-bar,.lb-mine,.lb-preview,.leaflet-container,.nav-body,.ma-scroll,.ma-table';
+  // Only real controls that need the finger (typing, sliders, maps, video, scrolling tables) keep their own gestures.
+  var NO_SWIPE = 'input,select,textarea,video,canvas,[data-no-swipe],.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,.leaflet-container,.nav-body,.ma-scroll,.ma-table,.tp-chips,.lb-types';
   function scrolls(el) {
     for (var e = el; e && e !== document.body; e = e.parentElement) {
       if (e.scrollWidth > e.clientWidth + 2) { var o = getComputedStyle(e).overflowX; if (o === 'auto' || o === 'scroll') return true; }
     }
     return false;
   }
-  function target(d) { if (here < 0) return -1; var j = d < 0 ? here + 1 : here - 1; return (j >= 0 && j < ORDER.length) ? j : -1; }
-  function setInd(pos, animate) { if (!ind) return; ind.style.transition = animate ? 'transform .25s ease' : 'none'; ind.style.transform = 'translateX(' + (pos * 100) + '%)'; }
+  function target(d) { if (here < 0) return -1; var j = d < 0 ? here + 1 : here - 1; return (j >= 0 && j < SWIPE.length) ? j : -1; }
+  function setInd(pos, animate) { if (!ind || barPos(here) < 0) return; ind.style.transition = animate ? 'transform .25s ease' : 'none'; ind.style.transform = 'translateX(' + (Math.max(0, pos) * 100) + '%)'; }
   function ensure() {
-    if (main) return true;
-    main = document.querySelector('main');
-    if (!main) return false;
+    if (parts.length) return true;
+    // Everything in the flow of the page moves together: the heading section, the content and the footer.
+    parts = [].slice.call(document.body.children).filter(function (el) {
+      if (/^(HEADER|SCRIPT|STYLE|TEMPLATE|LINK|NAV)$/.test(el.tagName)) return false;
+      if (el.classList.contains('laps-peek') || el.classList.contains('laps-tabs')) return false;
+      return getComputedStyle(el).position === 'static' && el.getBoundingClientRect().height > 0;
+    });
+    if (!parts.length) return false;
     peek = document.createElement('div'); peek.className = 'laps-peek'; peek.setAttribute('aria-hidden', 'true');
     document.body.appendChild(peek);
     return true;
   }
   function move(off, animate) {
-    main.style.transition = animate ? 'transform .22s ease' : 'none';
-    main.style.transform = off ? 'translate3d(' + off + 'px,0,0)' : '';
+    parts.forEach(function (el) {
+      el.style.transition = animate ? 'transform .22s ease' : 'none';
+      el.style.transform = off ? 'translate3d(' + off + 'px,0,0)' : '';
+    });
   }
   function reset() {
-    if (main) { move(0, true); }
+    if (parts.length) move(0, true);
     if (peek) peek.style.display = 'none';
     document.body.classList.remove('laps-swiping');
-    setInd(here, true);
-    setTimeout(function () { if (main) { main.style.transition = ''; main.style.transform = ''; } }, 240);
+    setInd(barPos(here), true);
+    setTimeout(function () { if (!dragging) { parts.forEach(function (el) { el.style.transition = ''; el.style.transform = ''; }); parts = []; if (peek) { peek.remove(); peek = null; } } }, 240);
   }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0];
@@ -819,39 +829,42 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     var t = e.touches[0], x = t.clientX - sx, y = t.clientY - sy;
     if (!drag) {
       if (Math.abs(x) < 10 && Math.abs(y) < 10) return;
+      // A press held still before the move is a pick or a reorder on the page, not a swipe.
+      if (Date.now() - st > 450) { skip = true; return; }
       if (Math.abs(y) > Math.abs(x)) { skip = true; return; }
-      drag = true;
+      drag = true; dragging = true;
       if (!ensure()) { skip = true; return; }
       document.body.classList.add('laps-swiping');
     }
     dx = x;
     var n = target(dx), w = window.innerWidth;
     if (n >= 0) {
-      peek.innerHTML = NAMES[ORDER[n]] + '<small>Let go to open</small>';
+      peek.innerHTML = NAMES[SWIPE[n]] + '<small>Let go to open</small>';
       peek.style.display = 'flex';
       peek.style.transform = 'translate3d(' + (dx < 0 ? w + dx : -w + dx) + 'px,0,0)';
       move(dx, false);
-      setInd(here + (dx < 0 ? 1 : -1) * Math.min(1, Math.abs(dx) / w), false);
+      setInd(barPos(here) + (dx < 0 ? 1 : -1) * Math.min(1, Math.abs(dx) / w), false);
     } else {
       move(dx * 0.3, false);
     }
   }, { passive: true });
   document.addEventListener('touchend', function (e) {
-    if (skip || !drag || !e.changedTouches.length) { drag = false; return; }
+    if (skip || !drag || !e.changedTouches.length) { drag = false; dragging = false; return; }
     drag = false;
     var w = window.innerWidth, n = target(dx), quick = Date.now() - st < 400 && Math.abs(dx) > 50;
     if (n >= 0 && (Math.abs(dx) > w * 0.5 || quick)) {
       var to = dx < 0 ? -w : w;
-      main.style.transition = 'transform .22s ease';
-      main.style.transform = 'translate3d(' + to + 'px,0,0)';
+      parts.forEach(function (el) { el.style.transition = 'transform .22s ease'; el.style.transform = 'translate3d(' + to + 'px,0,0)'; });
       if (peek) peek.style.transform = 'translate3d(0,0,0)';
-      setInd(n, true);
-      setTimeout(function () { location.href = ORDER[n]; }, 230);
+      setInd(barPos(n), true);
+      dragging = false;
+      setTimeout(function () { location.href = SWIPE[n]; }, 230);
     } else {
+      dragging = false;
       reset();
     }
   }, { passive: true });
-  document.addEventListener('touchcancel', function () { if (drag) { drag = false; reset(); } }, { passive: true });
+  document.addEventListener('touchcancel', function () { if (drag) { drag = false; dragging = false; reset(); } }, { passive: true });
 })();
 </script>
 </header>

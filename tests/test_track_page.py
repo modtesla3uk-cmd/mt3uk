@@ -2209,6 +2209,8 @@ def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
     gone = moved[0]
     page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
     assert _settle(page) == moved[1:]
+    # The explanations, the show-hidden and reset buttons sit in "How this list works" (folded away).
+    page.locator(".lb-how > summary").click()
     expect(page.locator("[data-showhidden]")).to_have_text("Show 1 hidden track")
     page.locator("[data-showhidden]").click()
     expect(page.locator('.lb-cardwrap.is-hid[data-venue="%s"]' % gone)).to_be_visible()

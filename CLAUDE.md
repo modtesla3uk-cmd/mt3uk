@@ -35,7 +35,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Design principles (Laws of UX)
 
-Every visual, layout or wording change follows these laws. The mock-up shows which laws it uses, and the reply to Richard says so in one line.
+Every visual, layout or wording change is checked against these laws before anything is designed. Name the laws the change touches and the problem it fixes, and agree that plan with Richard. Then design it and send a mock-up. Commit only after Richard approves the mock-up.
 
 - **Fitts's Law:** primary buttons are large and close to the thumb. Touch targets are at least 44px.
 - **Hick's Law:** limit the choices. Group them, and hide advanced settings behind a fold until they are needed (progressive disclosure).

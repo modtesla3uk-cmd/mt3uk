@@ -284,3 +284,7 @@ html[data-mode="dark"] #tp-hero-add, html[data-mode="dark"] #lb-add-session, htm
 html[data-mode="dark"] #tp-hero-add .icon, html[data-mode="dark"] #lb-add-session .icon, html[data-mode="dark"] .tm-pill-accent .icon { color: #141618 !important; stroke: #141618 !important; }
 /* The secondary heading buttons (My Analysis, Leaderboards) keep light grey icons, so only the main action is gold. */
 html[data-mode="dark"] .page-hero .tp-lb-pill:not(.tm-pill-accent):not(#tp-hero-add):not(#lb-add-session) .icon { color: #dfe3e8 !important; stroke: #dfe3e8 !important; }
+/* The Leaderboard's folded explanation and the early preview note: dark grey cards with light text. */
+html[data-mode="dark"] .lb-how, html[data-mode="dark"] .lb-preview-wrap .laps-preview-note { background-color: #1e2124 !important; border-color: #343a41 !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .lb-how > summary { color: #dfe3e8 !important; }
+html[data-mode="dark"] .lb-how .lb-arrange, html[data-mode="dark"] .lb-how .lb-note, html[data-mode="dark"] .lb-how .tp-small { color: #aab2bd !important; }

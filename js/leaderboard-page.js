@@ -209,6 +209,8 @@
     return type === 'drag' ? 'drag=' + encodeURIComponent(venueId) : (type === 'sprint' ? 'sprint=' : 'board=') + encodeURIComponent(venueId + ':' + layoutId);
   }
   var showAll = false, showHidden = false;
+  // The "How this list works" fold stays as the member left it through a redraw.
+  var howOpen = false;
   // How the track list is ordered: busiest first (the default), A to Z, or by when the newest top-three time was set.
   // "My layout" is the order the member moved the tracks into, kept in this browser (like the homepage tiles).
   var sortMode = 'busy', sortChosen = false;
@@ -241,7 +243,7 @@
     var rows = [];
     for (var i = 0; i < LIST_ROWS; i++) {
       var l = top[i];
-      if (!l) { rows.push('<li class="lb-empty"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>Not taken yet</b></span></li>'); continue; }
+      if (!l) break; // Only the places taken are listed; the rest are not drawn.
       var res = drag ? Number(l.quarter).toFixed(2) + ' s' : V.fmtLap(l.time);
       rows.push('<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>');
     }
@@ -316,20 +318,24 @@
 
   // A layout or course: its name and number of sessions, its top three, and a
   // link to the whole board.
-  function layoutBlock(type, v, l) {
+  // On a track with one layout the card already has the track's name and count, so the layout line does not repeat them.
+  function layoutBlock(type, v, l, solo) {
     var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
     var count = listSessions ? (n ? rankCount(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
-    return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><span class="lb-layout-head"><b>' + esc(l.name) + '</b>' +
-      '<span class="tp-small">' + count + '</span>' + icon('chev') + '</span>' + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false)) + '</a>';
+    var sameName = String(l.name || '').trim().toLowerCase() === String(v.name || '').trim().toLowerCase();
+    var named = solo && sameName && !listSessions ? '' : '<b>' + esc(l.name) + '</b>';
+    var counted = solo && !listSessions ? '<span class="tp-small">Open board</span>' : '<span class="tp-small">' + count + '</span>';
+    return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"' + (named ? '' : ' aria-label="' + esc(v.name) + ' board"') + '><span class="lb-layout-head">' + named +
+      counted + icon('chev') + '</span>' + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false)) + '</a>';
   }
 
   // The venues of one type, busiest first, each with the top three per layout.
   function showList(type) {
     listShown = type;
     var t = TYPES.filter(function (x) { return x[0] === type; })[0] || TYPES[0];
-    var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
+    var h = '<div class="lb-typebox"><span class="lb-label" id="lb-show-label">Show</span><div class="tp-chips lb-types" role="tablist" aria-labelledby="lb-show-label">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
-    }).join('') + '</div>';
+    }).join('') + '</div></div>';
     // The order the member moved the tracks into, when there is one for this kind of track, is the one to start from.
     var mine = savedOrder(t[0]), mode = sortMode === 'mine' && !mine ? 'busy' : sortMode;
     if (!sortChosen && mine) mode = 'mine';
@@ -376,7 +382,7 @@
       return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card +
         '<button type="button" class="lb-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' +
         (Number.isFinite(v.lat) && Number.isFinite(v.lng) ? '<a class="lb-dir" href="navigate.html?to=' + v.lat + ',' + v.lng + '&amp;name=' + encodeURIComponent(v.name) + '">Directions</a>' : '') +
-        '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '</button></div>';
+        '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '<span>' + (hid ? 'Show' : 'Hide') + '</span></button></div>';
     }
     h += '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a circuit and let go to keep it for offline use, or tap its cloud. Hold and drag to move it.</p><div class="tp-boards lb-venues">' + shown.map(function (x) {
       var v = x.v;
@@ -391,15 +397,15 @@
       var layouts = v.layouts || [], active = layouts.filter(function (l) { return listSessions ? meCount(bt, v.id, l.id) : counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
       return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
         (x.total && !listSessions ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
-        active.map(function (l) { return layoutBlock(bt, v, l); }).join('') +
+        active.map(function (l) { return layoutBlock(bt, v, l, layouts.length === 1); }).join('') +
         (idle.length ? (active.length ? '<p class="tp-small lb-idle">' + (listSessions ? 'Not driven yet: ' : 'No sessions yet: ') + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');
     }).join('') + '</div>';
     if (busy.length && quiet) h += '<p class="lb-more"><button type="button" class="btn btn-secondary btn-sm" data-showall>' + (showAll ? 'Only show ' + KIND_NAME[t[0]] + ' with sessions' : 'Show all ' + venues.length + ' (' + quiet + ' with no sessions yet)') + '</button></p>';
     // Moving and hiding tracks: kept in this browser, so the list is the member's own.
-    h += '<p class="tp-small lb-arrange" id="lb-arrange">Hold a track and drag it to move it, or use the eye to hide it. This is kept on this device.' +
+    h += '<details class="lb-how"' + (howOpen ? ' open' : '') + '><summary>How this list works</summary><p class="tp-small lb-arrange" id="lb-arrange">Hold a track and drag it to move it, or use the eye to hide it. This is kept on this device.' +
       (hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-showhidden>' + (showHidden ? 'Hide the ' + hiddenCount + ' hidden again' : 'Show ' + hiddenCount + ' hidden track' + (hiddenCount === 1 ? '' : 's')) + '</button>' : '') +
       (mine || hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-resetlayout>Reset layout</button>' : '') + '</p>';
-    h += '<p class="tp-small lb-note">Every session that places is a row, so a car can be on a board more than once. Open a layout for the whole board and filters.</p>';
+    h += '<p class="tp-small lb-note">Every session that places is a row, so a car can be on a board more than once. Open a layout for the whole board and filters.</p></details>';
     h += ctaHtml();
     app.innerHTML = keptNote() + h;
     placeTip();
@@ -408,6 +414,8 @@
     if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(true);
     var sortSel = document.getElementById('lb-sort');
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; sortChosen = true; showList(type); });
+    var how = app.querySelector('.lb-how');
+    if (how) how.addEventListener('toggle', function () { howOpen = how.open; });
     var btn = app.querySelector('[data-showall]');
     if (btn) btn.addEventListener('click', function () { showAll = !showAll; showList(type); });
     var grid = app.querySelector('.lb-venues');
@@ -525,7 +533,7 @@
   // The tip (js/laps-tip.js) is a light bulb in the blue heading (leaderboards.html); the page fills it after drawing.
   function placeTip() { if (window.MT3UKLapsTip) window.MT3UKLapsTip.place(); }
   function ctaHtml() {
-    return '<div class="card lb-cta"><div><b>Get your car on the board</b><p>Upload your lap timer file in Track Sessions and share it. Your fastest goes straight on, with your car and mods.</p></div><a class="btn btn-accent" href="track.html">' + icon('upload') + 'Add a session</a></div>';
+    return '<div class="card lb-cta"><div><b>Get your car on the board</b><p>Upload your lap timer file in Track Sessions and share it. Your fastest goes straight on, with your car and mods.</p></div><a class="btn btn-secondary" href="track.html">' + icon('upload') + 'Add a session</a></div>';
   }
 
   // ---- One board -------------------------------------------------------

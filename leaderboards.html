@@ -709,6 +709,24 @@
       <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
     </button>
   </nav>
+<style>
+/* Laps pages with the bottom bar (Sessions, Leaderboard, Favourites, My Analysis): the header keeps the bell and the menu,
+   the four sections move to the bar, which can also be swiped between on a phone. Other Laps-header pages are unchanged. */
+.laps-tabs { display: none; }
+@media (max-width: 780px) {
+  header.laps-tabbed .nav-sessions, header.laps-tabbed .nav-leaders, header.laps-tabbed .nav-favs, header.laps-tabbed .nav-analysis, header.laps-tabbed .nav-home { display: none !important; }
+  body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
+  body.laps-tabbed { padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+  .laps-tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; border-radius: 10px; color: var(--ink, #111); text-decoration: none; font: 600 11px/1.1 var(--font-body, sans-serif); }
+  .laps-tabs a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .laps-tabs a.on { color: var(--orange, #e8542a); font-weight: 700; }
+  .laps-tabs a.on svg { stroke-width: 2.4; }
+}
+/* The bar is black with white words where the page is dark (Laps in dark mode, RaceBox and Navigate). */
+html[data-mode="dark"] .laps-tabs { background: #000000 !important; border-top-color: #ffffff !important; }
+html[data-mode="dark"] .laps-tabs a { color: #ffffff !important; }
+html[data-mode="dark"] .laps-tabs a.on { color: #f5c542 !important; }
+</style>
 <style>[data-racebox-link][hidden],[data-navigate-link][hidden]{display:none!important}</style>
 <script>(function(){try{var s=localStorage.getItem('mt3ukMyBuildsSession');if(!s)return;var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access',{cache:'no-store',headers:{'X-Session-Token':s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.querySelectorAll('[data-navigate-link]').forEach(function(el){el.hidden=false;});if(app)document.querySelectorAll('[data-racebox-link]').forEach(function(el){el.hidden=false;});}).catch(function(){});}catch(e){}})();</script>
 <script>(function(){function go(){try{if(localStorage.getItem('mt3ukLapsSkipIntro')==='1'){document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href','track.html');});}}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
@@ -725,7 +743,44 @@
   sb.setStyle({ style: light ? 'LIGHT' : 'DARK', bar: 'StatusBar' }).catch(function () {});
 })();
 </script>
+<script>
+// Laps pages with the bottom bar: mark the current section, and swipe left or right between the four sections on a phone.
+(function () {
+  var header = document.querySelector('header');
+  var page = location.pathname.split('/').pop() || 'laps.html';
+  var TABBED = ['laps.html', 'track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html', 'racebox.html', 'navigate.html'];
+  var ORDER = ['track.html', 'leaderboards.html', 'favourites.html', 'my-analysis.html'];
+  if (!header || TABBED.indexOf(page) < 0) return;
+  header.classList.add('laps-tabbed');
+  document.body.classList.add('laps-tabbed');
+  document.addEventListener('DOMContentLoaded', function () { document.querySelectorAll('.laps-tabs a').forEach(function (a) { if (a.getAttribute('data-tab') === page) a.classList.add('on'); }); });
+  // RaceBox and Navigate get the bar but not the swipe (a swipe on the Navigate map or the RaceBox dial must not change page).
+  if (ORDER.indexOf(page) < 0) return;
+  var phone = window.matchMedia('(max-width: 780px)');
+  var sx = 0, sy = 0, st = 0, skip = false;
+  var NO_SWIPE = 'input,select,textarea,video,canvas,button,[data-no-swipe],.tp-chips,.lb-types,.lb-list,.lb-row,.lh-reel,.tp-board,.laps-tabs,.navlinks,.nav-bell-panel,.nav-search-panel,[data-tile],.tp-session-bar,.lb-mine,.lb-preview';
+  function scrolls(el) {
+    for (var e = el; e && e !== document.body; e = e.parentElement) {
+      if (e.scrollWidth > e.clientWidth + 2) { var o = getComputedStyle(e).overflowX; if (o === 'auto' || o === 'scroll') return true; }
+    }
+    return false;
+  }
+  document.addEventListener('touchstart', function (e) {
+    var t = e.touches[0];
+    sx = t.clientX; sy = t.clientY; st = Date.now();
+    skip = !phone.matches || !!(e.target.closest && e.target.closest(NO_SWIPE)) || scrolls(e.target);
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (skip || !e.changedTouches.length) return;
+    var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 700 || Math.abs(dx) < 70 || Math.abs(dy) > 60) return;
+    var i = ORDER.indexOf(page), j = dx < 0 ? i + 1 : i - 1;
+    if (j >= 0 && j < ORDER.length) location.href = ORDER[j];
+  }, { passive: true });
+})();
+</script>
 </header>
+<div class="laps-tabs" role="navigation" aria-label="Laps sections"><a href="track.html" data-tab="track.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg>Sessions</a><a href="leaderboards.html" data-tab="leaderboards.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg>Leaderboard</a><a href="favourites.html" data-tab="favourites.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>Favourites</a><a href="my-analysis.html" data-tab="my-analysis.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l3.5-3.5 3 3L19 8"/><path d="M15 8h4v4"/></svg>My Analysis</a></div>
 
 <section class="page-hero lb-hero lh-hero">
   <div class="wrap">

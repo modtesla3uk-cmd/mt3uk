@@ -128,7 +128,7 @@ def build(page):
         html = re.sub(SHARED_HEADER_RE, lambda m: render_header(page) + '\n<template id="laps-header-tpl">' + render_laps_header(page) + '</template>\n' + SHARED_SCRIPT, original, count=1, flags=re.S)
         html = re.sub(SHARED_FOOTER_RE, lambda m: render_footer(page) + '\n<template id="laps-footer-tpl">' + partial(LAPS_FOOTER) + '</template>', html, count=1, flags=re.S)
     else:
-        html = re.sub(r"<header>.*?</header>", lambda m: render_header(page), original, count=1, flags=re.S)
+        html = re.sub(r"<header>.*?</header>(?:\s*<div class=\"laps-tabs\".*?</div>)*", lambda m: render_header(page), original, count=1, flags=re.S)
         html = re.sub(r"<footer>.*?</footer>", lambda m: render_footer(page), html, count=1, flags=re.S)
     sheet = re.compile(r'<link rel="stylesheet" href="css/site-header\.css[^"]*">')
     if sheet.search(html):

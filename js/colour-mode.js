@@ -6,7 +6,9 @@
 (function () {
   var KEY = 'mt3ukColourMode';
   var root = document.documentElement;
-  function read() { try { return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'; } catch (e) { return 'dark'; } }
+  // The default is dark on RaceBox and Navigate, and whatever data-default-mode says on a page that sets it (light on the Laps pages).
+  function dflt() { return root.getAttribute('data-default-mode') === 'light' ? 'light' : 'dark'; }
+  function read() { try { var v = localStorage.getItem(KEY); if (v === 'light' || v === 'dark') return v; } catch (e) { /* storage blocked */ } return dflt(); }
   function apply(mode) {
     root.setAttribute('data-mode', mode);
     var btns = document.querySelectorAll('[data-mode-toggle]');

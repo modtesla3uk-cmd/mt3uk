@@ -1,0 +1,72 @@
+/* Laps pages in dark mode: black everywhere, white text for anything that was grey, and highlights in gold (as on the RaceBox test page).
+   Light is the default on these pages; the Light mode / Dark mode button (data-mode-toggle, js/colour-mode.js) switches, and the choice
+   is kept in the browser. Everything here is limited to html[data-mode="dark"]. */
+html[data-mode="dark"] { color-scheme: dark; }
+html[data-mode="dark"] body { background: #000000; color: #ffffff; }
+html[data-mode="dark"] header { background: #000000 !important; border-bottom-color: #2b2b2b !important; }
+html[data-mode="dark"] header a, html[data-mode="dark"] header .icon, html[data-mode="dark"] header svg { color: #ffffff; }
+html[data-mode="dark"] header .laps-logo-by, html[data-mode="dark"] header .laps-logo-name { color: #ffffff !important; }
+html[data-mode="dark"] footer { background: #000000 !important; color: #ffffff; border-top-color: #2b2b2b; }
+html[data-mode="dark"] footer a { color: #ffffff; }
+html[data-mode="dark"] .lh-hero, html[data-mode="dark"] .lb-hero, html[data-mode="dark"] .tp-dark-hero, html[data-mode="dark"] .page-hero { background: #000000 !important; }
+html[data-mode="dark"] .card, html[data-mode="dark"] .lb-row, html[data-mode="dark"] .tp-row, html[data-mode="dark"] .tp-day-tile,
+html[data-mode="dark"] .tp-daygroup, html[data-mode="dark"] .tp-board-card, html[data-mode="dark"] .lb-cta, html[data-mode="dark"] .lb-cmp,
+html[data-mode="dark"] .lb-fold-btn, html[data-mode="dark"] .tp-tile, html[data-mode="dark"] .lh-sec .card {
+  background-color: #000000 !important; border-color: #2b2b2b !important; color: #ffffff;
+}
+html[data-mode="dark"] .chip, html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode,
+html[data-mode="dark"] a.back-link, html[data-mode="dark"] .tp-what, html[data-mode="dark"] select, html[data-mode="dark"] input,
+html[data-mode="dark"] .field, html[data-mode="dark"] .tp-iconbtn, html[data-mode="dark"] .lb-keep {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+}
+/* Grey text is white. */
+html[data-mode="dark"] .tp-small, html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-date, html[data-mode="dark"] .lb-brakes,
+html[data-mode="dark"] .lb-tyre, html[data-mode="dark"] .lb-car small, html[data-mode="dark"] .tp-muted, html[data-mode="dark"] .tp-day-sub,
+html[data-mode="dark"] .lb-hero p, html[data-mode="dark"] .lh-lead, html[data-mode="dark"] .lb-hero .back-link, html[data-mode="dark"] .tp-what summary {
+  color: #ffffff !important;
+}
+/* Highlights are gold, as on the RaceBox test page. */
+html[data-mode="dark"] .lb-drive, html[data-mode="dark"] .lb-tm, html[data-mode="dark"] .lb-few, html[data-mode="dark"] .lh-new,
+html[data-mode="dark"] .tp-badge, html[data-mode="dark"] .early-badge, html[data-mode="dark"] .lb-hero h1 svg, html[data-mode="dark"] .lb-trophy,
+html[data-mode="dark"] .lb-hero h1 .lb-trophy, html[data-mode="dark"] .tp-lb-pill .icon {
+  color: #f5c542 !important; border-color: #f5c542 !important;
+}
+/* The Light mode / Dark mode button in the heading (and on the Laps home hero). */
+.lh-mode { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #c9d3cd;
+  background: #ffffff; color: #16233d; font: 700 0.9rem/1 var(--font-body, sans-serif); cursor: pointer; white-space: nowrap; }
+html[data-mode="dark"] .lh-mode { background: #000000; color: #f5c542; border-color: #f5c542; }
+.lh-mode-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+/* Text that was navy is white in dark mode (headings, labels, the vehicle name). */
+html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4,
+html[data-mode="dark"] label, html[data-mode="dark"] p, html[data-mode="dark"] li, html[data-mode="dark"] summary,
+html[data-mode="dark"] .lh-title, html[data-mode="dark"] .tp-title, html[data-mode="dark"] .tp-veh-pick, html[data-mode="dark"] .tp-vehicle-name,
+html[data-mode="dark"] .tp-section-title, html[data-mode="dark"] .tp-head, html[data-mode="dark"] .laps-logo-name, html[data-mode="dark"] .laps-logo-by {
+  color: #ffffff;
+}
+html[data-mode="dark"] select, html[data-mode="dark"] .tp-veh-pick, html[data-mode="dark"] .tp-veh-pick select, html[data-mode="dark"] [class*="pick"] select {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+}
+/* The Laps home panels: cards, the timers, the fastest tile and the band are black with white text in dark mode. */
+html[data-mode="dark"] .lh-card, html[data-mode="dark"] .lh-timers span, html[data-mode="dark"] .lh-fast a, html[data-mode="dark"] .lh-band {
+  background-color: #000000 !important; border-color: #2b2b2b !important; color: #ffffff !important;
+}
+html[data-mode="dark"] .lh-card svg, html[data-mode="dark"] .lh-card .icon { color: #f5c542; stroke: #f5c542; }
+html[data-mode="dark"] .laps-logo-early { color: #f5c542 !important; }
+html[data-mode="dark"] .lh-sec span:not(.lh-new):not(.laps-logo-early) { background-color: #000000 !important; color: #ffffff !important; border-color: #3a3a3a !important; }
+html[data-mode="dark"] .lh-free li, html[data-mode="dark"] .lh-free, html[data-mode="dark"] .lh-free li span, html[data-mode="dark"] .lh-free li svg { color: #ffffff !important; background-color: transparent !important; }
+html[data-mode="dark"] .footer-text, html[data-mode="dark"] footer span { color: #ffffff !important; }
+/* The white outline the pages draw round buttons and pickers is dark grey in dark mode. */
+html[data-mode="dark"] button, html[data-mode="dark"] select, html[data-mode="dark"] a, html[data-mode="dark"] input { outline-color: #5a5a5a !important; }
+/* The vehicle box (the car picked on My Sessions) is black with white text. */
+html[data-mode="dark"] .tp-car, html[data-mode="dark"] .tp-car.is-on, html[data-mode="dark"] .tp-vcurrent, html[data-mode="dark"] .tp-vhead button {
+  background-color: #000000 !important; color: #ffffff !important; border-color: #5a5a5a !important;
+}
+html[data-mode="dark"] .tp-vtext, html[data-mode="dark"] .tp-car span, html[data-mode="dark"] .tp-car small { color: #ffffff !important; }
+html[data-mode="dark"] .lb-layout, html[data-mode="dark"] .lb-layout.is-busy { background-color: #000000 !important; color: #ffffff !important; }
+/* Buttons have a visible outline in dark mode (on black they would disappear). */
+html[data-mode="dark"] button, html[data-mode="dark"] a.back-link, html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary,
+html[data-mode="dark"] .tp-lb-pill, html[data-mode="dark"] .lh-mode, html[data-mode="dark"] .chip, html[data-mode="dark"] .tp-iconbtn,
+html[data-mode="dark"] .tp-car, html[data-mode="dark"] select {
+  border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"] header button, html[data-mode="dark"] header select { border: 0 !important; }

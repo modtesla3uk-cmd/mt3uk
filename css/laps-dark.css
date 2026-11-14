@@ -238,3 +238,12 @@ html[data-mode="dark"] .tp-quota-toggle, html[data-mode="dark"] .tp-publicbar, h
 html[data-mode="dark"] .tp-drop { background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important; }
 html[data-mode="dark"] .tp-drop small, html[data-mode="dark"] .tp-drop b, html[data-mode="dark"] .tp-drop > .icon { color: #ffffff !important; }
 html[data-mode="dark"] .tp-drop.is-over { border-color: #f5c542 !important; background-color: #111111 !important; }
+/* Favourites in dark mode: the filter chips and the starred session rows are black with white words and white edges (the
+   chip that is on is gold with black words), the stars are gold on black, and the results are white. */
+html[data-mode="dark"] .fav-chip, html[data-mode="dark"] .fav-row, html[data-mode="dark"] .fav-star {
+  background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important;
+}
+html[data-mode="dark"][data-mode="dark"] button.fav-chip.is-on.is-on.is-on, html[data-mode="dark"][data-mode="dark"] button.fav-chip[aria-pressed="true"][aria-pressed="true"][aria-pressed="true"] { background-color: #f5c542 !important; color: #111111 !important; border-color: #f5c542 !important; }
+html[data-mode="dark"] .fav-star { color: #f5c542 !important; }
+html[data-mode="dark"] .fav-star svg { color: #f5c542 !important; stroke: #f5c542 !important; }
+html[data-mode="dark"] .fav-res, html[data-mode="dark"] .fav-row b, html[data-mode="dark"] .fav-row span, html[data-mode="dark"] .fav-row small { color: #ffffff !important; }

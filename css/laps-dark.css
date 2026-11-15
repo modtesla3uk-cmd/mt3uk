@@ -360,3 +360,13 @@ html[data-mode="dark"] body .lh-hero .lh-fold[open] b, html[data-mode="dark"] bo
 /* Switches (Colour by speed, Shared, the G-force switches) are a word and a track, not boxed buttons: the dark outline every
    button gets is taken off them, so no square box shows round the switch. */
 html[data-mode="dark"] .tp-switch, html[data-mode="dark"] .tp-daygroup-share, html[data-mode="dark"] .rbt-switch { border: 0 !important; }
+
+/* My Analysis in dark mode: the picked chip (All figures, a figure, Tyres) is gold with dark words (the broad button rule
+   gave them light words); the "Middle" colour in the keys and on the dots is light grey, not navy; the dots have a light
+   rim; the note under the figure chips is a dark card, not green; and the Track and layout label is light. */
+html[data-mode="dark"] #ma-app .tm-chips button.chip.is-on, html[data-mode="dark"] #ma-app .tm-chips button.chip.is-on * { background-color: #f5c542 !important; border-color: #f5c542 !important; color: #111111 !important; }
+html[data-mode="dark"] #ma-app .ma-key i[style*="#16233d"] { background: #aab2bd !important; }
+html[data-mode="dark"] #ma-app .ma-dot[fill="#16233d"], html[data-mode="dark"] #ma-app .ma-gdot[fill="#16233d"] { fill: #aab2bd; }
+html[data-mode="dark"] #ma-app .ma-dot { stroke: #dfe3e8; }
+html[data-mode="dark"] #ma-app .ma-metric-note { background: #2a2e33 !important; border: 1px solid #5a626c; }
+html[data-mode="dark"] .tm-pick span, html[data-mode="dark"] .ma-pick-label { color: #dfe3e8 !important; }

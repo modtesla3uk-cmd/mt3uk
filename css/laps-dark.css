@@ -392,3 +392,12 @@ html[data-mode="dark"] .tp-badge.is-soft { background: #2a2e33 !important; color
 html[data-mode="dark"] #ma-app .tm-row.tm-head { background: #1b2420 !important; color: #c9d1cb !important; }
 html[data-mode="dark"] .ma-track-cell .ma-tm { background: #1b2420 !important; color: #f2f4f0 !important; border-color: #6d7a6f !important; }
 html[data-mode="dark"] .ma-track-cell .ma-tm-icon { stroke: #f5c542 !important; }
+/* Session map and G-force panels in dark mode: the speed key, the imagery credit, the play bar, the More button, the lap pickers,
+   the layout drop-down and the G-force card were white panels on the dark page. */
+html[data-mode="dark"] .tp-speedkey, html[data-mode="dark"] #tp-speedkey { background: rgba(20, 22, 24, 0.9) !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .tv-sat-credit { background: rgba(20, 22, 24, 0.8) !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .tp-play { background: rgba(20, 22, 24, 0.88) !important; }
+html[data-mode="dark"] #tp-mopts-btn { background: rgba(20, 22, 24, 0.92) !important; border-color: #7d848e !important; color: #ffffff !important; }
+html[data-mode="dark"] .tp-mapcard .tp-field, html[data-mode="dark"] .tp-fs-laps .tp-field, html[data-mode="dark"] .tp-mopts-body .tp-field { background: rgba(20, 22, 24, 0.92) !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .tp-layoutsel, html[data-mode="dark"] select.tp-layoutsel { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] #tp-gbox { background: #141618 !important; border-color: #2c3036 !important; color: #dfe3e8 !important; }

@@ -529,3 +529,13 @@ def test_the_desktop_intro_is_fuller_and_the_dark_video_matches_the_page(browser
     if shutil.which("ffprobe"):
         streams = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(root / "images/laps/laps-reel-dark.mp4")], capture_output=True, text=True).stdout.split()
         assert "video" in streams and "audio" in streams, streams
+
+
+def test_favourites_has_no_preferences_card_the_footer_switch_does_that_job(page):
+    """Favourites once carried a Preferences card with a Dark mode button (only a signed-in Profile should). The footer has
+    the switch on every Laps page now, so the card is gone from Favourites and Profile keeps its Preferences tab."""
+    page.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
+    page.goto("/favourites.html")
+    expect(page.locator("footer #lf-mode")).to_be_visible()
+    expect(page.locator("#pf-prefs")).to_have_count(0)
+    expect(page.get_by_role("heading", name="Preferences")).to_have_count(0)

@@ -342,3 +342,7 @@ html[data-mode="dark"] input[type="radio"], html[data-mode="dark"] input[type="c
 html[data-mode="dark"] .tp-opt .tp-dot { border-color: #c8cfd8 !important; }
 html[data-mode="dark"] .tp-opt.is-on .tp-dot { border-color: #e0b44a !important; }
 html[data-mode="dark"] .tp-opt.is-on .tp-dot::after { background: #e0b44a !important; }
+/* The gold Laps Pro tag on a session keeps dark words in dark mode, as every gold button does. */
+html[data-mode="dark"] .tp-prohead-top > h3, html[data-mode="dark"] .tp-prohead-top > h3 * { color: #141618 !important; }
+/* Best sector times in the laps table: a light green that reads on the dark table (the light theme's dark green did not). */
+html[data-mode="dark"] .tp-table td.is-fast, html[data-mode="dark"] .tp-table td.is-fast * { color: #7fe0b0 !important; }

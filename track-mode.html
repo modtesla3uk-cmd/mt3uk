@@ -282,7 +282,8 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     if (parts.length) return true;
     // Everything in the flow of the page moves together: the heading section, the content and the footer.
     parts = [].slice.call(document.body.children).filter(function (el) {
-      if (/^(HEADER|SCRIPT|STYLE|TEMPLATE|LINK|NAV)$/.test(el.tagName)) return false;
+      // The footer stays still while the page slides under it, so it is never cut off by a swipe (Richard's choice, option A).
+      if (/^(HEADER|SCRIPT|STYLE|TEMPLATE|LINK|NAV|FOOTER)$/.test(el.tagName)) return false;
       if (el.classList.contains('laps-peek') || el.classList.contains('laps-tabs')) return false;
       return getComputedStyle(el).position === 'static' && el.getBoundingClientRect().height > 0;
     });

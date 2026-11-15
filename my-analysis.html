@@ -28,7 +28,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271045">
 <script src="js/site-look.js?v=3"></script>
-<link rel="stylesheet" href="css/laps-heading.css?v=30"><link rel="stylesheet" href="css/laps-dark.css?v=57">
+<link rel="stylesheet" href="css/laps-heading.css?v=30"><link rel="stylesheet" href="css/laps-dark.css?v=58">
 <script src="js/laps-heading-layout.js?v=1"></script>
 <script src="js/laps-heading-what.js?v=1" defer></script>
 <style>
@@ -174,12 +174,50 @@
   .ma-grp { font-size: .74rem; color: var(--steel); background: #eef1f6; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
   .ma-fig-val { font-size: 1.5rem; font-weight: 800; margin-top: 8px; }
   .ma-fig-sub { font-size: .85rem; color: var(--steel); margin-bottom: 6px; }
-  .ma-fig-card svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ma-fig-body svg { display: block; width: 100%; height: auto; overflow: visible; }
   .ma-dot, .ma-gdot, .ma-hit, .ma-ghit { cursor: pointer; }
   .ma-dot.is-open, .ma-gdot.is-open { stroke: var(--ink, #16233d); stroke-width: 3px; }
   .ma-axis { display: flex; justify-content: space-between; font-size: .78rem; color: var(--steel); margin-top: 2px; }
   .ma-fig-foot { font-size: .8rem; color: var(--steel); margin-top: 6px; }
   @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { .ma-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* Stage 2: each figure is a compact tile (its name, value and a tiny trend line) that opens into its chart in place, taking
+     the whole row while open. A page of tiles, not a page of charts. */
+  .ma-fig-card { padding: 0; }
+  .ma-fig-card > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "top top" "val spark" "sub chev"; align-items: center; column-gap: 12px; row-gap: 0; padding: 14px 16px; min-height: 44px; cursor: pointer; list-style: none; }
+  .ma-fig-card > summary::-webkit-details-marker { display: none; }
+  .ma-fig-card > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--radius); }
+  .ma-fig-top { grid-area: top; }
+  .ma-fig-val { grid-area: val; margin-top: 6px; }
+  .ma-fig-sub { grid-area: sub; margin-bottom: 0; }
+  .ma-fig-card .ma-spark { grid-area: spark; display: block; width: 84px; height: 28px; color: var(--steel); }
+  .ma-fig-card .ma-fig-chev { grid-area: chev; justify-self: end; display: block; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--steel); transition: transform .15s; }
+  .ma-fig-card[open] .ma-fig-chev { transform: rotate(180deg); }
+  .ma-fig-card[open] { grid-column: 1 / -1; }
+  /* Desktop: an opened tile stays in its own column (the chart is the size it is on a phone) and its neighbours stay compact. */
+  @media (min-width: 901px) { .ma-grid { align-items: start; } .ma-fig-card[open] { grid-column: auto; } }
+  .ma-fig-body { padding: 0 16px 16px; }
+  .ma-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 901px) { .ma-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .ma-grid { grid-template-columns: minmax(0, 1fr); } }
+  /* On a phone the sessions are cards, not a wide table to scroll sideways: the date and track lead, then each figure the
+     session has (a figure it does not have is left out), and Open. Desktop keeps the table. */
+  @media (max-width: 780px) {
+    .tm-card .ma-scroll { overflow: visible; margin: 12px 0 0; padding: 0; }
+    .tm-card .ma-table, .tm-card .ma-table tbody { display: block; min-width: 0; width: 100%; }
+    .tm-card .ma-table thead { display: none; }
+    .tm-card .ma-table tr.ma-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 14px; padding: 14px 16px; margin: 0 0 10px; border: 1px solid var(--hair); border-radius: var(--radius); background: var(--surface-card, #fff); }
+    .ma-table tr.ma-row.is-picked { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+    .ma-table tr.ma-row.is-picked td { background: none; }
+    .ma-table tr.ma-row > td { display: block; padding: 0; border: 0; white-space: normal; font-size: .95rem; min-width: 0; overflow-wrap: anywhere; background: none; }
+    .ma-table tr.ma-row > td::before { content: attr(data-label); display: block; font-size: .74rem; font-weight: 600; color: var(--steel); margin-bottom: 1px; }
+    .ma-table tr.ma-row > td.is-empty { display: none; }
+    .ma-table tr.ma-row > td[data-label="Date"] { grid-column: 1 / -1; font-size: 1.05rem; font-weight: 700; }
+    .ma-table tr.ma-row > td[data-label="Date"]::before, .ma-table tr.ma-row > td[data-label="Track"]::before { display: none; }
+    .ma-table tr.ma-row > td[data-label="Track"] { grid-column: 1 / -1; margin-top: -6px; color: var(--steel); }
+    .ma-table tr.ma-row > td[data-label="Best lap"] { font-weight: 800; font-size: 1.1rem; }
+    .ma-table tr.ma-row > td.ma-open-cell { grid-column: 1 / -1; }
+    .ma-table td.ma-open-cell a { display: inline-flex; align-items: center; min-height: 44px; }
+  }
   @media (max-width: 480px) { .ma-grid { grid-template-columns: minmax(0, 1fr); } }
   .ma-day-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .ma-day-head h2 { margin: 0; }
@@ -554,7 +592,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 
 <script src="js/track-view.js?v=20271300" defer></script>
 <script src="js/quota-ring.js?v=19" defer></script>
-<script src="js/my-analysis-page.js?v=55" defer></script>
+<script src="js/my-analysis-page.js?v=56" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

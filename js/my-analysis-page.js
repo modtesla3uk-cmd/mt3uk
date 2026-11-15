@@ -11,7 +11,7 @@
   // The desktop Track Mode badge is kept here, because the app is drawn again each time and the badge moves into it.
   var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
-  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridGroup: 'All figures', tab: 'figures' };
+  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridGroup: 'All figures', tab: 'figures', openFig: {} };
   // The sections are tabs: only the one picked shows (Hick's Law: one thing at a time, and a far shorter page).
   var TABS = [['figures', 'Figures'], ['time', 'Over time'], ['setups', 'Setups'], ['sessions', 'Sessions']];
   var TRACK_KEY = 'mt3ukAnalysisTrack';
@@ -301,8 +301,8 @@
         num(m.power) != null ? Math.round(m.power) + ' kW' : '',
         esc(s.tyres || ''), esc(s.pads || ''), esc(s.drive || '')
       ];
-      return '<tr class="ma-row' + (state.picked === s.id ? ' is-picked' : '') + '" data-session="' + esc(s.id) + '" tabindex="0">' + cells.map(function (c) { return '<td>' + (c === '' ? '–' : c) + '</td>'; }).join('') +
-        '<td><a href="track.html?s=' + esc(s.id) + '">Open</a></td></tr>';
+      return '<tr class="ma-row' + (state.picked === s.id ? ' is-picked' : '') + '" data-session="' + esc(s.id) + '" tabindex="0">' + cells.map(function (c, i) { return '<td data-label="' + esc(head[i]) + '"' + (c === '' ? ' class="is-empty"' : '') + '>' + (c === '' ? '–' : c) + '</td>'; }).join('') +
+        '<td class="ma-open-cell"><a href="track.html?s=' + esc(s.id) + '">Open</a></td></tr>';
     }).join('');
     return '<div class="tm-card"><h2>Every session</h2><p class="tm-note">Each session of the car and track picked, with every figure it carries. Dashes are figures that session does not have. Press a row, or a dot on the graph, to see that session above. Open goes to the session itself.</p>' +
       '<div class="ma-scroll"><table class="ma-table"><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' + body + '</tbody></table></div></div>';
@@ -429,10 +429,20 @@
     }).join('');
     var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(m.label + ', ' + unit + ', by date') + '">' + grid + axes + ylab + xlab + line + hits + dots + '</svg>';
     var axis = '<div class="ma-axis"><span>' + esc(niceDate(pts[0].date)) + '</span><span>' + esc(niceDate(pts[pts.length - 1].date)) + '</span></div>';
-    return '<div class="tm-card ma-fig-card" data-figure="' + m.id + '"' + (group !== 'All figures' && FIGURE_GROUP[m.id] !== group ? ' hidden' : '') + '>' +
-      '<div class="ma-fig-top"><b>' + esc(m.label) + '</b><span class="ma-grp">' + esc(FIGURE_GROUP[m.id]) + '</span></div>' +
-      '<div class="ma-fig-val">' + esc(headline) + '</div><div class="ma-fig-sub">' + esc(sub) + '</div>' +
-      svg + axis + chartKeyHtml(m, true) + '<div class="ma-fig-foot">' + esc(foot) + '</div></div>';
+    // The tile: the figure's name, its value and a tiny trend line (a dot per session in the same colours), closed to begin
+    // with; pressing it opens the full chart in place (Hick's Law: one figure at a time, a page of tiles not charts).
+    var SW = 84, SH = 28, SP = 4;
+    var sxy = pts.map(function (p, i) {
+      return { x: (SP + (pts.length > 1 ? i / (pts.length - 1) : 0.5) * (SW - 2 * SP)).toFixed(1), y: (SP + (p.v - top) / (bottom - top) * (SH - 2 * SP)).toFixed(1) };
+    });
+    var spark = '<svg class="ma-spark" viewBox="0 0 ' + SW + ' ' + SH + '" aria-hidden="true">' +
+      (sxy.length > 1 ? '<polyline points="' + sxy.map(function (q) { return q.x + ',' + q.y; }).join(' ') + '" fill="none" stroke="currentColor" stroke-opacity=".4" stroke-width="1.5"/>' : '') +
+      pts.map(function (p, i) { return '<circle cx="' + sxy[i].x + '" cy="' + sxy[i].y + '" r="2.6" fill="' + p.c + '"/>'; }).join('') + '</svg>';
+    var chev = '<svg class="ma-fig-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    return '<details class="tm-card ma-fig-card" data-figure="' + m.id + '"' + (state.openFig[m.id] ? ' open' : '') + (group !== 'All figures' && FIGURE_GROUP[m.id] !== group ? ' hidden' : '') + '>' +
+      '<summary><span class="ma-fig-top"><b>' + esc(m.label) + '</b><span class="ma-grp">' + esc(FIGURE_GROUP[m.id]) + '</span></span>' +
+      '<span class="ma-fig-val">' + esc(headline) + '</span>' + spark + '<span class="ma-fig-sub">' + esc(sub) + '</span>' + chev + '</summary>' +
+      '<div class="ma-fig-body">' + svg + axis + chartKeyHtml(m, true) + '<div class="ma-fig-foot">' + esc(foot) + '</div></div></details>';
   }
 
   // The All figures grid: one track at a time, its figures as cards, with the track and group choices above them.
@@ -595,6 +605,11 @@
     var panel = app.querySelector('#ma-sec-' + state.tab + ' .ma-pick');
     if (scroll && panel && panel.scrollIntoView) panel.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
+  // A figure tile opened or closed is remembered, so the page redrawing (a dot pressed, a chip picked) leaves it as it was.
+  document.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (d && d.classList && d.classList.contains('ma-fig-card') && app.contains(d)) state.openFig[d.getAttribute('data-figure')] = d.open;
+  }, true);
   // The section tabs: one shows at a time. Arrow keys move between them, as tabs do.
   function pickTab(id, focus) {
     if (!TABS.some(function (t) { return t[0] === id; })) return;

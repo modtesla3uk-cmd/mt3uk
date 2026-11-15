@@ -69,7 +69,8 @@ def test_intro_says_what_is_here_and_can_be_played_again(device_page):
     # The link sits at the foot of the hero, so bring it into view before checking it can be reached.
     link.scroll_into_view_if_needed()
     box = link.bounding_box()
-    assert box and 0 <= box["y"] and box["y"] + box["height"] <= page.viewport_size["height"], "Reachable once scrolled to"
+    # Within a pixel of the bottom edge: the sub-pixel position of the foot of the hero is not a real miss.
+    assert box and 0 <= box["y"] and box["y"] + box["height"] <= page.viewport_size["height"] + 1, "Reachable once scrolled to"
     link.click()
     intro.wait_for(state="visible", timeout=5000)
     assert page.url.endswith("/index.html")

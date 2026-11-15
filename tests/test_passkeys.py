@@ -199,7 +199,9 @@ def test_set_up_a_passkey_card_beside_your_details(device_page):
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
     card = page.locator("#passkey-setup")
     card.wait_for(state="visible", timeout=5000)
-    assert page.evaluate("[...document.querySelectorAll('.pf-side > .pf-card:not([hidden])')].map(e => e.id)") == ["passkey-setup", "app"]
+    ids = page.evaluate("[...document.querySelectorAll('.pf-side > .pf-card:not([hidden])')].map(e => e.id)")
+    # The passkey card sits first, the app card next; the RaceBox card follows for a member who has a RaceBox option.
+    assert ids[:2] == ["passkey-setup", "app"], ids
     assert page.evaluate("document.querySelector('.pf-grid > .pf-card').id") == "details"
     page.wait_for_function("document.getElementById('pf-passkeys').textContent.indexOf('No passkeys yet') !== -1", timeout=5000)
     assert card.locator("h2").inner_text() == "Set up a passkey"

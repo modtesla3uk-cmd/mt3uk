@@ -543,6 +543,10 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange-text, colo
 html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
 .footer-links a, .footer-inline-link { text-decoration: underline; text-underline-offset: 2px; }
 .laps-logo ~ .footer-links { margin-left: 14px; }
+/* Dark mode or Light mode in the Laps footer (js/colour-mode.js names it and switches it): a text link like its neighbours,
+   on every Laps page, signed in or not. Hidden on a page without the mode script (it would do nothing there). */
+.footer-links .footer-mode { display: inline-flex; align-items: center; min-height: 0; line-height: inherit; padding: 0; margin: 0; border: 0 !important; background: none !important; font-family: var(--font-body); font-size: 0.82rem; color: var(--steel); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+html:not([data-mode]) .footer-links .footer-mode { display: none; }
 /* Laps header menu: Profile and Messages are rows in the menu, not bar icons (partials/laps-header.html). */
 .navlinks .nav-chat { display: flex; width: 100%; box-sizing: border-box; height: auto; padding: 10px 14px; border: 0; border-radius: 4px; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; align-items: center; justify-content: flex-start; gap: 6px; line-height: 1; position: relative; }
 .navlinks .nav-chat svg, .navlinks #nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }

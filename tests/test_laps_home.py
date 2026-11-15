@@ -458,3 +458,33 @@ def test_in_the_laps_app_the_status_bar_icons_are_asked_to_be_white(page):
     calls = page.evaluate("window.__sb")
     assert len(calls) >= 2, calls
     assert all(c == {"style": "DARK", "bar": "StatusBar"} for c in calls), calls
+
+
+def test_a_signed_out_visitor_can_switch_dark_mode_from_the_footer_on_every_laps_page(browser, base_url):
+    """The Laps footer has Dark mode (or Light mode) on every Laps page, signed in or not, on a desktop and a phone, so a
+    visitor who is not signed in can switch too (the intro's button is phone only, and Profile needs a sign-in). The choice
+    is the same one the intro and Profile keep, so it holds on the next page. A page without the mode script does not show it."""
+    for size in ({"width": 1280, "height": 800}, {"width": 390, "height": 844}):
+        ctx = browser.new_context(base_url=base_url, viewport=size)
+        ctx.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
+        page = ctx.new_page()
+        for name in ("track.html", "leaderboards.html", "favourites.html", "my-analysis.html", "laps.html"):
+            page.goto("/" + name)
+            page.evaluate("localStorage.removeItem('mt3ukColourMode')")
+            page.reload()
+            btn = page.locator("footer #lf-mode")
+            btn.scroll_into_view_if_needed()
+            expect(btn).to_be_visible()
+            expect(btn).to_have_text("Dark mode")
+            assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light", name
+            btn.click()
+            assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "dark", name
+            expect(btn).to_have_text("Light mode")
+            assert page.evaluate("localStorage.getItem('mt3ukColourMode')") == "dark", name
+            page.reload()
+            assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "dark", name
+            page.locator("footer #lf-mode").click()
+            assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light", name
+        page.goto("/laps-signin.html")
+        expect(page.locator("footer #lf-mode")).to_be_hidden()
+        ctx.close()

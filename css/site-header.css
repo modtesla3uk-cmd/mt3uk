@@ -361,7 +361,8 @@ nav {
   .nav-bell-btn, .nav-chat, .nav-profile, .nav-search-toggle { width: 33px; }
   /* On the narrowest phones the bell moves to the menu, where it still opens. */
   nav:has(.laps-logo) .nav-bell-btn { display: none; }
-  .nav-center:has(> .laps-logo) { margin-right: auto; padding-right: 8px; }
+  .nav-center:has(> .laps-logo) { margin-right: auto; padding-right: 8px; }  /* Seven items fit the narrowest phones (320 to 340px) with a smaller gap, so the menu stays on the screen. */
+  nav { gap: 4px; }
 }
 .nav-bell-count {
   position: absolute;

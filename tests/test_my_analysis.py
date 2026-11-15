@@ -440,6 +440,7 @@ def test_on_a_phone_a_grid_dot_opens_its_day_directly_under_that_figure(page):
     add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, mode={"brakeTemp": 84})
     add(fake, "a3", "2026-05-08", 60.9, brake_g=1.0, mode={"brakeTemp": 70})
     open_page(page, fake, "/my-analysis.html")
+    page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] summary').click()  # a figure is a tile until it is opened
     page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] .ma-gdot[data-session="a2"]').click()
     expect(page.locator("#ma-day")).to_be_visible()
     # The day sits directly under the figure it was tapped on, and its two sessions are highlighted in that figure.
@@ -456,6 +457,7 @@ def test_on_a_desktop_a_grid_dot_opens_its_day_at_the_bottom_of_the_grid(page):
     add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, mode={"brakeTemp": 61})
     add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, mode={"brakeTemp": 84})
     open_page(page, fake, "/my-analysis.html")
+    page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] summary').click()
     page.locator('#ma-grid .ma-fig-card[data-figure="brakes"] .ma-gdot[data-session="a2"]').click()
     expect(page.locator("#ma-day")).to_be_visible()
     assert page.evaluate("document.getElementById('ma-grid').lastElementChild.id") == "ma-day"
@@ -475,3 +477,63 @@ def test_the_track_mode_badge_counts_the_sessions_until_a_track_is_picked(page):
     page.locator("#ma-track").select_option(label="Thruxton · Track day")
     expect(page.locator("#ma-tm")).to_contain_text("Recorded with Track Mode")
     expect(page.locator("#ma-tm")).not_to_contain_text("sessions were")
+
+
+def test_each_figure_is_a_compact_tile_that_opens_into_its_chart_in_place(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, brake_g=1.1, temp=14, mode={"brakeTemp": 61, "power": 230})
+    add(fake, "a2", "2026-05-08", 60.5, brake_g=1.2, temp=16, mode={"brakeTemp": 84, "power": 260})
+    add(fake, "a3", "2026-05-15", 60.9, brake_g=1.0, temp=12, mode={"brakeTemp": 70, "power": 240})
+    open_page(page, fake, "/my-analysis.html")
+    lap = page.locator('.ma-fig-card[data-figure="lap"]')
+    # A tile: the name, the value, a tiny trend line and a chevron, with the chart closed.
+    assert page.evaluate("document.querySelector('.ma-fig-card[data-figure=\"lap\"]').open") is False
+    expect(lap.locator("summary b")).to_have_text("Best lap")
+    expect(lap.locator("summary .ma-fig-val")).to_have_text("1:00.50")
+    expect(lap.locator("summary .ma-spark circle")).to_have_count(3)
+    expect(lap.locator(".ma-fig-body")).to_be_hidden()
+    assert lap.bounding_box()["height"] < 140, lap.bounding_box()
+    assert page.evaluate("document.querySelector('.ma-fig-card[data-figure=\"lap\"] .ma-spark').getBoundingClientRect().width") <= 90
+    # Pressing it opens the chart in place, across the whole row on a phone.
+    lap.locator("summary").click()
+    expect(lap.locator(".ma-fig-body svg").first).to_be_visible()
+    assert lap.bounding_box()["width"] > 330, lap.bounding_box()
+    # It stays open when the page redraws (a chip picked), and closes when pressed again.
+    page.locator('button[data-grid-group="Pace"]').click()
+    expect(lap.locator(".ma-fig-body svg").first).to_be_visible()
+    page.locator('button[data-grid-group="All figures"]').click()
+    expect(lap.locator(".ma-fig-body svg").first).to_be_visible()
+    lap.locator("summary").click()
+    expect(lap.locator(".ma-fig-body")).to_be_hidden()
+    # The figures tab is far shorter than it was with every chart open.
+    assert page.evaluate("document.documentElement.scrollHeight") < 3200
+
+
+def test_on_a_phone_the_sessions_are_cards_and_a_desktop_keeps_the_table(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", brake_g=1.1, temp=14, mode={"brakeTemp": 61, "power": 230})
+    add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, temp=16)
+    page.set_viewport_size({"width": 390, "height": 844})
+    open_page(page, fake, "/my-analysis.html")
+    tab(page, "sessions")
+    expect(page.locator(".ma-table thead")).to_be_hidden()
+    cards = page.locator(".ma-table tr.ma-row")
+    expect(cards).to_have_count(2)
+    # No sideways scrolling: each card fits the screen, and shows its date first.
+    assert page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth") == 0
+    first = cards.nth(1)  # newest first: the 8 May session is first, so the 1 May one is second
+    box = first.bounding_box()
+    assert 0 <= box["x"] and box["x"] + box["width"] <= 390, box
+    expect(cards.first.locator('td[data-label="Date"]')).to_contain_text("8 May 2026")
+    # A figure a session does not have is left out of its card (the 8 May session has no Hottest brakes), and a figure it has is labelled.
+    expect(cards.first.locator('td[data-label="Hottest brakes"]')).to_be_hidden()
+    expect(first.locator('td[data-label="Hottest brakes"]')).to_be_visible()
+    expect(first.locator('td[data-label="Hottest brakes"]')).to_contain_text("61%")
+    # A card picks its session as a row did, and Open goes to it.
+    cards.first.locator("td").first.click()
+    expect(page.locator("#ma-pick-row")).to_contain_text("Toyo")
+    # A desktop keeps the table with its header.
+    page.set_viewport_size({"width": 1280, "height": 860})
+    expect(page.locator(".ma-table thead")).to_be_visible()
+    assert page.evaluate("getComputedStyle(document.querySelector('.ma-table tr.ma-row')).display") == "table-row"

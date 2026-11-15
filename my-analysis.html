@@ -223,8 +223,8 @@
   .tm-what > summary { display: none !important; }
   @media (max-width: 900px) {
     .lh-title > .ma-tm, .ma-track-cell .ma-tm { display: none !important; }
-    /* The usage ring moves to the right, next to the Share button. */
-    .lh-title #tp-quota-ring { margin-left: auto; margin-right: 8px; }
+    /* The usage ring sits with the title's other icons, beside the ? (as on Sessions); the share button stays at the far right. */
+    .lh-title #tp-quota-ring { margin-left: 10px; margin-right: 8px; }
     .ma-tm-phone { display: inline-flex; grid-column: 1 / -1; width: 100%; margin: 0; justify-content: center; text-align: center; }
     .lh-hero .lh-title .tp-what-q { display: inline-flex !important; align-items: center; justify-content: center; margin: 0 0 0 12px; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.45); background: transparent; color: #fff; cursor: pointer; flex: none; }
     .lh-hero .lh-title .tp-what-q svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
@@ -243,8 +243,11 @@
   .ma-pick-label { display:inline-flex; align-items:center; gap:6px; }
   .ma-pick-icon { width:18px; height:18px; fill:none; stroke:var(--orange-text, color-mix(in srgb, var(--orange, #e8542a) 70%, #000)); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
   .ma-controls > .ma-jump { grid-column:1 / -1; width:100%; min-width:0; box-sizing:border-box; display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
-  .ma-jump a { flex:none; display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:999px; border:1px solid var(--hair); background:#fff; color:var(--ink); font-size:.86rem; font-weight:600; text-decoration:none; }
-  .ma-jump a:hover { background:#eef1f6; }
+  /* The section tabs (Figures, Over time, Setups, Sessions): one shows at a time; the one picked is gold with dark words. */
+  .ma-tab { flex:1 0 auto; display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--hair); background:#fff; color:var(--ink); font:inherit; font-size:.9rem; font-weight:600; cursor:pointer; }
+  .ma-tab:hover { background:#eef1f6; }
+  .ma-tab.is-on, .ma-tab.is-on:hover { background:var(--orange, #e0b44a); border-color:var(--orange, #e0b44a); color:var(--on-accent, #06201c); }
+  .ma-tab:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
   #ma-app [id^="ma-sec-"] { scroll-margin-top:var(--ma-stick, 160px); }
   .ma-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -14px; padding:0 14px; }
   .ma-table { border-collapse:collapse; width:100%; min-width:900px; font-size:.84rem; }
@@ -551,7 +554,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 
 <script src="js/track-view.js?v=20271300" defer></script>
 <script src="js/quota-ring.js?v=19" defer></script>
-<script src="js/my-analysis-page.js?v=54" defer></script>
+<script src="js/my-analysis-page.js?v=55" defer></script>
 <script src="js/share.js?v=20270301" defer></script>
 <style>html.laps-logo-pending .laps-logo-mark{visibility:hidden}</style>
 <script>try{var k=localStorage.getItem('mt3ukLapsLogo');if(k&&k!=='timer'){document.documentElement.classList.add('laps-logo-pending');}}catch(e){}</script>

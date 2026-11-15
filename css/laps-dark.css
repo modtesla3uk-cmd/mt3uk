@@ -370,3 +370,6 @@ html[data-mode="dark"] #ma-app .ma-dot[fill="#16233d"], html[data-mode="dark"] #
 html[data-mode="dark"] #ma-app .ma-dot { stroke: #dfe3e8; }
 html[data-mode="dark"] #ma-app .ma-metric-note { background: #2a2e33 !important; border: 1px solid #5a626c; }
 html[data-mode="dark"] .tm-pick span, html[data-mode="dark"] .ma-pick-label { color: #dfe3e8 !important; }
+/* My Analysis section tabs in dark mode: dark with a light outline, and the one picked gold with dark words. */
+html[data-mode="dark"] #ma-app button.ma-tab { background: #141618 !important; border: 1px solid #7d848e !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] #ma-app button.ma-tab.is-on { background: #f5c542 !important; border-color: #f5c542 !important; color: #111111 !important; }

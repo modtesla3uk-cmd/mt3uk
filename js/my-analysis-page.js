@@ -11,7 +11,9 @@
   // The desktop Track Mode badge is kept here, because the app is drawn again each time and the badge moves into it.
   var tmDesk = document.getElementById('ma-tm');
   var V = window.MT3UKTrackView || {};
-  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridGroup: 'All figures' };
+  var state = { sessions: [], cars: {}, car: 'all', track: 'all', metric: 'lap', setup: 'tyres', day: null, gridGroup: 'All figures', tab: 'figures' };
+  // The sections are tabs: only the one picked shows (Hick's Law: one thing at a time, and a far shorter page).
+  var TABS = [['figures', 'Figures'], ['time', 'Over time'], ['setups', 'Setups'], ['sessions', 'Sessions']];
   var TRACK_KEY = 'mt3ukAnalysisTrack';
   // The track picked stays picked on this device, so the page opens on it next time (a track that is no longer there falls back to all tracks).
   function rememberTrack() { try { localStorage.setItem(TRACK_KEY, state.track); } catch (e) { /* storage blocked */ } }
@@ -449,13 +451,13 @@
     var sessions = sortByWhen(carList.filter(function (s) { return trackKey(s) === track; }));
     var venue = sessions[0].venue || names[track];
     var groups = GROUPS.map(function (g) {
-      return '<button type="button" class="chip' + (state.gridGroup === g ? ' is-on' : '') + '" data-grid-group="' + esc(g) + '" aria-pressed="' + (state.gridGroup === g) + '">' + esc(g) + '</button>';
+      return '<button type="button" class="chip' + (state.gridGroup === g ? ' is-on' : '') + '" data-grid-group="' + esc(g) + '" aria-pressed="' + (state.gridGroup === g) + '">' + esc(g === 'All figures' ? 'All' : g) + '</button>';
     }).join('');
     var cards = GRID_ORDER.map(function (id) {
       var m = METRICS.filter(function (x) { return x.id === id; })[0];
       return m ? figureCard(m, sessions, state.gridGroup, venue) : '';
     }).join('');
-    return '<div class="tm-card ma-grid-head"><h2>All figures</h2>' +
+    return '<div class="tm-card ma-grid-head"><h2>Figures</h2>' +
       '<p class="tm-note">One track at a time, one dot per session. Each figure is coloured against your best at this track. Press a dot to see that day under the figure.</p>' +
       '<div class="tm-chips ma-grid-chips" role="group" aria-label="Figures">' + groups + '</div>' +
       '</div>' +
@@ -541,11 +543,16 @@
       body = '<div class="tm-card"><p>No sessions here yet. Once you have saved a track session with this car, its analysis appears here.</p></div>';
     } else {
       var says = findings(list);
-      body = '<div id="ma-sec-grid">' + gridSection() + '</div>' +
-        '<div class="tm-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' +
-        '<div id="ma-sec-time">' + chart(list) + beneathChart(list) + '</div>' +
-        '<div id="ma-sec-setup">' + setupBlock(list) + '</div>' +
-        '<div id="ma-sec-sessions">' + detailsTable(list) + '</div>';
+      var panel = function (id, html) {
+        var on = state.tab === id;
+        return '<div class="ma-tabpanel" id="ma-sec-' + id + '" role="tabpanel" aria-labelledby="ma-tab-' + id + '"' + (on ? '' : ' hidden') + '>' + html + '</div>';
+      };
+      // What the figures show leads the Figures tab: the findings first, then the figure cards (Peak-End Rule).
+      body = panel('figures', '<div class="tm-card ma-finds-card"><h2>What the figures show</h2><ul class="tm-finds">' + says.map(function (f) { return '<li>' + findIcon(f.k) + '<span>' + f.t + '</span></li>'; }).join('') + '</ul></div>' + gridSection()) +
+        panel('time', chart(list) + beneathChart(list)) +
+        panel('setups', setupBlock(list)) +
+        // A row picked in the table shows its session above the table, on the same tab.
+        panel('sessions', (state.picked && !state.day ? pickHtml(list).replace('id="ma-pick"', 'id="ma-pick-row"') : '') + detailsTable(list));
     }
     // The Track Mode badge beside the title shows when the sessions picked carry Track Mode figures.
     // (The title's badge on desktop and the copy under the buttons on a phone.)
@@ -566,9 +573,10 @@
     });
     // The badge sits beside the Track and layout drop-down on desktop (a phone shows its own copy under the buttons).
     // Quick links to each section sit in the sticky block with the choices, so they stay in reach as the page scrolls.
-    var jump = list.length ? '<div class="ma-jump" role="navigation" aria-label="Sections">' +
-      [['ma-sec-grid', 'All figures'], ['ma-sec-time', 'Over time'], ['ma-sec-setup', 'Setups'], ['ma-sec-sessions', 'Sessions']].map(function (x) {
-        return '<a href="#' + x[0] + '">' + x[1] + '</a>';
+    var jump = list.length ? '<div class="ma-jump" role="tablist" aria-label="Sections">' +
+      TABS.map(function (x) {
+        var on = state.tab === x[0];
+        return '<button type="button" role="tab" class="ma-tab' + (on ? ' is-on' : '') + '" id="ma-tab-' + x[0] + '" data-ma-tab="' + x[0] + '" aria-selected="' + on + '" aria-controls="ma-sec-' + x[0] + '" tabindex="' + (on ? '0' : '-1') + '">' + x[1] + '</button>';
       }).join('') + '</div>' : '';
     app.innerHTML = '<div class="tm-controls ma-controls">' + carPick + '<div class="ma-track-cell">' + trackPick + '<span class="ma-tm-slot"></span></div>' + jump + '</div>' + body;
     setControlsTop();
@@ -584,14 +592,42 @@
     state.day = null;
     state.picked = el.getAttribute('data-session');
     draw();
-    var panel = document.getElementById('ma-pick');
+    var panel = app.querySelector('#ma-sec-' + state.tab + ' .ma-pick');
     if (scroll && panel && panel.scrollIntoView) panel.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
+  // The section tabs: one shows at a time. Arrow keys move between them, as tabs do.
+  function pickTab(id, focus) {
+    if (!TABS.some(function (t) { return t[0] === id; })) return;
+    state.tab = id;
+    draw();
+    var b = document.getElementById('ma-tab-' + id);
+    if (focus && b) b.focus();
+    var bar = app.querySelector('.ma-controls');
+    if (bar && bar.getBoundingClientRect().top < 0 && app.scrollIntoView) app.scrollIntoView({ block: 'start' });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-ma-tab]') : null;
+    if (t && app.contains(t)) pickTab(t.getAttribute('data-ma-tab'));
+  });
+  document.addEventListener('keydown', function (e) {
+    var t = e.target && e.target.getAttribute ? e.target.getAttribute('data-ma-tab') : null;
+    if (!t || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+    var i = TABS.map(function (x) { return x[0]; }).indexOf(t), n = TABS.length;
+    e.preventDefault();
+    pickTab(TABS[(i + (e.key === 'ArrowRight' ? 1 : n - 1)) % n][0], true);
+  });
+  // An old address to a section (#ma-sec-grid and so on) opens that tab.
+  (function () {
+    var h = (location.hash || '').replace('#ma-sec-', '');
+    var old = { grid: 'figures', setup: 'setups' };
+    if (h) state.tab = old[h] || h;
+    if (!TABS.some(function (t) { return t[0] === state.tab; })) state.tab = 'figures';
+  })();
   document.addEventListener('click', function (e) {
     var el = e.target && e.target.closest ? e.target.closest('[data-session]') : null;
     if (!el || !app.contains(el) || (e.target.closest && e.target.closest('a'))) return;
     if (isDot(el)) { openDay(el.getAttribute('data-session'), anchorOf(el)); return; }
-    selectSession(el, el.tagName.toLowerCase() !== 'tr');
+    selectSession(el, true);
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;

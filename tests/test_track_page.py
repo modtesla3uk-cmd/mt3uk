@@ -2292,7 +2292,8 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(page.locator(".tp-board-card").nth(1).locator(".lb-podium")).to_have_count(0)
     expect(page.get_by_role("button", name=re.compile("Only show"))).to_be_visible()
     page.get_by_role("button", name=re.compile("Only show")).click()
-    first.locator(".lb-layout").first.click()
+    # On a track with one layout the track name opens its board.
+    first.locator(".lb-name").first.click()
     # Public view: each car's fastest, so one row for the one car.
     rows = page.locator(".lb-row")
     expect(rows).to_have_count(1)

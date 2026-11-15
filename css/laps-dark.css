@@ -288,3 +288,10 @@ html[data-mode="dark"] .page-hero .tp-lb-pill:not(.tm-pill-accent):not(#tp-hero-
 html[data-mode="dark"] .lb-how, html[data-mode="dark"] .lb-preview-wrap .laps-preview-note { background-color: #1e2124 !important; border-color: #343a41 !important; color: #dfe3e8 !important; }
 html[data-mode="dark"] .lb-how > summary { color: #dfe3e8 !important; }
 html[data-mode="dark"] .lb-how .lb-arrange, html[data-mode="dark"] .lb-how .lb-note, html[data-mode="dark"] .lb-how .tp-small { color: #aab2bd !important; }
+/* The Leaderboard's Show label is readable in dark mode. */
+html[data-mode="dark"] .lb-label { color: #aab2bd; }
+/* The Leaderboard dividers (under each track name and between its places) are visible in dark mode. */
+html[data-mode="dark"] .lb-venues .tp-board-name { border-bottom-color: #5a626c !important; }
+html[data-mode="dark"] .lb-podium li + li { border-top-color: #5a626c !important; }
+/* The second place badge is silver with dark figures in dark mode, so the number can be read. */
+html[data-mode="dark"] .lb-top2 .lb-pos { background-color: #c9d0d8 !important; color: #141618 !important; }

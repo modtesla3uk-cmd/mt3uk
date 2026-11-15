@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-default-mode="light">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=42">
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=1"></script><script src="js/colour-mode.js?v=2"></script><link rel="stylesheet" href="css/laps-dark.css?v=45">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Leaderboard: lap times by track and car - Laps by MT3UK</title>
@@ -474,10 +474,8 @@
   .lb-typebox { display: grid; gap: 6px; min-width: 0; }
   .lb-types .chip { min-height: 44px; display: inline-flex; align-items: center; }
   .lb-label { font-size: 0.78rem; font-weight: 600; color: var(--steel); }
-  .lb-cardwrap .tp-board-name { padding-right: 124px; }
   .lb-hide { width: auto; min-width: 44px; padding: 0 12px; gap: 6px; display: inline-flex; align-items: center; border: 1px solid var(--hairline-strong); font: 600 0.82rem/1 var(--font-body); color: var(--steel); }
   .lb-hide span { white-space: nowrap; }
-  .lb-cardwrap > .lb-hide { top: 10px; right: 10px; }
   .lb-more .btn { width: 100%; min-height: 48px; }
   .lb-how { margin: 14px 0 0; background: var(--card, #fff); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 0 14px; }
   .lb-how > summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 600; color: var(--ink); }
@@ -485,6 +483,20 @@
   .lb-how[open] > summary { border-bottom: 1px solid var(--hairline); margin-bottom: 10px; }
   .lb-how .lb-arrange, .lb-how .lb-note { margin-top: 0; padding-bottom: 12px; }
   .lb-preview-wrap .laps-preview-note { border: 1px solid var(--hairline); border-left: 4px solid #f5c542; border-radius: var(--radius-sm); background: var(--card, #fff); color: var(--steel); padding: 10px 14px; }
+  /* The approved layout: a line under each track name and between its places; no boxed panel; the places (top three) and
+     a link to the full board; Directions, the cloud and Hide in a row at the foot of the card. */
+  .lb-venues .tp-board-name { border-bottom: 1px solid var(--hairline); padding-bottom: 8px; margin-bottom: 2px; }
+  .lb-name { color: inherit; text-decoration: none; }
+  .lb-name:hover b, .lb-name:focus-visible b { text-decoration: underline; }
+  .lb-layout { display: block; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .lb-layout-head { min-height: 44px; align-items: center; color: inherit; text-decoration: none; }
+  .lb-podium li + li { border-top: 1px solid var(--hairline); }
+  .lb-allplaces { display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .lb-allplaces:hover, .lb-allplaces:focus-visible { text-decoration: underline; }
+  .lb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+  .lb-actions > .lb-keep, .lb-actions > .lb-dir, .lb-actions > .lb-hide { position: static; top: auto; right: auto; }
+  .lb-actions > .lb-hide { width: auto; min-width: 44px; height: 44px; margin-left: auto; padding: 0 12px; gap: 6px; display: inline-flex; align-items: center; }
+
   /* A long board: the places below the first ten are folded behind an arrow. */
   .lb-fold { list-style: none; }
   .lb-fold-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
@@ -1067,7 +1079,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/laps-offline.js?v=23" defer></script>
 <script src="js/quota-ring.js?v=18" defer></script>
-<script src="js/leaderboard-page.js?v=20271118" defer></script>
+<script src="js/leaderboard-page.js?v=20271119" defer></script>
 <script src="js/laps-panels.js?v=20271300" defer></script>
 <script src="js/laps-tip.js?v=20271018" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

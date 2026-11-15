@@ -236,8 +236,8 @@
   // each track to see who is quickest.
   // The track list shows five rows for every layout: the top three have medals, and any place not taken yet is a
   // plain row marked Not taken yet.
-  var LIST_ROWS = 5;
-  function podium(key, drag) {
+  var LIST_ROWS = 3;
+  function podium(key, drag, q) {
     var top = (leaders[key] || []).slice(0, LIST_ROWS);
     if (!top.length) return '';
     var rows = [];
@@ -247,7 +247,8 @@
       var res = drag ? Number(l.quarter).toFixed(2) + ' s' : V.fmtLap(l.time);
       rows.push('<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>');
     }
-    return '<ol class="lb-podium">' + rows.join('') + '</ol>';
+    var all = counts[key] || 0, more = q && all > top.length ? '<a class="lb-allplaces" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '">Show all ' + all + ' places</a>' : '';
+    return '<ol class="lb-podium">' + rows.join('') + '</ol>' + more;
   }
 
   // The member's own sessions on the track list (the My sessions sort): each layout's count, its top three, and each
@@ -319,15 +320,25 @@
   // A layout or course: its name and number of sessions, its top three, and a
   // link to the whole board.
   // On a track with one layout the card already has the track's name and count, so the layout line does not repeat them.
+  // The name of a track with one layout opens its board, so that card has no layout line of its own.
+  function boardNameHtml(type, v, l) {
+    var q = boardQuery(type, v.id, l.id);
+    return '<a class="lb-name" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><b>' + esc(v.name) + '</b></a>';
+  }
   function layoutBlock(type, v, l, solo) {
     var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
     var count = listSessions ? (n ? rankCount(type, v.id, l.id) : 'Not driven yet') : (n ? n + ' session' + (n === 1 ? '' : 's') : 'No sessions yet');
-    var sameName = String(l.name || '').trim().toLowerCase() === String(v.name || '').trim().toLowerCase();
-    var named = solo && sameName && !listSessions ? '' : '<b>' + esc(l.name) + '</b>';
-    var counted = solo && !listSessions ? '<span class="tp-small">Open board</span>' : '<span class="tp-small">' + count + '</span>';
-    return '<a class="lb-layout' + (n ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"' + (named ? '' : ' aria-label="' + esc(v.name) + ' board"') + '><span class="lb-layout-head">' + named +
-      counted + icon('chev') + '</span>' + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false)) + '</a>';
+    var head = '';
+    // My sessions keeps the layout line, as it shows the member's rank there.
+    if (!solo || listSessions) {
+      var sameName = String(l.name || '').trim().toLowerCase() === String(v.name || '').trim().toLowerCase();
+      var named = solo && sameName && !listSessions ? '' : '<b>' + esc(l.name) + '</b>';
+      head = '<a class="lb-layout-head" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"' + (named ? '' : ' aria-label="' + esc(v.name) + ' board"') + '>' + named +
+        '<span class="tp-small">' + count + '</span>' + icon('chev') + '</a>';
+    }
+    return '<div class="lb-layout' + (n ? ' is-busy' : '') + '">' + head + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false, q)) + '</div>';
   }
+
 
   // The venues of one type, busiest first, each with the top three per layout.
   function showList(type) {
@@ -379,11 +390,13 @@
     // A track card with the button that hides it (or, among the hidden ones, shows it again).
     function wrap(v, card) {
       var hid = hidden.indexOf(v.id) !== -1;
-      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card +
+      var actions = '<div class="lb-actions">' +
         '<button type="button" class="lb-keep" data-keep-toggle aria-pressed="false" hidden>' + icon('cloud') + '</button>' +
         (Number.isFinite(v.lat) && Number.isFinite(v.lng) ? '<a class="lb-dir" href="navigate.html?to=' + v.lat + ',' + v.lng + '&amp;name=' + encodeURIComponent(v.name) + '">Directions</a>' : '') +
         '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '<span>' + (hid ? 'Show' : 'Hide') + '</span></button></div>';
+      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '" data-keep-venue="' + esc(v.id) + '" data-keep-name="' + esc(v.name) + '">' + card.replace(/<\/(div|a)>$/, actions + '</$1>') + '</div>';
     }
+
     h += '<p class="tp-small lo-hint" data-keep-hint hidden>Hold a circuit and let go to keep it for offline use, or tap its cloud. Hold and drag to move it.</p><div class="tp-boards lb-venues">' + shown.map(function (x) {
       var v = x.v;
       if (t[0] === 'drag') {
@@ -395,7 +408,7 @@
           (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>');
       }
       var layouts = v.layouts || [], active = layouts.filter(function (l) { return listSessions ? meCount(bt, v.id, l.id) : counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
-      return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
+      return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name">' + (layouts.length === 1 && !listSessions ? boardNameHtml(bt, v, layouts[0]) : '<b>' + esc(v.name) + '</b>') +
         (x.total && !listSessions ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
         active.map(function (l) { return layoutBlock(bt, v, l, layouts.length === 1); }).join('') +
         (idle.length ? (active.length ? '<p class="tp-small lb-idle">' + (listSessions ? 'Not driven yet: ' : 'No sessions yet: ') + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');

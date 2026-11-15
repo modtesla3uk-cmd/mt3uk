@@ -14,6 +14,8 @@
   var ringOn = false, free = false, observer = null, scheduled = false;
   // Whether subscribing is open (PayPal is set up). When it is, Unlock starts the subscription; otherwise it says so.
   var canSubscribe = false;
+  // A visitor who is not signed in is on the free tier too: the Laps Pro tiles are locked for them and Unlock is Sign in.
+  var signedOut = false;
   var API_BASE = window.MT3UK_TRACK_API || 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var NOTE = 'Subscriptions are coming soon. Nothing is charged yet.';
 
@@ -124,7 +126,7 @@
     var cover = document.createElement('div');
     cover.className = 'tier-lock-cover';
     cover.setAttribute('data-tier-cover', name);
-    cover.innerHTML = '<div><b>' + name + '</b><br>Unlock for more insights.</div><button type="button" data-tier-unlock>Unlock</button>';
+    cover.innerHTML = '<div><b>' + name + '</b><br>' + (signedOut ? 'A Laps Pro feature.' : 'Unlock for more insights.') + '</div><button type="button" data-tier-unlock>' + (signedOut ? 'Sign in' : 'Unlock') + '</button>';
     tile.appendChild(cover);
   }
 
@@ -168,11 +170,16 @@
     if (!locked) return;
     e.preventDefault();
     e.stopPropagation();
-    if (canSubscribe) subscribe(); else toast(NOTE);
+    if (signedOut || canSubscribe) subscribe(); else toast(NOTE);
   }, true);
 
   // Unlock: sends a signed-in member to PayPal to approve Laps Pro (the same as Subscribe on the Sessions page).
   function subscribe() {
+    if (signedOut) {
+      var here = (location.pathname.split('/').pop() || '') + location.search;
+      window.location.href = window.mt3ukSignInUrl ? window.mt3ukSignInUrl(/^(track|leaderboards|laps)\.html/.test(here) ? here : '') : 'signin.html';
+      return;
+    }
     var token = '';
     try { token = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (er) { token = ''; }
     if (!token) { toast(NOTE); return; }
@@ -186,16 +193,17 @@
   }
 
   function draw(d) {
+    signedOut = !!(d && d.signedOut && d.applies);
     canSubscribe = !!(d && d.subscribe);
-    ringOn = !!(d && d.success && d.applies && !d.full);
-    free = ringOn && !d.proFeatures;
+    ringOn = !signedOut && !!(d && d.success && d.applies && !d.full);
+    free = signedOut || (ringOn && !d.proFeatures);
     if (!ringOn) {
       var old = document.getElementById('tp-quota-ring');
       if (old) old.hidden = true;
-      return;
+      if (!free) return;
     }
     css();
-    drawRing(d);
+    if (ringOn) drawRing(d);
     if (!free) return;
     apply();
     // Pages draw their tiles and tabs after the answer arrives, so the page is watched for them.

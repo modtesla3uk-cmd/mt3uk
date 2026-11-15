@@ -8860,6 +8860,14 @@ async function handleTrackQuotaRequest(request, env) {
   try { await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#tiers-wrap'); } catch (er) { /* the request is kept even if the email fails */ }
   return json({ success: true, message: 'Thanks. MT3UK has been asked for more days and will be in touch.' });
 }
+// Whether the free tier applies to everyone (the switch is on for Everyone): a visitor who is not signed in is on it too, so
+// the pages lock the Laps Pro tiles for them (Sign in to unlock) instead of showing them in full. Public, nothing personal.
+async function handleTrackTiersPublic(env) {
+  var t = await getTrackTiers(env);
+  var res = json({ success: true, applies: t.mode === 'all' });
+  res.headers.set('Cache-Control', 'no-cache');
+  return res;
+}
 async function handleTrackTiersAccess(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -13899,6 +13907,9 @@ export default {
     }
     if (url.pathname === '/track/tiers/access' && request.method === 'GET') {
       return handleTrackTiersAccess(request, env);
+    }
+    if (url.pathname === '/track/tiers/public' && request.method === 'GET') {
+      return handleTrackTiersPublic(env);
     }
     if (url.pathname === '/laps/pro/trial/start' && request.method === 'POST') {
       return handleLapsProTrialStart(request, env);

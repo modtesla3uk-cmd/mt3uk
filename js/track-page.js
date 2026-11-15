@@ -3976,7 +3976,9 @@
   var tierCheckPromise = null;
   function tierCheck() {
     if (!tierCheckPromise) {
-      tierCheckPromise = api('GET', '/track/tiers/access').then(function (d) { return d && d.success ? d : { applies: false }; }).catch(function () { return { applies: false }; });
+      // Signed out: the visitor is on the free tier when the switch is on for everyone (GET /track/tiers/public).
+      tierCheckPromise = (token() ? api('GET', '/track/tiers/access') : api('GET', '/track/tiers/public').then(function (d) { return d && d.success && d.applies ? { success: true, applies: true, full: false, proFeatures: false, signedOut: true } : { applies: false }; }))
+        .then(function (d) { return d && d.success ? d : { applies: false }; }).catch(function () { return { applies: false }; });
     }
     return tierCheckPromise;
   }
@@ -3988,19 +3990,21 @@
   function lockPaidTiles(root) {
     tierCheck().then(function (t) {
       if (!t.applies || t.full || t.proFeatures) return;
+      // A signed-out visitor sees the locks too (the veils on the other tiles are drawn by js/quota-ring.js).
+      if (t.signedOut && window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(t);
       var lock = function (el, title) {
         if (!el || el.getAttribute('data-locked')) return;
         el.setAttribute('data-locked', '1');
         el.innerHTML = '<div class="tp-lock" style="padding:14px;border:1px dashed #9aa1b2;border-radius:10px;color:#4a5366;font-size:.9rem;line-height:1.45">' +
           '<b style="display:block;color:#16233d;margin-bottom:4px">' + esc(title) + '</b>' +
-          'Available on Laps Pro. On your free plan you see your laps, map and speed.</div>';
+          (t.signedOut ? 'A Laps Pro feature. Sign in to see your own laps, map and speed.' : 'Available on Laps Pro. On your free plan you see your laps, map and speed.') + '</div>';
       };
       Object.keys(PAID_TILES).forEach(function (k) { lock(root.querySelector('[data-tile="' + k + '"]'), PAID_TILES[k]); });
       lock(root.querySelector('#tp-gbox'), 'G-force and speed');
       // Compare laps: the free plan compares the fastest lap with the next one, the pair the page starts on. Choosing
       // other laps is paid, so the words above the pickers say so.
       var cmpSub = root.querySelector('#compare .tp-sub');
-      if (cmpSub) cmpSub.textContent = 'Your fastest lap in this session is picked, to compare with the next one. Laps Pro lets you compare any two laps in this session.';
+      if (cmpSub) cmpSub.textContent = t.signedOut ? 'Laps Pro lets you compare any two laps in this session. Sign in to use it.' : 'Your fastest lap in this session is picked, to compare with the next one. Laps Pro lets you compare any two laps in this session.';
       var pick = root.querySelector('.tp-cmp-pick');
       if (pick && !pick.getAttribute('data-locked')) {
         pick.setAttribute('data-locked', '1');

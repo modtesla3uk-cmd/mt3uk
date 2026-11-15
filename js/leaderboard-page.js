@@ -919,5 +919,15 @@
         if (limitedNow !== tierLimited) { tierLimited = limitedNow; if (viewMode === 'tyres') route(); }
       })
       .catch(function () { /* no ring without an answer */ });
+  } else {
+    // Not signed in: the visitor is on the free tier when the switch is on for everyone, so Compare pads is locked for them too.
+    fetch(API + '/track/tiers/public', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.success || !d.applies) return;
+        if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw({ success: true, applies: true, full: false, proFeatures: false, signedOut: true });
+        if (!tierLimited) { tierLimited = true; if (viewMode === 'tyres') route(); }
+      })
+      .catch(function () { /* nothing is locked without an answer */ });
   }
 })();

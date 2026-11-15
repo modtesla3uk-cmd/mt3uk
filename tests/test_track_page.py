@@ -130,6 +130,8 @@ class FakeWorker:
         elif path == "/track/tiers/request" and req.method == "POST":
             self.asked = getattr(self, "asked", 0) + 1
             data = {"success": True, "message": "Thanks. MT3UK has been asked for more sessions and will be in touch."}
+        elif path == "/track/tiers/public" and req.method == "GET":
+            data = {"success": True, "applies": getattr(self, "tiers_public", False)}
         elif path == "/track/tiers/access" and req.method == "GET":
             data = getattr(self, "tiers", {"success": True, "applies": False, "full": False, "balance": 10, "nextTopUp": "2026-11-01T00:00:00.000Z"})
         elif path == "/laps/pro/trial/start" and req.method == "POST":

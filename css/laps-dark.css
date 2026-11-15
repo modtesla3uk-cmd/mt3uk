@@ -383,3 +383,8 @@ html[data-mode="dark"] #ma-app .ma-spark circle[fill="#16233d"] { fill: #aab2bd;
   html[data-mode="dark"] #ma-app .ma-table tr.ma-row > td::before { color: #aab2bd; }
   html[data-mode="dark"] #ma-app .ma-table tr.ma-row > td[data-label="Track"] { color: #aab2bd !important; }
 }
+
+/* Badges in the laps table (Best, Out lap, Slow, In lap, Cut short): the soft ones are a dark pill with light words (they kept
+   the light theme's cream with light words, so gold on cream could not be read), and Best is gold with dark words. */
+html[data-mode="dark"] .tp-badge { background: #e0b44a !important; color: #141618 !important; }
+html[data-mode="dark"] .tp-badge.is-soft { background: #2a2e33 !important; color: #dfe3e8 !important; border: 1px solid #5a626c; }

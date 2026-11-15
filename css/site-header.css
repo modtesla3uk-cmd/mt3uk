@@ -597,7 +597,13 @@ footer { padding-top: 28px; padding-bottom: calc(28px + env(safe-area-inset-bott
 @media (max-width: 780px) { footer { padding-left: 12px; padding-right: 12px; } }
 /* Sideways (landscape): the coloured bands run to the screen's edges; only the content is kept clear of the notch and bars. */
 .wrap { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
-nav { padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
+nav { padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
+
+/* In the app the page runs up under the phone's status bar. In light mode a band in the heading colour sits behind it, so the
+   white clock and icons can be read and the header has an edge (none in a browser, where the inset is 0). Dark mode has a dark
+   header already, so it needs none. */
+header { box-shadow: inset 0 env(safe-area-inset-top, 0px) 0 0 var(--ink, #16233d); }
+html[data-mode="dark"] header { box-shadow: none; }
 
 /* The Laps pages: the same space above each page's heading on a phone, under the shorter header. */
 @media (max-width: 780px) { body:has(header .laps-logo) .page-hero { padding-top: 26px !important; } }

@@ -184,3 +184,16 @@
   html body.laps-tabbed .page-hero, html body.laps-tabbed .lh-hero { height: auto !important; min-height: 0 !important; }
   html body.laps-tabbed .page-hero .wrap, html body.laps-tabbed .lh-hero .wrap { height: auto !important; min-height: 0 !important; align-items: center !important; }
 }
+
+/* My Analysis uses the same heading in landscape: the title, its icons and Add a session share one row (the approved layout).
+   Add a session sits at the right on the title line, and the "What is" fold and the intro take the full width under it. */
+@media (orientation: landscape) and (max-height: 500px) {
+  body.laps-tabbed .tm-heroes { display: flex !important; flex-direction: row !important; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 6px; }
+  body.laps-tabbed .tm-heroes h1 { order: 1; flex: 1 1 0; min-width: 0; font-size: 1.35rem; margin: 0; }
+  body.laps-tabbed .tm-heroes .tm-hero-top { order: 2; flex: 0 0 auto; margin-left: auto; align-items: center !important; align-self: center; row-gap: 0; }
+  body.laps-tabbed .tm-heroes .tm-hero-right { display: flex; align-items: center; gap: 10px; margin: 0 !important; position: static; }
+  body.laps-tabbed .tm-heroes .tm-pill-accent { align-self: center !important; margin: 0 !important; position: static !important; top: auto !important; right: auto !important; }
+  body.laps-tabbed .tm-heroes .tm-hero-top .tm-pill { white-space: nowrap; margin: 0; }
+  body.laps-tabbed .tm-heroes .tm-hero-top > .tm-what { flex: 0 0 100%; margin: 0; }
+  body.laps-tabbed .tm-heroes > p { order: 3; flex: 1 1 100%; }
+}

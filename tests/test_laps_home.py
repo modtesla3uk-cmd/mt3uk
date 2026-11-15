@@ -364,7 +364,7 @@ def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_si
     expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4?v=9")
     expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg?v=9")
     dark = page.locator(".lh-hero .lh-reel video.lh-reel-dark")
-    expect(dark).to_have_attribute("src", "images/laps/laps-reel-dark.mp4?v=1")
+    expect(dark).to_have_attribute("src", "images/laps/laps-reel-dark.mp4?v=2")
     assert page.evaluate("getComputedStyle(document.querySelector('.lh-hero .lh-reel video.lh-reel-dark')).display") == "none", "the recoloured video is only shown in dark mode"
     assert video.get_attribute("loop") is None, "the intro plays once and stops on the end card"
     assert video.get_attribute("autoplay") is None and video.get_attribute("muted") is None, "the intro waits for a tap, and plays with sound"

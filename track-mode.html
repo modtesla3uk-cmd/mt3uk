@@ -188,6 +188,9 @@
 /* On a phone a sideways drag is for the page swipe, not the browser's own back gesture (Chrome goes back when a sideways
    drag reaches the edge, so a right swipe went back in history instead of to the page before). */
 @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { html { overscroll-behavior-x: none; } }
+/* While a page swipe moves the content sideways, nothing past the screen's edge may widen the page: a phone would zoom
+   the whole page out (the footer looked smaller) and the swipe measured the wrong width. */
+@media (max-width: 780px), (orientation: landscape) and (max-height: 500px) { html, body { overflow-x: clip; } }
 @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
   header.laps-tabbed .nav-sessions, header.laps-tabbed .nav-leaders, header.laps-tabbed .nav-favs, header.laps-tabbed .nav-analysis, header.laps-tabbed .nav-home { display: none !important; }
   body.laps-tabbed .laps-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 49; height: 66px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: #ffffff; border-top: 1px solid var(--hairline, #d9d9d9); justify-content: space-around; align-items: stretch; }
@@ -257,7 +260,9 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   if (!header || TABBED.indexOf(page) < 0) return;
   header.classList.add('laps-tabbed');
   document.body.classList.add('laps-tabbed');
-  var here = SWIPE.indexOf(page), ind = null, peek = null, parts = [], dragging = false;
+  // vw: the screen's width, taken when the finger first touches. A right swipe pushes the page past the right edge, and a
+  // phone then widens and zooms out the page, so the width read later was larger and a right swipe never got far enough.
+  var here = SWIPE.indexOf(page), ind = null, peek = null, parts = [], dragging = false, vw = 0;
   // The line sits over the four sections of the bar; the intro is before them, so it has no line.
   function barPos(i) { return i - 1; }
   document.addEventListener('DOMContentLoaded', function () {
@@ -311,6 +316,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   document.addEventListener('touchstart', function (e) {
     var t = e.touches[0];
     sx = t.clientX; sy = t.clientY; st = Date.now(); drag = false; dx = 0;
+    vw = document.documentElement.clientWidth || window.innerWidth;
     skip = !phone.matches || !!(e.target.closest && e.target.closest(NO_SWIPE)) || scrolls(e.target);
   }, { passive: true });
   document.addEventListener('touchmove', function (e) {
@@ -328,7 +334,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     dx = x;
     // Once a page swipe is under way, the browser's own sideways gesture (back or forward) is stopped.
     if (e.cancelable) e.preventDefault();
-    var n = target(dx), w = window.innerWidth;
+    var n = target(dx), w = vw || window.innerWidth;
     if (n >= 0) {
       peek.innerHTML = NAMES[SWIPE[n]] + '<small>Let go to open</small>';
       peek.style.display = 'flex';
@@ -342,7 +348,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   document.addEventListener('touchend', function (e) {
     if (skip || !drag || !e.changedTouches.length) { drag = false; dragging = false; return; }
     drag = false;
-    var w = window.innerWidth, n = target(dx), quick = Date.now() - st < 400 && Math.abs(dx) > 50;
+    var w = vw || window.innerWidth, n = target(dx), quick = Date.now() - st < 400 && Math.abs(dx) > 50;
     if (n >= 0 && (Math.abs(dx) > w * 0.5 || quick)) {
       var to = dx < 0 ? -w : w;
       parts.forEach(function (el) { el.style.transition = 'transform .22s ease'; el.style.transform = 'translate3d(' + to + 'px,0,0)'; });

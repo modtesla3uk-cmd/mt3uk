@@ -7911,6 +7911,8 @@ async function refreshTrackBoard(env, boardKey, carId) {
     leaders[boardKey] = rows.slice(0, 5).map(function (e) {
       var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
       if (e.make) l.make = e.make;
+      // The session behind the place, so the track list's top three can open it.
+      if (e.sessionId) l.sessionId = e.sessionId;
       if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }
       return l;
     });

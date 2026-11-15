@@ -58,6 +58,7 @@ def _open_board_as_stranger(page, applies):
     fake.boards = {"/track/board:thruxton:main": _compare_board()}
     open_page(page, fake, path="/leaderboards.html", signed_in=False)
     page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".lb-row").first).to_be_visible()
     page.wait_for_timeout(600)
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-default-mode="light">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=2"></script><script src="js/colour-mode.js?v=4"></script><link rel="stylesheet" href="css/laps-dark.css?v=60">
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><script src="js/site-theme.js?v=2"></script><script src="js/colour-mode.js?v=4"></script><link rel="stylesheet" href="css/laps-dark.css?v=61">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Track sessions: map and compare every lap - Laps by MT3UK</title>
@@ -1181,6 +1181,11 @@
   .tp-tap-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .tp-tap-tools .btn .icon { width: 16px; height: 16px; }
   .tp-tapbox.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--paper); }
+  /* Full screen takes the whole screen, status bar and all: the controls at the top start below the status bar (a phone's
+     safe area, or at least 40px when the browser does not report one). */
+  @media (max-width: 900px), (max-height: 500px) { .tp-mapcard.is-full, .tp-tapbox.is-full { padding-top: calc(10px + max(env(safe-area-inset-top, 0px), 40px)); } }
+  /* Landscape places its controls absolutely from the top of the overlay, so the overlay itself starts below the status bar. */
+  @media (max-width: 900px), (max-height: 500px) { .tp-mapcard.is-full[data-layout="wide"] { top: max(env(safe-area-inset-top, 0px), 40px); bottom: 0; height: auto; padding-top: 0; box-shadow: 0 -40px 0 0 var(--paper, var(--c-paper, #f3f1ea)); } }
   #tp-result .tp-notice { scroll-margin-top: 80px; }
   .tp-confirm { background: #fff; color: var(--ink); }
   .tp-confirm .icon { width: 18px; height: 18px; color: var(--hairline-strong); }

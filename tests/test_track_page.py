@@ -1632,6 +1632,8 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     assert any(u.split("?")[0].endswith("/js/leaderboard-page.js") for u in seen), seen[:10]
     # And on a board, where the trophy heading stays above.
     page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-full .lb-row").first).to_be_visible()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".lb-row").first).to_be_visible()
     expect(page.locator(".lb-hero h1 svg.lb-trophy")).to_be_visible()
     expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
@@ -2296,6 +2298,8 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     page.get_by_role("button", name=re.compile("Only show")).click()
     # On a track with one layout the track name opens its board.
     first.locator(".lb-name").first.click()
+    expect(first.locator(".lb-full .lb-row").first).to_be_visible()
+    page.locator(".lb-openboard").first.click()
     # Public view: each car's fastest, so one row for the one car.
     rows = page.locator(".lb-row")
     expect(rows).to_have_count(1)
@@ -2318,12 +2322,14 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(page.locator(".tp-board-card", has_text="Curborough")).to_have_count(0)
     # A hill climb's board goes back to the hill climbs, a sprint's to the sprints.
     page.locator(".tp-board-card", has_text="Shelsley Walsh").locator(".lb-layout").first.click()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".tp-back")).to_have_text("Back")
     expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all hill climbs")
     page.locator(".tp-back").click()
     expect(page.locator(".lb-types a.is-on")).to_have_text("Hill climb")
     page.locator(".lb-types a", has_text="Sprint").click()
     page.locator(".tp-board-card", has_text="Curborough").locator(".lb-layout").first.click()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".tp-back")).to_have_text("Back")
     expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all sprints")
 
@@ -3979,7 +3985,8 @@ def test_full_screen_map_on_a_phone(page):
     toggles.nth(1).click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     mb = page.locator("#tp-map2").bounding_box()
-    assert mb["height"] >= 170, mb
+    # The map starts 40px lower in full screen, below the status bar, so it has 40px less room than it did.
+    assert mb["height"] >= 140, mb
     gb = page.locator("#tp-gforce").bounding_box()
     assert gb["height"] <= 250 and gb["y"] + gb["height"] <= 845, gb
     toggles.nth(0).click()
@@ -3993,7 +4000,8 @@ def test_full_screen_map_on_a_phone(page):
     expect(page.locator("#tp-rotate-hint")).to_be_hidden()
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
-    assert mb["height"] >= 380 and mb["width"] >= 480, mb
+    # The full-screen map starts 40px down, below the status bar, so the rest of the screen is the map.
+    assert mb["height"] >= 340 and mb["width"] >= 480, mb
     for sel in ("#tp-play-toggle", "#tp-mapwrap .tv-zoom-full", "#tp-mopts-btn"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
@@ -4052,7 +4060,8 @@ def test_full_screen_map_on_a_phone(page):
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
-        assert b["height"] >= 40 and b["y"] + b["height"] <= 390, b
+        # Three charts share the screen below the status bar, so each is a little shorter than it was.
+        assert b["height"] >= 30 and b["y"] + b["height"] <= 390, b
     # The G-Force switch swaps between the map alone and the map with the charts.
     page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()
@@ -6647,6 +6656,8 @@ def test_compare_tyres_and_pads_on_a_board(page):
                body=json.dumps({"success": True, "extra": {"makes": [{"name": "Pagid", "compounds": [{"name": "RSL29", "use": "Track day", "tempMin": 100, "tempMax": 650}]}]}})))
     page.reload()
     page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-full .lb-row").first).to_be_visible()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".lb-row").first).to_be_visible()
     page.locator('#lb-views [data-view="tyres"]').click()
     rows = page.locator("#lb-cmp .lb-cmp-row")
@@ -7479,6 +7490,7 @@ def test_my_sessions_is_a_sort_option_on_the_leaderboard_page_showing_my_place_o
     expect(page.locator(".lb-mine-kind")).to_have_count(0)
     # Opening the board shows it as normal, every car, not filtered to the member's sessions.
     card.click()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator("#lb-mine")).to_have_value("all")
     expect(page.locator(".lb-row, .lb-list li").first).to_be_visible()
     expect(page.get_by_text("Car car2")).to_be_visible()
@@ -7784,6 +7796,8 @@ def test_the_free_tier_sees_basic_tyre_comparison_with_a_laps_pro_note(page):
     open_page(page, fake, path="/leaderboards.html")
     page.reload()
     page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-full .lb-row").first).to_be_visible()
+    page.locator(".lb-openboard").first.click()
     expect(page.locator(".lb-row").first).to_be_visible()
     page.locator('#lb-views [data-view="tyres"]').click()
     rows = page.locator("#lb-cmp .lb-cmp-row")
@@ -8166,3 +8180,20 @@ def test_a_free_member_sees_the_laps_pro_panel_locked_and_a_pro_member_does_not(
     expect(page.locator("#tp-prohead")).to_be_visible()
     page.wait_for_timeout(500)
     expect(page.locator("#tp-prohead > .tier-lock-cover")).to_have_count(0)
+
+
+def test_a_track_card_opens_its_full_list_in_place_and_a_place_opens_its_session(page):
+    """On the track list a card opens every place on its board in place (the page stays where it is), and a place opens
+    its session. The board itself is one link inside the open list."""
+    fake = FakeWorker()
+    fake.index = [dict(EARLIER, id="sh1", privacy="board"), dict(EARLIER, id="sh2", privacy="board", bestTime=101.2)]
+    fake.sessions = {}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    card = page.locator(".tp-board-card").first
+    card.locator(".tp-board-name").first.click()
+    expect(page.locator(".lb-full .lb-row").first).to_be_visible()
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    # A board has one row for each car, at its best, so the two sessions of one car make one row.
+    expect(page.locator(".lb-full .lb-row")).to_have_count(1)
+    page.locator(".lb-full .lb-row a.lb-open").first.click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=sh2$"))

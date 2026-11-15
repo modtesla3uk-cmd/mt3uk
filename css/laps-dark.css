@@ -401,3 +401,7 @@ html[data-mode="dark"] #tp-mopts-btn { background: rgba(20, 22, 24, 0.92) !impor
 html[data-mode="dark"] .tp-mapcard .tp-field, html[data-mode="dark"] .tp-fs-laps .tp-field, html[data-mode="dark"] .tp-mopts-body .tp-field { background: rgba(20, 22, 24, 0.92) !important; color: #dfe3e8 !important; }
 html[data-mode="dark"] .tp-layoutsel, html[data-mode="dark"] select.tp-layoutsel { background-color: #141618 !important; color: #dfe3e8 !important; border-color: #7d848e !important; }
 html[data-mode="dark"] #tp-gbox { background: #141618 !important; border-color: #2c3036 !important; color: #dfe3e8 !important; }
+/* Member page: a member's car and each shared session are cards in dark mode, not white boxes. */
+html[data-mode="dark"] .mp-car, html[data-mode="dark"] .mp-row { background-color: #141618 !important; border-color: #2c3036 !important; color: #dfe3e8 !important; }
+/* Landscape full-screen map: the strip above the overlay (where the status bar is) matches the dark page. */
+html[data-mode="dark"] .tp-mapcard.is-full[data-layout="wide"] { box-shadow: 0 -40px 0 0 #141618 !important; }

@@ -88,6 +88,50 @@
   function backDepth() { var st = history.state; return st && typeof st.lbDepth === 'number' ? st.lbDepth : 0; }
   function go(q) { history.pushState({ lbDepth: backDepth() + 1 }, '', 'leaderboards.html' + (q ? '?' + q : '')); route(); window.scrollTo(0, 0); }
   window.addEventListener('popstate', route);
+  // A track card opens its full list in place: a tap on the card (or its Show all button) shows every place, and a
+  // place opens its session. Links to sessions and to the board, and the card's own controls, keep their jobs.
+  function expandCard(e) {
+    if (e.metaKey || e.ctrlKey) return false;
+    if (e.target.closest('a[data-go], a[href^="track.html"], a[href^="member.html"], button:not([data-expand]), input, select, label, [data-keep-toggle], [data-lb-fav], .lb-fold-btn')) return false;
+    var block = e.target.closest('.lb-layout[data-q]');
+    if (!block) {
+      // A track with one layout: its card's name and count are not inside the layout, so the card opens that layout.
+      var card = e.target.closest('.tp-board-card'), only = card ? card.querySelectorAll('.lb-layout[data-q]') : [];
+      if (only.length === 1) block = only[0];
+    }
+    if (!block) return false;
+    e.preventDefault();
+    toggleFull(block);
+    return true;
+  }
+  // The rows are read once when a card opens, from the board itself, so the list is the whole board, not the top three.
+  function rankAll(entries, type) {
+    var out = [];
+    entries.forEach(function (e) {
+      var best = null;
+      resultsOf(e, type).forEach(function (b) { if (!best || scoreOf(b, type) < scoreOf(best, type)) best = b; });
+      if (best) out.push({ e: e, b: best, s: scoreOf(best, type) });
+    });
+    return out.sort(function (a, b) { return a.s - b.s; });
+  }
+  function toggleFull(block) {
+    var open = !block.classList.contains('is-open');
+    block.classList.toggle('is-open', open);
+    var btn = block.querySelector('[data-expand]');
+    if (btn) btn.setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    var box = block.querySelector('.lb-full');
+    if (!box) { box = document.createElement('div'); box.className = 'lb-full'; block.appendChild(box); }
+    var type = block.getAttribute('data-type'), q = block.getAttribute('data-q');
+    box.innerHTML = '<p class="tp-small" role="status">Reading the places...</p>';
+    rd(boardPath(type, block.getAttribute('data-venue'), block.getAttribute('data-layout'))).then(function (d) {
+      if (!block.classList.contains('is-open')) return;
+      var rows = rankAll(d.entries || [], type), lead = rows.length ? rows[0].s : 0;
+      var openLink = '<a class="lb-allplaces lb-openboard" href="leaderboards.html?' + esc(q) + '" data-go="' + esc(q) + '">Open the full board</a>';
+      box.innerHTML = (rows.length ? '<ol class="lb-list lb-full-list">' + rows.map(function (r, i) { return rowHtml(r, i, lead, type); }).join('') + '</ol>' : '<p class="tp-small">Nobody on this board yet.</p>') + openLink;
+    }, function () { box.innerHTML = '<p class="tp-small">The places could not be read. Try again.</p>'; });
+  }
+
   function goLink(e) {
     var a = e.target.closest('a[data-go]');
     if (a && !e.metaKey && !e.ctrlKey) {
@@ -97,6 +141,7 @@
     }
   }
   app.addEventListener('click', function (e) {
+    if (expandCard(e)) return;
     goLink(e);
     var fb = e.target.closest('[data-lb-fav]');
     if (fb && !fb.disabled) { e.preventDefault(); toggleLbFav(fb); return; }
@@ -245,9 +290,10 @@
       var l = top[i];
       if (!l) break; // Only the places taken are listed; the rest are not drawn.
       var res = drag ? Number(l.quarter).toFixed(2) + ' s' : V.fmtLap(l.time);
-      rows.push('<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>');
+      var inner = '<span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span>';
+      rows.push('<li class="lb-top' + (i + 1) + '">' + (l.sessionId ? '<a class="lb-podlink" href="track.html?s=' + esc(l.sessionId) + '">' + inner + '</a>' : inner) + '</li>');
     }
-    var all = counts[key] || 0, more = q && all > top.length ? '<a class="lb-allplaces" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '">Show all ' + all + ' places</a>' : '';
+    var all = counts[key] || 0, more = q && all > top.length ? '<button type="button" class="lb-allplaces" data-expand aria-expanded="false">Show all ' + all + ' places</button>' : '';
     return '<ol class="lb-podium">' + rows.join('') + '</ol>' + more;
   }
 
@@ -323,7 +369,7 @@
   // The name of a track with one layout opens its board, so that card has no layout line of its own.
   function boardNameHtml(type, v, l) {
     var q = boardQuery(type, v.id, l.id);
-    return '<a class="lb-name" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><b>' + esc(v.name) + '</b></a>';
+    return '<span class="lb-name"><b>' + esc(v.name) + '</b></span>';
   }
   function layoutBlock(type, v, l, solo) {
     var key = boardKey(type, v.id, l.id), n = listSessions ? meCount(type, v.id, l.id) : counts[key] || 0, q = boardQuery(type, v.id, l.id);
@@ -333,10 +379,10 @@
     if (!solo || listSessions) {
       var sameName = String(l.name || '').trim().toLowerCase() === String(v.name || '').trim().toLowerCase();
       var named = solo && sameName && !listSessions ? '' : '<b>' + esc(l.name) + '</b>';
-      head = '<a class="lb-layout-head" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"' + (named ? '' : ' aria-label="' + esc(v.name) + ' board"') + '>' + named +
-        '<span class="tp-small">' + count + '</span>' + icon('chev') + '</a>';
+      head = '<div class="lb-layout-head"' + (named ? '' : ' aria-label="' + esc(v.name) + ' board"') + '>' + named +
+        '<span class="tp-small">' + count + '</span>' + icon('chev') + '</div>';
     }
-    return '<div class="lb-layout' + (n ? ' is-busy' : '') + '">' + head + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false, q)) + '</div>';
+    return '<div class="lb-layout' + (n ? ' is-busy' : '') + '" data-type="' + type + '" data-q="' + esc(q) + '" data-venue="' + esc(v.id) + '" data-layout="' + esc(l.id) + '">' + head + (listSessions ? rankRow(type, v.id, l.id) : podium(key, false, q)) + '</div>';
   }
 
 

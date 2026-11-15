@@ -1030,15 +1030,16 @@ def test_on_a_car_browser_offline_the_laps_pages_load_inside_the_open_tab(page):
     expect(page.locator(".tp-board-card").first).to_be_visible(timeout=15000)
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
     assert page.evaluate("window.__sameWindow") == "yes"
-    page.locator(".lb-name[href*='thruxton']").first.click()
+    page.locator(".lb-layout[data-venue='thruxton']").first.click()
     expect(page.locator(".lb-row a.lb-open").first).to_be_visible(timeout=15000)
     page.locator(".lb-row a.lb-open").first.click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=other1$"))
     expect(page.locator("#tp-headline")).to_be_visible(timeout=15000)
     assert page.evaluate("window.__sameWindow") == "yes"
     page.go_back()
-    expect(page.locator(".lb-row a.lb-open").first).to_be_visible(timeout=15000)
-    expect(page).to_have_url(re.compile(r"leaderboards\.html\?board="))
+    # Back from a session returns to the track list it came from, as the list (not the board) is what was open.
+    expect(page.locator(".tp-board-card").first).to_be_visible(timeout=15000)
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
     assert page.evaluate("window.__sameWindow") == "yes"
 
 

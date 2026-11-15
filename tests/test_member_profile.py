@@ -45,3 +45,16 @@ def test_an_unknown_car_says_the_member_page_could_not_be_found(page):
     fake = FakeWorker()
     open_page(page, fake, "/member.html?car=nobody", signed_in=False)
     expect(page.locator("#mp-app")).to_contain_text("could not be found")
+
+
+def test_the_member_page_follows_dark_mode_with_dark_cards(page):
+    """A member's page is in dark mode when the site is: its car and shared sessions are dark cards, not white boxes."""
+    page.add_init_script("localStorage.setItem('mt3ukColourMode','dark');")
+    fake = FakeWorker()
+    member_of(fake)
+    open_page(page, fake, "/member.html?car=a", signed_in=False)
+    expect(page.locator("html")).to_have_attribute("data-mode", "dark")
+    expect(page.locator("#mp-app .mp-row").first).to_contain_text("Thruxton, Main")
+    row = page.locator("#mp-app .mp-row").first.evaluate("e => getComputedStyle(e).backgroundColor")
+    car = page.locator("#mp-app .mp-car").first.evaluate("e => getComputedStyle(e).backgroundColor")
+    assert row == "rgb(20, 22, 24)" and car == "rgb(20, 22, 24)", (row, car)

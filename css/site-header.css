@@ -591,6 +591,8 @@ html.mt3uk-laps-only .navlinks a.nav-link-back { display: none; }
 /* The footer has room above and below its content, so it reads as its own region: 28px on a phone, 32px on desktop. */
 footer { padding-top: 28px; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 781px) { footer { padding-top: 32px; padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)); } }
+/* On a phone the footer's content sits 28px from the edge, the same line as the header logo (its content adds 16px). */
+@media (max-width: 780px) { footer { padding-left: 12px; padding-right: 12px; } }
 /* Sideways (landscape): the coloured bands run to the screen's edges; only the content is kept clear of the notch and bars. */
 .wrap { padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }
 nav { padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-left: calc(28px + env(safe-area-inset-left, 0px)); padding-right: calc(28px + env(safe-area-inset-right, 0px)); }

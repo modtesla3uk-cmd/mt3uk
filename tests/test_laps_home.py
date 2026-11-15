@@ -449,12 +449,12 @@ def test_a_skipped_intro_stays_skipped_on_the_next_visit(page):
 
 def test_in_the_laps_app_the_status_bar_icons_are_asked_to_be_white(page):
     """In the Laps app the page asks the app's SystemBars plugin for white status bar icons, because behind them is the
-    dark green band (light mode) or the dark header (dark mode). On Richard's phone that is style 'LIGHT' ('DARK' gave
-    black icons, the other way round from Capacitor's docs). It asks again once the page has loaded."""
+    dark green band (light mode) or the dark header (dark mode): style 'DARK' in Capacitor's terms. It asks again once the
+    page has loaded. (The app itself also sets them, in MainActivity.)"""
     page.add_init_script("""window.__sb = []; window.Capacitor = { Plugins: { SystemBars: {
       setStyle: (o) => { window.__sb.push(o); return Promise.resolve(); } } } };""")
     page.goto("/leaderboards.html")
     page.wait_for_load_state("load")
     calls = page.evaluate("window.__sb")
     assert len(calls) >= 2, calls
-    assert all(c == {"style": "LIGHT", "bar": "StatusBar"} for c in calls), calls
+    assert all(c == {"style": "DARK", "bar": "StatusBar"} for c in calls), calls

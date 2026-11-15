@@ -15,10 +15,10 @@ def phone(page, base_url):
     ctx = page.context.browser.new_context(base_url=base_url, has_touch=True, is_mobile=True, viewport=SIZE)
     # No worker in the tests: every call gets a plain "no" at once, and the pages still draw their headings and footers.
     ctx.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
-    ctx.add_init_script("""() => { try {
+    ctx.add_init_script("""try {
       localStorage.setItem('mt3ukTheme', '{"main":"gold","laps":"gold"}');
       localStorage.setItem('mt3ukLapsIntroSeen', '1');
-    } catch (e) {} }""")
+    } catch (e) {}""")
     return ctx
 
 

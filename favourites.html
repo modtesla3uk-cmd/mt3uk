@@ -480,12 +480,18 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script>(function(){function go(){try{if(localStorage.getItem('mt3ukLapsSkipIntro')==='1'){document.querySelectorAll('a.laps-logo').forEach(function(a){a.setAttribute('href','track.html');});}}catch(e){}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',go);}else{go();}})();</script>
 <script>(function(){document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-feedback-open]');if(!b)return;e.preventDefault();if(window.MT3UKFeedback){window.MT3UKFeedback.open();return;}if(window.MT3UKFeedbackLoading)return;window.MT3UKFeedbackLoading=true;var s=document.createElement('script');s.src='js/feedback.js?v=1';s.onload=function(){window.MT3UKFeedback&&window.MT3UKFeedback.open();};document.head.appendChild(s);});})();</script>
 <script>
-// In the Laps app, the phone's status bar icons (clock, battery) are light: behind them is the dark green band in light
-// mode and the dark header in dark mode (css/site-header.css). Does nothing in a normal browser.
+// In the Laps app, the phone's status bar icons (clock, battery) must be white: behind them is the dark green band in
+// light mode and the dark header in dark mode (css/site-header.css). Does nothing in a normal browser.
+// The style is 'LIGHT', not the 'DARK' Capacitor's docs give for light icons: on Richard's phone 'LIGHT' gave white icons
+// and 'DARK' black ones (November 2026). If a phone shows black icons on the band, this is the line to look at.
 (function () {
   var sb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SystemBars;
   if (!sb || !sb.setStyle) return;
-  sb.setStyle({ style: 'DARK', bar: 'StatusBar' }).catch(function () {});
+  function set() { try { Promise.resolve(sb.setStyle({ style: 'LIGHT', bar: 'StatusBar' })).catch(function () {}); } catch (e) {} }
+  set();
+  // Again once the page has loaded and whenever the app comes back to the front, in case the app reset it meanwhile.
+  window.addEventListener('load', set);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) set(); });
 })();
 </script>
 <script>

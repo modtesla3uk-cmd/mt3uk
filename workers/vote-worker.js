@@ -10509,23 +10509,50 @@ async function siteThemes(env) {
     laps: SITE_THEMES.indexOf(t.laps) > -1 ? t.laps : 'current'
   };
 }
+// Light or dark on the Laps pages, kept in the same KV key: the default for a visitor who has not picked one (light, dark,
+// or system, which follows the visitor's device), and Dark for everyone (darkAll), which opens every Laps page dark for
+// everyone, an earlier choice of light included (darkAllAt is when it was switched on; a visitor who picks light after
+// that keeps light). Read by js/colour-mode.js through js/site-theme.js.
+var SITE_MODES = ['light', 'dark', 'system'];
+async function siteMode(env, t) {
+  t = t || await getJsonKey(env, SITE_THEME_KEY, {});
+  return { laps: SITE_MODES.indexOf(t.lapsMode) > -1 ? t.lapsMode : 'light', darkAll: t.darkAll === true, darkAllAt: Number(t.darkAllAt) || 0 };
+}
 async function handleSiteThemePublic(env) {
-  var res = json({ success: true, themes: await siteThemes(env) });
+  var t = await getJsonKey(env, SITE_THEME_KEY, {});
+  var res = json({ success: true, themes: await siteThemes(env), mode: await siteMode(env, t) });
   res.headers.set('Cache-Control', 'no-cache');
   return res;
 }
 async function handleSiteThemeAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  if (request.method === 'GET') return json({ success: true, themes: await siteThemes(env) });
+  if (request.method === 'GET') return json({ success: true, themes: await siteThemes(env), mode: await siteMode(env) });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  // Light or dark on the Laps pages: { mode: 'light' | 'dark' | 'system' } and/or { darkAll: true | false }.
+  if (body && (body.mode !== undefined || body.darkAll !== undefined)) {
+    var stored = await getJsonKey(env, SITE_THEME_KEY, {});
+    if (body.mode !== undefined) {
+      if (SITE_MODES.indexOf(body.mode) === -1) return json({ success: false, message: 'Choose light, dark or follow the device.' }, 400);
+      stored.lapsMode = body.mode;
+    }
+    if (body.darkAll !== undefined) {
+      var on = body.darkAll === true;
+      if (on && stored.darkAll !== true) stored.darkAllAt = Date.now();
+      stored.darkAll = on;
+    }
+    await env.VOTES.put(SITE_THEME_KEY, JSON.stringify(stored));
+    return json({ success: true, themes: await siteThemes(env), mode: await siteMode(env, stored) });
+  }
   var site = body && body.site, theme = body && body.theme;
   if (site !== 'main' && site !== 'laps') return json({ success: false, message: 'Choose mt3uk.com or laps.mt3uk.com.' }, 400);
   if (SITE_THEMES.indexOf(theme) === -1) return json({ success: false, message: 'Choose a theme the site has.' }, 400);
   var themes = await siteThemes(env);
   themes[site] = theme;
-  await env.VOTES.put(SITE_THEME_KEY, JSON.stringify(themes));
-  return json({ success: true, themes: themes });
+  // The light or dark settings share the key, so they are kept when a theme is saved.
+  var kept = await getJsonKey(env, SITE_THEME_KEY, {});
+  await env.VOTES.put(SITE_THEME_KEY, JSON.stringify(Object.assign({}, kept, themes)));
+  return json({ success: true, themes: themes, mode: await siteMode(env, kept) });
 }
 
 // ---------- Units sold (GET /shop/sales), typed in on the Shop panel of admin.html ----------

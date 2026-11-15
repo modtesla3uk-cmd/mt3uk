@@ -118,6 +118,12 @@
         </table>
       </div>
       <p class="iv-note" id="theme-status" role="status"></p>
+      <h4 class="sub-head" id="laps-mode-head">Laps: light or dark</h4>
+      <p class="iv-note">How the Laps pages open for a visitor who has not picked light or dark themselves (with the footer, the intro or Profile). Follow their device uses the light or dark setting of their phone or computer.</p>
+      <div class="iv-toolbar" role="group" aria-label="Laps default, light or dark"><button type="button" data-mode-pick="light" aria-pressed="false">Light</button> <button type="button" data-mode-pick="system" aria-pressed="false">Follow their device</button> <button type="button" data-mode-pick="dark" aria-pressed="false">Dark</button></div>
+      <p><button type="button" class="tk-switch" id="mode-dark-all" role="switch" aria-checked="false"><span class="tk-track"></span><span>Dark for everyone</span></button></p>
+      <p class="iv-note">Dark for everyone opens every Laps page in dark mode for everyone, including visitors who chose light before. Anyone can still switch back to light with the footer, and keeps light after that. Switch it off and each visitor's own choice, or the default above, applies again.</p>
+      <p class="iv-note" id="mode-status" role="status"></p>
     </details>
     <details class="collapsible" id="laps-palette">
       <summary><h3 class="panel-title">Laps dark palette</h3></summary>
@@ -2658,7 +2664,7 @@
 <script src="js/admin-alerts.js?v=20261251" defer></script>
 <script src="js/shop-home-admin.js?v=11" defer></script>
 <script src="js/card-share-admin.js?v=1" defer></script>
-<script src="js/site-theme-admin.js?v=1" defer></script>
+<script src="js/site-theme-admin.js?v=2" defer></script>
 <script src="js/admin-toast.js?v=1" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/nickname-fill-admin.js?v=20270212" defer></script>

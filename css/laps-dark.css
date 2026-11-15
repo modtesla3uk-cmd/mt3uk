@@ -295,3 +295,6 @@ html[data-mode="dark"] .lb-venues .tp-board-name { border-bottom-color: #5a626c 
 html[data-mode="dark"] .lb-podium li + li { border-top-color: #5a626c !important; }
 /* The second place badge is silver with dark figures in dark mode, so the number can be read. */
 html[data-mode="dark"] .lb-top2 .lb-pos { background-color: #c9d0d8 !important; color: #141618 !important; }
+/* Secondary text in dark mode (session details, ranks, the layout line) is light grey, not the dark green-grey of the light theme. */
+html[data-mode="dark"][data-theme] { --steel: #c8cfd8; --c-muted: #c8cfd8; --c-slate: #c8cfd8; }
+html[data-mode="dark"] { --c-muted: #aab2bd; --c-slate: #aab2bd; }

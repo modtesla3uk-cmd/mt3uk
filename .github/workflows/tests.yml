@@ -8,15 +8,19 @@ on:
   # worker's /admin/run-tests, with a choice of devices, checks and pages.
   repository_dispatch:
     types: [device-tests]
+  # Every device, once a week (Monday, 03:30 UK time in winter), and by hand from the Actions tab.
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch: {}
 
 # One job per device, so each shows its own pass or fail. The Device Checks
 # page reads these job results and their failure notes from the GitHub API.
 #
-# A push that only changes content (an event or interview saved from the admin
-# pages, a review, the regenerated manifests and share pages) runs the Site
-# checks job alone: it is the one that reads those files, and the five device
-# jobs would only repeat the page checks. Any code, page, test or workflow
-# change still runs everything.
+# A push runs the Site checks job alone (the non-device tests on one browser).
+# The five device jobs each install their own browser and repeat the page
+# checks, so they run once a week (the schedule), on a pull request, and when
+# started by hand from the Actions tab or the Device Checks page. This keeps the
+# minutes low on a private repository, where GitHub counts every minute.
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -74,6 +78,9 @@ jobs:
           checks = [c for c in payload.get("checks") or [] if c in tests]
           pages = [p for p in payload.get("pages") or [] if isinstance(p, str) and p.replace("-", "").isalnum()]
           jobs = [j for j in all_jobs if not devices or j["key"] in devices] or all_jobs
+          if os.environ.get("EVENT_NAME") == "push" and not devices:
+              print("A push runs the Site checks alone. The device checks run weekly and when started by hand.")
+              jobs = [j for j in all_jobs if j["key"] == "site"]
           if content_only():
               print("Only content changed: running the Site checks alone")
               jobs = [j for j in all_jobs if j["key"] == "site"]

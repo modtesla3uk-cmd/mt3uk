@@ -30,6 +30,7 @@
   }
   function apply(mode) {
     root.setAttribute('data-mode', mode);
+    try { document.dispatchEvent(new CustomEvent('mt3uk-colour-mode', { detail: { mode: mode } })); } catch (e) { /* old browser */ }
     var btns = document.querySelectorAll('[data-mode-toggle]');
     for (var i = 0; i < btns.length; i++) {
       var dark = mode === 'dark';
@@ -39,25 +40,29 @@
     }
   }
   apply(choose());
-  // The admin's settings arrive from js/site-theme.js after the page has started; a change is applied at once.
+  function toggle() {
+    var next = root.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
+    set(KEY, next);
+    set(AT, String(Date.now()));
+    apply(next);
+  }
+  // The admin's settings arrive from js/site-theme.js after the page has started; a change is applied at once. sync() names
+  // the switches again after a page swaps one in (the Laps footer on Profile and My Garage), and toggle() is for a page's
+  // own button (Profile's Preferences).
   window.MT3UKColourMode = {
     refresh: function (cfg) {
       if (cfg) set(SITE, JSON.stringify({ laps: cfg.laps, darkAll: !!cfg.darkAll, darkAllAt: Number(cfg.darkAllAt) || 0 }));
       apply(choose());
-    }
+    },
+    sync: function () { apply(root.getAttribute('data-mode') || choose()); },
+    toggle: toggle
   };
+  // One listener for every [data-mode-toggle], also one added to the page later.
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('[data-mode-toggle]') : null;
+    if (b) { e.preventDefault(); toggle(); }
+  });
   // Following the device: a change of the device's setting while the page is open is followed too.
   if (device && device.addEventListener) device.addEventListener('change', function () { apply(choose()); });
-  document.addEventListener('DOMContentLoaded', function () {
-    var btns = document.querySelectorAll('[data-mode-toggle]');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].addEventListener('click', function () {
-        var next = root.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
-        set(KEY, next);
-        set(AT, String(Date.now()));
-        apply(next);
-      });
-    }
-    apply(root.getAttribute('data-mode') || choose());
-  });
+  document.addEventListener('DOMContentLoaded', function () { apply(root.getAttribute('data-mode') || choose()); });
 })();

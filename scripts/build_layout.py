@@ -36,7 +36,7 @@ LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin", "favourites", "tra
 # and also carry the Laps ones in a <template>, which js/laps-shared.js swaps in on laps.mt3uk.com, so a member there
 # stays on Laps instead of being sent to mt3uk.com.
 SHARED_PAGES = ("profile", "my-builds")
-SHARED_SCRIPT = '<script src="js/laps-shared.js?v=20270201"></script>'
+SHARED_SCRIPT = '<script src="js/laps-shared.js?v=20270202"></script>'
 # Bump the ?v= tag when css/site-header.css changes, as browsers and Cloudflare keep the old file under the old tag.
 STYLESHEET = '<link rel="stylesheet" href="css/site-header.css?v=20271045">'
 

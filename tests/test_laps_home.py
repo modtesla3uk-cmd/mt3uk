@@ -539,3 +539,27 @@ def test_favourites_has_no_preferences_card_the_footer_switch_does_that_job(page
     expect(page.locator("footer #lf-mode")).to_be_visible()
     expect(page.locator("#pf-prefs")).to_have_count(0)
     expect(page.get_by_role("heading", name="Preferences")).to_have_count(0)
+
+
+def test_on_profile_the_laps_footer_switch_is_named_for_the_mode_and_works(browser):
+    """Profile and My Garage swap the Laps footer in on laps.mt3uk.com (here a second local address). Its Dark mode or Light
+    mode switch is named for the mode the page is in and changes the page, and Profile's own Preferences button follows the
+    same setting at once."""
+    ctx = browser.new_context(base_url="http://127.0.0.1:8123", viewport={"width": 390, "height": 844})
+    ctx.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
+    ctx.add_init_script("window.MT3UK_SITES = { laps: ['127.0.0.1'] }; try { if (!localStorage.getItem('seeded')) { localStorage.setItem('seeded', '1'); localStorage.setItem('mt3ukColourMode', 'dark'); } } catch (e) {}")
+    page = ctx.new_page()
+    page.goto("/profile.html")
+    btn = page.locator("footer #lf-mode")
+    btn.scroll_into_view_if_needed()
+    expect(btn).to_have_text("Light mode")  # it is dark already, so the switch offers light
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "dark"
+    btn.click()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
+    expect(btn).to_have_text("Dark mode")
+    expect(page.locator("#pf-mode")).to_have_text("Dark mode: off")
+    page.locator("#pf-mode").click()
+    assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "dark"
+    expect(btn).to_have_text("Light mode")
+    expect(page.locator("#pf-mode")).to_have_text("Dark mode: on")
+    ctx.close()

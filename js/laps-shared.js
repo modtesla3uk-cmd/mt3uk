@@ -15,6 +15,8 @@
   function swap(id, tag) {
     var tpl = document.getElementById(id), el = document.querySelector(tag);
     if (tpl && el) el.parentNode.replaceChild(tpl.content.cloneNode(true), el);
+    // The swapped-in footer carries Dark mode or Light mode: name it for the mode the page is in.
+    if (window.MT3UKColourMode) window.MT3UKColourMode.sync();
   }
   swap('laps-header-tpl', 'header');
   document.documentElement.classList.add('laps-shared');

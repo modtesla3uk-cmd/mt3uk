@@ -132,7 +132,7 @@ html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-
 html[data-mode="dark"] .lb-list > .lb-row { border-width: 0 0 1px 0 !important; border-style: solid; border-color: #444444 !important; }
 html[data-mode="dark"] .lb-list > .lb-row:last-child { border-bottom-color: #444444 !important; }
 /* Any green (or other dark) text in dark mode is white. Gold buttons keep their dark words. */
-html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-bulbbtn):not(.lb-fav),
+html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-bulbbtn):not(.lb-fav):not([data-tier-unlock]),
 html[data-mode="dark"] a:not(.btn-accent):not(.btn-primary), html[data-mode="dark"] b, html[data-mode="dark"] strong,
 html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4, html[data-mode="dark"] label,
 html[data-mode="dark"] .lb-cta *:not(.btn-accent), html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-note * {
@@ -311,3 +311,16 @@ html[data-mode="dark"] .tp-rank-n { background-color: #2a2e33 !important; border
 /* Secondary text in dark mode (session details, ranks, the layout line) is light grey, not the dark green-grey of the light theme. */
 html[data-mode="dark"][data-theme] { --steel: #c8cfd8; --c-muted: #c8cfd8; --c-slate: #c8cfd8; }
 html[data-mode="dark"] { --c-muted: #aab2bd; --c-slate: #aab2bd; }
+
+/* Where a session stands on its board, on each row of a day: a dark pill with white words in dark mode (it kept the light
+   pill with grey words). The Gold, Silver and Bronze chips keep their own colours. */
+html[data-mode="dark"] .tp-rank:not(.tp-rank-1):not(.tp-rank-2):not(.tp-rank-3) { background-color: #2a2e33 !important; border-color: #5a626c !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .tp-rank.is-off { color: #c8cfd8 !important; }
+
+/* Laps Pro features on a free plan (js/quota-ring.js covers a tile, js/track-page.js locks a card): a dark veil with white
+   words and the gold Unlock button in dark mode, not the light cream veil. */
+html[data-mode="dark"] .tier-lock-cover { background: rgba(20, 22, 24, 0.88) !important; color: #dfe3e8 !important; }
+html[data-mode="dark"] .tier-lock-cover b { color: #fff !important; }
+html[data-mode="dark"] .tier-lock-cover button[data-tier-unlock] { background: #e0b44a !important; border: 1px solid #e0b44a !important; color: #141618 !important; }
+html[data-mode="dark"] .tp-lock { border-color: #7d848e !important; color: #c8cfd8 !important; }
+html[data-mode="dark"] .tp-lock b { color: #fff !important; }

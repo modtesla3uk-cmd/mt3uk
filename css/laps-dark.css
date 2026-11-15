@@ -373,3 +373,13 @@ html[data-mode="dark"] .tm-pick span, html[data-mode="dark"] .ma-pick-label { co
 /* My Analysis section tabs in dark mode: dark with a light outline, and the one picked gold with dark words. */
 html[data-mode="dark"] #ma-app button.ma-tab { background: #141618 !important; border: 1px solid #7d848e !important; color: #dfe3e8 !important; }
 html[data-mode="dark"] #ma-app button.ma-tab.is-on { background: #f5c542 !important; border-color: #f5c542 !important; color: #111111 !important; }
+/* My Analysis stage 2 in dark mode: the figure tile's trend line and chevron are light grey, and a session card on a phone is a dark card. */
+html[data-mode="dark"] #ma-app .ma-spark, html[data-mode="dark"] #ma-app .ma-fig-chev { color: #aab2bd; }
+html[data-mode="dark"] #ma-app .ma-spark circle[fill="#16233d"] { fill: #aab2bd; }
+@media (max-width: 780px) {
+  html[data-mode="dark"] #ma-app .ma-table tr.ma-row { background: #1e2124; border-color: #5a626c; }
+  html[data-mode="dark"] #ma-app .ma-table tr.ma-row.is-picked { border-color: #f5c542; box-shadow: 0 0 0 1px #f5c542; }
+  html[data-mode="dark"] #ma-app .ma-table tr.ma-row > td { color: #dfe3e8 !important; background: none !important; }
+  html[data-mode="dark"] #ma-app .ma-table tr.ma-row > td::before { color: #aab2bd; }
+  html[data-mode="dark"] #ma-app .ma-table tr.ma-row > td[data-label="Track"] { color: #aab2bd !important; }
+}

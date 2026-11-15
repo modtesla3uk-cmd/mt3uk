@@ -174,3 +174,13 @@
   /* Keep the page clear of the phone's side cut-outs and bars (the header already does this). */
   body.laps-tabbed .wrap { padding-right: calc(16px + env(safe-area-inset-right, 0px)) !important; padding-left: calc(16px + env(safe-area-inset-left, 0px)) !important; }
 }
+
+/* Landscape phones (wider than 900px too): the title, its icons and Add a session share one line. The wider-screen heading
+   layout placed the title and the button absolutely, so Add a session ran off the right edge on some phones. Here both sit in
+   the normal row, the title keeps its natural width, and the button is at the right on the title line. */
+@media (orientation: landscape) and (max-height: 500px) {
+  html body.laps-tabbed .lh-hero .lh-title { position: static !important; width: auto !important; height: auto !important; top: auto !important; left: auto !important; font-size: 1.35rem !important; flex: 1 1 0 !important; min-width: 0 !important; margin: 0 !important; }
+  html body.laps-tabbed .lh-hero .lh-pill.tp-add-pill, html body.laps-tabbed .lh-hero #tp-hero-add, html body.laps-tabbed .lh-hero .lh-pill.lb-add, html body.laps-tabbed .lh-hero #lb-add-session { position: static !important; width: auto !important; height: 40px !important; min-height: 40px !important; margin: 0 0 0 auto !important; padding: 0 14px !important; font-size: 0.9rem !important; flex: 0 0 auto !important; top: auto !important; left: auto !important; right: auto !important; }
+  html body.laps-tabbed .page-hero, html body.laps-tabbed .lh-hero { height: auto !important; min-height: 0 !important; }
+  html body.laps-tabbed .page-hero .wrap, html body.laps-tabbed .lh-hero .wrap { height: auto !important; min-height: 0 !important; align-items: center !important; }
+}

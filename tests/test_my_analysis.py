@@ -6,6 +6,12 @@ from playwright.sync_api import expect
 from test_track_page import FakeWorker, day_session, open_page, summary
 
 
+def tab(page, name):
+    """Open a section tab of My Analysis: figures, time, setups or sessions (only one shows at a time)."""
+    page.locator('[data-ma-tab="%s"]' % name).click()
+    expect(page.locator("#ma-sec-%s" % name)).to_be_visible()
+
+
 def add(fake, sid, date, best, car="car1", tyres="", pads="", mode=None, brake_g=None, temp=None, drive=""):
     r = dict(day_session(sid, "10:00", best, 4, date=date, venue="Indy", venue_id="indy"), layoutId="indy", layout="Indy", carId=car)
     fake.sessions[sid] = dict(r)
@@ -45,10 +51,12 @@ def test_the_figure_and_setup_chips_change_the_graph_and_the_comparison(page):
     add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", pads="Pagid", mode={"brakeTemp": 61, "power": 230})
     add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", pads="Ferodo", mode={"brakeTemp": 84, "power": 260})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     expect(page.locator(".tm-chart h2")).to_have_text("Over time")
     page.locator('[data-metric="brakes"]').click()
     expect(page.locator('[data-metric="brakes"]')).to_have_attribute("aria-pressed", "true")
     expect(page.locator(".tm-chart svg")).to_have_attribute("aria-label", "Hottest brakes for each session, by date")
+    tab(page, "setups")
     page.locator('[data-setup="pads"]').click()
     expect(page.locator(".ma-setup .tm-row:not(.tm-head)").first).to_contain_text("Ferodo")
 
@@ -121,6 +129,7 @@ def test_picking_a_figure_in_over_time_says_what_it_is_and_how_it_relates_to_per
     add(fake, "a1", "2026-05-01", 61.0, mode={"slip": 0.6, "brakeTemp": 61})
     add(fake, "a2", "2026-05-08", 60.5, mode={"slip": 0.9, "brakeTemp": 84})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     note = page.locator("#ma-metric-note")
     expect(note).to_contain_text("Your quickest timed lap in the session")
     page.locator('button[data-metric="slip"]').click()
@@ -129,23 +138,50 @@ def test_picking_a_figure_in_over_time_says_what_it_is_and_how_it_relates_to_per
     expect(page.locator('button[data-metric="slip"]')).to_have_attribute("aria-pressed", "true")
 
 
-def test_the_section_links_jump_to_each_section_and_the_track_choice_stays_in_view(page):
+def test_the_sections_are_tabs_with_findings_first_and_only_one_shows_at_a_time(page):
     page.set_viewport_size({"width": 390, "height": 844})
     fake = FakeWorker(earlier=False)
     for i, d in enumerate(["2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05"]):
         add(fake, "s%d" % i, d, 60.0 + i * 0.3, tyres="Michelin" if i % 2 else "Toyo", brake_g=1.1, temp=12, mode={"brakeTemp": 60 + i * 4, "power": 240, "batteryTemp": 50})
     open_page(page, fake, "/my-analysis.html")
-    links = page.locator(".ma-jump a")
-    expect(links).to_have_count(4)
-    for name, sec in [("Setups", "ma-sec-setup"), ("Sessions", "ma-sec-sessions"), ("Over time", "ma-sec-time"), ("All figures", "ma-sec-grid")]:
-        page.locator(".ma-jump a", has_text=name).click()
-        page.wait_for_timeout(400)
-        top = page.evaluate("document.getElementById('%s').getBoundingClientRect().top" % sec)
-        stick = page.evaluate("document.querySelector('.ma-controls').getBoundingClientRect().bottom")
-        # The section starts just under the sticky block, not behind it.
-        assert stick - 4 <= top <= stick + 80, (name, top, stick)
-        # The sticky choices stay on screen under the header.
-        assert page.evaluate("document.querySelector('.ma-controls').getBoundingClientRect().top") <= page.evaluate("document.querySelector('header').getBoundingClientRect().bottom") + 2
+    tabs = page.locator(".ma-jump [role=tab]")
+    expect(tabs).to_have_count(4)
+    assert [t.strip() for t in tabs.all_inner_texts()] == ["Figures", "Over time", "Setups", "Sessions"]
+    expect(page.locator("#ma-tab-figures")).to_have_attribute("aria-selected", "true")
+    # Figures is open and leads with what the figures show; the figure chips start with All.
+    expect(page.locator("#ma-sec-figures > *").first).to_contain_text("What the figures show")
+    expect(page.locator("#ma-sec-figures h2").nth(1)).to_have_text("Figures")
+    expect(page.locator("[data-grid-group]").first).to_have_text("All")
+    for name in ("time", "setups", "sessions", "figures"):
+        tab(page, name)
+        for other in ("figures", "time", "setups", "sessions"):
+            if other != name:
+                expect(page.locator("#ma-sec-%s" % other)).to_be_hidden()
+        expect(page.locator("#ma-tab-%s" % name)).to_have_attribute("aria-selected", "true")
+    # The track choice and the tabs stay in view under the header as the long Figures tab scrolls.
+    page.evaluate("window.scrollTo(0, 900)")
+    page.wait_for_timeout(300)
+    assert page.evaluate("document.querySelector('.ma-controls').getBoundingClientRect().top") <= page.evaluate("document.querySelector('header').getBoundingClientRect().bottom") + 2
+    page.evaluate("window.scrollTo(0, 0)")
+    # Arrow keys move between the tabs.
+    page.locator("#ma-tab-figures").focus()
+    page.keyboard.press("ArrowRight")
+    expect(page.locator("#ma-tab-time")).to_have_attribute("aria-selected", "true")
+    expect(page.locator("#ma-sec-time")).to_be_visible()
+    page.keyboard.press("ArrowLeft")
+    expect(page.locator("#ma-tab-figures")).to_have_attribute("aria-selected", "true")
+    # A tab is far shorter than the whole page used to be.
+    tab(page, "setups")
+    assert page.evaluate("document.documentElement.scrollHeight") < 2600
+
+
+def test_an_old_section_address_opens_its_tab(page):
+    fake = FakeWorker(earlier=False)
+    add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin")
+    add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo")
+    open_page(page, fake, "/my-analysis.html#ma-sec-setup")
+    expect(page.locator("#ma-tab-setups")).to_have_attribute("aria-selected", "true")
+    expect(page.locator("#ma-sec-setups")).to_be_visible()
 
 
 def test_my_analysis_asks_you_to_sign_in_when_signed_out(page):
@@ -163,6 +199,7 @@ def test_tapping_a_dot_opens_its_day_with_each_session_and_a_button_to_open_it(p
     add(fake, "a1", "2026-05-01", 61.0, tyres="Michelin", brake_g=1.1, mode={"brakeTemp": 61, "power": 230})
     add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, mode={"brakeTemp": 84, "power": 260})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     expect(page.locator("#ma-pick")).to_contain_text("Press a dot")
     # A dot opens the day it was driven on, under the graph: each session that day, with its setup, figures and a button to open it.
     page.locator('.ma-dot[data-session="a2"]').click()
@@ -172,10 +209,11 @@ def test_tapping_a_dot_opens_its_day_with_each_session_and_a_button_to_open_it(p
     expect(day.locator(".ma-sess")).to_have_count(1)
     expect(day.locator(".ma-sess.is-picked .ma-open")).to_have_attribute("href", "track.html?s=a2")
     expect(page.locator('.ma-row[data-session="a2"]')).to_have_class(re.compile("is-picked"))
-    # A row in the table picks its session as before, and Open still goes to the session.
+    # A row in the table (on the Sessions tab) picks its session as before, showing it above the table, and Open still goes to the session.
+    tab(page, "sessions")
     page.locator('.ma-row[data-session="a1"]').click()
     expect(page.locator("#ma-day")).to_have_count(0)
-    expect(page.locator("#ma-pick")).to_contain_text("Michelin")
+    expect(page.locator("#ma-pick-row")).to_contain_text("Michelin")
     page.locator('.ma-row[data-session="a1"] a').click()
     page.wait_for_url("**/track.html?s=a1")
 
@@ -186,6 +224,7 @@ def test_the_day_panel_lists_each_session_of_that_day_with_its_figures_and_colou
     add(fake, "a2", "2026-05-08", 60.5, tyres="Toyo", brake_g=1.2, temp=16, mode={"brakeTemp": 84, "power": 260})
     add(fake, "a3", "2026-05-15", 60.9, tyres="Toyo", brake_g=1.0, temp=12, mode={"brakeTemp": 70, "power": 240})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     page.locator('.ma-dot[data-session="a1"]').click()
     day = page.locator("#ma-day")
     expect(day.locator(".ma-day-head h2")).to_contain_text("8 May 2026")
@@ -206,6 +245,7 @@ def test_the_day_panel_sits_under_the_graph_at_every_width_and_closes_back_to_th
     add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
     add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     page.locator('.ma-dot[data-session="a2"]').click()
     expect(page.locator("#ma-day")).to_be_visible()
     assert "tm-chart" in page.evaluate("document.getElementById('ma-day').previousElementSibling.className")
@@ -223,6 +263,7 @@ def test_a_dot_can_be_opened_from_the_keyboard(page):
     add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
     add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     page.locator('.ma-dot[data-session="a2"]').focus()
     page.keyboard.press("Enter")
     expect(page.locator("#ma-day")).to_be_visible()
@@ -235,6 +276,7 @@ def test_on_a_phone_a_dot_brings_its_graph_and_the_day_under_it_into_view(page):
     add(fake, "a1", "2026-05-01", 61.0, mode={"brakeTemp": 61})
     add(fake, "a2", "2026-05-08", 60.5, mode={"brakeTemp": 84})
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     page.locator('.ma-dot[data-session="a2"]').click()
     expect(page.locator("#ma-day")).to_be_visible()
     page.wait_for_timeout(900)
@@ -351,6 +393,7 @@ def test_the_chart_key_sits_under_the_graph_and_the_dots_use_the_three_colours(p
     for sid, date, best in [("a1", "2026-02-23", 79.4), ("a2", "2026-03-09", 78.1), ("a3", "2026-04-06", 76.9), ("a4", "2026-05-01", 75.8)]:
         add(fake, sid, date, best)
     open_page(page, fake, "/my-analysis.html")
+    tab(page, "time")
     chart = page.locator("#ma-app .tm-chart")
     key = chart.locator(".ma-key")
     expect(key.locator("span").first).to_contain_text("Fast: within 1% of your best here")
@@ -382,8 +425,8 @@ def test_the_all_figures_grid_shows_each_figure_at_one_track_with_its_groups(pag
     expect(grid.locator('.ma-fig-card[data-figure="brakes"]')).to_be_visible()
     page.locator('button[data-grid-group="All figures"]').click()
     expect(grid.locator('.ma-fig-card[data-figure="lap"]')).to_be_visible()
-    # The All figures grid leads the page: the findings and the graph come after it.
-    assert page.evaluate("!!(document.getElementById('ma-grid').compareDocumentPosition(document.querySelector('.tm-finds')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    # The Figures tab leads with what the figures show: the findings come first, then the grid of figures.
+    assert page.evaluate("!!(document.querySelector('.tm-finds').compareDocumentPosition(document.getElementById('ma-grid')) & Node.DOCUMENT_POSITION_FOLLOWING)")
     # There is no By day view: each figure is one dot per session.
     expect(page.locator('button[data-grid-view]')).to_have_count(0)
     expect(page.get_by_role("button", name="By day")).to_have_count(0)

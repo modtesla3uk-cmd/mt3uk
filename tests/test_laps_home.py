@@ -2,6 +2,9 @@ import re
 """The Laps front page (laps.html, what laps.mt3uk.com/ opens): the hero's buttons for signed-out and signed-in
 visitors, and Fastest right now from /track/counts."""
 import json
+import shutil
+import subprocess
+from pathlib import Path
 
 from playwright.sync_api import expect
 
@@ -364,7 +367,7 @@ def test_the_laps_reel_is_the_intro_video_beside_the_words_and_free_to_access_si
     expect(video).to_have_attribute("src", "images/laps/laps-reel.mp4?v=9")
     expect(video).to_have_attribute("poster", "images/laps/laps-reel-poster.jpg?v=9")
     dark = page.locator(".lh-hero .lh-reel video.lh-reel-dark")
-    expect(dark).to_have_attribute("src", "images/laps/laps-reel-dark.mp4?v=2")
+    expect(dark).to_have_attribute("src", "images/laps/laps-reel-dark.mp4?v=3")
     assert page.evaluate("getComputedStyle(document.querySelector('.lh-hero .lh-reel video.lh-reel-dark')).display") == "none", "the recoloured video is only shown in dark mode"
     assert video.get_attribute("loop") is None, "the intro plays once and stops on the end card"
     assert video.get_attribute("autoplay") is None and video.get_attribute("muted") is None, "the intro waits for a tap, and plays with sound"
@@ -488,3 +491,41 @@ def test_a_signed_out_visitor_can_switch_dark_mode_from_the_footer_on_every_laps
         page.goto("/laps-signin.html")
         expect(page.locator("footer #lf-mode")).to_be_hidden()
         ctx.close()
+
+
+def test_the_desktop_intro_is_fuller_and_the_dark_video_matches_the_page(browser, base_url):
+    """From 901px wide the intro has larger type and buttons (on one line), a reel of about 430px with the words centred beside it so
+    the two columns end about level, and Free to access as two columns of cards. A phone keeps its own layout. The dark reel
+    and its poster have their blacks lifted to the page's own colour, so there is no darker box (it keeps its sound)."""
+    ctx = browser.new_context(base_url=base_url, viewport={"width": 1440, "height": 900})
+    ctx.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
+    page = ctx.new_page()
+    page.goto("/laps.html")
+    page.locator(".lh-reel-video").first.wait_for()
+    actions = page.locator(".lh-hero .tp-actions .btn")
+    tops = [actions.nth(i).bounding_box()["y"] for i in range(actions.count()) if actions.nth(i).is_visible()]
+    assert len(tops) >= 3 and max(tops) - min(tops) < 4, tops  # the buttons stay on one line
+    assert page.evaluate("parseFloat(getComputedStyle(document.querySelector('.lh-hero p')).fontSize)") >= 17
+    reel = page.locator(".lh-reel").bounding_box()
+    assert 420 <= reel["width"] <= 445, reel
+    copy = page.locator(".lh-hero .lh-copy").bounding_box()
+    assert abs((copy["y"] + copy["height"] / 2) - (reel["y"] + reel["height"] / 2)) < 80, (copy, reel)  # centred beside the reel
+    cols = page.evaluate("getComputedStyle(document.querySelector('.lh-free-list')).gridTemplateColumns.split(' ').length")
+    assert cols == 2, cols
+    ctx.close()
+    phone = browser.new_context(base_url=base_url, viewport={"width": 390, "height": 844})
+    phone.route("**/*workers.dev/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"success": false}'))
+    p = phone.new_page()
+    p.goto("/laps.html")
+    p.locator(".lh-free-list").wait_for(state="attached")
+    assert p.evaluate("getComputedStyle(document.querySelector('.lh-free-list')).gridTemplateColumns.split(' ').length") == 1
+    assert p.locator(".lh-reel").bounding_box()["width"] <= 345
+    phone.close()
+    # The dark reel's poster and first frame are the page's colour (rgb 20, 22, 24) where the picture is empty.
+    from PIL import Image
+    root = Path(__file__).resolve().parent.parent
+    poster = Image.open(root / "images/laps/laps-reel-dark-poster.jpg").convert("RGB")
+    assert all(abs(a - b) <= 3 for a, b in zip(poster.getpixel((6, 6)), (20, 22, 24))), poster.getpixel((6, 6))
+    if shutil.which("ffprobe"):
+        streams = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(root / "images/laps/laps-reel-dark.mp4")], capture_output=True, text=True).stdout.split()
+        assert "video" in streams and "audio" in streams, streams

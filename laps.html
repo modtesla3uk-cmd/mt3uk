@@ -423,6 +423,33 @@
   .lh-home .btn { width: 100%; }
   .lh-home [hidden] { display: none !important; }
   .lh-home-status { margin: 10px 0 0; font-size: 14px; color: #b9e7c8; }
+  /* Desktop (901px and up): the intro is a little larger and fuller, so a wide screen does not look sparse. Bigger type and
+     buttons, a larger reel, the words centred beside it (the spare height is shared above and below, not all underneath),
+     and Free to access as two columns of cards. A phone keeps its own layout. */
+  @media (min-width: 901px) {
+    .lh-hero { padding: 56px 0 52px; }
+    .lh-hero .wrap { grid-template-columns: 1.12fr 1fr; column-gap: 32px; }
+    .lh-hero .lh-copy { align-self: center; }
+    .lh-hero p { font-size: 1.12rem; line-height: 1.55; max-width: 54ch; }
+    .lh-hero .tp-actions { margin: 26px 0 34px; gap: 12px; }
+    .lh-hero .tp-actions { flex-wrap: nowrap; }
+    .lh-hero .tp-actions .btn { font-size: 1rem; padding: 12px 18px; min-height: 52px; white-space: nowrap; }
+    .lh-hero .lh-how { margin: 6px 0 26px; max-width: 38em; }
+    .lh-how h2 { font-size: 1.35rem; margin-bottom: 10px; }
+    .lh-how ol { font-size: 1.08rem; line-height: 1.5; }
+    .lh-how li { margin-bottom: 10px; }
+    .lh-note { font-size: 1rem; }
+    .lh-reel { width: min(100%, 440px); }
+    .lh-reel figcaption { font-size: 0.9rem; }
+    .lh-hero .wrap > .lh-free { margin-top: 44px; }
+    .lh-free h2 { font-size: 1.35rem; margin-bottom: 6px; }
+    .lh-free-lead { font-size: 1.02rem; margin-bottom: 14px; }
+    .lh-free-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .lh-free-list li { padding: 14px 16px; font-size: 1rem; }
+    .lh-free-list li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .lh-free-list .icon { flex-basis: 22px; width: 22px; height: 22px; }
+    .lh-free-note { font-size: 0.95rem; margin-top: 14px; }
+  }
   /* Skip intro is for phones: on a phone the video can be collapsed, so the words and buttons come up first. */
   @media (max-width: 780px), (orientation: landscape) and (max-height: 500px) {
     .lh-reel-bar { display: flex; order: 0; justify-self: start; }
@@ -736,7 +763,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     <div class="lh-reel-bar"><button type="button" class="lh-skip" id="lh-reel-skip" aria-expanded="true" aria-controls="lh-reel-box">Skip intro</button><div class="lh-mode-row"><button type="button" class="lh-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button></div></div>
     <figure class="lh-reel">
       <div class="lh-reel-box" id="lh-reel-box">
-      <video class="lh-reel-video" src="images/laps/laps-reel.mp4?v=9" poster="images/laps/laps-reel-poster.jpg?v=9" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 24 seconds: a lap drawn on a track, with the words for each scene"></video><video class="lh-reel-video lh-reel-dark" src="images/laps/laps-reel-dark.mp4?v=2" poster="images/laps/laps-reel-dark-poster.jpg?v=1" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 24 seconds: a lap drawn on a track, with the words for each scene, in the dark colours"></video>
+      <video class="lh-reel-video" src="images/laps/laps-reel.mp4?v=9" poster="images/laps/laps-reel-poster.jpg?v=9" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 24 seconds: a lap drawn on a track, with the words for each scene"></video><video class="lh-reel-video lh-reel-dark" src="images/laps/laps-reel-dark.mp4?v=3" poster="images/laps/laps-reel-dark-poster.jpg?v=2" width="1520" height="1920" playsinline controls preload="metadata" aria-label="Laps in 24 seconds: a lap drawn on a track, with the words for each scene, in the dark colours"></video>
       <figcaption>Tap play to watch with sound. Laps in 24 seconds, on a made-up circuit with example data.</figcaption>
       </div>
     </figure>

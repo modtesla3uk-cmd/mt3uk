@@ -144,9 +144,14 @@
     css();
     // A session: the full analysis is Corner by corner, How much grip you used and Speed.
     document.querySelectorAll('[data-tile="corners"],[data-tile="grip"],[data-tile="speed"]').forEach(function (tile) {
+      // A tile the session page has already swapped for its "Available on Laps Pro" card is not covered a second time
+      // (the two sets of words showed through each other).
+      if (tile.getAttribute('data-locked')) return;
       var key = tile.getAttribute('data-tile');
       lockTile(tile, key === 'corners' ? 'Corner by corner' : key === 'grip' ? 'How much grip you used' : 'Speed');
     });
+    // The Laps Pro panel on a session (this session's figures, what the laps say, what we spotted) is Laps Pro too.
+    document.querySelectorAll('.tp-prohead').forEach(function (panel) { lockTile(panel, 'Laps Pro'); });
     // The Leaderboard: Compare pads. Compare tyres is open on the free tier (its basic figures).
     document.querySelectorAll('#lb-views [data-view="pads"]').forEach(lockControl);
   }

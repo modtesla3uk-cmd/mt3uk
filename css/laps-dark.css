@@ -132,7 +132,7 @@ html[data-mode="dark"] .lb-hide, html[data-mode="dark"] .lb-hide svg, html[data-
 html[data-mode="dark"] .lb-list > .lb-row { border-width: 0 0 1px 0 !important; border-style: solid; border-color: #444444 !important; }
 html[data-mode="dark"] .lb-list > .lb-row:last-child { border-bottom-color: #444444 !important; }
 /* Any green (or other dark) text in dark mode is white. Gold buttons keep their dark words. */
-html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-bulbbtn):not(.lb-fav):not([data-tier-unlock]),
+html[data-mode="dark"] button:not(.btn-accent):not(.btn-primary):not(.laps-tip-bulbbtn):not(.lb-fav):not([data-tier-unlock]):not(.tv-zoom-btn):not(.tp-sound-btn),
 html[data-mode="dark"] a:not(.btn-accent):not(.btn-primary), html[data-mode="dark"] b, html[data-mode="dark"] strong,
 html[data-mode="dark"] h1, html[data-mode="dark"] h2, html[data-mode="dark"] h3, html[data-mode="dark"] h4, html[data-mode="dark"] label,
 html[data-mode="dark"] .lb-cta *:not(.btn-accent), html[data-mode="dark"] .lb-note, html[data-mode="dark"] .lb-note * {
@@ -344,3 +344,19 @@ html[data-mode="dark"] .tp-opt.is-on .tp-dot::after { background: #e0b44a !impor
 html[data-mode="dark"] .tp-prohead-top > h3, html[data-mode="dark"] .tp-prohead-top > h3 * { color: #141618 !important; }
 /* Best sector times in the laps table: a light green that reads on the dark table (the light theme's dark green did not). */
 html[data-mode="dark"] .tp-table td.is-fast, html[data-mode="dark"] .tp-table td.is-fast * { color: #7fe0b0 !important; }
+
+/* The map in dark mode: its zoom, full screen and sound buttons are dark with white icons (they kept the light theme's white
+   background, so the white icons vanished); a pressed one (satellite, sound on) is gold with dark icons. The live figures
+   under the map (speed, acceleration and cornering g) are white, not the light theme's green. */
+html[data-mode="dark"] .tv-zoom-btn, html[data-mode="dark"] .tp-sound-btn { background: rgba(20, 22, 24, 0.88) !important; border-color: #7d848e !important; color: #ffffff !important; }
+html[data-mode="dark"] .tv-zoom-btn:hover, html[data-mode="dark"] .tp-sound-btn:hover { background: #2a2e33 !important; }
+html[data-mode="dark"] .tv-zoom-sat[aria-pressed="true"], html[data-mode="dark"] .tp-sound-btn.is-on { background: #e0b44a !important; border-color: #e0b44a !important; color: #141618 !important; }
+html[data-mode="dark"] .tp-mv i { color: #ffffff !important; }
+/* What are Sessions? (and the other What is ... folds) and the footer's logo mark: light, not green, in dark mode. */
+html[data-mode="dark"] .tp-what-body, html[data-mode="dark"] .tp-what-body * { color: #dfe3e8 !important; }
+html[data-mode="dark"] footer .laps-logo-mark { color: #dfe3e8 !important; }
+html[data-mode="dark"] body .lh-hero .lh-fold[open] p, html[data-mode="dark"] body .lh-hero .lh-fold[open] li { color: #dfe3e8 !important; }
+html[data-mode="dark"] body .lh-hero .lh-fold[open] b, html[data-mode="dark"] body .lh-hero .lh-fold[open] strong { color: #ffffff !important; }
+/* Switches (Colour by speed, Shared, the G-force switches) are a word and a track, not boxed buttons: the dark outline every
+   button gets is taken off them, so no square box shows round the switch. */
+html[data-mode="dark"] .tp-switch, html[data-mode="dark"] .tp-daygroup-share, html[data-mode="dark"] .rbt-switch { border: 0 !important; }

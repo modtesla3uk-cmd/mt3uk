@@ -8141,3 +8141,26 @@ def test_the_sound_level_slider_sits_beside_the_speaker_and_sets_the_level_kept_
     page.locator("#tp-sound").click()
     expect(slider).to_be_hidden()
     assert not errors, errors
+
+
+def test_a_free_member_sees_the_laps_pro_panel_locked_and_a_pro_member_does_not(page):
+    """On the free plan the Laps Pro panel on a session (this session's figures, what the laps say) sits under the same
+    Laps Pro veil as the other paid tiles, and How much grip you used is locked once, not covered twice. With Laps Pro the
+    panel is open."""
+    fake = FakeWorker()
+    fake.tiers = {"success": True, "applies": True, "full": False, "balance": 4, "nextTopUp": "2026-12-01T00:00:00.000Z",
+                  "allowance": {"start": 3, "monthly": 3, "cap": 12}, "proFeatures": False,
+                  "trial": {"state": "none", "endsAt": "", "choice": "", "canStart": False, "days": 7}}
+    save_fixture_session(page, fake)
+    cover = page.locator("#tp-prohead > .tier-lock-cover")
+    expect(cover).to_be_visible()
+    expect(cover).to_contain_text("Laps Pro")
+    expect(cover).to_contain_text("Unlock for more insights.")
+    expect(page.locator('[data-tile="grip"] > .tier-lock-cover')).to_have_count(0)
+    expect(page.locator('[data-tile="grip"]')).to_contain_text("Available on Laps Pro")
+    # With Laps Pro the panel has no veil.
+    fake.tiers = dict(fake.tiers, proFeatures=True)
+    page.reload()
+    expect(page.locator("#tp-prohead")).to_be_visible()
+    page.wait_for_timeout(500)
+    expect(page.locator("#tp-prohead > .tier-lock-cover")).to_have_count(0)

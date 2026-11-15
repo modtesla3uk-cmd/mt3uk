@@ -273,6 +273,17 @@ html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mi
 /* The example analysis (My Analysis, for members without Laps Pro) in dark mode: the light picture is inverted to a dark one,
    kept a little dimmer so it is clearly an example and not the member's own data. */
 html[data-mode="dark"] .ma-example { filter: none; opacity: 1; }
+/* The example picture has a dark version: dark mode shows it instead of the light one (only the shown one is loaded). */
+.ma-example .ma-ex-dark { display: none; }
+html[data-mode="dark"] .ma-example .ma-ex-light { display: none; }
+html[data-mode="dark"] .ma-example .ma-ex-dark { display: block; }
+/* My Analysis in dark mode: the chart labels (axis times, months) are light grey, and the summary tiles and the session
+   list are dark cards, not white boxes with light words. */
+html[data-mode="dark"] #ma-app svg text { fill: #aab2bd !important; }
+/* My Analysis's gold buttons (Unlock, Open this session) have dark words, as every gold button does in dark mode. */
+html[data-mode="dark"] #ma-app .tm-pill-accent, html[data-mode="dark"] #ma-app [data-ma-unlock] { color: #141618 !important; }
+html[data-mode="dark"] .tm-tile, html[data-mode="dark"] .tm-list { background-color: #1e2124 !important; border-color: #343a41 !important; color: #dfe3e8; }
+html[data-mode="dark"] .tm-tile span, html[data-mode="dark"] .tm-list .tm-lab { color: #aab2bd !important; }
 /* Von Restorff: gold is kept for the one thing that needs attention (a lit tip bulb, a new fastest lap) and the current place
    (the selected tab, the Early preview tag). The tip bulb and the clock beside a page title are light grey until lit. */
 html[data-mode="dark"] .page-hero .laps-tip-titlebulb:not(.is-lit) { color: #dfe3e8; }

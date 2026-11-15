@@ -20,6 +20,8 @@ nav {
   margin: 0 auto;
   position: relative;
 }
+/* The header and footer logos are never underlined, whatever a page does with its own links. */
+header a.logo, header a.logo *, footer a.logo, footer a.logo * { text-decoration: none !important; }
 .logo {
   display: flex;
   align-items: center;

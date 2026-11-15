@@ -659,7 +659,8 @@
         '<p><b>Data analysis is a Laps Pro feature.</b> It turns the figures your logger or car records into lap times, corner by corner, grip and what each change did, for every session. This is an example, not your data. Unlock to see your own sessions here.</p>' +
         '<p class="tm-sub">If you add Tesla Track Mode data to a session, extra insights are available.</p>' +
         '<button type="button" class="tm-pill tm-pill-accent" data-ma-unlock>Unlock</button> <span class="tm-sub" data-ma-note hidden>Subscriptions are coming soon. Nothing is charged yet.</span></div>' +
-        '<div class="ma-example" aria-label="Example, not your data"><img src="images/track-preview/analysis-example.png?v=4" alt="An example session analysis, not a member\'s own data" loading="lazy"></div>';
+        '<div class="ma-example" aria-label="Example, not your data"><img class="ma-ex-light" src="images/track-preview/analysis-example.png?v=5" alt="An example session analysis, not a member\'s own data" loading="lazy">' +
+        '<img class="ma-ex-dark" src="images/track-preview/analysis-example-dark.png?v=1" alt="An example session analysis, not a member\'s own data" loading="lazy"></div>';
       app.querySelector('[data-ma-unlock]').addEventListener('click', function () {
         var n = app.querySelector('[data-ma-note]');
         if (!subscribeOpen) { if (n) n.hidden = false; return; }

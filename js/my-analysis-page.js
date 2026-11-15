@@ -654,13 +654,19 @@
     if (window.MT3UKQuotaRing) window.MT3UKQuotaRing.draw(t || {});
     if (t && t.success && t.applies && !t.full && !t.proFeatures) {
       subscribeOpen = !!t.subscribe;
-      // An example of a paid analysis, greyed out so it is clear it is not the member's own. Nothing of theirs is shown.
-      app.innerHTML = '<div class="tm-card ma-example-note"><h2>This is an example</h2>' +
-        '<p><b>Data analysis is a Laps Pro feature.</b> It turns the figures your logger or car records into lap times, corner by corner, grip and what each change did, for every session. This is an example, not your data. Unlock to see your own sessions here.</p>' +
+      // The analysis cards from an example session, each under the same Laps Pro veil a session uses for its paid tiles
+      // (js/quota-ring.js styles the veil and handles its Unlock). Nothing of the member's own is shown.
+      var cards = [['figures', 'All figures'], ['best-lap', 'Best lap'], ['top-speed', 'Top speed']];
+      app.innerHTML = '<div class="tm-card ma-example-note"><h2>Laps Pro: My Analysis</h2>' +
+        '<p><b>Data analysis is a Laps Pro feature.</b> It turns the figures your logger or car records into lap times, corner by corner, grip and what each change did, for every session. Unlock to see your own sessions here.</p>' +
         '<p class="tm-sub">If you add Tesla Track Mode data to a session, extra insights are available.</p>' +
         '<button type="button" class="tm-pill tm-pill-accent" data-ma-unlock>Unlock</button> <span class="tm-sub" data-ma-note hidden>Subscriptions are coming soon. Nothing is charged yet.</span></div>' +
-        '<div class="ma-example" aria-label="Example, not your data"><img class="ma-ex-light" src="images/track-preview/analysis-example.png?v=5" alt="An example session analysis, not a member\'s own data" loading="lazy">' +
-        '<img class="ma-ex-dark" src="images/track-preview/analysis-example-dark.png?v=1" alt="An example session analysis, not a member\'s own data" loading="lazy"></div>';
+        '<div class="ma-ex-cards">' + cards.map(function (c) {
+          return '<div class="ma-ex-card tier-lock-host" data-ma-example="' + c[0] + '">' +
+            '<img class="ma-ex-light" src="images/track-preview/analysis-' + c[0] + '.png?v=1" alt="Laps Pro: ' + c[1] + ' card, from an example session" loading="lazy">' +
+            '<img class="ma-ex-dark" src="images/track-preview/analysis-' + c[0] + '-dark.png?v=1" alt="Laps Pro: ' + c[1] + ' card, from an example session" loading="lazy">' +
+            '<div class="tier-lock-cover" data-tier-cover="' + c[1] + '"><div><b>' + c[1] + '</b><br>Unlock for more insights.</div><button type="button" data-tier-unlock>Unlock</button></div></div>';
+        }).join('') + '</div>';
       app.querySelector('[data-ma-unlock]').addEventListener('click', function () {
         var n = app.querySelector('[data-ma-note]');
         if (!subscribeOpen) { if (n) n.hidden = false; return; }

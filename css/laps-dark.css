@@ -270,13 +270,11 @@ html[data-mode="dark"] #mt3uk-chat textarea::placeholder, html[data-mode="dark"]
 /* Every word in the messenger is white in dark mode, including the previews and the request text that have no class of their
    own. The exceptions keep their colours: your own messages (black on gold), the selected tab (black on gold) and the send button. */
 html[data-mode="dark"] #mt3uk-chat *:not(.mc-msg.mine .mc-bubble):not(.mc-msg.mine .mc-bubble *):not(.mc-tab[aria-selected="true"]):not(.mc-send):not(.mc-send *) { color: #dfe3e8 !important; }
-/* The example analysis (My Analysis, for members without Laps Pro) in dark mode: the light picture is inverted to a dark one,
-   kept a little dimmer so it is clearly an example and not the member's own data. */
-html[data-mode="dark"] .ma-example { filter: none; opacity: 1; }
-/* The example picture has a dark version: dark mode shows it instead of the light one (only the shown one is loaded). */
-.ma-example .ma-ex-dark { display: none; }
-html[data-mode="dark"] .ma-example .ma-ex-light { display: none; }
-html[data-mode="dark"] .ma-example .ma-ex-dark { display: block; }
+/* The example cards on My Analysis (members without Laps Pro) each have a dark version: dark mode shows it instead of the
+   light one (only the shown one is loaded). */
+.ma-ex-card .ma-ex-dark { display: none; }
+html[data-mode="dark"] .ma-ex-card .ma-ex-light { display: none; }
+html[data-mode="dark"] .ma-ex-card .ma-ex-dark { display: block; }
 /* My Analysis in dark mode: the chart labels (axis times, months) are light grey, and the summary tiles and the session
    list are dark cards, not white boxes with light words. */
 html[data-mode="dark"] #ma-app svg text { fill: #aab2bd !important; }

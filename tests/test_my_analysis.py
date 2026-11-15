@@ -319,6 +319,23 @@ def test_my_analysis_is_a_paid_tool_for_free_members_while_the_switch_is_on(page
     add(fake, "a1", "2026-05-01", 61.0)
     open_page(page, fake, "/my-analysis.html")
     expect(page.locator("#ma-app")).to_contain_text("Data analysis is a Laps Pro feature")
+    expect(page.locator("#ma-app h2").first).to_have_text("Laps Pro: My Analysis")
+    # The example is shown as Laps Pro cards, each under the same veil a session uses, with no "This is an example" wording.
+    cards = page.locator(".ma-ex-card")
+    expect(cards).to_have_count(3)
+    for name in ("All figures", "Best lap", "Top speed"):
+        cover = page.locator(".ma-ex-card .tier-lock-cover", has_text=name)
+        expect(cover).to_be_visible()
+        expect(cover).to_contain_text("Unlock for more insights.")
+        expect(cover.locator("[data-tier-unlock]")).to_be_visible()
+    expect(page.locator("#ma-app")).not_to_contain_text("This is an example")
+    assert page.locator(".ma-ex-card .tier-lock-cover").first.evaluate("e => getComputedStyle(e).position") == "absolute"
+    # Light mode shows the light pictures; dark mode the dark ones.
+    expect(page.locator(".ma-ex-card .ma-ex-light").first).to_be_visible()
+    expect(page.locator(".ma-ex-card .ma-ex-dark").first).to_be_hidden()
+    page.evaluate("document.documentElement.setAttribute('data-mode', 'dark')")
+    expect(page.locator(".ma-ex-card .ma-ex-dark").first).to_be_visible()
+    expect(page.locator(".ma-ex-card .ma-ex-light").first).to_be_hidden()
 
 
 def test_full_access_and_the_switch_off_see_my_analysis(page):

@@ -324,3 +324,21 @@ html[data-mode="dark"] .tier-lock-cover b { color: #fff !important; }
 html[data-mode="dark"] .tier-lock-cover button[data-tier-unlock] { background: #e0b44a !important; border: 1px solid #e0b44a !important; color: #141618 !important; }
 html[data-mode="dark"] .tp-lock { border-color: #7d848e !important; color: #c8cfd8 !important; }
 html[data-mode="dark"] .tp-lock b { color: #fff !important; }
+
+/* The Laps Pro panel on a session in dark mode: a dark card like the rest of the page, not the green of the light theme.
+   The gold Laps Pro tag stays the one highlight. Its figure tiles and the cards inside it are dark grey, never white. */
+html[data-mode="dark"] .tp-prohead { background: #1e2124 !important; border: 1px solid #7d848e; }
+html[data-mode="dark"] .tp-band-fig, html[data-mode="dark"] .tp-band-box { background: #2a2e33 !important; border: 1px solid #5a626c !important; }
+html[data-mode="dark"] .tp-pro-cards > [data-tile] { background: #141618 !important; border-color: #7d848e !important; color: #dfe3e8 !important; }
+
+/* Buttons that are green in the light theme (Play, Save changes, Send for approval) are dark with a light outline in dark
+   mode, so gold stays for the main action. */
+html[data-mode="dark"] .btn-primary { background: #2a2e33 !important; border: 1px solid #dfe3e8 !important; color: #ffffff !important; }
+html[data-mode="dark"] .btn-primary .icon, html[data-mode="dark"] .btn-primary svg { color: #ffffff !important; stroke: currentColor; }
+html[data-mode="dark"] .btn-primary:hover { background: #3a3f46 !important; }
+
+/* Ticks and picked dots are gold in dark mode, not the light theme's green. */
+html[data-mode="dark"] input[type="radio"], html[data-mode="dark"] input[type="checkbox"], html[data-mode="dark"] input[type="range"] { accent-color: #e0b44a; }
+html[data-mode="dark"] .tp-opt .tp-dot { border-color: #c8cfd8 !important; }
+html[data-mode="dark"] .tp-opt.is-on .tp-dot { border-color: #e0b44a !important; }
+html[data-mode="dark"] .tp-opt.is-on .tp-dot::after { background: #e0b44a !important; }

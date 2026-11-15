@@ -197,3 +197,11 @@
   body.laps-tabbed .tm-heroes .tm-hero-top > .tm-what { flex: 0 0 100%; margin: 0; }
   body.laps-tabbed .tm-heroes > p { order: 3; flex: 1 1 100%; }
 }
+
+/* On a phone a long title (a session at "Cadwell Park, Full circuit") wraps onto a second line instead of pushing the
+   trophy, the ? and the free days ring off the right of the screen. The icons keep their size at the end of the row. */
+@media (max-width: 780px) {
+  html body .lh-hero .lh-title { white-space: normal !important; min-width: 0 !important; }
+  html body .lh-hero .lh-title > a.tp-title-link { white-space: normal !important; min-width: 0; flex: 0 1 auto; overflow-wrap: anywhere; }
+  html body .lh-hero .lh-title > :not(a) { flex: none; }
+}

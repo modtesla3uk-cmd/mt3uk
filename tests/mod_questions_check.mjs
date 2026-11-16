@@ -113,3 +113,19 @@ ok(JSON.parse(kv.get('profile:' + OWNER)).nickname === 'RH1' && JSON.parse(kv.ge
 ok(JSON.parse(kv.get('nicknames'))['odubois-smith'] === 'old@example.com', 'and the nickname index knows them');
 r = await call('POST', '/profile/admin/nicknames?key=secret');
 ok(r.body.given === 0 && r.body.had === 2, 'running it again gives none');
+
+// Editing a message you sent: only the sender can change it, it keeps its place, and both sides see it is edited.
+r = await call('POST', '/profile/messages/send', { with: askerId, text: 'Morning, the KW are firm' }, 'tok-owner');
+const editId = r.body.message.id;
+r = await call('POST', '/profile/messages/edit', { with: askerId, messageId: editId, text: 'Morning, the KW are firm on 8' }, 'tok-owner');
+ok(r.status === 200 && r.body.message.text === 'Morning, the KW are firm on 8' && r.body.message.edited === true, 'the sender can edit a message, and it is marked edited');
+r = await call('GET', '/profile/messages/thread?with=' + askerId, undefined, 'tok-owner');
+const editedSeen = (r.body.messages || []).filter(m => m.id === editId)[0];
+ok(editedSeen && editedSeen.text === 'Morning, the KW are firm on 8' && editedSeen.edited === true, 'the thread shows the new text, marked edited');
+const ownerFromAsker = Object.keys(JSON.parse(kv.get('dm-index:' + ASKER) || '{}'))[0];
+r = await call('POST', '/profile/messages/edit', { with: ownerFromAsker, messageId: editId, text: 'Changed by the other side' }, 'tok-asker');
+ok(r.status === 403, 'the other person cannot edit it');
+r = await call('POST', '/profile/messages/edit', { with: askerId, messageId: editId, text: '   ' }, 'tok-owner');
+ok(r.status === 400, 'an empty edit is refused');
+r = await call('POST', '/profile/messages/edit', { with: askerId, messageId: editId, text: 'x'.repeat(1001) }, 'tok-owner');
+ok(r.status === 400, 'a message too long to send is refused when edited');

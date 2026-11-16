@@ -59,6 +59,7 @@
   var REACTIONS = ['\u2764\ufe0f', '\ud83d\ude06', '\ud83d\ude2e', '\ud83d\ude22', '\ud83d\ude21', '\ud83d\udc4d'];
   var REPLY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8L4 13l6 5M4 13h10a6 6 0 0 1 6 6v1"/></svg>';
   var SAVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+  var EDIT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
 
   // ---------- Styles ----------
   var style = document.createElement('style');
@@ -174,6 +175,35 @@
     '.mc-menu-card .mc-react-row button{width:44px;min-height:44px;padding:0;border:0;border-radius:50%;justify-content:center;font-size:1.55rem;line-height:1;background:none;transition:transform .12s ease}',
     '.mc-menu-card .mc-react-row button:hover{transform:scale(1.15);background:none}',
     '.mc-menu-card .mc-react-row button.is-on{background:rgba(232,84,42,.15)}',
+    '.mc-edited{margin-left:6px;font-style:italic}',
+    // Dark mode (the Laps pages set html[data-mode="dark"], js/colour-mode.js): black and gold, the site's gold theme.
+    'html[data-mode="dark"] #mt3uk-chat{background:#0b0b0b;color:#f4f1ea;border-color:rgba(224,180,74,.35)}',
+    'html[data-mode="dark"] .mc-head{background:#000;color:#f4f1ea}',
+    'html[data-mode="dark"] .mc-tab{color:#cfc8b6}',
+    'html[data-mode="dark"] .mc-tab[aria-selected="true"]{background:#e0b44a;color:#06201c}',
+    'html[data-mode="dark"] .mc-body{background:#0b0b0b}',
+    'html[data-mode="dark"] .mc-row{background:#1a1a1a;color:#f4f1ea;box-shadow:none}',
+    'html[data-mode="dark"] button.mc-row:hover{background:#262626}',
+    'html[data-mode="dark"] .mc-bubble{background:#1f1f1f;color:#f4f1ea;box-shadow:none}',
+    'html[data-mode="dark"] .mc-bubble a{color:#e0b44a}',
+    'html[data-mode="dark"] .mc-msg.mine .mc-bubble{background:#e0b44a;color:#06201c}',
+    'html[data-mode="dark"] .mc-msg.mine .mc-bubble a{color:#06201c}',
+    'html[data-mode="dark"] .mc-msg.mine .mc-quote{background:rgba(0,0,0,.12);border-left-color:#06201c}',
+    'html[data-mode="dark"] .mc-msg.is-held .mc-bubble{box-shadow:0 0 0 3px rgba(224,180,74,.45)}',
+    'html[data-mode="dark"] .mc-msg-meta{color:#9a9a9a}',
+    'html[data-mode="dark"] .mc-quote{border-left-color:#e0b44a}',
+    'html[data-mode="dark"] .mc-compose,html[data-mode="dark"] .mc-reply{background:#0b0b0b;border-color:rgba(224,180,74,.25)}',
+    'html[data-mode="dark"] .mc-reply{color:#cfc8b6}',
+    'html[data-mode="dark"] .mc-reply strong{color:#f4f1ea}',
+    'html[data-mode="dark"] .mc-btn{background:#161616;color:#f4f1ea;border-color:rgba(224,180,74,.35)}',
+    'html[data-mode="dark"] .mc-reply div{border-left-color:#e0b44a}',
+    'html[data-mode="dark"] .mc-compose textarea{background:#161616;color:#f4f1ea;border-color:rgba(224,180,74,.35)}',
+    'html[data-mode="dark"] .mc-compose textarea:focus{border-color:#e0b44a}',
+    'html[data-mode="dark"] .mc-send{background:#e0b44a;color:#06201c}',
+    'html[data-mode="dark"] .mc-menu-card{background:#161616}',
+    'html[data-mode="dark"] .mc-menu-card button{background:#161616;color:#f4f1ea;border-top-color:rgba(255,255,255,.1)}',
+    'html[data-mode="dark"] .mc-menu-card button:hover{background:#262626}',
+    'html[data-mode="dark"] .mc-menu-card .mc-react-row button.is-on{background:rgba(224,180,74,.2)}',
     '.mc-msg.is-flash .mc-bubble{animation:mc-flash 1.2s ease}',
     '@keyframes mc-flash{0%,60%{box-shadow:0 0 0 3px #e8542a}100%{box-shadow:none}}',
     '.mc-menu{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,16,30,.35);padding:12px}',
@@ -482,7 +512,7 @@
     return '<li class="mc-msg' + (m.mine ? ' mine' : '') + (heart ? ' has-reacts' : '') + '" data-id="' + esc(m.id || '') + '">' +
       (m.mine ? '' : '<span class="mc-avatar" aria-hidden="true">' + esc(initials(name)) + '</span>') +
       '<div><div class="mc-bubble' + (photo ? ' has-photo' : '') + '">' + quote + photo + (m.text ? (photo ? '<div class="mc-text">' + linkify(m.text) + '</div>' : linkify(m.text)) : '') + heart + '</div>' +
-      '<div class="mc-msg-meta"><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' +
+      '<div class="mc-msg-meta"><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' + (m.edited ? '<span class="mc-edited">Edited</span>' : '') +
       (m.mine ? '' : '<button type="button" class="mc-report">Report</button>') + '</div></div></li>';
   }
 
@@ -602,13 +632,50 @@
 
   // ---------- Hold a message: reactions, Reply, Save image ----------
   var replyingTo = null;
+  // The message being edited (its sender's own text), or null. It uses the reply bar above the composer.
+  var editingMsg = null;
   function setReply(m) {
+    editingMsg = null;
     replyingTo = m ? { id: m.id, mine: m.mine, text: m.text, photo: !!(m.photo || m.localUrl) } : null;
     $('mc-reply').hidden = !m;
     if (m) {
       $('mc-reply-text').innerHTML = '<strong>Replying to ' + (m.mine ? 'yourself' : esc(knownNames[openThreadId] || 'them')) + '</strong><br>' + esc(m.text ? m.text.slice(0, 80) : 'Photo');
       compose.focus({ preventScroll: true });
     }
+  }
+
+  function startEdit(m) {
+    editingMsg = m;
+    replyingTo = null;
+    $('mc-reply').hidden = false;
+    $('mc-reply-text').innerHTML = '<strong>Editing your message</strong><br>' + esc(m.text ? m.text.slice(0, 80) : '');
+    compose.value = m.text || '';
+    compose.style.height = Math.min(compose.scrollHeight + 2, 120) + 'px';
+    compose.focus({ preventScroll: true });
+  }
+
+  function stopEdit() {
+    editingMsg = null;
+    compose.value = '';
+    compose.style.height = '';
+    $('mc-reply').hidden = true;
+    status($('mc-thread-status'), '');
+  }
+
+  // Saves the edited text. Nothing is sent as a new message; the bubble is redrawn in place with its Edited label.
+  function saveEdit() {
+    var m = editingMsg, id = openThreadId, text = compose.value.trim();
+    if (!m || !id) return;
+    if (!text) { status($('mc-thread-status'), 'Type the new message, or cancel.', 'err'); return; }
+    if (text === m.text) { stopEdit(); return; }
+    api('POST', '/profile/messages/edit', { with: id, messageId: m.id, text: text }).then(function (data) {
+      if (!data.success) { status($('mc-thread-status'), data.message || 'Could not save the change, please try again.', 'err'); return; }
+      if (openThreadId === id && data.message) {
+        var li = $('mc-bubbles').querySelector('.mc-msg[data-id="' + CSS.escape(m.id) + '"]');
+        if (li) li.outerHTML = bubbleHtml(data.message);
+      }
+      stopEdit();
+    }).catch(function () { status($('mc-thread-status'), 'Could not save the change, please try again.', 'err'); });
   }
 
   function closeMenu() {
@@ -632,6 +699,7 @@
         return '<button type="button" role="menuitem" data-act="react" data-emoji="' + r + '" class="' + (m.myReaction === r ? 'is-on' : '') + '" aria-label="React ' + r + '">' + r + '</button>';
       }).join('') + '</div>' +
       '<button type="button" role="menuitem" data-act="reply">' + REPLY_ICON + 'Reply</button>' +
+      (m.mine && m.text ? '<button type="button" role="menuitem" data-act="edit">' + EDIT_ICON + 'Edit</button>' : '') +
       (canSave ? '<button type="button" role="menuitem" data-act="save">' + SAVE_ICON + 'Save image</button>' : '') +
     '</div>';
     menu.addEventListener('click', function (e) {
@@ -641,6 +709,7 @@
       if (!b) return;
       var act = b.getAttribute('data-act');
       if (act === 'reply') setReply(m);
+      if (act === 'edit') startEdit(m);
       if (act === 'react') reactTo(m, b.getAttribute('data-emoji'));
       if (act === 'save') saveImage(img.src);
     });
@@ -709,7 +778,7 @@
   $('mc-bubbles').addEventListener('click', function (e) {
     if (held) { held = false; e.preventDefault(); e.stopPropagation(); }
   }, true);
-  $('mc-reply-cancel').addEventListener('click', function () { setReply(null); });
+  $('mc-reply-cancel').addEventListener('click', function () { if (editingMsg) stopEdit(); else setReply(null); });
 
   // ---------- Events ----------
   box.addEventListener('click', function (e) {
@@ -860,6 +929,7 @@
 
   $('mc-compose').addEventListener('submit', function (e) {
     e.preventDefault();
+    if (editingMsg) { saveEdit(); return; }
     var text = compose.value.trim();
     var id = openThreadId;
     var photo = pendingPhoto;

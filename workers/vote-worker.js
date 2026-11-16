@@ -1409,6 +1409,7 @@ function dmMessagesForPage(messages, myId) {
   messages.forEach(function (m) { byId[m.id] = m; });
   return messages.filter(function (m) { return !m.removed; }).map(function (m) {
     var out = { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
+    if (m.editedAt) out.edited = true;
     if (m.about) out.about = { mod: m.about.mod, file: m.about.file };
     if (m.photo) {
       if (dmPhotoExpired(m)) out.photoGone = true;
@@ -1432,6 +1433,36 @@ function dmMessagesForPage(messages, myId) {
 // Reactions to a message: one each, from this set. Sending your current
 // one again (or none) takes it off.
 var DM_REACTIONS = ['\u2764\ufe0f', '\ud83d\ude06', '\ud83d\ude2e', '\ud83d\ude22', '\ud83d\ude21', '\ud83d\udc4d'];
+
+// Edits the text of a message the signed-in member sent. Only the sender can change it, and it keeps its place in the
+// conversation. The message is marked edited (editedAt), so both sides can see it has changed.
+async function handleProfileMessageEdit(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var id = String((body && body.with) || '');
+  var index = await getDmIndex(env, email);
+  var fr = await getFriends(env, email);
+  var other = index[id] ? index[id].email : await emailForId(fr.friends, id);
+  if (!other) return json({ success: false, message: 'Conversation not found' }, 404);
+  var myId = await ownerKey(email);
+  var threadKey = await dmThreadKey(email, other);
+  var messages = await getJsonKey(env, threadKey, []);
+  if (!Array.isArray(messages)) messages = [];
+  var msg = messages.filter(function (m) { return m.id === (body && body.messageId) && !m.removed; })[0];
+  if (!msg) return json({ success: false, message: 'Message not found' }, 404);
+  if (msg.from !== myId) return json({ success: false, message: 'Only the sender can edit a message' }, 403);
+  var text = String((body && body.text) || '').trim();
+  if (!text) return json({ success: false, message: 'Type the new message, or cancel.' }, 400);
+  if (text.length > MAX_DM_LENGTH) return json({ success: false, message: 'That message is too long.' }, 400);
+  if (msg.text !== text) {
+    msg.text = text;
+    msg.editedAt = new Date().toISOString();
+    await env.VOTES.put(threadKey, JSON.stringify(messages));
+  }
+  return json({ success: true, message: dmMessagesForPage(messages, myId).filter(function (m) { return m.id === msg.id; })[0] });
+}
 
 async function handleProfileMessageReact(request, env) {
   var email = await resolveSession(request, env);
@@ -13620,6 +13651,7 @@ export default {
     if (url.pathname === '/profile/messages/send' && request.method === 'POST') {
       return handleProfileMessageSend(request, env);
     }
+    if (url.pathname === '/profile/messages/edit' && request.method === 'POST') return handleProfileMessageEdit(request, env);
     if (url.pathname === '/profile/messages/react' && request.method === 'POST') {
       return handleProfileMessageReact(request, env);
     }

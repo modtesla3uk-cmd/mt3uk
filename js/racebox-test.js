@@ -300,6 +300,40 @@
     }).catch(function (err) { say((err && err.message) || 'The drive could not be sent. Try again.'); });
   }
 
+  // Saves a drive as a file, to send to MT3UK or open in another app. In the Laps app it opens the phone's share sheet (the
+  // app's Filesystem and Share plugins); in a browser that can share files it opens the browser's, and otherwise the file is
+  // downloaded. Nothing is kept: the drive stays in Saved drives.
+  function saveDriveFile(id, started) {
+    var msg = $('rbt-save-msg');
+    function say(t) { if (msg) { msg.textContent = t; msg.hidden = !t; } }
+    if (!window.MT3UKStage || !window.MT3UKStage.file) return say('Saving a file is not available here.');
+    say('Getting the drive ready...');
+    window.MT3UKStage.file(id, started, 'Drive ' + fmtTime(started)).then(function (f) {
+      var C = window.Capacitor, P = C && C.Plugins;
+      if (P && P.Filesystem && P.Share) {
+        return P.Filesystem.writeFile({ path: f.fileName, data: f.text, directory: 'CACHE', encoding: 'utf8' }).then(function (w) {
+          return P.Share.share({ title: f.fileName, text: 'A RaceBox drive from Laps', url: w.uri, dialogTitle: 'Save or send the drive' });
+        }).then(function () { say('Choose where to save or send ' + f.fileName + '.'); });
+      }
+      var file = null;
+      try { file = new File([f.text], f.fileName, { type: 'text/plain' }); } catch (e) { file = null; }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], title: f.fileName }).then(function () { say(''); });
+      }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([f.text], { type: 'text/plain' }));
+      a.download = f.fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      say(f.fileName + ' has been downloaded.');
+    }).catch(function (err) {
+      // Closing the share sheet is not a failure.
+      if (err && (err.name === 'AbortError' || /cancel/i.test(String(err.message || err)))) return say('');
+      say((err && err.message) || 'The file could not be saved. Try again.');
+    });
+  }
+
   // Viewing a saved drive: its route on a map, the figures and the stops (under 2 km/h for 10 seconds or more).
   var driveMap = null;
   function useMph() { return unit === 'mph'; }
@@ -415,6 +449,8 @@
       view.hidden = false;
       view.setAttribute('data-drive', id);
       set('rbt-view-title', 'Drive from ' + fmtTime(started));
+      var saveBtn = $('rbt-view-save');
+      if (saveBtn) { saveBtn.onclick = function () { saveDriveFile(id, started); }; set('rbt-save-msg', ''); var sm = $('rbt-save-msg'); if (sm) sm.hidden = true; }
       var stats = $('rbt-view-stats');
       stats.textContent = '';
       [['Distance', fmtDist(a.distanceM)], ['Driving time', fmtLength(a.movingS)], ['Length of drive', fmtLength(a.durationS)],

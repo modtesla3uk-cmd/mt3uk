@@ -224,3 +224,43 @@ def test_the_racebox_map_has_a_recentre_button(page):
     page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     expect(page.locator("#rbt-recentre")).to_be_visible(timeout=10000)
     page.locator("#rbt-recentre").click()
+
+
+def _open_recorded_drive(page):
+    _record_and_send(page)
+    page.locator(".rbt-view-open").click()
+    expect(page.locator("#rbt-view")).to_be_visible()
+
+
+def test_a_saved_drive_can_be_saved_as_a_file_through_the_apps_share_sheet(page):
+    """In the Laps app (Filesystem and Share plugins) Save as file writes the VBO to the cache and opens the share sheet."""
+    page.add_init_script("""window.__saved = { writes: [], shares: [] };
+      Object.defineProperty(window, 'Capacitor', { configurable: true, get() { return window.__cap; }, set(v) {
+        v.Plugins = v.Plugins || {};
+        v.Plugins.Filesystem = { writeFile: o => { window.__saved.writes.push(o); return Promise.resolve({ uri: 'file:///cache/' + o.path }); } };
+        v.Plugins.Share = { share: o => { window.__saved.shares.push(o); return Promise.resolve({}); } };
+        window.__cap = v; } });""")
+    _open_recorded_drive(page)
+    page.locator("#rbt-view-save").click()
+    expect(page.locator("#rbt-save-msg")).to_contain_text("Choose where to save or send")
+    saved = page.evaluate("window.__saved")
+    assert len(saved["writes"]) == 1 and len(saved["shares"]) == 1, saved
+    w = saved["writes"][0]
+    assert w["path"].startswith("RaceBox_Drive_") and w["path"].endswith(".vbo") and w["directory"] == "CACHE", w
+    assert w["data"].startswith("File created on ") and "[column names]" in w["data"], w["data"][:200]
+    assert saved["shares"][0]["url"] == "file:///cache/" + w["path"], saved["shares"]
+    # Nothing is kept or sent to Laps: the drive is still only in Saved drives.
+    expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")  # from the earlier Send to Laps in the helper, unchanged
+    expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+
+
+def test_a_saved_drive_is_downloaded_as_a_file_where_there_is_no_share_sheet(page):
+    _open_recorded_drive(page)
+    page.evaluate("Object.defineProperty(navigator, 'canShare', { configurable: true, value: undefined })")
+    with page.expect_download() as info:
+        page.locator("#rbt-view-save").click()
+    d = info.value
+    assert d.suggested_filename.startswith("RaceBox_Drive_") and d.suggested_filename.endswith(".vbo"), d.suggested_filename
+    expect(page.locator("#rbt-save-msg")).to_contain_text("has been downloaded")
+    text = open(d.path(), encoding="utf-8").read()
+    assert text.startswith("File created on ") and "[data]" in text, text[:200]

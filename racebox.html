@@ -690,6 +690,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
       <div class="rbt-view" id="rbt-view" hidden>
         <div class="rbt-view-head"><h4 id="rbt-view-title">Drive</h4><button type="button" class="btn btn-secondary rbt-view-close" id="rbt-view-close">Close</button></div>
         <dl class="rbt-view-stats" id="rbt-view-stats"></dl>
+        <div class="rbt-view-save-row"><button type="button" class="btn btn-secondary" id="rbt-view-save">Save as file</button><p class="rbt-save-note">Saves the readings as a file you can email to MT3UK or open in another app. The drive stays here.</p><p class="rbt-save-msg" id="rbt-save-msg" role="status" hidden></p></div>
         <div class="rbt-view-map" id="rbt-view-map"></div>
         <h4 class="rbt-view-stops-title">Stops</h4>
         <ul class="rbt-view-stops" id="rbt-view-stops"></ul>
@@ -921,6 +922,12 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-view-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .rbt-view-head h4 { margin: 0; font-size: 1rem; }
   .rbt-view-close { min-height: 44px; flex: none; }
+  .rbt-view-save-row { margin: 12px 0 0; display: grid; gap: 6px; }
+  #rbt-view-save { min-height: 44px; justify-self: start; }
+  .rbt-save-note, .rbt-save-msg { margin: 0; font-size: 0.88rem; color: #5b6475; }
+  .rbt-save-msg { font-weight: 600; color: #0d3b33; }
+  .rbt-save-msg[hidden] { display: none; }
+  html[data-mode="dark"] .rbt-save-msg { color: #9fe3c4; }
   .rbt-view-open { min-height: 44px; flex: none; }
   .rbt-view-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; }
   .rbt-view-stats > div { border: 1px solid var(--hairline, #d8dbe2); border-radius: var(--radius, 10px); padding: 8px 10px; min-width: 0; }
@@ -1029,9 +1036,9 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script>(function(){try{var app=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());if(!app){var n=document.getElementById("rbt-phone-note");if(n)n.hidden=false;}var s=localStorage.getItem("mt3ukMyBuildsSession");if(!s)return;fetch("https://late-darkness-ebc8.modtesla3uk.workers.dev/laps/racebox/access",{cache:"no-store",headers:{"X-Session-Token":s}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d.access)return;document.getElementById("rbt-gate").hidden=true;document.getElementById("rbt-body").hidden=false;}).catch(function(){});}catch(e){}})();</script>
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=6"></script>
-<script src="js/racebox-stage.js?v=4"></script>
+<script src="js/racebox-stage.js?v=5"></script>
 <script src="js/racebox-timing.js?v=20"></script>
-<script src="js/racebox-test.js?v=84"></script>
+<script src="js/racebox-test.js?v=85"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

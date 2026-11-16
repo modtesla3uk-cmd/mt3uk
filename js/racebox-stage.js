@@ -10,6 +10,7 @@
  *   get(id)               -> Promise of the VBO text of a staged drive, or null (the file name is in list())
  *   remove(id)            -> Promise: takes a staged drive off the list (after it is uploaded, or the member removes it)
  *   toVbo(rows, started, name) -> the VBO text for the rows the RaceBox test page saves
+ *   file(recId, started, name) -> Promise of { fileName, text }: the same file Send to Laps stages, to save or share (nothing is kept)
  *
  * A saved row is [utc ms, lat, lon, km/h, heading, g across, g along, g up, rot x, rot y, rot z, fix ok, satellites, accuracy,
  *   altitude m, fix status (0 none, 2 2D, 3 3D), PDOP, battery %, speed accuracy m/s, heading accuracy deg].
@@ -122,6 +123,17 @@
     });
   }
 
+  // The drive as a file to save or share, named as RaceBox names its own (so Laps guesses the logger as RaceBox if it is added).
+  function file(recId, started, name) {
+    return run('recordings', 'readonly', function (st) { return st.get(recId); }).then(function (meta) {
+      return rowsOf(recId).then(function (rows) { return { rows: rows, mode: meta && meta.mode, venue: meta && meta.venue }; });
+    }).then(function (got) {
+      var usable = got.rows.filter(function (r) { return r[1] || r[2]; });
+      if (!usable.length) throw new Error('There are no readings to save for this drive.');
+      return { fileName: 'RaceBox_' + name.replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '_') + '.vbo', text: toVbo(usable, started, name, got.mode, got.venue) };
+    });
+  }
+
   function stage(recId, started, name) {
     return run('recordings', 'readonly', function (st) { return st.get(recId); }).then(function (meta) {
       return rowsOf(recId).then(function (rows) { return { rows: rows, mode: meta && meta.mode, venue: meta && meta.venue }; });
@@ -158,5 +170,5 @@
       .then(function () { return run('stagedText', 'readwrite', function (st) { return st.delete(id); }); });
   }
 
-  root.MT3UKStage = { openDb: openDb, stage: stage, list: list, get: get, remove: remove, toVbo: toVbo };
+  root.MT3UKStage = { openDb: openDb, stage: stage, file: file, list: list, get: get, remove: remove, toVbo: toVbo };
 })(typeof window !== 'undefined' ? window : this);

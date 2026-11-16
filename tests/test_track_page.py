@@ -8197,3 +8197,19 @@ def test_a_track_card_opens_its_full_list_in_place_and_a_place_opens_its_session
     expect(page.locator(".lb-full .lb-row")).to_have_count(1)
     page.locator(".lb-full .lb-row a.lb-open").first.click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=sh2$"))
+
+
+def test_a_track_card_closes_when_tapped_again_and_its_list_goes_with_it(page):
+    """Tapping an open card closes it: the full list is gone and the top three show again."""
+    fake = FakeWorker()
+    fake.index = [dict(EARLIER, id="sh1", privacy="board")]
+    fake.sessions = {}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    card = page.locator(".tp-board-card").first
+    card.locator(".tp-board-name").first.click()
+    expect(page.locator(".lb-full .lb-row").first).to_be_visible()
+    expect(card.locator(".lb-podium")).to_be_hidden()
+    card.locator(".tp-board-name").first.click()
+    expect(page.locator(".lb-full .lb-row")).to_have_count(0)
+    expect(page.locator(".lb-full")).to_be_hidden()
+    expect(card.locator(".lb-podium")).to_be_visible()

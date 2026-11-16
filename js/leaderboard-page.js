@@ -119,7 +119,8 @@
     block.classList.toggle('is-open', open);
     var btn = block.querySelector('[data-expand]');
     if (btn) btn.setAttribute('aria-expanded', String(open));
-    if (!open) return;
+    var old = block.querySelector('.lb-full');
+    if (!open) { if (old) old.innerHTML = ''; return; }
     var box = block.querySelector('.lb-full');
     if (!box) { box = document.createElement('div'); box.className = 'lb-full'; block.appendChild(box); }
     var type = block.getAttribute('data-type'), q = block.getAttribute('data-q');

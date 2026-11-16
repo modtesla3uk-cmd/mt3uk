@@ -176,6 +176,11 @@
     '.mc-menu-card .mc-react-row button:hover{transform:scale(1.15);background:none}',
     '.mc-menu-card .mc-react-row button.is-on{background:rgba(232,84,42,.15)}',
     '.mc-edited{margin-left:6px;font-style:italic}',
+    '.mc-edit{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin:-4px 0 0 2px;padding:0;border:0;border-radius:50%;background:none;color:#7c8798;cursor:pointer}',
+    '.mc-edit svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+    '.mc-edit:hover,.mc-edit:focus-visible{background:rgba(22,35,61,.08);color:#16233d}',
+    'html[data-mode="dark"] .mc-edit{color:#e0b44a}',
+    'html[data-mode="dark"] .mc-edit:hover,html[data-mode="dark"] .mc-edit:focus-visible{background:rgba(224,180,74,.15);color:#e0b44a}',
     // Dark mode (the Laps pages set html[data-mode="dark"], js/colour-mode.js): black and gold, the site's gold theme.
     'html[data-mode="dark"] #mt3uk-chat{background:#0b0b0b;color:#f4f1ea;border-color:rgba(224,180,74,.35)}',
     'html[data-mode="dark"] .mc-head{background:#000;color:#f4f1ea}',
@@ -513,7 +518,7 @@
       (m.mine ? '' : '<span class="mc-avatar" aria-hidden="true">' + esc(initials(name)) + '</span>') +
       '<div><div class="mc-bubble' + (photo ? ' has-photo' : '') + '">' + quote + photo + (m.text ? (photo ? '<div class="mc-text">' + linkify(m.text) + '</div>' : linkify(m.text)) : '') + heart + '</div>' +
       '<div class="mc-msg-meta"><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' + (m.edited ? '<span class="mc-edited">Edited</span>' : '') +
-      (m.mine ? '' : '<button type="button" class="mc-report">Report</button>') + '</div></div></li>';
+      (m.mine ? (m.text ? '<button type="button" class="mc-edit" aria-label="Edit message" title="Edit message">' + EDIT_ICON + '</button>' : '') : '<button type="button" class="mc-report">Report</button>') + '</div></div></li>';
   }
 
   // The messages on screen, by id, for the hold menu and replies.
@@ -809,6 +814,12 @@
     if ((t = e.target.closest('.mc-thread-row'))) { openThread(t.getAttribute('data-id')); return; }
     if ((t = e.target.closest('.mc-msg-btn'))) { openThread(t.getAttribute('data-id')); return; }
     if ((t = e.target.closest('.mc-fr'))) { friendAction(t.getAttribute('data-action'), t.getAttribute('data-id') || t.getAttribute('data-nick'), t); return; }
+    if ((t = e.target.closest('.mc-edit')) && openThreadId) {
+      var editLi = t.closest('.mc-msg');
+      var editMsg = editLi && messageData[editLi.getAttribute('data-id')];
+      if (editMsg) startEdit(editMsg);
+      return;
+    }
     if ((t = e.target.closest('.mc-report')) && openThreadId) {
       var msg = t.closest('.mc-msg');
       var reason = window.prompt('Report this message to MT3UK? Add a reason if you like:', '');

@@ -581,7 +581,7 @@
     .nav-body .nav-wrap > * { position: fixed; z-index: 1004; margin: 0; }
     .nav-status { top: auto; bottom: calc(var(--sheet, 230px) + 92px + var(--stack, 0px)); left: 12px; right: 12px; font-size: 0.85rem; margin: 0; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.94); box-shadow: 0 2px 8px rgba(0,0,0,.18); display: inline-block; width: max-content; max-width: calc(100% - 24px); }
     .nav-source { top: auto; bottom: calc(var(--sheet, 230px) + 12px + var(--stack, 0px)); left: 12px; right: auto; width: max-content; max-width: 62%; }
-    .nav-dest { top: 88px; left: 12px; right: 12px; background: #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.22); max-height: calc(100% - 24px); display: flex; flex-direction: column; overflow: hidden; }
+    .nav-dest { top: calc(var(--hdr-h, 76px) + 12px); left: 12px; right: 12px; background: #fff; border-radius: 16px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.22); max-height: calc(100% - var(--hdr-h, 76px) - 24px); display: flex; flex-direction: column; overflow: hidden; }
     .nav-dest > * { flex: none; }
     .nav-dest > .nav-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
     .nav-dest-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

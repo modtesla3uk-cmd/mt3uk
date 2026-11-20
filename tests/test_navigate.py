@@ -1721,3 +1721,22 @@ def test_a_pinch_stretches_the_map_and_sets_the_zoom_when_the_fingers_lift(page)
     assert "scale(" not in page.evaluate("() => document.querySelector('.leaflet-map-pane').style.transform")
     expect(page.locator("#nav-exit")).to_have_text("End navigation")
     page.locator("#nav-exit").click()
+
+
+def test_the_search_card_sits_under_the_header_however_tall_the_header_is(browser, base_url):
+    """In the Laps app the header is taller (the phone's status bar area is part of it), and the Where to? card was fixed 88px
+    from the top, so its top slid under the header. It follows the header's real height now."""
+    ctx = browser.new_context(base_url=base_url, viewport={"width": 412, "height": 915}, is_mobile=True, has_touch=True)
+    page = ctx.new_page()
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    for extra in (0, 60):
+        page.add_style_tag(content="nav { padding-top: %dpx !important; }" % (10 + extra))
+        page.evaluate("window.dispatchEvent(new Event('resize'))")
+        page.wait_for_timeout(300)
+        header_bottom = page.evaluate("document.querySelector('header').getBoundingClientRect().bottom")
+        dest_top = page.evaluate("document.getElementById('nav-dest').getBoundingClientRect().top")
+        assert dest_top >= header_bottom + 8, (extra, header_bottom, dest_top)
+    ctx.close()

@@ -19,7 +19,7 @@ html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #
 html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .chip, html[data-mode="dark"] .field, html[data-mode="dark"] .card,
 html[data-mode="dark"] a.back-link { background-color: #141414; color: #eef2f7; border-color: rgba(255,255,255,.16); }
 html[data-mode="dark"] .btn-accent { color: #111111 !important; }
-html[data-mode="dark"] .nav-map .leaflet-tile-pane { filter: invert(.92) hue-rotate(180deg) brightness(.85) contrast(.95); }
+html[data-mode="dark"] .nav-map .leaflet-tile-pane { filter: grayscale(1) invert(.92) brightness(.95) contrast(1.15); }
 
 /* The RaceBox timer and the Navigate page. */
 html[data-mode="dark"] body, html[data-mode="dark"] .rbt-body, html[data-mode="dark"] .rbt-panel-wrap, html[data-mode="dark"] #rbt-timing,

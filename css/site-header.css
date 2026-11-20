@@ -234,6 +234,11 @@ header a.logo, header a.logo *, footer a.logo, footer a.logo * { text-decoration
   margin-right: 0;
   gap: 8px;
   padding: 10px;
+  /* A phone on its side is short: the list scrolls inside the screen instead of running off it. */
+  max-height: calc(100vh - var(--hdr-h, 80px) - 8px);
+  max-height: calc(100dvh - var(--hdr-h, 80px) - 8px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .navlinks.active { display: flex; }
 .navlinks a {

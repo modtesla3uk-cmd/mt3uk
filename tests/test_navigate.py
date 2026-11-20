@@ -1740,3 +1740,35 @@ def test_the_search_card_sits_under_the_header_however_tall_the_header_is(browse
         dest_top = page.evaluate("document.getElementById('nav-dest').getBoundingClientRect().top")
         assert dest_top >= header_bottom + 8, (extra, header_bottom, dest_top)
     ctx.close()
+
+
+def test_the_route_is_worked_out_by_itself_once_the_first_address_is_chosen(page):
+    """Choosing the first address from the suggestions works the route out straight away (no button), the planner's button is
+    called Start, and a second stop that is added empty waits until it has a place before the route is worked out again."""
+    _approve(page, True)
+    page.add_init_script(GEO_OK)
+    asked = []
+    page.route("**/photon.komoot.io/**", lambda r: r.fulfill(status=200, content_type="application/json", body=_photon(("Towcester", "Northamptonshire", 52.13, -0.98)), headers={"Access-Control-Allow-Origin": "*"}))
+    def route(r):
+        asked.append(1)
+        r.fulfill(status=200, content_type="application/json", body=ROUTE_REPLY, headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/navigate/route", route)
+    page.goto("/navigate.html")
+    expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
+    expect(page.locator("#nav-go")).to_have_text("Start")
+    page.locator("#nav-to-q").fill("Towc")
+    expect(page.locator("#nav-results.is-suggest button")).to_have_count(1, timeout=5000)
+    page.locator("#nav-results.is-suggest button").click()
+    # No button pressed: the route card is there, and it has not started driving.
+    expect(page.locator("#nav-route")).to_be_visible(timeout=10000)
+    assert len(asked) == 1, asked
+    assert page.evaluate("!document.querySelector('.nav-map-wrap').classList.contains('is-driving')")
+    # Start (the old Route button) still shows the route, and the card's Start route is what begins driving.
+    page.locator("#nav-go").click()
+    expect(page.locator("#nav-route")).to_be_visible()
+    assert page.evaluate("!document.querySelector('.nav-map-wrap').classList.contains('is-driving')")
+    # A stop added with the + is empty, so nothing is worked out until it has a place.
+    before = len(asked)
+    page.locator(".nav-add-stop").last.click()
+    page.wait_for_timeout(500)
+    assert len(asked) == before, (before, asked)

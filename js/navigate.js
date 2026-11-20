@@ -1447,6 +1447,8 @@
       stops[i].place = { name: entry.name, at: entry.at };
       clearSuggestions();
       renderStops();
+      if (routeD) clearRoute();
+      if (stops.every(function (st) { return st.place; })) routeNow();
       return;
     }
     var t = entry.q;
@@ -1471,7 +1473,7 @@
       }).catch(function () { if (my === suggestSeq) clearSuggestions(); });
     }, 800);
   }
-  // A suggestion chosen for a stop. Once a route has been asked for, it is worked out again with the new stop.
+  // A suggestion chosen for a stop: the route is worked out by itself once every stop has a place.
   function choose(p, i) {
     // Remembered now, with its full name, so it is there as a recent search even if no route is started.
     saveRecent(stops[i].typed || stops[i].text, p);
@@ -1479,8 +1481,11 @@
     stops[i].text = p.name;
     clearSuggestions();
     renderStops();
-    // The route on the map no longer matches the stop, so it is taken away until Route is pressed again.
+    // The route on the map no longer matches the stop, so it is taken away. Once every stop has a place (the first address
+    // entered is enough when it is the only stop), the route is worked out again by itself: Start only has to be pressed
+    // when the route was not worked out (a place typed, not chosen).
     if (routeD) clearRoute();
+    if (stops.every(function (st) { return st.place; })) routeNow();
   }
   function showResults(list, i) {
     var ul = $('nav-results');

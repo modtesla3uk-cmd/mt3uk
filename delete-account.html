@@ -418,9 +418,10 @@
   body.laps-swiping header ~ *:not(.laps-peek):not(.laps-tabs):not(script) { position: relative; z-index: 41; }
 }
 /* The bar is black with white words where the page is dark (Laps in dark mode, RaceBox and Navigate). */
-html[data-mode="dark"] .laps-tabs { background: #000000 !important; border-top-color: #ffffff !important; }
-html[data-mode="dark"] .laps-tabs a { color: #ffffff !important; }
-html[data-mode="dark"] .laps-tabs a.on { color: #f5c542 !important; }
+html[data-mode="dark"] .laps-tabs { background: #1e2124 !important; border-top: 1px solid rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .laps-tabs a { color: #dfe3e8 !important; font-weight: 500; font-size: 12px; }
+html[data-mode="dark"] .laps-tabs a svg { stroke: #f5c542; }
+html[data-mode="dark"] .laps-tabs a.on { color: #f5c542 !important; background: rgba(245,197,66,.14); }
 html[data-mode="dark"] .laps-ind { background: #f5c542 !important; }
 html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 </style>

@@ -563,3 +563,14 @@ def test_on_profile_the_laps_footer_switch_is_named_for_the_mode_and_works(brows
     expect(btn).to_have_text("Light mode")
     expect(page.locator("#pf-mode")).to_have_text("Dark mode: on")
     ctx.close()
+
+
+def test_the_dark_bottom_menu_is_lighter_than_black_with_gold_icons(page):
+    page.add_init_script("localStorage.setItem('mt3ukColourMode', 'dark');")
+    page.set_viewport_size({"width": 412, "height": 860})
+    page.goto("/leaderboards.html")
+    bar = page.locator(".laps-tabs")
+    expect(bar).to_be_visible()
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs')).backgroundColor") == "rgb(30, 33, 36)"
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs a svg')).stroke") == "rgb(245, 197, 66)"
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs a')).fontWeight") == "500"

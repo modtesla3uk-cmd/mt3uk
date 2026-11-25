@@ -5,68 +5,68 @@
 */
 :root[data-mode="dark"] {
   color-scheme: dark;
-  --paper: #000000; --paper-2: #141414; --surface-card: #141414; --surface: #141414;
+  --paper: #141618; --paper-2: #1e2124; --surface-card: #1e2124; --surface: #1e2124;
   --ink: #eef2f7; --ink-2: #c9d3e2; --steel: #a3aec0; --ink-deep: #eef2f7;
   --hairline: rgba(255,255,255,.14); --hairline-strong: rgba(255,255,255,.28);
-  --c-paper: #000000; --c-muted: #a3aec0; --c-link: #7fd1b5;
+  --c-paper: #141618; --c-muted: #a3aec0; --c-link: #7fd1b5;
   --btn-primary: #22705f; --btn-primary-text: #ffffff;
-  --btn-secondary: #141414; --btn-secondary-text: #eef2f7;
+  --btn-secondary: #1e2124; --btn-secondary-text: #eef2f7;
   --btn-accent-text: #111111;
-  --card: #141414; --line: rgba(255,255,255,.14); --line-strong: rgba(255,255,255,.28); --white: #141414;
+  --card: #1e2124; --line: rgba(255,255,255,.14); --line-strong: rgba(255,255,255,.28); --white: #1e2124;
 }
-html[data-mode="dark"] body { background: #000000; color: #eef2f7; }
-html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #141414 !important; }
+html[data-mode="dark"] body { background: #141618; color: #eef2f7; }
+html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #1e2124 !important; }
 html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .chip, html[data-mode="dark"] .field, html[data-mode="dark"] .card,
-html[data-mode="dark"] a.back-link { background-color: #141414; color: #eef2f7; border-color: rgba(255,255,255,.16); }
+html[data-mode="dark"] a.back-link { background-color: #1e2124; color: #eef2f7; border-color: rgba(255,255,255,.16); }
 html[data-mode="dark"] .btn-accent { color: #111111 !important; }
 html[data-mode="dark"] .nav-map .leaflet-tile-pane { filter: grayscale(1) invert(.92) brightness(.95) contrast(1.15); }
 
 /* The RaceBox timer and the Navigate page. */
 html[data-mode="dark"] body, html[data-mode="dark"] .rbt-body, html[data-mode="dark"] .rbt-panel-wrap, html[data-mode="dark"] #rbt-timing,
-html[data-mode="dark"] .rbt-tm-full, html[data-mode="dark"] .nav-body, html[data-mode="dark"] .nav-wrap { background-color: #000000 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-full, html[data-mode="dark"] .nav-body, html[data-mode="dark"] .nav-wrap { background-color: #141618 !important; color: #eef2f7 !important; }
 html[data-mode="dark"] .rbt-tm-speed b, html[data-mode="dark"] .rbt-mode-line, html[data-mode="dark"] .rbt-tm-speed { color: #eef2f7 !important; }
 html[data-mode="dark"] .rbt-tm-speed span, html[data-mode="dark"] .rbt-tm-sats .rbt-tm-text, html[data-mode="dark"] .rbt-tm-none { color: #a3aec0 !important; }
-html[data-mode="dark"] .rbt-tm-go { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-go { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-tm-go.is-go { background: #d9462b !important; color: #fff !important; }
 html[data-mode="dark"] .rbt-tm-go.is-busy { background: #1f2a40 !important; color: #7d8aa3 !important; }
-html[data-mode="dark"] .rbt-tm-runs, html[data-mode="dark"] .rbt-tm-none, html[data-mode="dark"] .rbt-tm-list li { background: #141414 !important; color: #eef2f7 !important; }
-html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-runs, html[data-mode="dark"] .rbt-tm-none, html[data-mode="dark"] .rbt-tm-list li { background: #1e2124 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-tm-fs { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-tm-fs svg, html[data-mode="dark"] .rbt-compass-map svg { color: #eef2f7; stroke: #eef2f7; }
-html[data-mode="dark"] .rbt-compass-map { background: #141414 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-compass-map { background: #1e2124 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-tm-sats { color: #a3aec0 !important; }
 html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-rate, html[data-mode="dark"] .rbt-rec-note, html[data-mode="dark"] .rbt-stage-msg { color: #c9d3e2 !important; }
-html[data-mode="dark"] .rbt-map-frame .leaflet-bar a, html[data-mode="dark"] .leaflet-bar a { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
-html[data-mode="dark"] .rbt-map { background: #141414 !important; }
-html[data-mode="dark"] .rbt-map.leaflet-container { background: #141414 !important; }
-html[data-mode="dark"] .rbt-clear, html[data-mode="dark"] .rbt-fs-btn, html[data-mode="dark"] .rbt-menu-btn { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-map-frame .leaflet-bar a, html[data-mode="dark"] .leaflet-bar a { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-map { background: #1e2124 !important; }
+html[data-mode="dark"] .rbt-map.leaflet-container { background: #1e2124 !important; }
+html[data-mode="dark"] .rbt-clear, html[data-mode="dark"] .rbt-fs-btn, html[data-mode="dark"] .rbt-menu-btn { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-drives-empty, html[data-mode="dark"] .rbt-drives-title { color: #c9d3e2 !important; }
-html[data-mode="dark"] .rbt-meter, html[data-mode="dark"] .rbt-grid > div { background: #141414 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .rbt-meter, html[data-mode="dark"] .rbt-grid > div { background: #1e2124 !important; color: #eef2f7 !important; }
 html[data-mode="dark"] .rbt-meter-title, html[data-mode="dark"] .rbt-meter-cap, html[data-mode="dark"] .rbt-grid dt { color: #a3aec0 !important; }
-html[data-mode="dark"] .rbt-m-face { fill: #141414; } html[data-mode="dark"] .rbt-m-ring { stroke: #5b6d8f; } html[data-mode="dark"] .rbt-m-cross { stroke: #3c4d6d; }
-html[data-mode="dark"] .nav-status { background: #141414 !important; color: #eef2f7 !important; }
-html[data-mode="dark"] .nav-compass { background: #141414 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-m-face { fill: #1e2124; } html[data-mode="dark"] .rbt-m-ring { stroke: #5b6d8f; } html[data-mode="dark"] .rbt-m-cross { stroke: #3c4d6d; }
+html[data-mode="dark"] .nav-status { background: #1e2124 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-compass { background: #1e2124 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] #nav-compass-needle path:last-child { fill: #eef2f7 !important; }
-html[data-mode="dark"] .nav-source-toggle { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .nav-source-toggle { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .nav-source-toggle[aria-pressed="true"] { background: #22705f !important; color: #fff !important; border-color: #22705f !important; }
 html[data-mode="dark"] .nav-source-text, html[data-mode="dark"] .nav-attrib, html[data-mode="dark"] .nav-route-msg { color: #c9d3e2 !important; }
-html[data-mode="dark"] .nav-toast { background: #141414 !important; color: #eef2f7 !important; }
-html[data-mode="dark"] .nav-speed-tile, html[data-mode="dark"] .nav-heading-tile, html[data-mode="dark"] .nav-grid > div { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .nav-toast { background: #1e2124 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-speed-tile, html[data-mode="dark"] .nav-heading-tile, html[data-mode="dark"] .nav-grid > div { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
 html[data-mode="dark"] .nav-grid dt { color: #a3aec0 !important; }
-html[data-mode="dark"] .nav-route, html[data-mode="dark"] .nav-drive-bar { background: #141414 !important; color: #eef2f7 !important; }
-html[data-mode="dark"] .nav-route-summary, html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-step { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .nav-route, html[data-mode="dark"] .nav-drive-bar { background: #1e2124 !important; color: #eef2f7 !important; }
+html[data-mode="dark"] .nav-route-summary, html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-step { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.14) !important; }
 html[data-mode="dark"] .nav-start { background: #22705f !important; color: #fff !important; }
-html[data-mode="dark"] #rbt-tm-glabel rect { fill: #141414 !important; stroke: #5b6d8f !important; }
+html[data-mode="dark"] #rbt-tm-glabel rect { fill: #1e2124 !important; stroke: #5b6d8f !important; }
 html[data-mode="dark"] #rbt-tm-glabel text { fill: #eef2f7 !important; }
 html[data-mode="dark"] .rbt-tm-dial text { fill: #d5dce8 !important; }
 /* The Drag run card (the strip picker), and the light and dark button in the timer: they had white backgrounds. */
-html[data-mode="dark"] .rbt-picker { background: #141414 !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .rbt-picker { background: #1e2124 !important; border-color: rgba(255,255,255,.14) !important; }
 html[data-mode="dark"] .rbt-picker button, html[data-mode="dark"] .rbt-picker .chip, html[data-mode="dark"] .rbt-picker .field,
-html[data-mode="dark"] .rbt-picker input { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-picker input { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-picker .chip.is-on { background: #22705f !important; color: #ffffff !important; border-color: #22705f !important; }
 html[data-mode="dark"] .rbt-picker-now, html[data-mode="dark"] .rbt-picker small { color: #a3aec0 !important; }
 html[data-mode="dark"] .rbt-picker-title, html[data-mode="dark"] .rbt-picker-search span { color: #eef2f7 !important; }
-html[data-mode="dark"] .rbt-tm-mode { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
-html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-mode { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
+html[data-mode="dark"] .rbt-tm-fs { background: #1e2124 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 /* No white in dark mode: black surfaces with a grey outline on the buttons, switches, cards and map buttons. */
 html[data-mode="dark"] .rbt-switch, html[data-mode="dark"] .rbt-details-toggle,
 html[data-mode="dark"] .rbt-drives-list > li, html[data-mode="dark"] .rbt-view, html[data-mode="dark"] .rbt-picker,
@@ -78,7 +78,7 @@ html[data-mode="dark"] .rbt-compass-map, html[data-mode="dark"] .rbt-rec-float, 
 html[data-mode="dark"] .btn, html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .btn-danger, html[data-mode="dark"] .rbt-del,
 html[data-mode="dark"] .nav-stop, html[data-mode="dark"] .nav-add-stop, html[data-mode="dark"] .nav-mic, html[data-mode="dark"] .nav-unit-pill,
 html[data-mode="dark"] .recentre, html[data-mode="dark"] .nav-theme, html[data-mode="dark"] .nav-compass, html[data-mode="dark"] .nav-source-toggle {
-  background-color: #000000 !important; color: #eef2f7 !important; border: 1px solid #5b6475 !important;
+  background-color: #141618 !important; color: #eef2f7 !important; border: 1px solid #5b6475 !important;
 }
 /* The microphone stays orange while it is listening, in dark mode too (the black rule above would otherwise win). */
 html[data-mode="dark"] .nav-mic.is-listening { background-color: #e8542a !important; border-color: #e8542a !important; color: #fff !important; }
@@ -89,20 +89,20 @@ html[data-mode="dark"] .nav-dest, html[data-mode="dark"] .nav-grid, html[data-mo
 html[data-mode="dark"] .nav-route-summary, html[data-mode="dark"] .nav-stops li, html[data-mode="dark"] .nav-results li,
 html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-status, html[data-mode="dark"] .nav-speed-tile, html[data-mode="dark"] .nav-heading-tile,
 html[data-mode="dark"] .nav-pin-bar, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-search-panel, html[data-mode="dark"] .nav-search-results {
-  background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
+  background-color: #141618 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
 }
 /* The arrival time and the distance to go are white on the dark drive panel (the green and grey were hard to read). */
 html[data-mode="dark"] .nav-drive-info b, html[data-mode="dark"] .nav-drive-info span { color: #ffffff !important; }
 /* The map area had a light grey background above the map, which showed as a grey edge round the top card: black in dark mode. */
-html[data-mode="dark"] .nav-map-wrap { background-color: #000000 !important; }
+html[data-mode="dark"] .nav-map-wrap { background-color: #141618 !important; }
 /* The turn card's drop shadow showed as a grey edge on the dark map: no shadow in dark mode. */
 html[data-mode="dark"] .nav-map-wrap.is-driving .nav-turn { box-shadow: none !important; }
 /* The drive bar was flat black, which was harsh over the map: a dark slate with a soft outline instead. */
 html[data-mode="dark"] .nav-map-wrap.is-driving .nav-drive-bar { background-color: rgba(30, 37, 51, 0.82) !important; border-color: #3a4456 !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 /* The Directions button on the drive bar was white with light text in dark mode. */
-html[data-mode="dark"] .nav-dirs-btn { background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
+html[data-mode="dark"] .nav-dirs-btn { background-color: #141618 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 /* Search results and suggestions: dark boxes with light text (they were white with pale grey text, which could not be read). */
-html[data-mode="dark"] .nav-results button { background-color: #000000 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
+html[data-mode="dark"] .nav-results button { background-color: #141618 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 html[data-mode="dark"] .nav-results button small { color: #b8c2d4 !important; }
 /* The directions rows had curved grey edges that read as boxes: plain rows with a faint separator line instead. */
 html[data-mode="dark"] .nav-step, html[data-mode="dark"] .nav-steps li { border-radius: 0 !important; border-top: 1px solid #262e3d !important; }
@@ -114,7 +114,7 @@ html[data-mode="dark"] .nav-attrib, html[data-mode="dark"] .nav-drive-attrib, ht
 html[data-mode="dark"] .nav-grid dt, html[data-mode="dark"] .nav-route-msg, html[data-mode="dark"] .nav-source-text, html[data-mode="dark"] .nav-dest-label { color: #a3aec0 !important; }
 html[data-mode="dark"] .nav-steps li, html[data-mode="dark"] .nav-step-text, html[data-mode="dark"] .nav-step-main { color: #eef2f7 !important; }
 html[data-mode="dark"] .nav-dest input, html[data-mode="dark"] .nav-stop-input, html[data-mode="dark"] input.field, html[data-mode="dark"] #nav-to-q {
-  background-color: #141414 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
+  background-color: #1e2124 !important; color: #eef2f7 !important; border-color: #5b6475 !important;
 }
 html[data-mode="dark"] .nav-dest input::placeholder, html[data-mode="dark"] #nav-to-q::placeholder { color: #a3aec0 !important; }
 /* Navigate: the mid-grey text on the black surfaces, and the map's attribution link, lightened so they read. */
@@ -126,7 +126,7 @@ html[data-mode="dark"] .nav-route-stats dd, html[data-mode="dark"] .nav-route-he
 html[data-mode="dark"] .leaflet-control-attribution a { color: #9fd8f0 !important; }
 html[data-mode="dark"] #nav-route-short, html[data-mode="dark"] .nav-route-head span, html[data-mode="dark"] .nav-route-head b { color: #c9d3e2 !important; }
 /* Driving: the Re-centre button is a labelled pill, black with white text in dark mode. */
-html[data-mode="dark"] .nav-map-wrap.is-driving #nav-recentre { background-color: #000000 !important; color: #ffffff !important; border-color: #5b6475 !important; }
+html[data-mode="dark"] .nav-map-wrap.is-driving #nav-recentre { background-color: #141618 !important; color: #ffffff !important; border-color: #5b6475 !important; }
 /* Prompts (what to do next) are amber in dark mode, so they stand out from the readings: RaceBox status and notes, and Navigate messages. */
 html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-rec-note, html[data-mode="dark"] .nav-route-msg { color: #f5b041 !important; }
 /* The RaceBox note about the Laps app was white with pale text: a dark box with light text, and the amber prompt colour on its lead. */
@@ -135,16 +135,16 @@ html[data-mode="dark"] .rbt-phone-note { background: #111827 !important; color: 
 .rbt-tm-sats .rbt-tm-text.rbt-tm-bt { color: #a86a00; }
 html[data-mode="dark"] .rbt-tm-sats .rbt-tm-text.rbt-tm-bt { color: #f5c542 !important; }
 /* The map's own background is black in dark mode, so zooming does not flash it light grey while the tiles reload. */
-html[data-mode="dark"] .nav-map, html[data-mode="dark"] .nav-map.leaflet-container, html[data-mode="dark"] .nav-map-wrap.is-driving .nav-map { background-color: #000000 !important; }
+html[data-mode="dark"] .nav-map, html[data-mode="dark"] .nav-map.leaflet-container, html[data-mode="dark"] .nav-map-wrap.is-driving .nav-map { background-color: #141618 !important; }
 /* The timer card is black with light text in dark mode. */
 html[data-mode="dark"] .rbt-timer-card { background: #111827 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 html[data-mode="dark"] .rbt-timer-label, html[data-mode="dark"] .rbt-timer-sub { color: #b8c2d4 !important; }
 html[data-mode="dark"] .rbt-prompt.rbt-wait { background: #1c1c1c; border-color: #3a3a3a; color: #f1f1f1; }
 html[data-mode="dark"] .rbt-wait-ring { border-color: #3a3a3a; border-top-color: #e3b341; }
-html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-actions { background: #141414; border-color: rgba(255,255,255,.28); }
+html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-actions { background: #1e2124; border-color: rgba(255,255,255,.28); }
 html[data-mode="dark"] .rbt-actions .rbt-switch { background: none !important; border-color: rgba(255,255,255,.14) !important; }
 html[data-mode="dark"] .rbt-drives-empty { border-color: rgba(255,255,255,.28); }
 html[data-mode="dark"] .rbt-mode-help, html[data-mode="dark"] .rbt-modes-title { color: #c9d3e2 !important; }
-html[data-mode="dark"]:not(.rbt-full-on) .rbt-prompt:not(.rbt-wait) { background: #141414; border-color: rgba(255,255,255,.28); color: #eef2f7; }
+html[data-mode="dark"]:not(.rbt-full-on) .rbt-prompt:not(.rbt-wait) { background: #1e2124; border-color: rgba(255,255,255,.28); color: #eef2f7; }
 html[data-mode="dark"] .rbt-actions .rbt-switch { border-width: 0 !important; border-radius: 0 !important; }
 html[data-mode="dark"] .rbt-actions .rbt-switch + .rbt-switch { border-top-width: 1px !important; }

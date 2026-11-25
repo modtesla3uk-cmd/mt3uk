@@ -4,6 +4,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+def _open_drives(page):
+    """The Saved drives section starts folded, below the map: open it."""
+    page.evaluate("() => { var b = document.getElementById('rbt-drives-toggle'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }")
+
+
 
 def test_a_drive_written_for_laps_reads_back_with_the_same_positions_speed_and_times():
     result = subprocess.run(["node", str(ROOT / "tests" / "racebox_stage_check.mjs")], capture_output=True, text=True, timeout=60)
@@ -33,6 +38,7 @@ def _record_and_send(page):
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
     expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+    _open_drives(page)
     page.locator(".rbt-send").click()
     expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
 
@@ -108,6 +114,7 @@ def test_a_drive_recorded_as_a_drag_run_is_staged_as_one(page):
     expect(page.locator("#rbt-drives-list li").first).to_contain_text("drag run")
     # The saved drives sit in the map area, which Drag run hides: send from No track.
     page.locator('#rbt-modes [data-mode="road"]').click()
+    _open_drives(page)
     page.locator(".rbt-send").first.click()
     expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
     text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
@@ -123,6 +130,7 @@ def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
     page.locator("#rbt-record").click()
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
+    _open_drives(page)
     page.locator(".rbt-send").first.click()
     expect(page.locator("#rbt-stage-msg")).to_contain_text("Sent.")
     text = page.evaluate("() => window.MT3UKStage.list().then(function (l) { return window.MT3UKStage.get(l[0].id); })")
@@ -228,6 +236,7 @@ def test_the_racebox_map_has_a_recentre_button(page):
 
 def _open_recorded_drive(page):
     _record_and_send(page)
+    _open_drives(page)
     page.locator(".rbt-view-open").click()
     expect(page.locator("#rbt-view")).to_be_visible()
 

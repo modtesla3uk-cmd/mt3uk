@@ -15,7 +15,7 @@
   --card: #141414; --line: rgba(255,255,255,.14); --line-strong: rgba(255,255,255,.28); --white: #141414;
 }
 html[data-mode="dark"] body { background: #000000; color: #eef2f7; }
-html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #000000 !important; }
+html[data-mode="dark"] header, html[data-mode="dark"] .page-hero { background: #141414 !important; }
 html[data-mode="dark"] .btn-secondary, html[data-mode="dark"] .chip, html[data-mode="dark"] .field, html[data-mode="dark"] .card,
 html[data-mode="dark"] a.back-link { background-color: #141414; color: #eef2f7; border-color: rgba(255,255,255,.16); }
 html[data-mode="dark"] .btn-accent { color: #111111 !important; }
@@ -145,3 +145,6 @@ html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-actions { backgr
 html[data-mode="dark"] .rbt-actions .rbt-switch { background: none !important; border-color: rgba(255,255,255,.14) !important; }
 html[data-mode="dark"] .rbt-drives-empty { border-color: rgba(255,255,255,.28); }
 html[data-mode="dark"] .rbt-mode-help, html[data-mode="dark"] .rbt-modes-title { color: #c9d3e2 !important; }
+html[data-mode="dark"]:not(.rbt-full-on) .rbt-prompt:not(.rbt-wait) { background: #141414; border-color: rgba(255,255,255,.28); color: #eef2f7; }
+html[data-mode="dark"] .rbt-actions .rbt-switch { border-width: 0 !important; border-radius: 0 !important; }
+html[data-mode="dark"] .rbt-actions .rbt-switch + .rbt-switch { border-top-width: 1px !important; }

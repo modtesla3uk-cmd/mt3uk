@@ -5,6 +5,11 @@ import pytest
 from playwright.sync_api import expect
 ADMIN = "localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: 'test-token', expires: Date.now() + 86400000 }));"
 
+def _open_drives(page):
+    """The Saved drives section starts folded, below the map: open it."""
+    page.evaluate("() => { var b = document.getElementById('rbt-drives-toggle'); if (b && b.getAttribute('aria-expanded') !== 'true') b.click(); }")
+
+
 
 # The 88-byte example packet from the documentation: header, 80-byte data message, checksum.
 EXAMPLE_HEX = (
@@ -240,6 +245,7 @@ def test_a_saved_drive_opens_with_its_figures_and_stops_and_closes(page):
     page.evaluate("(b) => { for (var i = 0; i < 50; i++) window.__rbEmit('data', { base64: b }); }", EXAMPLE_B64)
     page.locator("#rbt-record").click()
     expect(page.locator("#rbt-drives-list li")).to_have_count(1)
+    _open_drives(page)
     page.locator(".rbt-view-open").click()
     expect(page.locator("#rbt-view")).to_be_visible()
     expect(page.locator("#rbt-view-stats")).to_contain_text("Distance")
@@ -616,3 +622,21 @@ def test_the_waiting_ring_is_not_rebuilt_by_every_reading(page):
         page.evaluate("(b) => window.__rbEmit('data', { base64: b })", _no_fix_packet(n))
     assert page.evaluate("() => window.__ring === document.querySelector('#rbt-prompt .rbt-wait-ring')")
     expect(page.locator("#rbt-prompt")).to_contain_text("6 satellites found so far")
+
+
+def test_saved_drives_sit_below_the_map_as_a_folded_section_with_a_count(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    toggle = page.locator("#rbt-drives-toggle")
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    expect(page.locator("#rbt-drives-body")).to_be_hidden()
+    # Below the map, not above it.
+    above = page.evaluate("() => (document.querySelector('.rbt-map-frame').compareDocumentPosition(document.getElementById('rbt-drives')) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0")
+    assert above
+    toggle.click()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    expect(page.locator("#rbt-drives-empty")).to_be_visible()
+    toggle.click()
+    expect(page.locator("#rbt-drives-body")).to_be_hidden()

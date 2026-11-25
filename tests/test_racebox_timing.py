@@ -197,9 +197,11 @@ def test_the_timer_asks_for_the_racebox_until_it_is_connected(page):
 
 def test_drag_run_leaves_out_the_live_map(page):
     page.goto("/racebox.html")
-    expect(page.locator(".rbt-map-wrap")).to_be_visible()
+    expect(page.locator(".rbt-map-wrap")).to_have_css("display", "block")
     page.locator('#rbt-modes [data-mode="drag"]').click()
-    expect(page.locator(".rbt-map-wrap")).to_be_hidden()
+    expect(page.locator(".rbt-map-wrap")).to_have_css("display", "none")
+    # The saved drives are outside the map area now, so they stay available in Drag run.
+    expect(page.locator("#rbt-drives-toggle")).to_be_visible()
 
 
 def test_a_saved_drag_drive_gives_its_0_60_run_from_a_standstill_only(page):
@@ -271,11 +273,13 @@ def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once
 def test_the_racebox_page_is_dark_black_and_the_toggle_switches_to_light_and_keeps_it(page):
     page.goto("/racebox.html")
     assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
-    expect(page.locator("#rbt-mode-toggle")).to_have_text("Light mode")
-    page.locator("#rbt-mode-toggle").click()
+    # The page has no Light mode button in its heading: the switch is in the Laps footer.
+    expect(page.locator("#rbt-mode-toggle")).to_have_count(0)
+    expect(page.locator("#lf-mode")).to_have_text("Light mode")
+    page.locator("#lf-mode").click()
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
     assert page.evaluate("getComputedStyle(document.body).backgroundColor") != "rgb(0, 0, 0)"
-    expect(page.locator("#rbt-mode-toggle")).to_have_text("Dark mode")
+    expect(page.locator("#lf-mode")).to_have_text("Dark mode")
     # In Drag run the timer covers the page, so its own button switches the mode too.
     page.locator('#rbt-modes [data-mode="drag"]').click()
     expect(page.locator("#rbt-tm-mode")).to_be_visible()

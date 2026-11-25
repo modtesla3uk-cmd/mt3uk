@@ -251,6 +251,8 @@
       list.sort(function (a, b) { return b.started - a.started; });
       ul.textContent = '';
       if (empty) empty.hidden = list.length > 0;
+      var cnt = $('rbt-drives-count');
+      if (cnt) cnt.textContent = list.length ? '(' + list.length + ')' : '';
       list.forEach(function (d) {
         var li = document.createElement('li');
         var info = document.createElement('div');
@@ -477,6 +479,7 @@
       var a = analyseDrive(rows);
       var view = $('rbt-view');
       if (!view) return;
+      setDrives(true);
       view.hidden = false;
       view.setAttribute('data-drive', id);
       set('rbt-view-title', 'Drive from ' + fmtTime(started));
@@ -803,6 +806,16 @@
     if (band) band.classList.toggle('is-folded', !open);
     if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
+  // Saved drives sit below the map as a folded section; the Saved drives button opens and closes it.
+  function setDrives(open) {
+    var body = $('rbt-drives-body'), btn = $('rbt-drives-toggle');
+    if (body) body.classList.toggle('is-folded', !open);
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function initDrives() {
+    var btn = $('rbt-drives-toggle');
+    if (btn) btn.addEventListener('click', function () { setDrives(btn.getAttribute('aria-expanded') !== 'true'); });
+  }
   function initDetails() {
     var btn = document.getElementById('rbt-details-toggle');
     if (btn) btn.addEventListener('click', function () {
@@ -997,8 +1010,17 @@
       headingHome.parentNode.insertBefore(tile, headingHome);
     }
   }
+  // The GPS card sits right under the status pill, high on the page. In full screen it goes back onto the map, where it
+  // floats over it, because the status and the controls are folded into the Controls fly-out then.
+  function placePrompt(full) {
+    var p = $('rbt-prompt'), st = $('rbt-status'), menu = $('rbt-menu');
+    if (!p || !st || !menu) return;
+    if (full) { if (p.parentNode !== menu.parentNode) menu.parentNode.insertBefore(p, menu.nextSibling); }
+    else if (p.previousElementSibling !== st) st.parentNode.insertBefore(p, st.nextSibling);
+  }
   function setFull(on) {
     document.documentElement.classList.toggle('rbt-full-on', on);
+    placePrompt(on);
     moveHeading(on);
     var b = $('rbt-full');
     if (b) { b.textContent = on ? 'Exit full screen' : 'Go full screen'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
@@ -1130,6 +1152,7 @@
     // The compass is the map's switch: tap it to change between heading up and north up.
     initModes();
     initDetails();
+    initDrives();
     $('rbt-compass').addEventListener('click', function () {
       headingUp = !headingUp;
       try { localStorage.setItem('mt3ukRaceBoxNorthUp', headingUp ? '0' : '1'); } catch (e) { /* storage blocked */ }
@@ -1169,6 +1192,7 @@
     // The app's bridge can arrive a moment after the page's scripts run, so check for a few seconds before giving up.
     var tries = 0;
     (function check() {
+      placePrompt(false);
       if (app.available) return ready();
       tries++;
       if (tries < 10) return setTimeout(check, 500);

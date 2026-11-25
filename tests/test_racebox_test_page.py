@@ -570,7 +570,10 @@ def test_the_controls_are_grouped_and_the_extras_are_tucked_away(page):
     page.goto("/racebox.html")
     expect(page.locator("#rbt-connect")).to_be_enabled()
     # The three switches share one card, and the GPS note is a line inside the Record a drive row.
-    expect(page.locator(".rbt-actions .rbt-switch")).to_have_count(3)
+    expect(page.locator(".rbt-actions .rbt-switch")).to_have_count(2)
+    # Connect to RaceBox is the first thing to do, so it is a large button above the switches while not connected.
+    connect = page.locator("#rbt-connect").bounding_box()
+    assert connect["height"] >= 60 and connect["width"] > 300
     expect(page.locator("#rbt-record #rbt-rec-note")).to_be_visible()
     # The two buttons are the same width.
     zero = page.locator("#rbt-zero").bounding_box()

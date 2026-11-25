@@ -1010,10 +1010,10 @@
       headingHome.parentNode.insertBefore(tile, headingHome);
     }
   }
-  // The GPS card sits right under the status pill, high on the page. In full screen it goes back onto the map, where it
+  // The GPS card sits right under the status pill and the Connect button, high on the page. In full screen it goes back onto the map, where it
   // floats over it, because the status and the controls are folded into the Controls fly-out then.
   function placePrompt(full) {
-    var p = $('rbt-prompt'), st = $('rbt-status'), menu = $('rbt-menu');
+    var p = $('rbt-prompt'), st = $('rbt-connect') || $('rbt-status'), menu = $('rbt-menu');
     if (!p || !st || !menu) return;
     if (full) { if (p.parentNode !== menu.parentNode) menu.parentNode.insertBefore(p, menu.nextSibling); }
     else if (p.previousElementSibling !== st) st.parentNode.insertBefore(p, st.nextSibling);

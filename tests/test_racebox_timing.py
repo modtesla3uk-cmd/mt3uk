@@ -141,12 +141,28 @@ def test_the_saved_runs_can_be_cleared(page):
     assert saved["runs"] == []
 
 
-def test_the_dial_has_its_speed_numbers_and_the_g_meter_labels(page):
+def test_the_dial_is_a_clean_speedo_with_a_filling_arc_and_a_small_g_meter(page):
     _open_drag(page)
-    # 140 mph on the outside, and 140 km/h inside it (the km/h scale has its own numbers).
-    expect(page.locator("#rbt-tm-dial text").filter(has_text="140")).to_have_count(2)
-    expect(page.locator("#rbt-tm-dial text").filter(has_text="1.0")).to_have_count(1)
+    # The main speeds are numbered every 20, once (the scale follows the unit), and the speed is in large figures.
+    expect(page.locator("#rbt-tm-dial text.rbt-d-num").filter(has_text="140")).to_have_count(1)
+    expect(page.locator("#rbt-tm-dial text.rbt-d-num")).to_have_count(8)
+    expect(page.locator("#rbt-tm-big")).to_have_text("0")
     expect(page.locator("#rbt-tm-dial text").filter(has_text="G Forces")).to_have_count(1)
+    # The old km/h scale and the cross hair rings are gone.
+    expect(page.locator("#rbt-tm-dial text").filter(has_text="1.0")).to_have_count(0)
+    # The arc fills as the car speeds up: empty while still, about half full at 70 mph.
+    arc = page.locator("#rbt-tm-arc")
+    full = float(arc.get_attribute("stroke-dasharray"))
+    assert float(arc.get_attribute("stroke-dashoffset")) == full
+    _emit(page, live(speed_ms=31.3))
+    expect(page.locator("#rbt-tm-big")).to_have_text("70")
+    offset = float(arc.get_attribute("stroke-dashoffset"))
+    assert 0.4 * full < offset < 0.6 * full
+    # In km/h the scale is in km/h too.
+    page.evaluate("() => localStorage.setItem('mt3ukRaceBoxUnit', 'kmh')")
+    _emit(page, live(speed_ms=31.3))
+    expect(page.locator("#rbt-tm-bigunit")).to_have_text("km/h")
+    expect(page.locator("#rbt-tm-big")).to_have_text("113")
 
 
 def test_drag_run_goes_full_screen_and_the_full_screen_button_brings_the_page_back(page):
@@ -272,13 +288,13 @@ def test_timing_a_run_records_it_against_the_strip_chosen_and_lists_the_run_once
 
 def test_the_racebox_page_is_dark_black_and_the_toggle_switches_to_light_and_keeps_it(page):
     page.goto("/racebox.html")
-    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(20, 22, 24)"
     # The page has no Light mode button in its heading: the switch is in the Laps footer.
     expect(page.locator("#rbt-mode-toggle")).to_have_count(0)
     expect(page.locator("#lf-mode")).to_have_text("Light mode")
     page.locator("#lf-mode").click()
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
-    assert page.evaluate("getComputedStyle(document.body).backgroundColor") != "rgb(0, 0, 0)"
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") != "rgb(20, 22, 24)"
     expect(page.locator("#lf-mode")).to_have_text("Dark mode")
     # In Drag run the timer covers the page, so its own button switches the mode too.
     page.locator('#rbt-modes [data-mode="drag"]').click()
@@ -290,20 +306,17 @@ def test_the_racebox_page_is_dark_black_and_the_toggle_switches_to_light_and_kee
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"
 
 
-def test_the_dial_glows_red_from_the_gps_fix_and_stays_red_without_pulsing(page):
+def test_the_dial_has_no_red_glow_before_or_after_the_gps_fix(page):
     page.goto("/racebox.html")
     page.evaluate("(b) => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S 2242505877' })", None)
     _emit(page, live(fix=False, sats=4))
     page.locator('#rbt-modes [data-mode="drag"]').click()
     expect(page.locator("#rbt-timing")).to_be_visible(timeout=10000)
-    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-fixed')")
     _emit(page, live(speed_ms=0.0))
-    expect(page.locator("#rbt-tm-dial")).to_have_class(__import__("re").compile("rbt-tm-fixed"), timeout=5000)
-    # It no longer pulses: the old pulse class is never added, and the red glow stays on.
-    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-pulse')")
-    page.wait_for_timeout(3000)
-    expect(page.locator("#rbt-tm-dial")).to_have_class(__import__("re").compile("rbt-tm-fixed"))
-    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-pulse')")
+    page.wait_for_timeout(1000)
+    # The old steady red glow was taken off: the dial has no glow class and no filter.
+    assert not page.locator("#rbt-tm-dial").evaluate("el => el.classList.contains('rbt-tm-fixed') || el.classList.contains('rbt-tm-pulse')")
+    assert page.locator("#rbt-tm-dial svg").evaluate("el => getComputedStyle(el).filter") == "none"
 
 
 def test_the_timer_card_waits_to_move_off_then_counts_the_run_live(page):

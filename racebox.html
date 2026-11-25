@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=23"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=25"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -602,8 +602,8 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
     <p class="rbt-phone-note" id="rbt-phone-note" hidden>To connect a RaceBox and get its GPS, open this page on your phone in the Laps app. On a computer you can look around the page, but nothing comes from a RaceBox.</p>
     <div class="rbt-flyout" id="rbt-flyout">
     <p id="rbt-status" class="rbt-status" role="status" data-state="off">Not connected.</p>
+    <button type="button" class="rbt-switch rbt-connect-main" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
     <div class="rbt-actions">
-      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span class="rbt-switch-text"><span>Record a drive</span><small id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</small></span></button>
     </div>
@@ -724,6 +724,11 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-actions { display: flex; flex-direction: column; gap: 0; margin: 0 0 14px; padding: 0 14px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: var(--radius, 10px); background: var(--surface, #fff); }
   .rbt-actions .rbt-switch { width: 100%; justify-content: space-between; flex-direction: row-reverse; min-height: 52px; padding: 6px 0; border: 0; border-radius: 0; background: none; }
   .rbt-actions .rbt-switch + .rbt-switch { border-top: 1px solid var(--hairline, #d8dbe2); }
+  /* Connect to RaceBox is the one thing to do first, so it is a large button while not connected, and a plain switch row once connected. */
+  .rbt-connect-main { width: 100%; box-sizing: border-box; justify-content: space-between; flex-direction: row-reverse; min-height: 52px; margin: 0 0 14px; padding: 6px 16px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: var(--radius, 10px); background: var(--surface, #fff); }
+  .rbt-connect-main[aria-checked="false"] { justify-content: center; flex-direction: row; min-height: 64px; border-color: var(--orange, #e8542a); border-radius: 999px; background: var(--orange, #e8542a); color: #16233d; font-size: 1.2rem; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+  .rbt-connect-main[aria-checked="false"] .rbt-track { display: none; }
+  .rbt-connect-main[aria-checked="false"]:disabled { opacity: .75; }
   /* Zero the G meter and Test phone location are equal-width buttons in a row. */
   .rbt-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 8px; }
   .rbt-tools .btn { width: 100%; margin: 0; padding-left: 8px; padding-right: 8px; }
@@ -854,8 +859,20 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-details-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
   .rbt-full-on .rbt-details-toggle { display: none; }
   .rbt-tm-dial svg { width: 100%; height: auto; display: block; }
-  /* Once the GPS has a fix the dial glows red and stays red (it no longer pulses). */
-  .rbt-tm-dial.rbt-tm-fixed svg { filter: drop-shadow(0 0 14px rgba(232,42,42,.6)); }
+  /* The clean speedo: an arc that fills with speed, the speed in large figures, and a small G meter. */
+  .rbt-d-track { stroke: #dfe2e8; stroke-width: 14; stroke-linecap: round; }
+  .rbt-d-arc { stroke: var(--orange, #e8542a); stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset .15s linear; }
+  .rbt-d-tick { stroke: #9aa1ad; stroke-width: 1.5; }
+  .rbt-d-tick.is-major { stroke: #5b6475; stroke-width: 2.5; }
+  .rbt-d-num { fill: #5b6475; font: 600 13px var(--font-body, sans-serif); }
+  .rbt-d-big { fill: var(--ink, #16233d); font: 700 60px var(--font-head, sans-serif); font-variant-numeric: tabular-nums; }
+  .rbt-d-unit { fill: #5b6475; font: 600 17px var(--font-body, sans-serif); }
+  .rbt-d-gring { stroke: #9aa1ad; stroke-width: 1.5; }
+  .rbt-d-gcross { stroke: #c4c9d2; stroke-width: 1.2; }
+  .rbt-d-gdot { fill: #b3261e; }
+  .rbt-d-glabel { fill: #5b6475; font: 600 11px var(--font-body, sans-serif); }
+  .rbt-tm-speed { display: none; }
+  .rbt-tm-go { margin-top: 56px; }
   .rbt-tm-speed { margin: 0; text-align: center; color: var(--ink, #16233d); }
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
   .rbt-tm-speed span { font-size: 1.4rem; font-weight: 700; color: #5b6475; }
@@ -1079,8 +1096,8 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=5"></script>
-<script src="js/racebox-timing.js?v=20"></script>
-<script src="js/racebox-test.js?v=88"></script>
+<script src="js/racebox-timing.js?v=22"></script>
+<script src="js/racebox-test.js?v=89"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

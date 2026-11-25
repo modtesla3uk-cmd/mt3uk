@@ -30,87 +30,74 @@
 
   function bestOf(a) { return a.length ? Math.min.apply(null, a.map(function (r) { return r.t; })) : null; }
 
-  // The dial: the speed ring with its numbers, the needle, and the G meter inside it.
+  // The dial: a clean speedo. One arc that fills as the car speeds up, the speed in large figures in the middle, the main
+  // speeds marked every 20, and a small G meter in the gap at the bottom. The scale follows the unit: mph or km/h.
+  var DIAL_R = 118, DIAL_SWEEP = 270, G_MINI = 17;
+  var DIAL_LEN = DIAL_R * DIAL_SWEEP * Math.PI / 180;
+  var dialUnit = '';
+  function polar(deg, r) { var a = deg * Math.PI / 180; return [150 + Math.sin(a) * r, 150 - Math.cos(a) * r]; }
+  function dialMax() { return useMph() ? MAX_MPH : Math.round(MAX_MPH * 1.60934 / 20) * 20; }
+  function buildScale() {
+    var g = $('rbt-tm-scale');
+    if (!g) return;
+    g.textContent = '';
+    var max = dialMax();
+    for (var v = 0; v <= max; v += 10) {
+      var ang = -135 + DIAL_SWEEP * v / max, major = v % 20 === 0;
+      var p1 = polar(ang, major ? 96 : 102), p2 = polar(ang, 106);
+      svgEl('line', { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], class: major ? 'rbt-d-tick is-major' : 'rbt-d-tick' }, g);
+      if (major) {
+        var pt = polar(ang, 80);
+        svgEl('text', { x: pt[0], y: pt[1] + 4.5, class: 'rbt-d-num', 'text-anchor': 'middle' }, g).textContent = String(v);
+      }
+    }
+  }
   function buildDial() {
     var host = $('rbt-tm-dial');
     if (!host || host.firstChild) return;
     var s = svgEl('svg', { viewBox: '0 0 300 300', role: 'img', 'aria-label': 'Speed and G meter' }, host);
-    svgEl('circle', { cx: 150, cy: 150, r: 112, fill: 'none', stroke: '#9aa1ad', 'stroke-width': 3 }, s);
-    var ticks = svgEl('g', { stroke: '#9aa1ad' }, s);
-    var labels = svgEl('g', { fill: '#5b6475', 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle' }, s);
-    // A tick every 5 mph: longest with the number every 20 mph, medium every 10.
-    for (var m = 0; m <= MAX_MPH; m += 5) {
-      var a = (-135 + 270 * m / MAX_MPH) * Math.PI / 180, major = m % 20 === 0, medium = m % 10 === 0;
-      var r1 = major ? 96 : medium ? 101 : 106;
-      svgEl('line', {
-        x1: 150 + Math.sin(a) * r1, y1: 150 - Math.cos(a) * r1,
-        x2: 150 + Math.sin(a) * 112, y2: 150 - Math.cos(a) * 112,
-        'stroke-width': major ? 3 : medium ? 2 : 1.2
-      }, ticks);
-      if (major) {
-        var t = svgEl('text', { x: 150 + Math.sin(a) * 130, y: 150 - Math.cos(a) * 130 + 5 }, labels);
-        t.textContent = String(m);
-      }
-    }
-    // The same needle reads km/h on the inside, with the same increments as the mph scale: a tick every 5 km/h, a medium
-    // one every 10, and a long one with its number every 20.
-    var KPH_FULL = MAX_MPH * 1.60934;
-    var kphTicks = svgEl('g', { stroke: '#8f9bb3', 'stroke-linecap': 'butt' }, s);
-    var kphLabels = svgEl('g', { fill: '#6b7790', 'font-size': 9, 'font-weight': 700, 'text-anchor': 'middle' }, s);
-    for (var k = 0; k <= KPH_FULL; k += 5) {
-      var ka = (-135 + 270 * k / KPH_FULL) * Math.PI / 180, kmajor = k % 20 === 0, kmed = k % 10 === 0;
-      var kr1 = kmajor ? 84 : kmed ? 86 : 87;
-      svgEl('line', { x1: 150 + Math.sin(ka) * kr1, y1: 150 - Math.cos(ka) * kr1, x2: 150 + Math.sin(ka) * 90, y2: 150 - Math.cos(ka) * 90, 'stroke-width': kmajor ? 1.8 : kmed ? 1.5 : 1.2 }, kphTicks);
-      if (kmajor) {
-        // Each number sits clear of the G ring (radius 70), outside it, between the rings.
-        // Labels that sit near the horizontal (near 180 km/h, say) move up a little, to clear the G values on their row.
-        var nudge = Math.abs(Math.cos(ka)) < 0.3 ? -10 : 0;
-        var kt = svgEl('text', { x: 150 + Math.sin(ka) * 77, y: 150 - Math.cos(ka) * 77 + 3 + nudge }, kphLabels);
-        kt.textContent = String(k);
-      }
-    }
-    var unitT = svgEl('text', { x: 150, y: 62, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: '#6b7790' }, s);
-    unitT.textContent = 'km/h';
-    svgEl('circle', { cx: 150, cy: 150, r: 70, fill: 'none', stroke: '#5b6475', 'stroke-width': 2 }, s);
-    svgEl('circle', { cx: 150, cy: 150, r: 47, fill: 'none', stroke: '#9aa1ad', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, s);
-    svgEl('circle', { cx: 150, cy: 150, r: 23, fill: 'none', stroke: '#9aa1ad', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, s);
-    svgEl('line', { x1: 75, y1: 150, x2: 225, y2: 150, stroke: '#9aa1ad', 'stroke-width': 1.5 }, s);
-    svgEl('line', { x1: 150, y1: 75, x2: 150, y2: 225, stroke: '#9aa1ad', 'stroke-width': 1.5 }, s);
-    var g = svgEl('g', { fill: '#5b6475', 'font-size': 11, 'font-weight': 700 }, s);
-    // The values sit together on one line just right of the centre dot, with commas between them.
-    svgEl('text', { x: 164, y: 145, 'font-size': 9.5 }, g).textContent = '0.5, 1.0, 1.5';
-    svgEl('line', { id: 'rbt-tm-needle', x1: 150, y1: 150, x2: 150, y2: 44, stroke: '#e8542a', 'stroke-width': 5, 'stroke-linecap': 'round' }, s);
-    var lab = svgEl('g', { id: 'rbt-tm-glabel' }, s);
-    // The G Forces label, straight, under the inner G rings.
-    var words = svgEl('text', { x: 150, y: 236, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#5b6475', 'letter-spacing': 0.6 }, lab);
-    words.textContent = 'G Forces';
-    svgEl('circle', { id: 'rbt-tm-gdot', cx: 150, cy: 150, r: 9, fill: '#b3261e' }, s);
+    var s0 = polar(-135, DIAL_R), s1 = polar(135, DIAL_R);
+    var path = 'M' + s0[0].toFixed(2) + ' ' + s0[1].toFixed(2) + ' A' + DIAL_R + ' ' + DIAL_R + ' 0 1 1 ' + s1[0].toFixed(2) + ' ' + s1[1].toFixed(2);
+    svgEl('path', { d: path, class: 'rbt-d-track', fill: 'none' }, s);
+    svgEl('path', { id: 'rbt-tm-arc', d: path, class: 'rbt-d-arc', fill: 'none', 'stroke-dasharray': DIAL_LEN.toFixed(1), 'stroke-dashoffset': DIAL_LEN.toFixed(1) }, s);
+    svgEl('g', { id: 'rbt-tm-scale' }, s);
+    svgEl('text', { id: 'rbt-tm-big', x: 150, y: 160, class: 'rbt-d-big', 'text-anchor': 'middle' }, s).textContent = '0';
+    svgEl('text', { id: 'rbt-tm-bigunit', x: 150, y: 184, class: 'rbt-d-unit', 'text-anchor': 'middle' }, s).textContent = 'mph';
+    // The G meter: a small ring and cross under the speed, with the dot that moves as the car pulls.
+    svgEl('circle', { cx: 150, cy: 238, r: 24, class: 'rbt-d-gring', fill: 'none' }, s);
+    svgEl('line', { x1: 126, y1: 238, x2: 174, y2: 238, class: 'rbt-d-gcross' }, s);
+    svgEl('line', { x1: 150, y1: 214, x2: 150, y2: 262, class: 'rbt-d-gcross' }, s);
+    svgEl('circle', { id: 'rbt-tm-gdot', cx: 150, cy: 238, r: 5.5, class: 'rbt-d-gdot' }, s);
+    svgEl('text', { x: 150, y: 281, class: 'rbt-d-glabel', 'text-anchor': 'middle' }, s).textContent = 'G Forces';
   }
 
-  // The needle and the speed; the dot is the G forces, zeroed while the car is still.
+  // The arc and the speed; the dot is the G forces, zeroed while the car is still.
   function drawDial(speedMs, g) {
     var mphNow = (speedMs || 0) * 2.23694;
-    var frac = Math.max(0, Math.min(1, mphNow / MAX_MPH));
-    var needle = $('rbt-tm-needle');
-    if (needle) needle.setAttribute('transform', 'rotate(' + (-135 + 270 * frac) + ' 150 150)');
+    var unit = useMph() ? 'mph' : 'km/h';
+    if (unit !== dialUnit) { dialUnit = unit; buildScale(); }
     var shown = useMph() ? mphNow : (speedMs || 0) * 3.6;
+    var frac = Math.max(0, Math.min(1, shown / dialMax()));
+    var arc = $('rbt-tm-arc');
+    if (arc) arc.setAttribute('stroke-dashoffset', (DIAL_LEN * (1 - frac)).toFixed(1));
     set('rbt-tm-speed', String(Math.round(shown)));
-    set('rbt-tm-unit', useMph() ? 'mph' : 'km/h');
+    set('rbt-tm-unit', unit);
+    var big = $('rbt-tm-big');
+    if (big) big.textContent = String(Math.round(shown));
+    var bigUnit = $('rbt-tm-bigunit');
+    if (bigUnit) bigUnit.textContent = unit;
     var dot = $('rbt-tm-gdot');
     if (dot && g) {
       if (mphNow < STOP_MPH) gTare = { x: g.x || 0, y: g.y || 0 };
       var side = clamp((g.y || 0) - gTare.y, 1.2), fwd = clamp((g.x || 0) - gTare.x, 1.2);
-      dot.setAttribute('cx', 150 + side * G_PER_RING);
-      dot.setAttribute('cy', 150 - fwd * G_PER_RING);
+      dot.setAttribute('cx', 150 + side * G_MINI);
+      dot.setAttribute('cy', 238 - fwd * G_MINI);
     }
   }
 
   // The satellites: empty until the RaceBox has a fix, then a segment for each satellite (up to 12).
   var segsBuilt = false;
   function drawSats() {
-    // The dial glows red from the GPS fix on, and stays red (no pulse).
-    var dial = $('rbt-tm-dial');
-    if (dial) dial.classList.toggle('rbt-tm-fixed', !!rbFix);
     var bars = $('rbt-tm-bars');
     if (!bars) return;
     if (!segsBuilt) {

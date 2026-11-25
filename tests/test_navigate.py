@@ -1674,7 +1674,7 @@ def test_the_navigate_page_is_dark_black_and_the_toggle_switches_to_light_and_ke
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/navigate.html")
     expect(page.locator("#nav-body")).to_be_visible(timeout=10000)
-    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(0, 0, 0)"
+    assert page.evaluate("getComputedStyle(document.body).backgroundColor") == "rgb(20, 22, 24)"
     expect(page.locator("#nav-mode-toggle")).to_be_visible()
     page.locator("#nav-mode-toggle").click()
     assert page.evaluate("document.documentElement.getAttribute('data-mode')") == "light"

@@ -148,3 +148,14 @@ html[data-mode="dark"] .rbt-mode-help, html[data-mode="dark"] .rbt-modes-title {
 html[data-mode="dark"]:not(.rbt-full-on) .rbt-prompt:not(.rbt-wait) { background: #1e2124; border-color: rgba(255,255,255,.28); color: #eef2f7; }
 html[data-mode="dark"] .rbt-actions .rbt-switch { border-width: 0 !important; border-radius: 0 !important; }
 html[data-mode="dark"] .rbt-actions .rbt-switch + .rbt-switch { border-top-width: 1px !important; }
+html[data-mode="dark"] .rbt-connect-main[aria-checked="false"] { background: #f5c542 !important; border-color: #f5c542 !important; color: #111111 !important; }
+html[data-mode="dark"] .rbt-connect-main[aria-checked="true"] { background: #1e2124 !important; }
+html[data-mode="dark"] .rbt-d-track { stroke: #34393f; }
+html[data-mode="dark"] .rbt-d-arc { stroke: #f5c542; }
+html[data-mode="dark"] .rbt-d-tick { stroke: #6b727c; }
+html[data-mode="dark"] .rbt-d-tick.is-major { stroke: #aab2bd; }
+html[data-mode="dark"] .rbt-d-num, html[data-mode="dark"] .rbt-d-unit, html[data-mode="dark"] .rbt-d-glabel { fill: #aab2bd; }
+html[data-mode="dark"] .rbt-d-big { fill: #eef2f7; }
+html[data-mode="dark"] .rbt-d-gring { stroke: #6b727c; }
+html[data-mode="dark"] .rbt-d-gcross { stroke: #44494f; }
+html[data-mode="dark"] .rbt-d-gdot { fill: #ff6b5e; }

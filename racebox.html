@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=25"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=26"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -662,6 +662,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
         <ol class="rbt-tm-list" id="rbt-tm-list"></ol>
       </div>
       <button type="button" class="rbt-tm-mode" id="rbt-tm-mode" data-mode-toggle aria-pressed="true" aria-label="Dark mode is on. Tap for light mode.">Light mode</button>
+      <button type="button" class="rbt-tm-mode rbt-tm-unitbtn" id="rbt-tm-unitbtn" aria-label="Speed in mph. Tap to change."><span data-u="mph" class="is-on">mph</span><span data-u="kmh">km/h</span></button>
       </div>
       <div class="rbt-tm-col rbt-tm-col-l" id="rbt-tm-left">
         <div class="rbt-timer-card" id="rbt-timer-card" aria-live="polite" hidden>
@@ -872,6 +873,11 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-d-gdot { fill: #b3261e; }
   .rbt-d-glabel { fill: #5b6475; font: 600 11px var(--font-body, sans-serif); }
   .rbt-tm-speed { display: none; }
+  /* The mph or km/h switch for the timer sits at the top, between Light mode and Full screen. */
+  .rbt-tm-unitbtn { left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 2px; padding: 3px; }
+  .rbt-tm-full .rbt-tm-unitbtn, .rbt-tm-full .rbt-tm-mode.rbt-tm-unitbtn { left: 50%; transform: translateX(-50%); }
+  .rbt-tm-unitbtn span { padding: 8px 10px; border-radius: 999px; font-weight: 600; color: #5b6475; }
+  .rbt-tm-unitbtn span.is-on { background: var(--orange, #e8542a); color: #16233d; font-weight: 700; }
   .rbt-tm-go { margin-top: 56px; }
   .rbt-tm-speed { margin: 0; text-align: center; color: var(--ink, #16233d); }
   .rbt-tm-speed b { font-size: 4.2rem; line-height: 1; }
@@ -1076,6 +1082,21 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-full-on .rbt-grid .rbt-fix-bad dd { color: #b3261e; }
   .rbt-grid .rbt-fix-good dd { color: #1c8a4b; }
   .rbt-grid .rbt-fix-bad dd { color: #c0392b; }
+  /* The full screen timer on a phone on its side fits the screen exactly, so the page cannot be panned up and down. */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .rbt-tm-full { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+    .rbt-tm-full .rbt-tm-unitbtn, .rbt-tm-full .rbt-tm-mode.rbt-tm-unitbtn { left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(66px + env(safe-area-inset-top, 0px)); transform: none; }
+    .rbt-tm-full .rbt-tm-dial { position: relative; top: 0; width: min(calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 50vw); width: min(calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 50vw); }
+  }
+  html.rbt-tm-full-on, html.rbt-tm-full-on body { overflow: hidden; overscroll-behavior: none; }
+  /* Full screen map: the buttons and readings start below the phone's status bar (clock and icons), not under it. */
+  .rbt-full-on .rbt-menu-btn { top: calc(10px + env(safe-area-inset-top, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); }
+  .rbt-full-on .rbt-fs-btn { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout { top: calc(62px + env(safe-area-inset-top, 0px)); }
+  .rbt-full-on .leaflet-top.leaflet-left { top: calc(62px + env(safe-area-inset-top, 0px)); }
+  .rbt-full-on .rbt-map-frame > .rbt-compass-map { top: calc(62px + env(safe-area-inset-top, 0px)); }
+  .rbt-full-on .rbt-speed-float { top: calc(62px + env(safe-area-inset-top, 0px)); }
+  .rbt-full-on .rbt-map-wrap > .rbt-heading-tile { top: calc(132px + env(safe-area-inset-top, 0px)); }
 </style>
 </main>
 <footer>
@@ -1096,8 +1117,8 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script src="js/racebox-parse.js?v=1"></script>
 <script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=5"></script>
-<script src="js/racebox-timing.js?v=22"></script>
-<script src="js/racebox-test.js?v=89"></script>
+<script src="js/racebox-timing.js?v=23"></script>
+<script src="js/racebox-test.js?v=91"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

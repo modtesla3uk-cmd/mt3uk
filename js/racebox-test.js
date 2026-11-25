@@ -8,8 +8,8 @@
   var rate = 0, count = 0;
   var lastKph = null;
   // The speed can be shown in km/h or mph. The choice is kept on the phone.
-  var unit = 'kmh';
-  try { if (localStorage.getItem('mt3ukRaceBoxUnit') === 'mph') unit = 'mph'; } catch (e) { /* storage blocked: km/h */ }
+  var unit = 'mph';
+  try { if (localStorage.getItem('mt3ukRaceBoxUnit') === 'kmh') unit = 'kmh'; } catch (e) { /* storage blocked: mph */ }
 
   function $(id) { return document.getElementById(id); }
   function set(id, text) { var el = $(id); if (el) el.textContent = text; }

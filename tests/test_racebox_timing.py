@@ -332,3 +332,55 @@ def test_the_timer_card_waits_to_move_off_then_counts_the_run_live(page):
     expect(page.locator("#rbt-timer-label")).to_have_text("Running")
     _emit(page, live(speed_ms=8.0, fix=True, sats=12, at_ms=2000))
     expect(page.locator("#rbt-timer-time")).to_have_text("1.00")
+
+
+def test_the_drag_timer_has_a_speed_unit_switch_that_changes_the_dial(page):
+    _open_drag(page)
+    unit = page.locator("#rbt-tm-unitbtn")
+    expect(unit).to_be_visible()
+    expect(page.locator("#rbt-tm-bigunit")).to_have_text("mph")
+    unit.click()
+    expect(page.locator("#rbt-tm-bigunit")).to_have_text("km/h")
+    assert page.evaluate("() => localStorage.getItem('mt3ukRaceBoxUnit')") == "kmh"
+    expect(page.locator("#rbt-tm-unitbtn [data-u='kmh']")).to_have_class(__import__("re").compile("is-on"))
+    # The scale follows: the top of the dial is 220 km/h, not 140 mph.
+    expect(page.locator("#rbt-tm-dial text.rbt-d-num").filter(has_text="220")).to_have_count(1)
+    unit.click()
+    expect(page.locator("#rbt-tm-bigunit")).to_have_text("mph")
+
+
+def test_the_full_screen_map_starts_below_the_status_bar_and_has_a_dark_map(page):
+    page.goto("/racebox.html")
+    rules = page.evaluate("""() => {
+      const out = {};
+      for (const sheet of document.styleSheets) {
+        let list; try { list = sheet.cssRules; } catch (e) { continue; }
+        for (const r of list) {
+          if (!r.selectorText) continue;
+          if (r.selectorText === '.rbt-full-on .rbt-menu-btn' && r.style.top) out.menu = r.style.top;
+          if (r.selectorText === '.rbt-full-on .rbt-fs-btn') out.fs = r.style.top;
+          if (r.selectorText === '.rbt-full-on .rbt-speed-float' && r.style.top) out.speed = r.style.top;
+          if (r.selectorText.indexOf('data-mode="dark"') >= 0 && r.selectorText.indexOf('.rbt-map .leaflet-tile-pane') >= 0) out.dark = r.style.filter;
+        }
+      }
+      return out;
+    }""")
+    for key in ("menu", "fs", "speed"):
+        assert "safe-area-inset-top" in rules[key], rules
+    assert "grayscale" in rules["dark"] and "invert" in rules["dark"], rules
+
+
+def test_the_landscape_timer_fits_the_screen_and_cannot_be_panned(page):
+    page.set_viewport_size({"width": 860, "height": 392})
+    _open_drag(page)
+    page.wait_for_timeout(500)
+    fits = page.evaluate("() => { const t = document.getElementById('rbt-timing'); return [t.scrollHeight, t.clientHeight]; }")
+    assert fits[0] <= fits[1], fits
+    page.evaluate("() => { window.scrollTo(0, 300); document.getElementById('rbt-timing').scrollTop = 300; }")
+    # The page behind the timer cannot be panned by a finger either.
+    assert page.evaluate("() => getComputedStyle(document.documentElement).overflowY") == "hidden"
+    assert page.evaluate("() => document.getElementById('rbt-timing').scrollTop") == 0
+    # The unit switch stays clear of the dial: it is under Light mode, not over the arc.
+    unit = page.locator("#rbt-tm-unitbtn").bounding_box()
+    dial = page.locator("#rbt-tm-dial").bounding_box()
+    assert unit["x"] + unit["width"] < dial["x"] + dial["width"] * 0.25, (unit, dial)

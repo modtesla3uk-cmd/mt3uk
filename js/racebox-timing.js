@@ -72,7 +72,18 @@
   }
 
   // The arc and the speed; the dot is the G forces, zeroed while the car is still.
+  var lastSpeed = 0;
+  function paintUnitBtn() {
+    var b = $('rbt-tm-unitbtn');
+    if (!b) return;
+    var mph = useMph();
+    var spans = b.querySelectorAll('[data-u]');
+    for (var i = 0; i < spans.length; i++) spans[i].classList.toggle('is-on', (spans[i].getAttribute('data-u') === 'mph') === mph);
+    b.setAttribute('aria-label', 'Speed in ' + (mph ? 'mph' : 'km/h') + '. Tap to change.');
+  }
   function drawDial(speedMs, g) {
+    lastSpeed = speedMs || 0;
+    paintUnitBtn();
     var mphNow = (speedMs || 0) * 2.23694;
     var unit = useMph() ? 'mph' : 'km/h';
     if (unit !== dialUnit) { dialUnit = unit; buildScale(); }
@@ -337,6 +348,14 @@
     if (!$('rbt-timing')) return;
     var fsBtn = $('rbt-tm-fs');
     if (fsBtn) fsBtn.addEventListener('click', function () { setFull(!$('rbt-timing').classList.contains('rbt-tm-full')); });
+    // The speed unit switch for the timer: mph or km/h, the same choice as the Speed in mph switch on the page.
+    var unitBtn = $('rbt-tm-unitbtn');
+    if (unitBtn) unitBtn.addEventListener('click', function () {
+      var sw = $('rbt-unit');
+      if (sw) sw.click();
+      paintUnitBtn();
+      drawDial(lastSpeed, null);
+    });
     buildDial();
     // The needle starts at 0 mph, not at its drawn position (straight up, which is 70 mph).
     drawDial(0, null);

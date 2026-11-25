@@ -52,12 +52,14 @@ def test_the_racebox_page_shows_the_live_readings_from_the_app(page):
     expect(page.locator("#rbt-status")).to_contain_text("Connected to RaceBox Mini S 2242505877")
     page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
     expect(page.locator("#rbt-speed")).to_have_text("0")
-    expect(page.locator("#rbt-speed-unit")).to_have_text("km/h")
-    page.locator("#rbt-unit").click()
+    # mph is the default, on the page and on the drag timer, so both agree.
     expect(page.locator("#rbt-speed-unit")).to_have_text("mph")
     expect(page.locator("#rbt-unit")).to_have_attribute("aria-checked", "true")
     page.locator("#rbt-unit").click()
     expect(page.locator("#rbt-speed-unit")).to_have_text("km/h")
+    expect(page.locator("#rbt-unit")).to_have_attribute("aria-checked", "false")
+    page.locator("#rbt-unit").click()
+    expect(page.locator("#rbt-speed-unit")).to_have_text("mph")
     expect(page.locator("#rbt-heading")).to_have_text("0.0")
     expect(page.locator("#rbt-pos")).to_have_text("42.671903, 23.288724")
     expect(page.locator("#rbt-fix")).to_have_text("Good")
@@ -299,7 +301,7 @@ def test_the_speed_shows_large_on_the_map_in_full_screen(page):
     page.locator("#rbt-full").click()
     expect(page.locator("#rbt-speed-float")).to_be_visible()
     expect(page.locator("#rbt-speed-big")).to_have_text("0")
-    expect(page.locator("#rbt-speed-big-unit")).to_have_text("km/h")
+    expect(page.locator("#rbt-speed-big-unit")).to_have_text("mph")
 
 
 def test_the_racebox_test_link_shows_in_the_laps_app_only_for_approved_members(page):

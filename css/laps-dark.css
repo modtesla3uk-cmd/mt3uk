@@ -407,3 +407,8 @@ html[data-mode="dark"] .mp-car, html[data-mode="dark"] .mp-row { background-colo
 html[data-mode="dark"] .tp-mapcard.is-full[data-layout="wide"] { box-shadow: 0 -40px 0 0 #141618 !important; }
 /* A track card's Show all places button is plain text in dark mode, not a boxed button. */
 html[data-mode="dark"] button.lb-allplaces { border: 0 !important; background: none !important; }
+/* The bulb's box (Fastest right now and the tip), the vehicle picker's chosen dot and the reel's backdrop were the light theme's green in dark mode. */
+html[data-mode="dark"] .laps-tip-pop, html[data-mode="dark"] .tp-dark-hero .laps-tip-pop, html[data-mode="dark"] .lb-hero .laps-tip-pop { background: #1e2124 !important; border-color: #7d848e !important; }
+html[data-mode="dark"] .laps-tip-pop > .laps-tip-x { background: #2c3036; color: #eef2f7; }
+html[data-mode="dark"] .tp-vrow.is-on .tp-vdot { border-color: #f5c542; background: radial-gradient(#f5c542 45%, transparent 50%); }
+html[data-mode="dark"] .lh-reel-video { background: #141618; }

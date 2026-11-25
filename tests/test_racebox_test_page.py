@@ -645,3 +645,34 @@ def test_saved_drives_sit_below_the_map_as_a_folded_section_with_a_count(page):
     expect(page.locator("#rbt-drives-empty")).to_be_visible()
     toggle.click()
     expect(page.locator("#rbt-drives-body")).to_be_hidden()
+
+
+def test_the_dark_full_screen_map_has_a_dark_speed_card_and_light_readings(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukColourMode', 'dark');")
+    page.goto("/racebox.html")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    page.locator("#rbt-full").click()
+    expect(page.locator("#rbt-speed-float")).to_be_visible()
+    assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-speed-float')).backgroundColor") == "rgb(30, 33, 36)"
+    assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-speed-big')).color") == "rgb(238, 242, 247)"
+    # The readings under the map are light on dark, not black on dark.
+    assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-pos')).color") == "rgb(238, 242, 247)"
+
+
+def test_the_page_is_called_racebox_and_its_intro_is_behind_a_bulb(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page).to_have_title("RaceBox - Laps by MT3UK")
+    expect(page.locator("h1.lh-title")).to_contain_text("RaceBox")
+    assert "test" not in page.locator("h1.lh-title").inner_text().lower()
+    info = page.locator("#rbt-info")
+    expect(info).to_be_hidden()
+    page.locator("#rbt-bulb").click()
+    expect(info).to_be_visible()
+    expect(info).to_contain_text("RaceBox Mini, Mini S or Micro")
+    expect(page.locator("#rbt-bulb")).to_have_attribute("aria-expanded", "true")
+    page.locator("#rbt-bulb").click()
+    expect(info).to_be_hidden()

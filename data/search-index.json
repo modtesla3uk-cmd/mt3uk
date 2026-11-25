@@ -356,10 +356,10 @@
     ]
   },
   {
-    "title": "RaceBox test",
+    "title": "RaceBox",
     "url": "racebox.html",
     "category": "Page",
-    "description": "Test page for the RaceBox connection in the Laps app",
+    "description": "Connect a RaceBox in the Laps app for live readings, drag run timing and recorded drives",
     "keywords": [
       "racebox",
       "bluetooth",

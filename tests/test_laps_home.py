@@ -574,3 +574,13 @@ def test_the_dark_bottom_menu_is_lighter_than_black_with_gold_icons(page):
     assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs')).backgroundColor") == "rgb(30, 33, 36)"
     assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs a svg')).stroke") == "rgb(245, 197, 66)"
     assert page.evaluate("() => getComputedStyle(document.querySelector('.laps-tabs a')).fontWeight") == "500"
+
+
+def test_the_bulbs_box_is_dark_grey_in_dark_mode_not_the_themes_green(page):
+    page.add_init_script("localStorage.setItem('mt3ukColourMode', 'dark'); localStorage.setItem('mt3ukTheme', JSON.stringify({main: 'gold', laps: 'gold'}));")
+    page.set_viewport_size({"width": 412, "height": 900})
+    page.goto("/leaderboards.html")
+    page.locator(".laps-tip-bulbbtn").first.click()
+    body = page.locator("#laps-tip-body")
+    expect(body).to_be_visible()
+    assert page.evaluate("() => getComputedStyle(document.getElementById('laps-tip-body')).backgroundColor") == "rgb(30, 33, 36)"

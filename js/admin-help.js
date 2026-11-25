@@ -201,7 +201,7 @@
       ['Add an address', 'Saves a house, street or place with its town, postcode and position. Navigate finds it when a member types it in the destination.'],
       ['Remove', 'Takes an address off the list. Navigate stops offering it straight away.'],
     ] },
-    'racebox-wrap': { t: 'RaceBox test in the Laps app', p: 'The RaceBox test panel on the Profile page of the Laps app. It is still being worked on, so only the members you approve see it in the Laps app, and you.', i: [
+    'racebox-wrap': { t: 'RaceBox in the Laps app', p: 'The RaceBox test panel on the Profile page of the Laps app. It is still being worked on, so only the members you approve see it in the Laps app, and you.', i: [
       ['Open to all members', 'Shows the panel to everyone using the Laps app. Off leaves it to the approved members.'],
       ['Approved members', 'Members who see the panel in the Laps app. Take away hides it from them again.'],
       ['Find a Laps member', 'Looks up anyone who can sign in to Laps, by nickname, name or email, so you can give access.'],

@@ -428,19 +428,24 @@
      and Free to access as two columns of cards. A phone keeps its own layout. */
   @media (min-width: 901px) {
     .lh-hero { padding: 56px 0 52px; }
-    .lh-hero .wrap { grid-template-columns: 1.12fr 1fr; column-gap: 32px; }
+    .lh-hero .wrap { grid-template-columns: 1fr 460px; column-gap: 40px; }
     .lh-hero .lh-copy { align-self: center; }
     .lh-hero p { font-size: 1.12rem; line-height: 1.55; max-width: 54ch; }
     .lh-hero .tp-actions { margin: 26px 0 34px; gap: 12px; }
-    .lh-hero .tp-actions { flex-wrap: nowrap; }
+    .lh-hero .tp-actions { flex-wrap: wrap; }
     .lh-hero .tp-actions .btn { font-size: 1rem; padding: 12px 18px; min-height: 52px; white-space: nowrap; }
     .lh-hero .lh-how { margin: 6px 0 26px; max-width: 38em; }
     .lh-how h2 { font-size: 1.35rem; margin-bottom: 10px; }
     .lh-how ol { font-size: 1.08rem; line-height: 1.5; }
     .lh-how li { margin-bottom: 10px; }
     .lh-note { font-size: 1rem; }
-    .lh-reel { width: min(100%, 440px); }
-    .lh-reel figcaption { font-size: 0.9rem; }
+    /* The animation sits in a rounded card, so its big background ring, which runs past the edges, looks meant, and the
+       frame is cropped a little tighter so the scene fills it. */
+    .lh-reel { width: min(100%, 460px); }
+    .lh-reel-box { border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); }
+    .lh-reel-video { aspect-ratio: 1 / 1.2; object-fit: cover; object-position: 50% 36%; }
+    .lh-reel-video:fullscreen, .lh-reel-video:-webkit-full-screen { aspect-ratio: auto; object-fit: contain; }
+    .lh-reel figcaption { font-size: 0.9rem; padding: 0 12px; }
     .lh-hero .wrap > .lh-free { margin-top: 44px; }
     .lh-free h2 { font-size: 1.35rem; margin-bottom: 6px; }
     .lh-free-lead { font-size: 1.02rem; margin-bottom: 14px; }

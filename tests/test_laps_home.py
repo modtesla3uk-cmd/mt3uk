@@ -494,7 +494,7 @@ def test_a_signed_out_visitor_can_switch_dark_mode_from_the_footer_on_every_laps
 
 
 def test_the_desktop_intro_is_fuller_and_the_dark_video_matches_the_page(browser, base_url):
-    """From 901px wide the intro has larger type and buttons (on one line), a reel of about 430px with the words centred beside it so
+    """From 901px wide the intro has larger type and buttons (on two rows), a reel of about 460px with the words centred beside it so
     the two columns end about level, and Free to access as two columns of cards. A phone keeps its own layout. The dark reel
     and its poster have their blacks lifted to the page's own colour, so there is no darker box (it keeps its sound)."""
     ctx = browser.new_context(base_url=base_url, viewport={"width": 1440, "height": 900})
@@ -504,10 +504,10 @@ def test_the_desktop_intro_is_fuller_and_the_dark_video_matches_the_page(browser
     page.locator(".lh-reel-video").first.wait_for()
     actions = page.locator(".lh-hero .tp-actions .btn")
     tops = [actions.nth(i).bounding_box()["y"] for i in range(actions.count()) if actions.nth(i).is_visible()]
-    assert len(tops) >= 3 and max(tops) - min(tops) < 4, tops  # the buttons stay on one line
+    assert len(tops) >= 3 and len(set(round(t) for t in tops)) <= 2, tops  # the buttons wrap onto at most two rows
     assert page.evaluate("parseFloat(getComputedStyle(document.querySelector('.lh-hero p')).fontSize)") >= 17
     reel = page.locator(".lh-reel").bounding_box()
-    assert 420 <= reel["width"] <= 445, reel
+    assert 450 <= reel["width"] <= 470, reel
     copy = page.locator(".lh-hero .lh-copy").bounding_box()
     assert abs((copy["y"] + copy["height"] / 2) - (reel["y"] + reel["height"] / 2)) < 80, (copy, reel)  # centred beside the reel
     cols = page.evaluate("getComputedStyle(document.querySelector('.lh-free-list')).gridTemplateColumns.split(' ').length")
@@ -584,3 +584,17 @@ def test_the_bulbs_box_is_dark_grey_in_dark_mode_not_the_themes_green(page):
     body = page.locator("#laps-tip-body")
     expect(body).to_be_visible()
     assert page.evaluate("() => getComputedStyle(document.getElementById('laps-tip-body')).backgroundColor") == "rgb(30, 33, 36)"
+
+
+def test_the_desktop_intro_has_a_framed_animation_card_and_two_rows_of_buttons(page):
+    page.set_viewport_size({"width": 1200, "height": 900})
+    page.goto("/laps.html?nostart")
+    reel = page.locator(".lh-reel")
+    expect(reel).to_be_visible()
+    box = reel.bounding_box()
+    assert 440 <= box["width"] <= 470, box
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.lh-reel-box')).overflow") == "hidden"
+    assert page.evaluate("() => getComputedStyle(document.querySelector('.lh-reel-box')).borderTopWidth") == "1px"
+    # The four buttons wrap onto two rows instead of squeezing the animation.
+    tops = page.evaluate("() => Array.from(document.querySelectorAll('.lh-hero .tp-actions .btn')).filter(b => b.offsetParent).map(b => Math.round(b.getBoundingClientRect().top))")
+    assert len(set(tops)) == 2, tops

@@ -100,8 +100,16 @@
     if (!p) return;
     var n = Number(sats) || 0;
     var found = n ? n + (n === 1 ? ' satellite' : ' satellites') + ' found so far.' : 'No satellites found yet.';
-    p.innerHTML = '<span class="rbt-wait-ring" aria-hidden="true"></span><span class="rbt-wait-text"><b>Finding GPS</b><span>' + found + ' Keep the RaceBox with a clear view of the sky.</span></span>';
-    p.classList.add('rbt-wait');
+    // The readings arrive about 24 times a second. The card is built once and only its words change, because
+    // rebuilding it each time restarted the ring's turn and made it judder.
+    var line = p.classList.contains('rbt-wait') ? p.querySelector('.rbt-wait-line') : null;
+    if (!line) {
+      p.innerHTML = '<span class="rbt-wait-ring" aria-hidden="true"></span><span class="rbt-wait-text"><b>Finding GPS</b><span class="rbt-wait-line"></span></span>';
+      line = p.querySelector('.rbt-wait-line');
+      p.classList.add('rbt-wait');
+    }
+    var words = found + ' Keep the RaceBox with a clear view of the sky.';
+    if (line.textContent !== words) line.textContent = words;
     p.hidden = false;
   }
 

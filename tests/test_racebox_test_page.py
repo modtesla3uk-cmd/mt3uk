@@ -601,3 +601,18 @@ def test_the_saved_drives_box_is_a_soft_card_in_dark_mode(page):
     # The old square outline round the whole Saved drives block is gone; the empty message has its own dashed card.
     assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-drives')).borderTopWidth") == "0px"
     assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-drives-empty')).borderTopStyle") == "dashed"
+
+
+def test_the_waiting_ring_is_not_rebuilt_by_every_reading(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    page.evaluate("() => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S' })")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", _no_fix_packet(3))
+    page.evaluate("() => { window.__ring = document.querySelector('#rbt-prompt .rbt-wait-ring'); }")
+    # More readings, with a different satellite count: the same ring stays (so its turn is not restarted) and the words change.
+    for n in (4, 5, 6):
+        page.evaluate("(b) => window.__rbEmit('data', { base64: b })", _no_fix_packet(n))
+    assert page.evaluate("() => window.__ring === document.querySelector('#rbt-prompt .rbt-wait-ring')")
+    expect(page.locator("#rbt-prompt")).to_contain_text("6 satellites found so far")

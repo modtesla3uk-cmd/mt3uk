@@ -13,6 +13,17 @@
 
   function $(id) { return document.getElementById(id); }
   function set(id, text) { var el = $(id); if (el) el.textContent = text; }
+  // The status line is a pill with a dot: green once connected, amber while working, grey when not connected.
+  function statusState(t) {
+    if (/^Connected/.test(t)) return 'ok';
+    if (/^(Looking|Connecting|Setting up|The connection did not work)/.test(t)) return 'busy';
+    return 'off';
+  }
+  var setPlain = set;
+  set = function (id, text) {
+    setPlain(id, text);
+    if (id === 'rbt-status') { var el = $(id); if (el) el.setAttribute('data-state', statusState(String(text))); }
+  };
 
   function statusText(e) {
     var s = e && e.state;
@@ -83,10 +94,22 @@
     if (marker) marker.setStyle({ fillColor: good ? '#1c8a4b' : '#c0392b' });
   }
 
+  // Waiting for a GPS fix: a card with a turning ring and the satellites found so far, so it is clear the RaceBox is working.
+  function waitingForGps(sats) {
+    var p = $('rbt-prompt');
+    if (!p) return;
+    var n = Number(sats) || 0;
+    var found = n ? n + (n === 1 ? ' satellite' : ' satellites') + ' found so far.' : 'No satellites found yet.';
+    p.innerHTML = '<span class="rbt-wait-ring" aria-hidden="true"></span><span class="rbt-wait-text"><b>Finding GPS</b><span>' + found + ' Keep the RaceBox with a clear view of the sky.</span></span>';
+    p.classList.add('rbt-wait');
+    p.hidden = false;
+  }
+
   function setPrompt(text) {
     var p = $('rbt-prompt');
     if (!p) return;
     p.textContent = text || '';
+    p.classList.remove('rbt-wait');
     p.hidden = !text;
   }
 
@@ -294,7 +317,7 @@
     if (!window.MT3UKStage) return say('Sending to Laps is not available here. Open this page in the Laps app or on laps.mt3uk.com.');
     var when = new Date(d.started).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     say('Sending the drive to Laps...');
-    window.MT3UKStage.stage(d.id, d.started, (d.mode === 'drag' ? 'Drag run ' : d.mode === 'track' ? 'Circuit ' : 'Drive ') + when).then(function () {
+    window.MT3UKStage.stage(d.id, d.started, (d.mode === 'drag' ? 'Drag run ' : d.mode === 'track' ? 'Track Days ' : 'Drive ') + when).then(function () {
       say('Sent. Check it and choose to upload it in Add a session on Laps.', true);
       return drawRecordings();
     }).catch(function (err) { say((err && err.message) || 'The drive could not be sent. Try again.'); });
@@ -688,7 +711,7 @@
   function drawFix(r) {
     if (!r.fixOk) {
       setDot(false);
-      setPrompt('No GPS fix yet. Keep the RaceBox with a clear view of the sky.');
+      waitingForGps(r.satellites);
       return;
     }
     setPrompt('');
@@ -737,13 +760,20 @@
     var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
     return 2 * R * Math.asin(Math.sqrt(s));
   }
+  var MODE_HELP = {
+    road: 'Just record where you go. No track is needed.',
+    drag: 'Time 0 to 60, eighth and quarter mile runs at a drag strip.',
+    track: 'Record laps at a circuit, sprint or hill climb. Pick the track next.'
+  };
   function setModeLine() {
+    var help = $('rbt-mode-help');
+    if (help) help.textContent = MODE_HELP[modeNow] || MODE_HELP.road;
     var line = $('rbt-mode-line');
     if (!line) return;
     if (modeNow === 'road') { line.hidden = true; return; }
     line.hidden = false;
     var what = venueChoice ? ': ' + venueChoice.name : (modeNow === 'drag' ? ', no strip' : ': no track chosen yet');
-    line.textContent = (modeNow === 'drag' ? 'Drag run' : 'Circuit') + what + '.';
+    line.textContent = (modeNow === 'drag' ? 'Drag run' : 'Track Days') + what + '.';
   }
   // Drag run: the mode line, Start recording and the strip picker sit in the timing section; the other modes keep them
   // where they were (after the timing, before the map).

@@ -115,7 +115,7 @@ def test_a_drive_recorded_as_a_drag_run_is_staged_as_one(page):
 
 
 def test_a_drive_recorded_on_a_circuit_is_staged_with_the_circuit_name(page):
-    _start_drive(page, "Circuit")
+    _start_drive(page, "Track Days")
     expect(page.locator("#rbt-picker")).to_be_visible()
     page.locator("#rbt-picker-q").fill("Thruxton")
     page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
@@ -138,7 +138,7 @@ def test_a_drag_run_has_no_start_recording_button_because_a_timed_run_records_it
 
 
 def test_a_circuit_keeps_the_start_recording_button(page):
-    _start_drive(page, "Circuit")
+    _start_drive(page, "Track Days")
     page.locator("#rbt-picker-q").fill("Thruxton")
     page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
     expect(page.locator("#rbt-startstop")).to_be_visible()
@@ -150,7 +150,7 @@ def test_a_circuit_keeps_the_start_recording_button(page):
 
 
 def test_a_circuit_needs_a_track_before_recording_can_start(page):
-    _start_drive(page, "Circuit")
+    _start_drive(page, "Track Days")
     expect(page.locator("#rbt-startstop")).to_be_disabled()
     page.locator("#rbt-picker-q").fill("Thruxton")
     page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
@@ -159,7 +159,7 @@ def test_a_circuit_needs_a_track_before_recording_can_start(page):
 
 def test_a_chosen_circuit_shows_its_layout_on_the_live_map(page):
     page.route("**/overpass-api.de/**", lambda r: r.abort())
-    _start_drive(page, "Circuit")
+    _start_drive(page, "Track Days")
     page.locator("#rbt-picker-q").fill("Thruxton")
     page.locator("#rbt-picker-results button", has_text="Thruxton").first.click()
     page.wait_for_function("() => window.MT3UKRaceBoxLayout().source !== 'none'", timeout=15000)

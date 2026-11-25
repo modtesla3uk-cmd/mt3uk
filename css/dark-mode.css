@@ -68,7 +68,7 @@ html[data-mode="dark"] .rbt-picker-title, html[data-mode="dark"] .rbt-picker-sea
 html[data-mode="dark"] .rbt-tm-mode { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 html[data-mode="dark"] .rbt-tm-fs { background: #141414 !important; color: #eef2f7 !important; border-color: rgba(255,255,255,.2) !important; }
 /* No white in dark mode: black surfaces with a grey outline on the buttons, switches, cards and map buttons. */
-html[data-mode="dark"] .rbt-switch, html[data-mode="dark"] .rbt-details-toggle, html[data-mode="dark"] .rbt-drives,
+html[data-mode="dark"] .rbt-switch, html[data-mode="dark"] .rbt-details-toggle,
 html[data-mode="dark"] .rbt-drives-list > li, html[data-mode="dark"] .rbt-view, html[data-mode="dark"] .rbt-picker,
 html[data-mode="dark"] .rbt-band, html[data-mode="dark"] .rbt-meter, html[data-mode="dark"] .rbt-grid > div,
 html[data-mode="dark"] .rbt-tm-bars, html[data-mode="dark"] .rbt-tm-go, html[data-mode="dark"] .rbt-tm-mode,
@@ -139,3 +139,9 @@ html[data-mode="dark"] .nav-map, html[data-mode="dark"] .nav-map.leaflet-contain
 /* The timer card is black with light text in dark mode. */
 html[data-mode="dark"] .rbt-timer-card { background: #111827 !important; color: #eef2f7 !important; border-color: #5b6475 !important; }
 html[data-mode="dark"] .rbt-timer-label, html[data-mode="dark"] .rbt-timer-sub { color: #b8c2d4 !important; }
+html[data-mode="dark"] .rbt-prompt.rbt-wait { background: #1c1c1c; border-color: #3a3a3a; color: #f1f1f1; }
+html[data-mode="dark"] .rbt-wait-ring { border-color: #3a3a3a; border-top-color: #e3b341; }
+html[data-mode="dark"] .rbt-status, html[data-mode="dark"] .rbt-actions { background: #141414; border-color: rgba(255,255,255,.28); }
+html[data-mode="dark"] .rbt-actions .rbt-switch { background: none !important; border-color: rgba(255,255,255,.14) !important; }
+html[data-mode="dark"] .rbt-drives-empty { border-color: rgba(255,255,255,.28); }
+html[data-mode="dark"] .rbt-mode-help, html[data-mode="dark"] .rbt-modes-title { color: #c9d3e2 !important; }

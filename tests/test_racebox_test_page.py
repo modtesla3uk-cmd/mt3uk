@@ -509,3 +509,95 @@ def test_full_screen_connecting_says_when_bluetooth_is_off_and_the_button_goes_b
     page.locator("#rbt-tm-go").evaluate("b => b.click()")
     expect(page.locator("#rbt-tm-go")).to_have_text("Connect to RaceBox", timeout=5000)
     expect(page.locator("#rbt-tm-text")).to_have_text("Bluetooth is off. Turn it on, then tap Connect to RaceBox.")
+
+
+def _no_fix_packet(satellites=4):
+    """The example packet with the fix taken away (fix status 0) and a different satellite count."""
+    b = bytearray(base64.b64decode(EXAMPLE_B64))
+    b[26] = 0
+    b[27] = 0
+    b[29] = satellites
+    a = c = 0
+    for x in b[2:-2]:
+        a = (a + x) & 255
+        c = (c + a) & 255
+    b[-2] = a
+    b[-1] = c
+    return base64.b64encode(bytes(b)).decode()
+
+
+def test_waiting_for_a_gps_fix_shows_a_card_with_the_satellites_found(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    page.evaluate("() => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S' })")
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", _no_fix_packet(4))
+    card = page.locator("#rbt-prompt")
+    expect(card).to_be_visible()
+    expect(card).to_have_class(__import__("re").compile(r"rbt-wait"))
+    expect(card).to_contain_text("Finding GPS")
+    expect(card).to_contain_text("4 satellites found so far")
+    expect(card.locator(".rbt-wait-ring")).to_be_visible()
+    # The map's compass button is only there with the map, so it is not floating on the page now.
+    expect(page.locator("#rbt-compass")).to_be_hidden()
+    # A fix takes the card away.
+    page.evaluate("(b) => window.__rbEmit('data', { base64: b })", EXAMPLE_B64)
+    expect(card).to_be_hidden()
+
+
+def test_the_status_pill_dot_follows_the_connection(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    expect(page.locator("#rbt-status")).to_have_attribute("data-state", "off")
+    page.evaluate("() => window.__rbEmit('status', { state: 'scanning', detail: '1' })")
+    expect(page.locator("#rbt-status")).to_have_attribute("data-state", "busy")
+    page.evaluate("() => window.__rbEmit('status', { state: 'connected', detail: 'RaceBox Mini S' })")
+    expect(page.locator("#rbt-status")).to_have_attribute("data-state", "ok")
+
+
+def test_the_controls_are_grouped_and_the_extras_are_tucked_away(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    # The three switches share one card, and the GPS note is a line inside the Record a drive row.
+    expect(page.locator(".rbt-actions .rbt-switch")).to_have_count(3)
+    expect(page.locator("#rbt-record #rbt-rec-note")).to_be_visible()
+    # The two buttons are the same width.
+    zero = page.locator("#rbt-zero").bounding_box()
+    loc = page.locator("#rbt-loc-test").bounding_box()
+    assert abs(zero["width"] - loc["width"]) < 2
+    # Readings per second is inside Details, so it only shows when Details is open.
+    expect(page.locator(".rbt-band .rbt-rate")).to_have_count(1)
+    expect(page.locator(".rbt-rate")).to_be_hidden()
+    page.locator("#rbt-details-toggle").click()
+    expect(page.locator(".rbt-rate")).to_be_visible()
+
+
+def test_the_track_type_picker_says_what_each_choice_does(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    expect(page.locator("#rbt-modes-title")).to_have_text("What are you recording?")
+    expect(page.locator("#rbt-modes .chip")).to_have_text(["Road drive", "Drag run", "Track Days"])
+    expect(page.locator("#rbt-mode-help")).to_contain_text("No track is needed")
+    page.locator('#rbt-modes [data-mode="drag"]').click()
+    expect(page.locator("#rbt-mode-help")).to_contain_text("drag strip")
+    # Drag run moves the controls around, so the next choice is pressed from the script.
+    page.evaluate("() => document.querySelector('#rbt-modes [data-mode=\"track\"]').click()")
+    expect(page.locator("#rbt-mode-help")).to_contain_text("circuit, sprint or hill climb")
+
+
+def test_the_saved_drives_box_is_a_soft_card_in_dark_mode(page):
+    page.add_init_script(ADMIN)
+    page.add_init_script(STUB)
+    page.add_init_script("localStorage.setItem('mt3ukColourMode', 'dark');")
+    page.goto("/racebox.html")
+    expect(page.locator("#rbt-connect")).to_be_enabled()
+    # The old square outline round the whole Saved drives block is gone; the empty message has its own dashed card.
+    assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-drives')).borderTopWidth") == "0px"
+    assert page.evaluate("() => getComputedStyle(document.getElementById('rbt-drives-empty')).borderTopStyle") == "dashed"

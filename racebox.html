@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=21"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
+<head><link rel="stylesheet" href="css/site-theme.css?v=3"><link rel="stylesheet" href="css/dark-mode.css?v=22"><script src="js/colour-mode.js?v=4"></script><script src="js/site-theme.js?v=2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -600,20 +600,22 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   <div class="wrap rbt-panel-wrap">
     <p class="rbt-phone-note" id="rbt-phone-note" hidden>To connect a RaceBox and get its GPS, open this page on your phone in the Laps app. On a computer you can look around the page, but nothing comes from a RaceBox.</p>
     <div class="rbt-flyout" id="rbt-flyout">
-    <p id="rbt-status" class="rbt-status" role="status">Not connected.</p>
+    <p id="rbt-status" class="rbt-status" role="status" data-state="off">Not connected.</p>
     <div class="rbt-actions">
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-connect"><span class="rbt-track"></span><span id="rbt-connect-label">Connect to RaceBox</span></button>
       <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-unit"><span class="rbt-track"></span><span>Speed in mph</span></button>
-      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span>Record a drive</span></button>
+      <button type="button" class="rbt-switch" role="switch" aria-checked="false" id="rbt-record" disabled><span class="rbt-track"></span><span class="rbt-switch-text"><span>Record a drive</span><small id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</small></span></button>
     </div>
-    <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
-    <button type="button" class="btn btn-secondary rbt-zero" id="rbt-loc-test">Test phone location</button>
+    <div class="rbt-tools">
+      <button type="button" class="btn btn-secondary rbt-zero" id="rbt-zero">Zero the G meter</button>
+      <button type="button" class="btn btn-secondary rbt-zero" id="rbt-loc-test">Test phone location</button>
+    </div>
     <p class="rbt-loc-result" id="rbt-loc-result" role="status" hidden></p>
-    <p id="rbt-rec-note" class="rbt-rec-note">Available once the GPS has a fix.</p>
     <p id="rbt-rec-line" class="rbt-rec-line" hidden></p>
     </div>
     <button type="button" class="rbt-details-toggle" id="rbt-details-toggle" aria-expanded="false" aria-controls="rbt-band-wrap"><span>Details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="rbt-band is-folded" id="rbt-band-wrap">
+    <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
     <dl class="rbt-grid">
       <div class="rbt-speed-tile"><dt>Speed</dt><dd><span id="rbt-speed">&ndash;</span> <span id="rbt-speed-unit">km/h</span></dd></div>
       <div class="rbt-heading-tile"><dt>Heading</dt><dd><span id="rbt-heading" class="rbt-deg-val">&ndash;</span><span class="rbt-deg">&deg;</span> <span id="rbt-card" class="rbt-card"></span></dd></div>
@@ -639,12 +641,13 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
       <p class="rbt-meter-cap">across / along</p>
     </div>
     </div>
-    <p class="rbt-rate">Readings per second: <span id="rbt-rate">0</span></p>
-    <div class="rbt-modes" id="rbt-modes" role="group" aria-label="What you are recording">
-      <button type="button" class="chip is-on" data-mode="road" aria-pressed="true">No track</button>
+    <p class="rbt-modes-title" id="rbt-modes-title">What are you recording?</p>
+    <div class="rbt-modes" id="rbt-modes" role="group" aria-labelledby="rbt-modes-title">
+      <button type="button" class="chip is-on" data-mode="road" aria-pressed="true">Road drive</button>
       <button type="button" class="chip" data-mode="drag" aria-pressed="false">Drag run</button>
-      <button type="button" class="chip" data-mode="track" aria-pressed="false">Circuit</button>
+      <button type="button" class="chip" data-mode="track" aria-pressed="false">Track Days</button>
     </div>
+    <p class="rbt-mode-help" id="rbt-mode-help">Just record where you go. No track is needed.</p>
     <section class="rbt-timing" id="rbt-timing" aria-label="Timing a drag run" hidden>
       <button type="button" class="rbt-tm-fs" id="rbt-tm-fs" aria-pressed="false" aria-label="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <div class="rbt-tm-dial" id="rbt-tm-dial"></div>
@@ -709,11 +712,25 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-gate[hidden], .rbt-body[hidden] { display: none; }
   .rbt-phone-note { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
   .rbt-phone-note[hidden] { display: none; }
-  .rbt-status { font-weight: 600; margin: 0 0 14px; }
-  .rbt-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
+  /* The status line is a pill with a coloured dot: green connected, amber working, grey not connected. */
+  .rbt-status { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; box-sizing: border-box; font-weight: 600; margin: 0 0 14px; padding: 8px 14px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: 18px; background: var(--surface, #fff); line-height: 1.3; }
+  .rbt-status::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #8a94a6; }
+  .rbt-status[data-state="ok"]::before { background: #1c8a4b; }
+  .rbt-status[data-state="busy"]::before { background: #e08a00; }
+  /* The three switches share one card, a row each with the switch at the right. */
+  .rbt-actions { display: flex; flex-direction: column; gap: 0; margin: 0 0 14px; padding: 0 14px; border: 1px solid var(--hairline-strong, #c9ced8); border-radius: var(--radius, 10px); background: var(--surface, #fff); }
+  .rbt-actions .rbt-switch { width: 100%; justify-content: space-between; flex-direction: row-reverse; min-height: 52px; padding: 6px 0; border: 0; border-radius: 0; background: none; }
+  .rbt-actions .rbt-switch + .rbt-switch { border-top: 1px solid var(--hairline, #d8dbe2); }
+  /* Zero the G meter and Test phone location are equal-width buttons in a row. */
+  .rbt-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 8px; }
+  .rbt-tools .btn { width: 100%; margin: 0; padding-left: 8px; padding-right: 8px; }
   /* The Light mode button on the main page sits at the top right, on the same row as Back. */
   .rbt-hero .lh-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   #rbt-mode-toggle { margin: 0; position: relative; z-index: 2; }
+  @media (min-width: 901px) {
+    body:not([data-tp-view="session"]) .lh-hero #rbt-mode-toggle { position: absolute !important; right: 0 !important; top: 24px !important; width: 190px !important; height: 44px !important; margin: 0 !important; }
+    body:not([data-tp-view="session"]) .rbt-hero .rbt-lead { position: absolute !important; left: 340px !important; right: 230px !important; top: 20px !important; height: 52px !important; max-width: none !important; margin: 0 !important; display: flex; align-items: center; }
+  }
   .rbt-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px; border: 1px solid var(--hairline, #d8dbe2); border-radius: 999px; background: #fff; color: var(--ink, #16233d); font: 600 0.95rem/1 var(--font-body, sans-serif); cursor: pointer; }
   .rbt-switch:disabled { opacity: .6; cursor: progress; }
   .rbt-track { width: 40px; height: 22px; border-radius: 999px; background: #b8bec9; position: relative; flex: none; }
@@ -752,10 +769,20 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   /* The compass on the map: tap it to switch between the direction of travel up and north up. */
   .rbt-map-frame > .rbt-compass-map { display: flex; position: absolute; top: 62px; right: 10px; z-index: 1001; width: 46px; height: 46px; margin: 0; padding: 0; align-items: center; justify-content: center; border: 1px solid var(--hairline, #d8dbe2); border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
   .rbt-map-frame > .rbt-compass-map svg { width: 28px; height: 28px; }
+  .rbt-map[hidden] ~ .rbt-compass-map { display: none !important; }
   .rbt-fs-btn { position: absolute; top: 10px; right: 10px; z-index: 1001; min-height: 44px; background: #fff; }
   .rbt-fs-btn[hidden], .rbt-clear[hidden] { display: none !important; }
   .rbt-prompt { margin: 0 0 10px; padding: 10px 12px; background: #fff; border-radius: var(--radius, 10px); color: #c0392b; font-weight: 600; text-align: center; }
   .rbt-prompt[hidden] { display: none !important; }
+  /* Waiting for a GPS fix: a soft card with a turning ring and the satellites found so far. */
+  .rbt-prompt.rbt-wait { display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px; background: var(--surface, #fff); border: 1px solid var(--hairline-strong, #c9ced8); color: var(--ink, #16233d); font-weight: 400; }
+  html:not(.rbt-full-on) .rbt-map-wrap > .rbt-prompt.rbt-wait { margin-right: 0; }
+  .rbt-wait-ring { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--hairline-strong, #c9ced8); border-top-color: var(--orange, #e8542a); animation: rbt-wait-spin 1s linear infinite; }
+  .rbt-wait-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .rbt-wait-text b { font-size: 1.05rem; font-weight: 700; }
+  .rbt-wait-text span { font-size: 0.95rem; line-height: 1.35; }
+  @keyframes rbt-wait-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .rbt-wait-ring { animation: none; border-top-color: var(--hairline-strong, #c9ced8); } }
   /* Outside full screen the message sits clear of Go full screen, which is at the top right of the map. */
   html:not(.rbt-full-on) .rbt-map-wrap > .rbt-prompt { margin-right: 150px; }
   .rbt-full-on .rbt-prompt { position: absolute; left: 12px; right: 12px; bottom: calc(var(--band-h, 240px) + 120px); z-index: 6; margin: 0; }
@@ -764,7 +791,9 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout { display: none; position: fixed; top: 62px; left: 10px; width: min(280px, calc(100vw - 20px)); max-height: calc(100vh - 72px); max-height: calc(100dvh - 72px); overflow-y: auto; box-sizing: border-box; z-index: 1100; flex-direction: column; gap: 10px; margin: 0; padding: 12px; background: #fff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout.is-open { display: flex; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-status { max-width: none; margin: 0; padding: 0; background: none; border-radius: 0; font-size: 0.95rem; }
-  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-actions { flex-direction: column; margin: 0; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-actions { margin: 0; padding: 0; border: 0; background: none; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-tools { grid-template-columns: 1fr; }
+  .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-status { display: flex; }
   .rbt-full-on .rbt-panel-wrap > .rbt-flyout .rbt-switch { width: 100%; justify-content: flex-start; }
   .rbt-street { display: block; margin-top: 2px; font-size: 0.95rem; font-weight: 600; color: #3d4659; }
   .rbt-street[hidden] { display: none !important; }
@@ -873,17 +902,21 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
   .rbt-tm-list li.is-best { color: #17663f; font-weight: 800; }
   .rbt-tm-no { min-width: 64px; }
   .rbt-tm-half, .rbt-tm-sixty { white-space: nowrap; }
-  .rbt-rec-note { margin: 8px 0 0; font-size: 0.9rem; color: #5b6475; }
+  .rbt-rec-note { margin: 0; font-size: 0.85rem; font-weight: 400; color: #5b6475; }
+  .rbt-switch-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; }
   .rbt-rec-note[hidden] { display: none; }
   .rbt-drives { margin: 18px 0 0; }
   /* In the Drag run mode the live map is left out: the timing and the saved drives are what is needed. */
   html.rbt-drag .rbt-map-wrap { display: none; }
   .rbt-drives-title { font-size: 1rem; margin: 0 0 8px; }
-  .rbt-drives-empty { color: #5b6475; margin: 0; font-size: 0.9rem; }
+  .rbt-drives-empty { color: #5b6475; margin: 0; padding: 14px; border: 1px dashed var(--hairline-strong, #c9ced8); border-radius: var(--radius, 10px); text-align: center; font-size: 0.9rem; }
   .rbt-stage-msg { margin: 0 0 10px; padding: 10px 12px; border-radius: var(--radius, 10px); background: #fff; border: 1px solid var(--hairline, #d8dbe2); font-weight: 600; }
   .rbt-stage-msg[hidden] { display: none; }
   .rbt-send { min-height: 44px; flex: none; }
-  .rbt-modes { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .rbt-modes-title { margin: 14px 0 0; font-size: 0.95rem; font-weight: 700; }
+  .rbt-modes { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+  .rbt-mode-help { margin: 8px 0 0; font-size: 0.9rem; color: #5b6475; }
+  .rbt-full-on .rbt-modes-title, .rbt-full-on .rbt-mode-help { display: none; }
   .rbt-modes .chip { min-height: 44px; }
   .rbt-mode-line { margin: 8px 0 0; font-weight: 600; }
   .rbt-mode-line[hidden] { display: none; }
@@ -1038,7 +1071,7 @@ html[data-mode="dark"] .laps-peek { background: #000000; color: #ffffff; }
 <script src="js/racebox-app.js?v=6"></script>
 <script src="js/racebox-stage.js?v=5"></script>
 <script src="js/racebox-timing.js?v=20"></script>
-<script src="js/racebox-test.js?v=85"></script>
+<script src="js/racebox-test.js?v=86"></script>
 <script>
   (function () {
       var hamburger = document.getElementById('hamburger');

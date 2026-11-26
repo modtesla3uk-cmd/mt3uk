@@ -1,11 +1,35 @@
 [
   {
+    "file": "photo--by-jc-monteiro-8.jpg",
+    "name": "JMonteiro",
+    "votable": false,
+    "color": "Black",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro-8.jpg"
+  },
+  {
+    "file": "photo--by-jc-monteiro-7.jpg",
+    "name": "JMonteiro",
+    "votable": false,
+    "color": "Black",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro-8.jpg"
+  },
+  {
+    "file": "photo--by-jc-monteiro-9.jpg",
+    "name": "JMonteiro",
+    "votable": false,
+    "color": "Black",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro-8.jpg"
+  },
+  {
     "file": "photo--by-jc-monteiro-6.jpg",
     "name": "JMonteiro",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-5.jpg",
@@ -13,7 +37,7 @@
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-4.jpg",
@@ -21,14 +45,14 @@
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo--by-jc-monteiro.jpg",
     "name": "JMonteiro",
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-3.jpg",
@@ -36,7 +60,7 @@
     "votable": false,
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-2.jpg",
@@ -44,7 +68,7 @@
     "votable": false,
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-6.jpg"
+    "group": "photo--by-jc-monteiro-8.jpg"
   },
   {
     "file": "photo-9.jpg",

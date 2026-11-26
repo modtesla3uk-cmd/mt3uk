@@ -1,98 +1,128 @@
 [
   {
+    "file": "photo-14.jpg",
+    "caption": "PHOTO 14",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-14.jpg"
+  },
+  {
+    "file": "photo-13.jpg",
+    "caption": "PHOTO 13",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-14.jpg"
+  },
+  {
+    "file": "photo-12.jpg",
+    "caption": "PHOTO 12",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-14.jpg"
+  },
+  {
     "file": "photo--by-jc-monteiro-12.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-11.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-10.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-9.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-8.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-7.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-6.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-5.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-4.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Black",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-3.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo--by-jc-monteiro-2.jpg",
-    "name": "JC Monteiro",
+    "name": "straider",
     "votable": false,
     "color": "Silver",
     "added": "2026-11-26",
-    "group": "photo--by-jc-monteiro-12.jpg"
+    "group": "photo-14.jpg"
   },
   {
     "file": "photo-9.jpg",

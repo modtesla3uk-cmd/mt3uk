@@ -70,6 +70,17 @@ await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=sec
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
 ok(r.body.summary.lines[0].unit === 1999 && r.body.summary.lines[0].percent === 20, 'a discount set on the Shop panel is taken off the price in the basket (£24.99 less 20% is £19.99)');
 
+// The homepage offer's percentage is charged for an item in a live offer with no discount of its own, and not outside its dates.
+await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: {} }) }), env, ctx);
+const offerOn = (start, end) => kv.set('shop-home', JSON.stringify({ offer: { on: true, heading: 'Autumn', percent: 40, code: 'MT3UKMC40', start, end, items: [{ id: 'black-mt3uk-tee-red-underline-super-soft', name: 'MT3UK Tee' }] } }));
+offerOn('2000-01-01', '2999-12-31');
+r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
+ok(r.body.summary.lines[0].unit === 1499 && r.body.summary.lines[0].percent === 40, 'a live homepage offer takes its percentage off an item in it (£24.99 less 40% is £14.99)');
+offerOn('2000-01-01', '2000-01-02');
+r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
+ok(r.body.summary.lines[0].unit === 2499 && r.body.summary.lines[0].percent === 0, 'an offer that has ended is not charged');
+kv.delete('shop-home');
+
 stripeStatus = 500; stripeReply = { error: 'boom' };
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
 ok(r.status === 502, 'a Stripe failure is reported, not sent on');

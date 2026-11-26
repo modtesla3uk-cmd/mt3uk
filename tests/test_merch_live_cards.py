@@ -130,14 +130,15 @@ def test_available_and_sold_out_tags_reflect_product_state(page):
     assert cards.nth(1).locator(".tag").inner_text() == "Sold out"
 
 
-def test_shop_now_link_carries_utm_params(page):
+def test_each_product_has_a_buy_button_that_asks_the_country_first(page):
     page.goto("/shop.html")
-    link = page.locator("#shop-live-products .shop-live-card").first.locator(".tee-shop-btn")
-    href = link.get_attribute("href")
-    assert href.startswith("https://example-shop.myshopify.com/products/mt3uk-tee?")
-    assert "utm_source=mt3uk_shop" in href
-    assert "utm_medium=internal" in href
-    assert "utm_campaign=live_merch" in href
+    button = page.locator("#shop-live-products .shop-live-card").first.locator("button.shop-buy")
+    assert button.get_attribute("data-buy") == FAKE_PRODUCTS["products"][0]["handle"]
+    button.click()
+    expect(page.locator("#buy-back")).to_be_visible()
+    expect(page.locator("#buy-step-country")).to_be_visible()
+    expect(page.locator(".buy-country-btn[data-country='GB']")).to_be_visible()
+    expect(page.locator(".buy-country-btn[data-country='IE']")).to_be_visible()
 
 
 def test_hovering_live_product_image_applies_zoom(page):

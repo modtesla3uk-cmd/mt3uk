@@ -10658,6 +10658,10 @@ async function priceCart(env, items, country) {
   if (!Array.isArray(items) || !items.length || items.length > 20) return { error: 'Your basket is empty.' };
   var catalogue = await shopCatalogue();
   var discounts = await getJsonKey(env, SHOP_DISCOUNTS_KEY, {});
+  // The homepage offer's percentage counts for an item in a live offer that has no discount of its own, as it does on the shop page.
+  var homeOffer = (await getJsonKey(env, SHOP_HOME_KEY, {})).offer || null;
+  var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  var offerLive = !!(homeOffer && homeOffer.on && (!homeOffer.start || today >= homeOffer.start) && (!homeOffer.end || today <= homeOffer.end));
   var lines = [], subtotal = 0, weight = 0;
   for (var i = 0; i < items.length; i++) {
     var it = items[i], qty = Math.floor(Number(it && it.qty));
@@ -10667,7 +10671,9 @@ async function priceCart(env, items, country) {
     if (!(qty >= 1 && qty <= 10)) return { error: 'Choose between 1 and 10 of each item.' };
     var w = SHOP_WEIGHTS_LB[item.handle];
     if (w === undefined) return { error: 'We have no weight for ' + item.title + ', so we cannot price the postage yet.' };
-    var pct = Math.max(0, Math.min(100, Math.floor(Number(discounts[item.handle]) || 0)));
+    var pct = Math.floor(Number(discounts[item.handle]) || 0);
+    if (!(pct > 0) && offerLive && (homeOffer.items || []).some(function (x) { return x && x.id === item.handle; })) pct = Math.floor(Number(homeOffer.percent) || 0);
+    pct = Math.max(0, Math.min(100, pct));
     var unit = Math.round(Math.round(item.price * 100) * (100 - pct) / 100);
     subtotal += unit * qty;
     weight += w * qty;
@@ -10683,6 +10689,15 @@ async function priceCart(env, items, country) {
     ship = { amount: band.amount, label: SHIPPING.IE.label };
   }
   return { lines: lines, subtotal: subtotal, weight: Math.round(weight * 100) / 100, shipping: ship, total: subtotal + ship.amount };
+}
+// The price and the shipping for a basket and country, before the buyer pays. Nothing is sent to Stripe.
+async function handleShopQuote(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var country = String((body && body.country) || '').toUpperCase();
+  var priced = await priceCart(env, body && body.items, country).catch(function (e) { return { error: e.message }; });
+  if (priced.error) return json({ success: false, message: priced.error }, 400);
+  return json({ success: true, summary: { lines: priced.lines, subtotal: priced.subtotal, shipping: priced.shipping, total: priced.total, weight: priced.weight } });
 }
 async function handleShopCheckout(request, env) {
   var body;
@@ -14194,7 +14209,8 @@ export default {
     if (url.pathname === '/shop/sales/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopSalesAdmin(request, env);
     if (url.pathname === '/shop/discounts' && request.method === 'GET') return handleShopDiscounts(env);
     if (url.pathname === '/shop/discounts/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopDiscountsAdmin(request, env)
-    if (url.pathname === '/shop/checkout' && request.method === 'POST') return handleShopCheckout(request, env);;
+    if (url.pathname === '/shop/checkout' && request.method === 'POST') return handleShopCheckout(request, env);
+    if (url.pathname === '/shop/quote' && request.method === 'POST') return handleShopQuote(request, env);;
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);

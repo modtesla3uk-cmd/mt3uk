@@ -220,3 +220,22 @@ def test_a_product_discount_wins_over_the_homepage_offer_percentage(page):
     page.goto("/shop.html")
     tee_card = page.locator("#shop-live-products .shop-live-card").first
     expect(tee_card.locator(".tee-offer-save")).to_have_text("Save 20%")
+
+
+def test_pay_sends_the_utm_tags_of_the_buy_button_to_the_checkout(page):
+    """Pressing Pay with Stripe sends the Buy button's UTM tags with the basket, so the order keeps them."""
+    product = dict(FAKE_PRODUCTS["products"][0], variants=[{"id": 101, "title": "M", "price": "22.99", "available": True}])
+    page.route(SHOP_ENDPOINT_PATTERN, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": [product]}), headers={"Access-Control-Allow-Origin": "*"}))
+    quoted = []
+    checked_out = []
+    page.route("**/shop/quote", lambda r: (quoted.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "summary": {"lines": [{"handle": product["handle"], "title": "MT3UK Tee (M)", "variantId": "101", "qty": 1, "unit": 2299, "percent": 0}], "subtotal": 2299, "shipping": {"amount": 499, "label": "UK standard"}, "total": 2798, "weight": 0.75}}))))
+    page.route("**/shop/checkout", lambda r: (checked_out.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "url": "https://checkout.stripe.test/pay"}))))
+    page.route("https://checkout.stripe.test/**", lambda r: r.fulfill(status=200, content_type="text/html", body="<p>Stripe</p>"))
+    page.goto("/shop.html")
+    page.locator("#shop-live-products .shop-live-card").first.locator("button.shop-buy").click()
+    page.locator(".buy-country-btn[data-country='GB']").click()
+    expect(page.locator("#buy-pay")).to_be_enabled()
+    page.locator("#buy-pay").click()
+    expect(page.locator("#buy-error")).to_be_hidden()
+    assert quoted and quoted[0]["country"] == "GB"
+    assert checked_out == [{"country": "GB", "items": [{"variantId": 101, "qty": 1}], "utm": {"source": "mt3uk_shop", "medium": "internal", "campaign": "live_merch"}}]

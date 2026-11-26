@@ -1498,6 +1498,7 @@
         var img2 = p.images && p.images[1] ? p.images[1] : '';
         var url = orderUrl(p, 'brace_order');
       buyable[BRACE_HANDLE] = p;
+      p.buyCampaign = 'brace_order';
         var card = document.createElement('div');
         card.className = 'shop-card';
         card.id = 'brace';
@@ -1570,6 +1571,7 @@
           var url = orderUrl(p, 'live_merch');
           var key = MANUAL_PRODUCT_KEYS[p.handle];
           buyable[p.handle] = p;
+          p.buyCampaign = 'live_merch';
           var card = document.createElement('div');
           card.className = 'shop-live-card';
           card.id = 'shop-item-' + p.handle;
@@ -1726,7 +1728,7 @@
     }
     function pay() {
       payBtn.disabled = true; payBtn.textContent = 'Opening Stripe...';
-      fetch(API + '/shop/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ country: country, items: [{ variantId: Number(sizeEl.value), qty: Math.floor(Number(qtyEl.value)) }] }) })
+      fetch(API + '/shop/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ country: country, items: [{ variantId: Number(sizeEl.value), qty: Math.floor(Number(qtyEl.value)) }], utm: { source: 'mt3uk_shop', medium: 'internal', campaign: (product && product.buyCampaign) || 'live_merch' } }) })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (out) {
           if (out.ok && out.d.success && out.d.url) { window.location.href = out.d.url; return; }

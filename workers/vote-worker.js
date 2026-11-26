@@ -10628,12 +10628,14 @@ async function handleShopSalesAdmin(request, env) {
 // country first, so the shipping charge is known before Stripe Checkout opens: UK (£4.99, free from £78.98) or Ireland
 // (by package weight: £12.00 up to 0.85 lb, £17.00 up to 30 lb). Stripe takes the card. The secret key is the worker secret
 // STRIPE_SECRET_KEY, never sent to the page. Weights are assumptions until weighed (see the Shop panel).
+// Packed weights in pounds, used for Irish postage. These are assumptions until checked. Clothing is printed and packed by
+// SellShirts, so each tee and hoodie includes an allowance of 0.2 lb for its packaging (a tee 0.55 lb, a hoodie 1.3 lb).
 var SHOP_WEIGHTS_LB = {
-  'black-mt3uk-tee-red-underline-super-soft': 0.55,
-  'black-mt3uk-tee-yellow-underline': 0.55,
+  'black-mt3uk-tee-red-underline-super-soft': 0.75,
+  'black-mt3uk-tee-yellow-underline': 0.75,
   'mt3uk-official-stickers-white-red-line-3-pack': 0.07,
-  'mt3uk-fire-red-hoodie-yellow-line': 1.3,
-  'mt3uk-grey-hoodie-red-line': 1.3,
+  'mt3uk-fire-red-hoodie-yellow-line': 1.5,
+  'mt3uk-grey-hoodie-red-line': 1.5,
   'model-3-brake-master-cylinder-bracket-for-rhd-models-only': 0.45
 };
 var SHIPPING = {
@@ -10706,10 +10708,19 @@ async function handleShopCheckout(request, env) {
   var priced = await priceCart(env, body && body.items, country).catch(function (e) { return { error: e.message }; });
   if (priced.error) return json({ success: false, message: priced.error }, 400);
   if (!env.STRIPE_SECRET_KEY) return json({ success: false, message: 'Payments are not set up yet.' }, 503);
+  // The UTM tags of the Buy button carry through to the thank-you and back-to-shop addresses, and are kept with the Stripe session.
+  var utm = body && body.utm ? body.utm : {};
+  var utmParts = { utm_source: 'mt3uk_shop', utm_medium: 'internal', utm_campaign: 'live_merch' };
+  ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+    var v = String(utm[k.replace('utm_', '')] || '');
+    if (/^[a-z0-9_]{1,60}$/.test(v)) utmParts[k] = v;
+  });
+  var utmQuery = new URLSearchParams(utmParts).toString();
   var form = new URLSearchParams();
   form.set('mode', 'payment');
-  form.set('success_url', 'https://mt3uk.com/shop.html?order=thanks');
-  form.set('cancel_url', 'https://mt3uk.com/shop.html#merch');
+  form.set('success_url', 'https://mt3uk.com/shop.html?order=thanks&' + utmQuery);
+  form.set('cancel_url', 'https://mt3uk.com/shop.html?' + utmQuery + '#merch');
+  Object.keys(utmParts).forEach(function (k) { form.set('metadata[' + k + ']', utmParts[k]); });
   form.set('shipping_address_collection[allowed_countries][0]', country);
   form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
   form.set('shipping_options[0][shipping_rate_data][display_name]', priced.shipping.label);

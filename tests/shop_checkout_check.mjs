@@ -56,15 +56,24 @@ r = await checkout({ country: 'GB', items: [{ variantId: 2001, qty: 4 }] });
 ok(r.body.summary.shipping.amount === 0, 'UK orders of £78.98 or more ship free');
 
 r = await checkout({ country: 'IE', items: [{ variantId: 1001, qty: 1 }] });
-ok(r.body.summary.shipping.amount === 1200 && r.body.summary.weight === 0.55, 'Ireland: one tee (0.55 lb) is in the £12 band');
+ok(r.body.summary.shipping.amount === 1200 && r.body.summary.weight === 0.75, 'Ireland: one tee (0.75 lb packed, with SellShirts packaging) is in the £12 band');
 ok(lastStripe().get('shipping_address_collection[allowed_countries][0]') === 'IE', 'the address is collected for Ireland only');
 ok(/Customs/.test(lastStripe().get('custom_text[shipping_address][message]') || ''), 'the Irish checkout says customs may be payable on delivery');
 
 r = await checkout({ country: 'IE', items: [{ variantId: 1001, qty: 2 }] });
-ok(r.body.summary.shipping.amount === 1700 && r.body.summary.weight === 1.1, 'Ireland: two tees (1.1 lb) move up to the £17 band');
+ok(r.body.summary.shipping.amount === 1700 && r.body.summary.weight === 1.5, 'Ireland: two tees (1.5 lb) move up to the £17 band');
 
 r = await checkout({ country: 'IE', items: [{ variantId: 2001, qty: 1 }, { variantId: 1001, qty: 1 }] });
-ok(r.body.summary.shipping.amount === 1700 && r.body.summary.weight === 1.85, 'Ireland: a hoodie and a tee is £17');
+ok(r.body.summary.shipping.amount === 1700 && r.body.summary.weight === 2.25, 'Ireland: a hoodie (1.5 lb packed) and a tee is £17');
+r = await checkout({ country: 'IE', items: [{ variantId: 2001, qty: 1 }] });
+ok(r.body.summary.weight === 1.5 && r.body.summary.shipping.amount === 1700, 'Ireland: one hoodie is 1.5 lb packed, so £17');
+r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }], utm: { source: 'mt3uk_shop', medium: 'internal', campaign: 'brace_order' } });
+s = lastStripe();
+ok(/utm_campaign=brace_order/.test(s.get('success_url')) && /utm_source=mt3uk_shop/.test(s.get('success_url')) && /order=thanks/.test(s.get('success_url')), 'the UTM tags reach the thank-you address sent to Stripe');
+ok(/utm_campaign=brace_order/.test(s.get('cancel_url')) && /#merch$/.test(s.get('cancel_url')), 'the UTM tags reach the back-to-shop address too');
+ok(s.get('metadata[utm_campaign]') === 'brace_order' && s.get('metadata[utm_medium]') === 'internal', 'the UTM tags are kept on the Stripe session as metadata');
+r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }], utm: { source: 'x', medium: 'y', campaign: 'bad value; drop' } });
+ok(lastStripe().get('metadata[utm_campaign]') === 'live_merch', 'a campaign with spaces or symbols is replaced with the default, not sent on');
 
 await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: { 'black-mt3uk-tee-red-underline-super-soft': 20 } }) }), env, ctx);
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });

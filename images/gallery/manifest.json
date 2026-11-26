@@ -1,5 +1,28 @@
 [
   {
+    "file": "photo--by-jc-monteiro.jpg",
+    "name": "JMonteiro",
+    "color": "Silver",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro.jpg"
+  },
+  {
+    "file": "photo--by-jc-monteiro-3.jpg",
+    "name": "JMonteiro",
+    "votable": false,
+    "color": "Silver",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro.jpg"
+  },
+  {
+    "file": "photo--by-jc-monteiro-2.jpg",
+    "name": "JMonteiro",
+    "votable": false,
+    "color": "Silver",
+    "added": "2026-11-26",
+    "group": "photo--by-jc-monteiro.jpg"
+  },
+  {
     "file": "photo-9.jpg",
     "caption": "PHOTO 9",
     "name": "Helen Little",

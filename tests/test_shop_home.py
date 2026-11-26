@@ -493,11 +493,10 @@ def test_the_order_link_for_an_offer_item_goes_through_the_discount_code_to_the_
     page.route("**/shop-products**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": [BRACE_PRODUCT]}), headers=CORS))
     page.route("**/shop/home", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "highlights": [], "offer": offer}), headers=CORS))
     page.goto("/shop.html")
-    button = page.locator("#brace button.shop-buy")
-    assert button.get_attribute("data-buy") == BRACE_PRODUCT["handle"]
-    button.click()
-    expect(page.locator("#buy-back")).to_be_visible()
-    expect(page.locator("#buy-step-country")).to_be_visible()
+    href = page.locator("#brace a.tee-shop-btn").get_attribute("href")
+    assert href.startswith("https://mt3uk.myshopify.com/discount/MT3UKMC40?redirect=")
+    assert "%2Fproducts%2Fmodel-3-brake-master-cylinder-bracket-for-rhd-models-only" in href
+    assert "utm_campaign%3Dbrace_order" in href
 
 
 def test_admin_rebuilds_the_homepage_card_pictures_from_the_sharing_panel(page):

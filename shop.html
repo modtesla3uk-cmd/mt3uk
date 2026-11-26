@@ -732,32 +732,6 @@
   .shop-more svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   .shop-more:hover, .shop-more:focus-visible { color: #ffc4ad; }
   .shop-more:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
-  /* Buy: a sheet that asks where the order is going first, then what to buy, then sends the buyer to Stripe. */
-  .shop-buy { cursor: pointer; }
-  .buy-back { position: fixed; inset: 0; z-index: 900; background: rgba(8, 12, 20, 0.6); display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
-  .buy-back[hidden] { display: none; }
-  .buy-sheet { width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto; background: var(--paper, #f6f7f9); color: var(--ink, #16233d); border-radius: 18px; padding: 18px 18px 22px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); font-family: 'IBM Plex Sans', sans-serif; }
-  .buy-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  .buy-head h3 { margin: 0; font-family: 'Archivo Expanded', sans-serif; font-size: 1.05rem; line-height: 1.25; }
-  .buy-close { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(22, 35, 61, 0.2); background: #fff; color: var(--ink, #16233d); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .buy-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
-  .buy-step-title { margin: 4px 0 10px; font-size: 0.95rem; font-weight: 600; }
-  .buy-countries { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .buy-country-btn { min-height: 64px; border-radius: 14px; border: 2px solid rgba(22, 35, 61, 0.18); background: #fff; color: var(--ink, #16233d); font: 600 1rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
-  .buy-country-btn small { display: block; font-weight: 400; font-size: 0.78rem; color: #5b6678; margin-top: 2px; }
-  .buy-country-btn[aria-pressed="true"] { border-color: var(--orange, #e8542a); box-shadow: 0 0 0 1px var(--orange, #e8542a) inset; }
-  .buy-field { display: block; margin: 0 0 12px; font-size: 0.88rem; font-weight: 600; }
-  .buy-field select, .buy-field input { display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(22, 35, 61, 0.25); background: #fff; color: var(--ink, #16233d); font: 500 1rem 'IBM Plex Sans', sans-serif; }
-  .buy-change { margin: 0 0 12px; background: none; border: 0; padding: 0; color: var(--ink, #16233d); text-decoration: underline; font: 600 0.85rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
-  .buy-summary { margin: 4px 0 12px; border-radius: 12px; background: #fff; border: 1px solid rgba(22, 35, 61, 0.12); padding: 12px 14px; font-size: 0.92rem; }
-  .buy-summary div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
-  .buy-summary .buy-total { font-weight: 700; border-top: 1px solid rgba(22, 35, 61, 0.12); margin-top: 6px; padding-top: 8px; }
-  .buy-note { margin: 0 0 12px; font-size: 0.85rem; color: #5b6678; }
-  .buy-error { margin: 0 0 12px; font-size: 0.9rem; color: #b42318; font-weight: 600; }
-  .buy-pay { width: 100%; min-height: 50px; border-radius: 999px; border: 0; background: var(--orange, #e8542a); color: var(--on-accent, #ffffff); font: 700 1rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
-  .buy-pay:disabled { opacity: 0.5; cursor: default; }
-  .buy-fine { margin: 10px 0 0; text-align: center; font-size: 0.78rem; color: #5b6678; }
-  .buy-thanks { margin: 0 0 18px; padding: 14px 16px; border-radius: 14px; background: #fff; color: #16233d; font-weight: 600; }
   .shop-card, .offer-card { border-radius: var(--radius); }
   .shop-card .tag, .offer-card .tag, .detail-toggle { border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-width: 1px; }
   .detail-toggle::after { content: ''; width: 14px; height: 14px; background: currentColor;
@@ -1420,8 +1394,6 @@
       var offerPercents = {};
       var HOME_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/home');
       var SALES_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/sales');
-  var buyable = {};
-      window.mt3ukBuyable = buyable;
       var DISCOUNTS_ENDPOINT = SHOP_ENDPOINT.replace('/shop-products', '/shop/discounts');
       // The Order link. With a discount code on the offer, the link goes through Shopify's discount address, which applies the
       // code and then sends the shopper to the product, so the code is already in the basket at checkout.
@@ -1497,8 +1469,6 @@
         var img = p.images && p.images[0] ? p.images[0] : '';
         var img2 = p.images && p.images[1] ? p.images[1] : '';
         var url = orderUrl(p, 'brace_order');
-      buyable[BRACE_HANDLE] = p;
-      p.buyCampaign = 'brace_order';
         var card = document.createElement('div');
         card.className = 'shop-card';
         card.id = 'brace';
@@ -1538,7 +1508,7 @@
           soldHtml(sales.brace) +
           '<div class="tee-offer-actions">' +
             '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
-            '<button type="button" class="tee-shop-btn shop-buy" data-buy="' + esc(BRACE_HANDLE) + '">Buy</button>' +
+            '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Order Here</a>' +
           '</div>';
         partsHost.appendChild(card);
 
@@ -1570,8 +1540,6 @@
           var img = p.images && p.images[0] ? p.images[0] : '';
           var url = orderUrl(p, 'live_merch');
           var key = MANUAL_PRODUCT_KEYS[p.handle];
-          buyable[p.handle] = p;
-          p.buyCampaign = 'live_merch';
           var card = document.createElement('div');
           card.className = 'shop-live-card';
           card.id = 'shop-item-' + p.handle;
@@ -1589,7 +1557,7 @@
             '<div class="tee-offer-actions">' +
               '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
               (offerCodes[p.handle] ? '<span class="tag">Use code ' + esc(offerCodes[p.handle]) + ' at checkout</span>' : '') +
-              '<button type="button" class="tee-shop-btn shop-buy" data-buy="' + esc(p.handle) + '">Buy</button>' +
+              '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Shop now</a>' +
             '</div>';
           host.appendChild(card);
           if (img && window.mt3ukAttachPanZoom) {
@@ -1655,112 +1623,6 @@
       var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
     });
-  })();
-</script>
-<div class="buy-back" id="buy-back" hidden>
-  <div class="buy-sheet" role="dialog" aria-modal="true" aria-labelledby="buy-title">
-    <div class="buy-head"><h3 id="buy-title"></h3><button type="button" class="buy-close" id="buy-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div id="buy-step-country">
-      <p class="buy-step-title">Where is it going?</p>
-      <div class="buy-countries">
-        <button type="button" class="buy-country-btn" data-country="GB" aria-pressed="false">UK<small>Standard postage</small></button>
-        <button type="button" class="buy-country-btn" data-country="IE" aria-pressed="false">Ireland<small>Weight-based postage</small></button>
-      </div>
-    </div>
-    <div id="buy-step-items" hidden>
-      <button type="button" class="buy-change" id="buy-change">Change country</button>
-      <label class="buy-field">Size<select id="buy-size"></select></label>
-      <label class="buy-field">Quantity<input type="number" id="buy-qty" min="1" max="10" value="1" inputmode="numeric"></label>
-      <div class="buy-summary" id="buy-summary"></div>
-      <p class="buy-note" id="buy-note"></p>
-      <p class="buy-error" id="buy-error" role="alert" hidden></p>
-      <button type="button" class="buy-pay" id="buy-pay" disabled>Pay with Stripe</button>
-      <p class="buy-fine">Secure payment by Stripe. You can check everything before you pay.</p>
-    </div>
-  </div>
-</div>
-<script>
-  (function () {
-    var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-    var back = document.getElementById('buy-back');
-    if (!back) return;
-    var stepCountry = document.getElementById('buy-step-country'), stepItems = document.getElementById('buy-step-items');
-    var titleEl = document.getElementById('buy-title'), sizeEl = document.getElementById('buy-size'), qtyEl = document.getElementById('buy-qty');
-    var summaryEl = document.getElementById('buy-summary'), noteEl = document.getElementById('buy-note'), errEl = document.getElementById('buy-error'), payBtn = document.getElementById('buy-pay');
-    var product = null, country = null, quoting = 0;
-    function money(pence) { return '\u00a3' + (pence / 100).toFixed(2); }
-    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function close() { back.hidden = true; document.body.style.overflow = ''; }
-    function showCountry() { stepCountry.hidden = false; stepItems.hidden = true; country = null; payBtn.disabled = true; }
-    function open(handle) {
-      product = (window.mt3ukBuyable || {})[handle];
-      if (!product) return;
-      titleEl.textContent = product.title;
-      var variants = (product.variants || []).filter(function (v) { return v.available; });
-      sizeEl.innerHTML = variants.length ? variants.map(function (v) {
-        return '<option value="' + esc(v.id) + '">' + esc(v.title === 'Default Title' ? 'One size' : v.title) + '</option>';
-      }).join('') : '<option value="">Sold out</option>';
-      qtyEl.value = '1';
-      back.hidden = false;
-      document.body.style.overflow = 'hidden';
-      showCountry();
-      document.querySelectorAll('.buy-country-btn').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-      document.getElementById('buy-close').focus();
-    }
-    function quote() {
-      errEl.hidden = true; payBtn.disabled = true;
-      var variantId = Number(sizeEl.value), qty = Math.floor(Number(qtyEl.value));
-      if (!variantId || !(qty >= 1 && qty <= 10) || !country) { summaryEl.innerHTML = ''; noteEl.textContent = ''; return; }
-      var my = ++quoting;
-      fetch(API + '/shop/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ country: country, items: [{ variantId: variantId, qty: qty }] }) })
-        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
-        .then(function (out) {
-          if (my !== quoting) return;
-          if (!out.ok || !out.d.success) { summaryEl.innerHTML = ''; noteEl.textContent = ''; errEl.textContent = out.d.message || 'We could not price that order. Please try again.'; errEl.hidden = false; return; }
-          var s = out.d.summary, line = s.lines[0];
-          summaryEl.innerHTML = '<div><span>' + esc(line.qty) + ' \u00d7 ' + esc(line.title) + '</span><span>' + money(line.unit * line.qty) + '</span></div>' +
-            '<div><span>Postage (' + esc(s.shipping.label) + ')</span><span>' + (s.shipping.amount ? money(s.shipping.amount) : 'Free') + '</span></div>' +
-            '<div class="buy-total"><span>Total</span><span>' + money(s.total) + '</span></div>';
-          noteEl.textContent = country === 'IE' ? 'Customs and handling may be payable to the courier on delivery in Ireland.' : '';
-          payBtn.disabled = false;
-        })
-        .catch(function () { if (my === quoting) { errEl.textContent = 'We could not reach the shop. Please try again.'; errEl.hidden = false; } });
-    }
-    function pay() {
-      payBtn.disabled = true; payBtn.textContent = 'Opening Stripe...';
-      fetch(API + '/shop/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ country: country, items: [{ variantId: Number(sizeEl.value), qty: Math.floor(Number(qtyEl.value)) }], utm: { source: 'mt3uk_shop', medium: 'internal', campaign: (product && product.buyCampaign) || 'live_merch' } }) })
-        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
-        .then(function (out) {
-          if (out.ok && out.d.success && out.d.url) { window.location.href = out.d.url; return; }
-          errEl.textContent = out.d.message || 'Payment could not start. Please try again.'; errEl.hidden = false;
-          payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe';
-        })
-        .catch(function () { errEl.textContent = 'We could not reach the shop. Please try again.'; errEl.hidden = false; payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe'; });
-    }
-    document.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-buy]');
-      if (b) { e.preventDefault(); open(b.getAttribute('data-buy')); return; }
-      var c = e.target.closest('.buy-country-btn');
-      if (c) {
-        country = c.getAttribute('data-country');
-        document.querySelectorAll('.buy-country-btn').forEach(function (x) { x.setAttribute('aria-pressed', x === c ? 'true' : 'false'); });
-        stepCountry.hidden = true; stepItems.hidden = false; quote();
-      }
-    });
-    document.getElementById('buy-change').addEventListener('click', showCountry);
-    document.getElementById('buy-close').addEventListener('click', close);
-    back.addEventListener('click', function (e) { if (e.target === back) close(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !back.hidden) close(); });
-    sizeEl.addEventListener('change', quote);
-    qtyEl.addEventListener('change', quote);
-    payBtn.addEventListener('click', pay);
-    if (/[?&]order=thanks/.test(location.search)) {
-      var box = document.createElement('p');
-      box.className = 'buy-thanks';
-      box.textContent = 'Thank you for your order. Stripe will email you a receipt.';
-      var main = document.querySelector('main') || document.body;
-      main.insertBefore(box, main.firstChild);
-    }
   })();
 </script>
 <script src="js/share.js" defer></script>

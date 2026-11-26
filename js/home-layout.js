@@ -414,4 +414,12 @@
     new MutationObserver(function () { refreshPhoneOrder(); })
       .observe(heroBox, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
   }
+  // A card that grows or shrinks after the page has drawn it (a picture or font arriving, a card filling in) moves its place
+  // in the order too, so the numbers are worked out again when a card changes size, on load and once the fonts are ready.
+  if ('ResizeObserver' in window) {
+    var grow = new ResizeObserver(function () { refreshPhoneOrder(); });
+    Object.keys(ITEMS).forEach(function (id) { var el = document.querySelector(ITEMS[id]); if (el) grow.observe(el); });
+  }
+  window.addEventListener('load', refreshPhoneOrder);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshPhoneOrder);
 })();

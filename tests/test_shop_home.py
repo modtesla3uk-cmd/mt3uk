@@ -320,11 +320,15 @@ def test_the_homepage_editor_numbers_each_card_with_its_place_on_a_phone(page):
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto("/index.html?layout=edit")
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-edit"))
-    expect(page.locator(".hp-cols .hl-phone-no[data-for=laps]")).to_have_text("Phone 2")
+    expected = {"latest": "Phone 1", "laps": "Phone 2", "next": "Phone 3", "join": "Phone 4", "offer": "Phone 5", "shop": "Phone 6",
+                "note": "Phone 7", "stats": "Phone 8"}
+    # The cards fill in and settle after the editor opens, so wait for the numbers to settle on their order before reading them.
+    page.wait_for_function("""(want) => [...document.querySelectorAll('.hp-cols .hl-phone-no')].length === Object.keys(want).length
+        && [...document.querySelectorAll('.hp-cols .hl-phone-no')].every(el => want[el.getAttribute('data-for')] === el.textContent)""",
+        arg=expected, timeout=10000)
     numbers = page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('.hp-cols .hl-phone-no')].map(
       el => [el.getAttribute('data-for'), el.textContent]))""")
-    assert numbers == {"latest": "Phone 1", "laps": "Phone 2", "next": "Phone 3", "join": "Phone 4", "offer": "Phone 5", "shop": "Phone 6",
-                       "note": "Phone 7", "stats": "Phone 8"}
+    assert numbers == expected
     page.locator("#hl-bar [data-a=phone]").click()
     expect(page.locator(".hp-cols")).to_have_class(re.compile("hl-no-phone"))
     expect(page.locator(".hp-cols .hl-phone-no[data-for=latest]")).to_be_hidden()

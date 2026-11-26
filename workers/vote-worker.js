@@ -10623,6 +10623,100 @@ async function handleShopSalesAdmin(request, env) {
   return json({ success: true, byHandle: byHandle });
 }
 
+// ---------- Shop checkout with Stripe (POST /shop/checkout) ----------
+// The cart is priced here, from the Shopify catalogue, the discount per product and the weights below. The buyer picks a
+// country first, so the shipping charge is known before Stripe Checkout opens: UK (£4.99, free from £78.98) or Ireland
+// (by package weight: £12.00 up to 0.85 lb, £17.00 up to 30 lb). Stripe takes the card. The secret key is the worker secret
+// STRIPE_SECRET_KEY, never sent to the page. Weights are assumptions until weighed (see the Shop panel).
+var SHOP_WEIGHTS_LB = {
+  'black-mt3uk-tee-red-underline-super-soft': 0.55,
+  'black-mt3uk-tee-yellow-underline': 0.55,
+  'mt3uk-official-stickers-white-red-line-3-pack': 0.07,
+  'mt3uk-fire-red-hoodie-yellow-line': 1.3,
+  'mt3uk-grey-hoodie-red-line': 1.3,
+  'model-3-brake-master-cylinder-bracket-for-rhd-models-only': 0.45
+};
+var SHIPPING = {
+  GB: { standard: 499, freeOver: 7898, label: 'UK standard, 3 to 5 business days' },
+  IE: { bands: [{ upTo: 0.85, amount: 1200 }, { upTo: 30, amount: 1700 }], label: 'Ireland, 5 to 8 business days' }
+};
+async function shopCatalogue() {
+  var res = await fetch(SHOPIFY_PRODUCTS_URL, { headers: { 'User-Agent': 'mt3uk-shop-checkout' } });
+  if (!res.ok) throw new Error('Could not reach the shop');
+  var data = await res.json();
+  var byVariant = {};
+  (data.products || []).forEach(function (p) {
+    (p.variants || []).forEach(function (v) {
+      byVariant[String(v.id)] = { handle: p.handle, title: p.title, variant: v.title, price: parseFloat(v.price), available: v.available };
+    });
+  });
+  return byVariant;
+}
+// Prices a cart and works out the shipping for a country. Returns { error } or the lines, the totals and the shipping.
+async function priceCart(env, items, country) {
+  if (!SHIPPING[country]) return { error: 'We ship to the UK and Ireland for now.' };
+  if (!Array.isArray(items) || !items.length || items.length > 20) return { error: 'Your basket is empty.' };
+  var catalogue = await shopCatalogue();
+  var discounts = await getJsonKey(env, SHOP_DISCOUNTS_KEY, {});
+  var lines = [], subtotal = 0, weight = 0;
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i], qty = Math.floor(Number(it && it.qty));
+    var item = catalogue[String(it && it.variantId)];
+    if (!item) return { error: 'One of the items is no longer on sale.' };
+    if (!item.available) return { error: item.title + ' is sold out.' };
+    if (!(qty >= 1 && qty <= 10)) return { error: 'Choose between 1 and 10 of each item.' };
+    var w = SHOP_WEIGHTS_LB[item.handle];
+    if (w === undefined) return { error: 'We have no weight for ' + item.title + ', so we cannot price the postage yet.' };
+    var pct = Math.max(0, Math.min(100, Math.floor(Number(discounts[item.handle]) || 0)));
+    var unit = Math.round(Math.round(item.price * 100) * (100 - pct) / 100);
+    subtotal += unit * qty;
+    weight += w * qty;
+    lines.push({ handle: item.handle, title: item.title + (item.variant && item.variant !== 'Default Title' ? ' (' + item.variant + ')' : ''), variantId: String(it.variantId), qty: qty, unit: unit, percent: pct });
+  }
+  var ship;
+  if (country === 'GB') {
+    ship = subtotal >= SHIPPING.GB.freeOver ? 0 : SHIPPING.GB.standard;
+    ship = { amount: ship, label: ship ? SHIPPING.GB.label : 'UK, free over £78.98' };
+  } else {
+    var band = SHIPPING.IE.bands.filter(function (b) { return weight <= b.upTo; })[0];
+    if (!band) return { error: 'This basket is too heavy to post to Ireland. Please contact us.' };
+    ship = { amount: band.amount, label: SHIPPING.IE.label };
+  }
+  return { lines: lines, subtotal: subtotal, weight: Math.round(weight * 100) / 100, shipping: ship, total: subtotal + ship.amount };
+}
+async function handleShopCheckout(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var country = String((body && body.country) || '').toUpperCase();
+  var priced = await priceCart(env, body && body.items, country).catch(function (e) { return { error: e.message }; });
+  if (priced.error) return json({ success: false, message: priced.error }, 400);
+  if (!env.STRIPE_SECRET_KEY) return json({ success: false, message: 'Payments are not set up yet.' }, 503);
+  var form = new URLSearchParams();
+  form.set('mode', 'payment');
+  form.set('success_url', 'https://mt3uk.com/shop.html?order=thanks');
+  form.set('cancel_url', 'https://mt3uk.com/shop.html#merch');
+  form.set('shipping_address_collection[allowed_countries][0]', country);
+  form.set('shipping_options[0][shipping_rate_data][type]', 'fixed_amount');
+  form.set('shipping_options[0][shipping_rate_data][display_name]', priced.shipping.label);
+  form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(priced.shipping.amount));
+  form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'gbp');
+  priced.lines.forEach(function (l, n) {
+    form.set('line_items[' + n + '][quantity]', String(l.qty));
+    form.set('line_items[' + n + '][price_data][currency]', 'gbp');
+    form.set('line_items[' + n + '][price_data][unit_amount]', String(l.unit));
+    form.set('line_items[' + n + '][price_data][product_data][name]', l.title);
+  });
+  if (country === 'IE') form.set('custom_text[shipping_address][message]', 'Customs and handling charges may be payable to the courier on delivery in Ireland.');
+  var res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form.toString()
+  });
+  var data = await res.json().catch(function () { return {}; });
+  if (!res.ok || !data.url) return json({ success: false, message: 'Could not start payment (' + res.status + ').' }, 502);
+  return json({ success: true, url: data.url, summary: { lines: priced.lines, subtotal: priced.subtotal, shipping: priced.shipping, total: priced.total, weight: priced.weight } });
+}
+
 // ---------- Member discount per product (GET /shop/discounts), set on the Shop panel of admin.html ----------
 // One KV key holds the percentage off for each product (1 to 100). A product with none set has no discount on the Shop page.
 var SHOP_DISCOUNTS_KEY = 'shop-discounts';
@@ -14099,7 +14193,8 @@ export default {
     if (url.pathname === '/shop/sales' && request.method === 'GET') return handleShopSales(env);
     if (url.pathname === '/shop/sales/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopSalesAdmin(request, env);
     if (url.pathname === '/shop/discounts' && request.method === 'GET') return handleShopDiscounts(env);
-    if (url.pathname === '/shop/discounts/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopDiscountsAdmin(request, env);
+    if (url.pathname === '/shop/discounts/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopDiscountsAdmin(request, env)
+    if (url.pathname === '/shop/checkout' && request.method === 'POST') return handleShopCheckout(request, env);;
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);

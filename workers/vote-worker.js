@@ -10758,6 +10758,70 @@ async function handleShopCheckout(request, env) {
   return json({ success: true, url: data.url, summary: { lines: priced.lines, subtotal: priced.subtotal, shipping: priced.shipping, total: priced.total, weight: priced.weight } });
 }
 
+// ---------- Stripe webhook (POST /shop/stripe-webhook): a paid order is kept and emailed to MT3UK ----------
+// Stripe posts checkout.session.completed here. The signature is checked with STRIPE_WEBHOOK_SECRET (the signing secret
+// of this endpoint in Stripe), so only Stripe can post an order. The orders are one KV key, the latest 100, and each is
+// emailed through sendAdminEmail so the Email switch covers it.
+var SHOP_ORDERS_KEY = 'shop-orders';
+var SHOP_ORDERS_MAX = 100;
+
+// Stripe's Stripe-Signature header: t=<time>,v1=<HMAC-SHA256 of "<time>.<body>" with the secret>. Checked within 5 minutes.
+async function stripeSignatureOk(body, header, secret) {
+  var parts = {}, v1 = [];
+  String(header || '').split(',').forEach(function (p) {
+    var i = p.indexOf('=');
+    if (i < 0) return;
+    var k = p.slice(0, i).trim(), v = p.slice(i + 1).trim();
+    if (k === 'v1') v1.push(v); else parts[k] = v;
+  });
+  var t = Number(parts.t);
+  if (!t || !v1.length || Math.abs(Date.now() / 1000 - t) > 300) return false;
+  var key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  var mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(t + '.' + body));
+  var hex = Array.from(new Uint8Array(mac)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  return v1.indexOf(hex) !== -1;
+}
+
+async function handleShopStripeWebhook(request, env) {
+  if (!env.STRIPE_WEBHOOK_SECRET) return json({ success: false, message: 'Not set up' }, 503);
+  var body = await request.text();
+  if (!(await stripeSignatureOk(body, request.headers.get('Stripe-Signature'), env.STRIPE_WEBHOOK_SECRET))) return json({ success: false, message: 'Bad signature' }, 400);
+  var event;
+  try { event = JSON.parse(body); } catch (e) { return json({ success: false, message: 'Bad body' }, 400); }
+  if (!event || event.type !== 'checkout.session.completed') return json({ received: true });
+  var s = (event.data && event.data.object) || {};
+  if (s.payment_status !== 'paid') return json({ received: true });
+  var orders = await getJsonKey(env, SHOP_ORDERS_KEY, []);
+  if (orders.some(function (o) { return o.id === s.id; })) return json({ received: true, duplicate: true });
+  // The items of the basket, from the session's line items.
+  var items = [];
+  if (env.STRIPE_SECRET_KEY) {
+    var lres = await fetch('https://api.stripe.com/v1/checkout/sessions/' + encodeURIComponent(s.id) + '/line_items?limit=20', {
+      headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY }
+    });
+    var ldata = await lres.json().catch(function () { return {}; });
+    items = (ldata.data || []).map(function (li) { return { name: li.description || '', qty: li.quantity || 0, amount: li.amount_total || 0 }; });
+  }
+  var det = s.customer_details || {}, ship = s.shipping_details || {}, addr = ship.address || det.address || {};
+  var totals = s.total_details || {};
+  var order = {
+    id: s.id, at: new Date().toISOString(), email: det.email || '', name: ship.name || det.name || '',
+    address: [addr.line1, addr.line2, addr.city, addr.postal_code, addr.country].filter(Boolean).join(', '),
+    items: items, subtotal: s.amount_subtotal || 0, discount: totals.amount_discount || 0, shipping: totals.amount_shipping || 0,
+    total: s.amount_total || 0, campaign: (s.metadata && s.metadata.utm_campaign) || ''
+  };
+  orders.unshift(order);
+  await env.VOTES.put(SHOP_ORDERS_KEY, JSON.stringify(orders.slice(0, SHOP_ORDERS_MAX)));
+  var pounds = function (p) { return '£' + (Number(p || 0) / 100).toFixed(2); };
+  var subject = 'New shop order: ' + pounds(order.total) + ' from ' + (order.name || order.email || 'a customer');
+  var text = ['A shop order has been paid on Stripe.', '', 'Name: ' + order.name, 'Email: ' + order.email, 'Ship to: ' + order.address, '', 'Items:']
+    .concat(items.map(function (i) { return '  ' + i.qty + ' x ' + i.name + ' (' + pounds(i.amount) + ')'; }))
+    .concat(['', 'Subtotal: ' + pounds(order.subtotal), 'Discount: ' + pounds(order.discount), 'Postage: ' + pounds(order.shipping),
+      'Total: ' + pounds(order.total), 'Campaign: ' + (order.campaign || 'none'), '', 'Stripe session: ' + s.id]).join('\n');
+  await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/admin.html');
+  return json({ received: true });
+}
+
 // ---------- Member discount per product (GET /shop/discounts), set on the Shop panel of admin.html ----------
 // One KV key holds the percentage off for each product (1 to 100). A product with none set has no discount on the Shop page.
 var SHOP_DISCOUNTS_KEY = 'shop-discounts';
@@ -14237,6 +14301,7 @@ export default {
     if (url.pathname === '/shop/discounts/admin' && (request.method === 'GET' || request.method === 'POST')) return handleShopDiscountsAdmin(request, env)
     if (url.pathname === '/shop/checkout' && request.method === 'POST') return handleShopCheckout(request, env);
     if (url.pathname === '/shop/quote' && request.method === 'POST') return handleShopQuote(request, env);;
+    if (url.pathname === '/shop/stripe-webhook' && request.method === 'POST') return handleShopStripeWebhook(request, env);
     if (url.pathname === '/shop/home' && request.method === 'GET') return handleShopHomePublic(env);
     if (url.pathname === '/home/layout' && request.method === 'GET') return handleHomeLayoutPublic(env);
     if (url.pathname === '/home/layout/admin' && (request.method === 'GET' || request.method === 'POST')) return handleHomeLayoutAdmin(request, env);

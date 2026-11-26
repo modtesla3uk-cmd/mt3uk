@@ -751,6 +751,7 @@
   .buy-change { margin: 0 0 12px; background: none; border: 0; padding: 0; color: var(--ink, #16233d); text-decoration: underline; font: 600 0.85rem 'IBM Plex Sans', sans-serif; cursor: pointer; }
   .buy-summary { margin: 4px 0 12px; border-radius: 12px; background: #fff; border: 1px solid rgba(22, 35, 61, 0.12); padding: 12px 14px; font-size: 0.92rem; }
   .buy-summary div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .buy-summary .buy-saving { font-weight: 600; }
   .buy-summary .buy-total { font-weight: 700; border-top: 1px solid rgba(22, 35, 61, 0.12); margin-top: 6px; padding-top: 8px; }
   .buy-note { margin: 0 0 12px; font-size: 0.85rem; color: #5b6678; }
   .buy-error { margin: 0 0 12px; font-size: 0.9rem; color: #b42318; font-weight: 600; }
@@ -1717,8 +1718,9 @@
         .then(function (out) {
           if (my !== quoting) return;
           if (!out.ok || !out.d.success) { summaryEl.innerHTML = ''; noteEl.textContent = ''; errEl.textContent = out.d.message || 'We could not price that order. Please try again.'; errEl.hidden = false; return; }
-          var s = out.d.summary, line = s.lines[0];
-          summaryEl.innerHTML = '<div><span>' + esc(line.qty) + ' \u00d7 ' + esc(line.title) + '</span><span>' + money(line.unit * line.qty) + '</span></div>' +
+          var s = out.d.summary, line = s.lines[0], saving = (line.full - line.unit) * line.qty;
+          summaryEl.innerHTML = '<div><span>' + esc(line.qty) + ' \u00d7 ' + esc(line.title) + '</span><span>' + money(line.full * line.qty) + '</span></div>' +
+            (saving > 0 ? '<div class="buy-saving"><span>Shop discount</span><span>\u2212' + money(saving) + '</span></div>' : '') +
             '<div><span>Postage (' + esc(s.shipping.label) + ')</span><span>' + (s.shipping.amount ? money(s.shipping.amount) : 'Free') + '</span></div>' +
             '<div class="buy-total"><span>Total</span><span>' + money(s.total) + '</span></div>';
           noteEl.textContent = country === 'IE' ? 'Customs and handling may be payable to the courier on delivery in Ireland.' : '';
@@ -1727,15 +1729,23 @@
         .catch(function () { if (my === quoting) { errEl.textContent = 'We could not reach the shop. Please try again.'; errEl.hidden = false; } });
     }
     function pay() {
+      // Stripe opens in a new tab. The tab is opened at once, while the press still counts as the buyer's, so the browser does
+      // not block it; it is sent to Stripe when the order is ready, or closed if the order cannot start.
+      var tab = window.open('', '_blank');
       payBtn.disabled = true; payBtn.textContent = 'Opening Stripe...';
       fetch(API + '/shop/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ country: country, items: [{ variantId: Number(sizeEl.value), qty: Math.floor(Number(qtyEl.value)) }], utm: { source: 'mt3uk_shop', medium: 'internal', campaign: (product && product.buyCampaign) || 'live_merch' } }) })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (out) {
-          if (out.ok && out.d.success && out.d.url) { window.location.href = out.d.url; return; }
+          if (out.ok && out.d.success && out.d.url) {
+            if (tab) tab.location.href = out.d.url; else window.location.href = out.d.url;
+            payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe';
+            return;
+          }
+          if (tab) tab.close();
           errEl.textContent = out.d.message || 'Payment could not start. Please try again.'; errEl.hidden = false;
           payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe';
         })
-        .catch(function () { errEl.textContent = 'We could not reach the shop. Please try again.'; errEl.hidden = false; payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe'; });
+        .catch(function () { if (tab) tab.close(); errEl.textContent = 'We could not reach the shop. Please try again.'; errEl.hidden = false; payBtn.disabled = false; payBtn.textContent = 'Pay with Stripe'; });
     }
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-buy]');

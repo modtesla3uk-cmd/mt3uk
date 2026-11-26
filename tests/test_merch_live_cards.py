@@ -230,12 +230,31 @@ def test_pay_sends_the_utm_tags_of_the_buy_button_to_the_checkout(page):
     checked_out = []
     page.route("**/shop/quote", lambda r: (quoted.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "summary": {"lines": [{"handle": product["handle"], "title": "MT3UK Tee (M)", "variantId": "101", "qty": 1, "unit": 2299, "percent": 0}], "subtotal": 2299, "shipping": {"amount": 499, "label": "UK standard"}, "total": 2798, "weight": 0.75}}))))
     page.route("**/shop/checkout", lambda r: (checked_out.append(json.loads(r.request.post_data)), r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "url": "https://checkout.stripe.test/pay"}))))
-    page.route("https://checkout.stripe.test/**", lambda r: r.fulfill(status=200, content_type="text/html", body="<p>Stripe</p>"))
+    page.context.route("https://checkout.stripe.test/**", lambda r: r.fulfill(status=200, content_type="text/html", body="<p>Stripe</p>"))
     page.goto("/shop.html")
     page.locator("#shop-live-products .shop-live-card").first.locator("button.shop-buy").click()
     page.locator(".buy-country-btn[data-country='GB']").click()
     expect(page.locator("#buy-pay")).to_be_enabled()
-    page.locator("#buy-pay").click()
+    with page.context.expect_page() as opened:
+        page.locator("#buy-pay").click()
+    tab = opened.value
+    tab.wait_for_url("https://checkout.stripe.test/pay")
+    assert "shop.html" in page.url, "the shop tab stays where it is; Stripe opens in a new tab"
     expect(page.locator("#buy-error")).to_be_hidden()
     assert quoted and quoted[0]["country"] == "GB"
     assert checked_out == [{"country": "GB", "items": [{"variantId": 101, "qty": 1}], "utm": {"source": "mt3uk_shop", "medium": "internal", "campaign": "live_merch"}}]
+
+
+def test_the_buy_sheet_shows_the_shop_discount_as_its_own_line(page):
+    """The sheet shows the item at its full price, the Shop discount taken off it, then postage and the total."""
+    product = dict(FAKE_PRODUCTS["products"][0], variants=[{"id": 101, "title": "M", "price": "24.99", "available": True}])
+    page.route(SHOP_ENDPOINT_PATTERN, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "products": [product]}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.route("**/shop/quote", lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "summary": {"lines": [{"handle": product["handle"], "title": "MT3UK Tee (M)", "variantId": "101", "qty": 1, "unit": 1999, "full": 2499, "percent": 20}], "subtotal": 1999, "shipping": {"amount": 499, "label": "UK standard"}, "total": 2498, "weight": 0.75}})))
+    page.goto("/shop.html")
+    page.locator("#shop-live-products .shop-live-card").first.locator("button.shop-buy").click()
+    page.locator(".buy-country-btn[data-country='GB']").click()
+    summary = page.locator("#buy-summary")
+    expect(summary).to_contain_text("£24.99")
+    expect(summary).to_contain_text("Shop discount")
+    expect(summary).to_contain_text("−£5.00")
+    expect(summary.locator(".buy-total")).to_contain_text("£24.98")

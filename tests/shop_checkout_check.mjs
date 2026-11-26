@@ -18,6 +18,7 @@ globalThis.fetch = async (url, init) => {
   if (String(url).includes('api.stripe.com')) {
     sent.push(new URLSearchParams(init.body));
     if (String(url).includes('/coupons')) return new Response(JSON.stringify({ id: 'coupon_test' }), { status: 200 });
+    if (String(url).includes('/line_items')) return new Response(JSON.stringify({ data: [{ description: 'Black MT3UK TEE - Red underline (M)', quantity: 1, amount_total: 2499 }] }), { status: 200 });
     return new Response(JSON.stringify(stripeReply), { status: stripeStatus });
   }
   return new Response('{}', { status: 200 });
@@ -107,3 +108,50 @@ stripeStatus = 200; stripeReply = { url: 'https://checkout.stripe.test/c/pay/abc
 
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] }, { ...env, STRIPE_SECRET_KEY: '' });
 ok(r.status === 503, 'without the Stripe secret the shop says payments are not set up, and sends nothing');
+
+// The Stripe webhook: a paid checkout is kept and emailed to MT3UK, only when Stripe's signature checks out.
+const { createHmac } = await import('node:crypto');
+const emails = [];
+const hookEnv = { ...env, SEND_EMAIL: { send: async m => { emails.push(m); } }, STRIPE_WEBHOOK_SECRET: 'whsec_test' };
+const sign = (body, secret = 'whsec_test', at = Math.floor(Date.now() / 1000)) => 't=' + at + ',v1=' + createHmac('sha256', secret).update(at + '.' + body).digest('hex');
+const completed = (id = 'cs_test_1') => ({ id: 'evt_' + id, type: 'checkout.session.completed', data: { object: {
+  id, payment_status: 'paid', amount_subtotal: 2499, amount_total: 2498,
+  total_details: { amount_discount: 500, amount_shipping: 499 },
+  customer_details: { email: 'buyer@example.test', name: 'Test Buyer', address: { line1: '1 High St', city: 'London', postal_code: 'SW1A 1AA', country: 'GB' } },
+  shipping_details: { name: 'Test Buyer', address: { line1: '1 High St', city: 'London', postal_code: 'SW1A 1AA', country: 'GB' } },
+  metadata: { utm_campaign: 'live_merch' } } } });
+const hook = async (obj, sig, e = hookEnv) => {
+  const body = typeof obj === 'string' ? obj : JSON.stringify(obj);
+  const r = await worker.fetch(new Request('https://worker.test/shop/stripe-webhook', { method: 'POST', body, headers: { 'Stripe-Signature': sig } }), e, ctx);
+  return { status: r.status, body: await r.json() };
+};
+
+r = await hook(completed(), 'nonsense', hookEnv);
+ok(r.status === 400 && emails.length === 0, 'a webhook with a bad signature is refused and sends no email');
+const old = sign(JSON.stringify(completed()), 'whsec_test', Math.floor(Date.now() / 1000) - 1000);
+r = await hook(completed(), old);
+ok(r.status === 400 && emails.length === 0, 'a signed webhook older than five minutes is refused');
+r = await hook(completed(), sign(JSON.stringify(completed()), 'whsec_wrong'));
+ok(r.status === 400, 'a webhook signed with another secret is refused');
+r = await hook(completed(), 'x', { ...env });
+ok(r.status === 503, 'without the webhook secret the endpoint says it is not set up');
+
+const body = JSON.stringify(completed());
+r = await hook(body, sign(body));
+ok(r.status === 200 && r.body.received === true, 'a signed, paid checkout is accepted');
+ok(emails.length === 1, 'the order is emailed to MT3UK once');
+const mail = emails[0].raw || '';
+ok(/Total: £24\.98/.test(mail) && /^Subject: =\?UTF-8/m.test(mail) && /Discount: £5\.00/.test(mail) && /1 x Black MT3UK TEE/.test(mail), 'the email gives the total, the discount and the items');
+const kept = JSON.parse(kv.get('shop-orders'));
+ok(kept.length === 1 && kept[0].id === 'cs_test_1' && kept[0].total === 2498 && kept[0].campaign === 'live_merch', 'the order is kept on the Shop orders key with its tags');
+
+r = await hook(body, sign(body));
+ok(r.body.duplicate === true && emails.length === 1, 'the same session delivered again is not kept or emailed twice');
+
+const pending = JSON.stringify({ ...completed('cs_test_2'), type: 'checkout.session.async_payment_failed' });
+r = await hook(pending, sign(pending));
+ok(r.status === 200 && emails.length === 1, 'other Stripe events are accepted and ignored');
+const unpaid = completed('cs_test_3'); unpaid.data.object.payment_status = 'unpaid';
+const unpaidBody = JSON.stringify(unpaid);
+r = await hook(unpaidBody, sign(unpaidBody));
+ok(r.status === 200 && emails.length === 1, 'a checkout that is not paid yet is not emailed');

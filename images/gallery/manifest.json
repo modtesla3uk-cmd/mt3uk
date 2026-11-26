@@ -1,5 +1,55 @@
 [
   {
+    "file": "photo-19.jpg",
+    "caption": "PHOTO 19",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-19.jpg"
+  },
+  {
+    "file": "photo-17.jpg",
+    "caption": "PHOTO 17",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-19.jpg"
+  },
+  {
+    "file": "photo-16.jpg",
+    "caption": "PHOTO 16",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-19.jpg"
+  },
+  {
+    "file": "photo-15.jpg",
+    "caption": "PHOTO 15",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-19.jpg"
+  },
+  {
+    "file": "photo-18.jpg",
+    "caption": "PHOTO 18",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-19.jpg"
+  },
+  {
     "file": "photo-14.jpg",
     "caption": "PHOTO 14",
     "name": "straider",
@@ -7,7 +57,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-14.jpg"
+    "group": "photo-19.jpg"
   },
   {
     "file": "photo-13.jpg",
@@ -17,7 +67,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-14.jpg"
+    "group": "photo-19.jpg"
   },
   {
     "file": "photo-12.jpg",
@@ -27,102 +77,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-12.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-11.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-10.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-9.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-8.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-7.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-6.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-5.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-4.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Black",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro.jpg",
-    "name": "straider",
-    "color": "Silver",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-3.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Silver",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
-  },
-  {
-    "file": "photo--by-jc-monteiro-2.jpg",
-    "name": "straider",
-    "votable": false,
-    "color": "Silver",
-    "added": "2026-11-26",
-    "group": "photo-14.jpg"
+    "group": "photo-19.jpg"
   },
   {
     "file": "photo-9.jpg",

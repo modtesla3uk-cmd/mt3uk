@@ -17,6 +17,7 @@ globalThis.fetch = async (url, init) => {
   if (String(url).includes('shopify') || String(url).includes('products.json')) return new Response(JSON.stringify(CATALOGUE), { status: 200 });
   if (String(url).includes('api.stripe.com')) {
     sent.push(new URLSearchParams(init.body));
+    if (String(url).includes('/coupons')) return new Response(JSON.stringify({ id: 'coupon_test' }), { status: 200 });
     return new Response(JSON.stringify(stripeReply), { status: stripeStatus });
   }
   return new Response('{}', { status: 200 });
@@ -78,6 +79,13 @@ ok(lastStripe().get('metadata[utm_campaign]') === 'live_merch', 'a campaign with
 await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: { 'black-mt3uk-tee-red-underline-super-soft': 20 } }) }), env, ctx);
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
 ok(r.body.summary.lines[0].unit === 1999 && r.body.summary.lines[0].percent === 20, 'a discount set on the Shop panel is taken off the price in the basket (£24.99 less 20% is £19.99)');
+s = lastStripe();
+ok(s.get('line_items[0][price_data][unit_amount]') === '2499' && s.get('discounts[0][coupon]') === 'coupon_test', 'Stripe gets the item at its full £24.99 with a discount, so the page shows the saving');
+const coupon = sent.filter(p => p.get('amount_off') !== null).pop();
+ok(coupon && coupon.get('amount_off') === '500' && coupon.get('currency') === 'gbp' && coupon.get('duration') === 'once', 'the saving is one £5.00 once-only coupon');
+r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
+s = lastStripe();
+ok(s.get('discounts[0][coupon]') === 'coupon_test' && s.get('line_items[0][price_data][unit_amount]') === '2499', 'the same basket is sent again with its coupon');
 
 // The homepage offer's percentage is charged for an item in a live offer with no discount of its own, and not outside its dates.
 await worker.fetch(new Request('https://worker.test/shop/discounts/admin?key=secret', { method: 'POST', body: JSON.stringify({ byHandle: {} }) }), env, ctx);
@@ -85,6 +93,8 @@ const offerOn = (start, end) => kv.set('shop-home', JSON.stringify({ offer: { on
 offerOn('2000-01-01', '2999-12-31');
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
 ok(r.body.summary.lines[0].unit === 1499 && r.body.summary.lines[0].percent === 40, 'a live homepage offer takes its percentage off an item in it (£24.99 less 40% is £14.99)');
+s = lastStripe();
+ok(s.get('line_items[0][price_data][unit_amount]') === '2499' && sent.filter(p => p.get('amount_off') !== null).pop().get('amount_off') === '1000', 'the offer saving (£10.00) is the coupon, the item is at £24.99');
 offerOn('2000-01-01', '2000-01-02');
 r = await checkout({ country: 'GB', items: [{ variantId: 1001, qty: 1 }] });
 ok(r.body.summary.lines[0].unit === 2499 && r.body.summary.lines[0].percent === 0, 'an offer that has ended is not charged');

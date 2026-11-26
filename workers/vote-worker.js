@@ -10679,7 +10679,7 @@ async function priceCart(env, items, country) {
     var unit = Math.round(Math.round(item.price * 100) * (100 - pct) / 100);
     subtotal += unit * qty;
     weight += w * qty;
-    lines.push({ handle: item.handle, title: item.title + (item.variant && item.variant !== 'Default Title' ? ' (' + item.variant + ')' : ''), variantId: String(it.variantId), qty: qty, unit: unit, percent: pct });
+    lines.push({ handle: item.handle, title: item.title + (item.variant && item.variant !== 'Default Title' ? ' (' + item.variant + ')' : ''), variantId: String(it.variantId), qty: qty, unit: unit, full: Math.round(item.price * 100), percent: pct });
   }
   var ship;
   if (country === 'GB') {
@@ -10726,12 +10726,27 @@ async function handleShopCheckout(request, env) {
   form.set('shipping_options[0][shipping_rate_data][display_name]', priced.shipping.label);
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][amount]', String(priced.shipping.amount));
   form.set('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'gbp');
+  // The items go to Stripe at their full price, and the saving is one Stripe coupon for the whole basket (Checkout takes one),
+  // so the Stripe page and the receipt show a Discount line.
+  var saving = 0;
   priced.lines.forEach(function (l, n) {
     form.set('line_items[' + n + '][quantity]', String(l.qty));
     form.set('line_items[' + n + '][price_data][currency]', 'gbp');
-    form.set('line_items[' + n + '][price_data][unit_amount]', String(l.unit));
+    form.set('line_items[' + n + '][price_data][unit_amount]', String(l.full));
     form.set('line_items[' + n + '][price_data][product_data][name]', l.title);
+    saving += (l.full - l.unit) * l.qty;
   });
+  if (saving > 0) {
+    var coupon = new URLSearchParams({ amount_off: String(saving), currency: 'gbp', duration: 'once', max_redemptions: '1', name: 'Shop discount' });
+    var cres = await fetch('https://api.stripe.com/v1/coupons', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: coupon.toString()
+    });
+    var cdata = await cres.json().catch(function () { return {}; });
+    if (!cres.ok || !cdata.id) return json({ success: false, message: 'Could not start payment (' + cres.status + ').' }, 502);
+    form.set('discounts[0][coupon]', cdata.id);
+  }
   if (country === 'IE') form.set('custom_text[shipping_address][message]', 'Customs and handling charges may be payable to the courier on delivery in Ireland.');
   var res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',

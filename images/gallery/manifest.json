@@ -1,5 +1,45 @@
 [
   {
+    "file": "photo-23.jpg",
+    "caption": "PHOTO 23",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-22.jpg",
+    "caption": "PHOTO 22",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-21.jpg",
+    "caption": "PHOTO 21",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-20.jpg",
+    "caption": "PHOTO 20",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
     "file": "photo-19.jpg",
     "caption": "PHOTO 19",
     "name": "straider",
@@ -7,37 +47,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-19.jpg"
-  },
-  {
-    "file": "photo-17.jpg",
-    "caption": "PHOTO 17",
-    "name": "straider",
-    "votable": false,
-    "gallery": false,
-    "reel": false,
-    "added": "2026-11-26",
-    "group": "photo-19.jpg"
-  },
-  {
-    "file": "photo-16.jpg",
-    "caption": "PHOTO 16",
-    "name": "straider",
-    "votable": false,
-    "gallery": false,
-    "reel": false,
-    "added": "2026-11-26",
-    "group": "photo-19.jpg"
-  },
-  {
-    "file": "photo-15.jpg",
-    "caption": "PHOTO 15",
-    "name": "straider",
-    "votable": false,
-    "gallery": false,
-    "reel": false,
-    "added": "2026-11-26",
-    "group": "photo-19.jpg"
+    "group": "photo-23.jpg"
   },
   {
     "file": "photo-18.jpg",
@@ -47,7 +57,37 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-19.jpg"
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-17.jpg",
+    "caption": "PHOTO 17",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-16.jpg",
+    "caption": "PHOTO 16",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
+  },
+  {
+    "file": "photo-15.jpg",
+    "caption": "PHOTO 15",
+    "name": "straider",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "added": "2026-11-26",
+    "group": "photo-23.jpg"
   },
   {
     "file": "photo-14.jpg",
@@ -57,7 +97,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-19.jpg"
+    "group": "photo-23.jpg"
   },
   {
     "file": "photo-13.jpg",
@@ -67,7 +107,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-19.jpg"
+    "group": "photo-23.jpg"
   },
   {
     "file": "photo-12.jpg",
@@ -77,7 +117,7 @@
     "gallery": false,
     "reel": false,
     "added": "2026-11-26",
-    "group": "photo-19.jpg"
+    "group": "photo-23.jpg"
   },
   {
     "file": "photo-9.jpg",

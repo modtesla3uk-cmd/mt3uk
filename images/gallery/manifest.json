@@ -93,6 +93,11 @@
     "file": "photo-14.jpg",
     "caption": "PHOTO 14",
     "name": "straider",
+    "mods": [
+      "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
+      "Rear brakes: OEM calipers, OEM discs, OEM pads",
+      "Brake fluid and lines: Motul RBF 660"
+    ],
     "votable": false,
     "gallery": false,
     "reel": false,
@@ -103,6 +108,11 @@
     "file": "photo-13.jpg",
     "caption": "PHOTO 13",
     "name": "straider",
+    "mods": [
+      "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
+      "Rear brakes: OEM calipers, OEM discs, OEM pads",
+      "Brake fluid and lines: Motul RBF 660"
+    ],
     "votable": false,
     "gallery": false,
     "reel": false,
@@ -113,6 +123,11 @@
     "file": "photo-12.jpg",
     "caption": "PHOTO 12",
     "name": "straider",
+    "mods": [
+      "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
+      "Rear brakes: OEM calipers, OEM discs, OEM pads",
+      "Brake fluid and lines: Motul RBF 660"
+    ],
     "votable": false,
     "gallery": false,
     "reel": false,

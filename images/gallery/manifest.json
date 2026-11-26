@@ -64,8 +64,6 @@
     "caption": "PHOTO 17",
     "name": "straider",
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
@@ -74,8 +72,6 @@
     "caption": "PHOTO 16",
     "name": "straider",
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
@@ -84,8 +80,6 @@
     "caption": "PHOTO 15",
     "name": "straider",
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
@@ -94,13 +88,12 @@
     "caption": "PHOTO 14",
     "name": "straider",
     "mods": [
+      "Tyres: Kuhmo Ecsta Sport S PS72, 255/35 R19",
       "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
       "Rear brakes: OEM calipers, OEM discs, OEM pads",
       "Brake fluid and lines: Motul RBF 660"
     ],
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
@@ -109,13 +102,12 @@
     "caption": "PHOTO 13",
     "name": "straider",
     "mods": [
+      "Tyres: Kuhmo Ecsta Sport S PS72, 255/35 R19",
       "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
       "Rear brakes: OEM calipers, OEM discs, OEM pads",
       "Brake fluid and lines: Motul RBF 660"
     ],
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
@@ -124,13 +116,12 @@
     "caption": "PHOTO 12",
     "name": "straider",
     "mods": [
+      "Tyres: Kuhmo Ecsta Sport S PS72, 255/35 R19",
       "Front brakes: OEM calipers, EBC Grooved discs, EBC Bluestuff NDX pads",
       "Rear brakes: OEM calipers, OEM discs, OEM pads",
       "Brake fluid and lines: Motul RBF 660"
     ],
     "votable": false,
-    "gallery": false,
-    "reel": false,
     "added": "2026-11-26",
     "group": "photo-23.jpg"
   },
